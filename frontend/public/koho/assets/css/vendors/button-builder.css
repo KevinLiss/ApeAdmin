@@ -1,0 +1,473 @@
+/**=====================
+     65. Button Builder color picker CSS Start
+==========================**/
+.button-builder .colorpicker {
+  width: 325px;
+  height: 176px;
+  overflow: hidden;
+  position: absolute;
+  display: none;
+  z-index: 8;
+  background: #2c323f;
+  border: 1px solid rgba(83, 70, 134, 0.1019607843);
+}
+.button-builder .colorpicker input {
+  background-color: transparent;
+  border: 1px solid transparent;
+  position: absolute;
+  font-size: 10px;
+  color: rgba(83, 70, 134, 0.1019607843);
+  top: 4px;
+  right: 11px;
+  text-align: right;
+  margin: 0;
+  padding: 0;
+  height: 11px;
+}
+.button-builder .colorpicker-color {
+  width: 150px;
+  height: 150px;
+  left: 14px;
+  top: 13px;
+  position: absolute;
+  background: #DC0808;
+  overflow: hidden;
+  cursor: crosshair;
+}
+.button-builder .colorpicker-color div {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 150px;
+  height: 150px;
+  background: url(../images/button_builder/colorpicker_overlay.png);
+}
+.button-builder .colorpicker-color div div {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 11px;
+  height: 11px;
+  overflow: hidden;
+  background: url(../images/button_builder/colorpicker_select.gif);
+  margin: -5px 0 0 -5px;
+}
+.button-builder .colorpicker-hue {
+  position: absolute;
+  top: 13px;
+  left: 171px;
+  width: 35px;
+  height: 150px;
+  cursor: n-resize;
+}
+.button-builder .colorpicker-hue div {
+  position: absolute;
+  width: 35px;
+  height: 9px;
+  overflow: hidden;
+  margin: -4px 0 0;
+  left: 0;
+}
+.button-builder .colorpicker-new-color {
+  position: absolute;
+  width: 60px;
+  height: 30px;
+  left: 213px;
+  top: 13px;
+  background: #DC0808;
+}
+.button-builder .colorpicker-current-color {
+  position: absolute;
+  width: 60px;
+  height: 30px;
+  left: 283px;
+  top: 13px;
+  background: #DC0808;
+}
+.button-builder .colorpicker-hex {
+  position: absolute;
+  width: 72px;
+  height: 22px;
+  left: 212px;
+  top: 142px;
+}
+.button-builder .colorpicker-hex input {
+  right: 6px;
+}
+.button-builder .colorpicker-hex.colorpicker-focus {
+  background-position: bottom;
+}
+.button-builder .colorpicker-field {
+  height: 22px;
+  width: 62px;
+  background-position: top;
+  position: absolute;
+}
+.button-builder .colorpicker-field span {
+  position: absolute;
+  width: 12px;
+  height: 22px;
+  overflow: hidden;
+  top: 0;
+  right: 0;
+  cursor: n-resize;
+}
+.button-builder .colorpicker-rgb-r {
+  top: 52px;
+  left: 212px;
+}
+.button-builder .colorpicker-rgb-g {
+  top: 82px;
+  left: 212px;
+}
+.button-builder .colorpicker-rgb-b {
+  top: 112px;
+  left: 212px;
+}
+.button-builder .colorpicker_hsb_h {
+  top: 52px;
+  left: 282px;
+}
+.button-builder .colorpicker_hsb_s {
+  top: 82px;
+  left: 282px;
+}
+.button-builder .colorpicker-hsb-b {
+  top: 112px;
+  left: 282px;
+}
+.button-builder .colorpicker-submit {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  left: 322px;
+  top: 142px;
+  overflow: hidden;
+}
+.button-builder .colorpicker-submit.colorpicker-focus {
+  background-position: bottom;
+}
+.button-builder .colorpicker-focus {
+  background-position: center;
+}
+.button-builder .colorpicker-slider {
+  background-position: bottom;
+}
+
+/**=====================
+  65. Button Builder colorpicker CSS start
+==========================**/
+/**=====================
+   64. Button Builder CSS start Here
+==========================**/
+.button-builder-wrap .colorpicker-submit:visited {
+  background-color: #2c323f;
+  background-image: none;
+  color: #ffffff;
+  text-decoration: none;
+}
+.button-builder-wrap .button-generator-bx {
+  position: fixed;
+  width: 340px;
+  max-height: 500px;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.button-builder-wrap .custom-button-color {
+  display: none;
+}
+.button-builder-wrap .custom-button-color .form-control {
+  width: 100px;
+  border-radius: 5px 0 0 5px;
+  padding: 8px 20px;
+}
+.button-builder-wrap .color-slelector {
+  float: left;
+  height: 39px;
+  position: relative;
+  width: 39px;
+}
+.button-builder-wrap .color-slelector div {
+  height: 33px;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 33px;
+  transform: scale(1.4);
+  z-index: 1;
+  background: url(../../images/button_builder/select.png) repeat scroll 0 0 rgba(0, 0, 0, 0);
+}
+.button-builder-wrap .custom-radio {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  position: relative;
+  z-index: 1;
+  top: 3px;
+  border: 1px solid var(--theme-default);
+  border-radius: 100%;
+}
+.button-builder-wrap .custom-radio:hover {
+  background-position: 0 -16px;
+}
+.button-builder-wrap .custom-radio.selected {
+  background-color: var(--theme-default);
+}
+.button-builder-wrap .custom-radio input[type=radio] {
+  margin: 1px;
+  position: absolute;
+  z-index: 2;
+  cursor: pointer;
+  outline: none;
+  opacity: 0;
+  filter: alpha(opacity=0);
+}
+.button-builder-wrap .custom-checkbox {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  position: relative;
+  z-index: 1;
+  top: 3px;
+  background: url(../../images/button_builder/checkbox-sprite.png) no-repeat 0 0 transparent;
+}
+.button-builder-wrap .custom-checkbox:hover {
+  background-position: 0 -16px;
+}
+.button-builder-wrap .custom-checkbox.selected {
+  background-position: 0 -32px;
+}
+.button-builder-wrap .custom-checkbox input[type=checkbox] {
+  margin: 0;
+  position: absolute;
+  z-index: 2;
+  cursor: pointer;
+  outline: none;
+  opacity: 0;
+  filter: alpha(opacity=0);
+}
+.button-builder-wrap .colorpicker-hex {
+  background: url(../../images/button_builder/hex_bg.gif) no-repeat scroll right center rgba(0, 0, 0, 0);
+  left: 220px;
+  padding-left: 15px;
+  position: absolute;
+  top: 98px;
+  width: 75px;
+  height: 25px;
+  box-sizing: content-box;
+}
+.button-builder-wrap .colorpicker-hex input {
+  background: transparent;
+  border: medium none;
+  color: #242934;
+  display: block;
+  box-shadow: none;
+  font-size: 13px;
+  height: 17px;
+  outline: medium none;
+  padding: 5px;
+  top: 0;
+  right: 1px;
+  text-align: left;
+  text-transform: uppercase;
+  width: 65px;
+  box-sizing: content-box;
+}
+.button-builder-wrap .colorpicker-hue {
+  background: url(../../images/button_builder/rainbow.png) no-repeat scroll center center rgba(0, 0, 0, 0);
+  cursor: default;
+  height: 150px;
+  left: 171px;
+  position: absolute;
+  top: 13px;
+  width: 35px;
+}
+.button-builder-wrap .colorpicker-hue div {
+  background: url(../../images/button_builder/scroll.png) no-repeat scroll left top rgba(0, 0, 0, 0);
+  height: 16px;
+  left: 0;
+  margin-top: -8px;
+  overflow: hidden;
+  position: absolute;
+  width: 35px;
+}
+.button-builder-wrap .colorpicker-new-color {
+  height: 75px;
+  left: 235px;
+  position: absolute;
+  top: 12px;
+  width: 73px;
+  border: 1px solid rgba(83, 70, 134, 0.1019607843);
+}
+.button-builder-wrap .colorpicker-field {
+  display: none;
+}
+.button-builder-wrap .colorpicker-current-color {
+  display: none;
+}
+.button-builder-wrap .colorpicker-submit {
+  cursor: pointer;
+  display: block;
+  height: 25px;
+  left: 235px;
+  position: absolute;
+  top: 133px;
+  width: 75px;
+  background-color: var(--theme-default);
+  border-radius: 5px;
+}
+.button-builder-wrap .colorpicker-submit:before {
+  content: "Ok";
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  padding: 3px 10px;
+  color: #ffffff;
+}
+.button-builder-wrap .colorpicker-submit:hover {
+  background-color: #3e3565;
+}
+.button-builder-wrap .box {
+  margin-bottom: 20px;
+  padding: 30px;
+  text-align: center;
+  border: 1px solid rgba(83, 70, 134, 0.1019607843);
+  border-radius: 5px;
+}
+.button-builder-wrap .button-preview {
+  min-height: 145px;
+}
+.button-builder-wrap .button-preview h2 {
+  color: #2c323f;
+  font-size: 18px;
+  font-weight: normal;
+  margin: 0;
+}
+.button-builder-wrap .button-preview.affix {
+  top: 58px;
+  position: fixed;
+  width: 395px;
+  z-index: 999;
+}
+.button-builder-wrap #result {
+  padding-top: 30px;
+}
+.button-builder-wrap .well .language-markup {
+  word-wrap: break-word;
+  white-space: normal;
+}
+.button-builder-wrap .well .language-css {
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+.button-builder-wrap pre.well {
+  margin: 0;
+  padding: 0;
+  overflow: unset;
+}
+.button-builder-wrap .copy {
+  margin-top: 30px;
+  position: relative;
+}
+.button-builder-wrap .copy .zclip {
+  left: 0 !important;
+  right: 0 !important;
+  margin: 0 auto !important;
+}
+.button-builder-wrap .copy a {
+  background-color: var(--theme-default);
+  color: #ffffff;
+  font-weight: bold;
+  display: inline-block;
+  padding: 0.375rem 1.75rem;
+  border-radius: 5px;
+}
+.button-builder-wrap .sucess-msg {
+  height: 30px;
+  line-height: 30px;
+  display: none;
+  font-size: 14px;
+  width: 100%;
+  text-align: center;
+  margin-bottom: -30px;
+}
+.button-builder-wrap .code-wrapper {
+  position: relative;
+  width: 100%;
+  margin: 0;
+}
+.button-builder-wrap .column-left {
+  float: left;
+  width: 655px;
+}
+.button-builder-wrap .column-right {
+  float: right;
+  width: 395px;
+  position: relative;
+  padding-top: 175px;
+}
+.button-builder-wrap code {
+  font-size: 11.5px !important;
+}
+.button-builder-wrap .hint-label {
+  float: left;
+  padding: 4px 0 0 20px;
+  font-style: italic;
+}
+.button-builder-wrap .button-style {
+  margin-top: 1px !important;
+}
+.button-builder-wrap .ad-box {
+  height: 90px;
+  overflow: hidden;
+  margin: 0 0 20px;
+}
+.button-builder-wrap ul.the-icons {
+  margin: 0 0 0 -8px;
+  padding-left: 0;
+  font-size: 13px;
+}
+.button-builder-wrap ul.the-icons li {
+  float: left;
+  line-height: 15px;
+  cursor: pointer;
+  text-align: center;
+  list-style: none outside none;
+  padding: 5px;
+  border: 1px dotted rgba(83, 70, 134, 0.1019607843);
+  color: #898989;
+  width: 40px;
+  transition: all 0.2s ease-in-out 0s;
+  margin: 2px;
+}
+.button-builder-wrap ul.the-icons li em {
+  display: none !important;
+}
+.button-builder-wrap ul.the-icons li:hover {
+  background: #ffffff;
+  box-shadow: 0 0 3px #f4f4f4;
+}
+.button-builder-wrap ul.the-icons li:hover.active {
+  background: #ffffff;
+  box-shadow: 0 0 3px #f4f4f4;
+}
+
+.button-builder-wrap .form-group {
+  margin-bottom: 15px;
+}
+.button-builder-wrap .form-group .btn {
+  margin-right: 15px;
+  margin-bottom: 15px;
+  min-width: 100px;
+}
+.button-builder-wrap .grp-btns .btn input {
+  display: none;
+}
+.button-builder-wrap .btn-light.active {
+  background-color: #534686 !important;
+}
+
+/*==============================
+ 64. Button Builder CSS End
+ ===========================*/

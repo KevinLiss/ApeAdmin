@@ -1,0 +1,161 @@
+/* ============================================================
+   ApeUI Purple Theme — Koho #534686 紫色系
+   覆盖 Element Plus CSS 变量，全局换肤
+   ============================================================ */
+
+:root {
+  /* Koho 紫色主色 #534686 */
+  --el-color-primary: #534686;
+  --el-color-primary-light-3: #7b6fa8;
+  --el-color-primary-light-5: #a09cc3;
+  --el-color-primary-light-7: #c4c1dd;
+  --el-color-primary-light-8: #d5d3e8;
+  --el-color-primary-light-9: #e8e7f4;
+  --el-color-primary-dark-2: #42386b;
+  --el-color-primary-rgb: 83, 70, 134;
+
+  /* Koho 语义色 */
+  --el-color-success: #67c100;
+  --el-color-success-light-3: #96d44f;
+  --el-color-success-light-5: #b2e080;
+  --el-color-success-light-7: #cfebaf;
+  --el-color-success-light-8: #ddf0c5;
+  --el-color-success-light-9: #e9f5db;
+  --el-color-success-dark-2: #539b00;
+
+  --el-color-warning: #e56809;
+  --el-color-warning-light-3: #ed8f42;
+  --el-color-warning-light-5: #f2b274;
+  --el-color-warning-light-7: #f6d4a6;
+  --el-color-warning-light-8: #f9e2bf;
+  --el-color-warning-light-9: #fcf0d9;
+  --el-color-warning-dark-2: #b85307;
+
+  --el-color-danger: #dc0808;
+  --el-color-danger-light-3: #e63b3b;
+  --el-color-danger-light-5: #ee7676;
+  --el-color-danger-light-7: #f4a8a8;
+  --el-color-danger-light-8: #f8c0c0;
+  --el-color-danger-light-9: #fbd7d7;
+  --el-color-danger-dark-2: #b00606;
+
+  --el-color-info: #3ebcb9;
+  --el-color-info-light-3: #6ccfcd;
+  --el-color-info-light-5: #9adbda;
+  --el-color-info-light-7: #c3e9e8;
+  --el-color-info-light-8: #d6efee;
+  --el-color-info-light-9: #e9f5f5;
+  --el-color-info-dark-2: #319695;
+
+  /* Koho 字体 */
+  --el-font-family: 'Rubik', 'Roboto', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --el-font-size-base: 14px;
+
+  /* Koho 圆角 */
+  --el-border-radius-base: 8px;
+  --el-border-radius-small: 5px;
+  --el-border-radius-round: 20px;
+
+  /* Koho 边框色 */
+  --el-border-color: #e9edf3;
+  --el-border-color-light: #f0f2f5;
+  --el-border-color-lighter: #f5f7fa;
+  --el-border-color-dark: #d0d4dc;
+
+  /* Koho 文字色 */
+  --el-text-color-primary: #2b2b2b;
+  --el-text-color-regular: #5a6273;
+  --el-text-color-secondary: #909399;
+  --el-text-color-placeholder: #c0c4cc;
+
+  /* Koho 背景色 */
+  --el-bg-color: #ffffff;
+  --el-bg-color-page: #eff3f9;
+  --el-bg-color-overlay: #ffffff;
+  --el-fill-color-blank: #ffffff;
+  --el-fill-color-light: #f5f7fa;
+}
+
+/* ============================================================
+   全局基础样式
+   ============================================================ */
+body {
+  font-family: 'Rubik', 'Roboto', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 14px;
+  color: #2b2b2b;
+  background-color: #eff3f9;
+  margin: 0;
+}
+
+/* ============================================================
+   ApeUI 公共布局组件样式
+   ============================================================ */
+
+/* 页面标题栏 */
+.apeui-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e9edf3;
+}
+.apeui-page-header h3 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #2b2b2b;
+}
+.apeui-page-header .breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #909399;
+}
+
+/* 统计卡片网格 */
+.stat-card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 0 20px rgba(89, 102, 122, 0.06);
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(83, 70, 134, 0.12);
+}
+.stat-card .stat-icon {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  flex-shrink: 0;
+  font-size: 24px;
+}
+.stat-card .stat-body { flex: 1; }
+.stat-card .stat-label { font-size: 13px; color: #909399; margin-bottom: 6px; }
+.stat-card .stat-value { font-size: 28px; font-weight: 700; color: #2b2b2b; line-height: 1.2; }
+.stat-card .stat-trend { margin-top: 8px; font-size: 12px; }
+.stat-card .stat-trend .up { color: #67c100; font-weight: 600; }
+.stat-card .stat-trend .down { color: #dc0808; font-weight: 600; }
+
+/* 响应式 */
+@media (max-width: 1200px) {
+  .stat-card-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .stat-card-grid { grid-template-columns: 1fr; }
+}

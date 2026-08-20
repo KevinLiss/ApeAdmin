@@ -9,13 +9,21 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "axios": "^1.7.9",
-    "element-plus": "^2.9.0",
     "@element-plus/icons-vue": "^2.3.1",
+    "@fullcalendar/core": "^7.0.2",
+    "@fullcalendar/daygrid": "^6.1.21",
+    "@fullcalendar/interaction": "^6.1.21",
+    "@fullcalendar/vue3": "^7.0.2",
+    "axios": "^1.7.9",
+    "echarts": "^5.6.0",
+    "element-plus": "^2.9.0",
     "pinia": "^2.3.0",
+    "prismjs": "^1.30.0",
     "vue": "^3.5.13",
+    "vue-clipboard3": "^2.0.0",
+    "vue-echarts": "^6.7.3",
     "vue-router": "^4.5.0",
-    "echarts": "^5.6.0"
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.1",

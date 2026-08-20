@@ -4,7 +4,7 @@ import ElementPlus from 'element-plus'
 import zhCn from 'element-plus/es/locale/lang/zh-cn'
 import 'element-plus/dist/index.css'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
-import '@/styles/koho-theme.css'
+import '@/styles/apeui-theme.css'
 
 import App from './App.vue'
 import router from './router'
