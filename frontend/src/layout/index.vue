@@ -10,15 +10,13 @@
         :default-active="activeMenu"
         router
         class="menu"
-        background-color="#001529"
-        text-color="rgba(255,255,255,0.65)"
-        active-text-color="#ffffff"
       >
         <el-menu-item index="/dashboard">
           <el-icon><Odometer /></el-icon>
           <span>仪表盘</span>
         </el-menu-item>
 
+        <div class="sidebar-group-title">系统管理</div>
         <el-sub-menu index="system">
           <template #title>
             <el-icon><Setting /></el-icon>
@@ -42,6 +40,7 @@
           </el-menu-item>
         </el-sub-menu>
 
+        <div class="sidebar-group-title">MCP 体系</div>
         <el-sub-menu index="mcp">
           <template #title>
             <el-icon><Connection /></el-icon>
@@ -126,17 +125,8 @@ async function handleCommand(command: string) {
   height: 100%;
 }
 .aside {
-  background-color: #001529;
   overflow-x: hidden;
   transition: width 0.2s;
-}
-.logo {
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 .logo-text {
   color: #fff;

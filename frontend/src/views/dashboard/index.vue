@@ -1,24 +1,36 @@
 <template>
   <div class="dashboard">
-    <!-- Stat cards -->
-    <el-row :gutter="16" class="stats">
-      <el-col :span="6" v-for="card in statCards" :key="card.title">
-        <el-card shadow="hover" class="stat-card">
-          <div class="stat-content">
-            <el-icon :size="36" :color="card.color"><component :is="card.icon" /></el-icon>
-            <div class="stat-info">
-              <div class="stat-value">{{ card.value }}</div>
-              <div class="stat-title">{{ card.title }}</div>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
+    <!-- Page header bar (Koho style) -->
+    <div class="page-header-bar">
+      <div>
+        <h3>仪表盘</h3>
+        <small>系统概览与运行状态</small>
+      </div>
+      <div class="breadcrumb">
+        <a href="#/dashboard">首页</a>
+        <span class="sep">/</span>
+        <span>仪表盘</span>
+      </div>
+    </div>
+
+    <!-- Stat cards: Koho widget-joins -->
+    <div class="widget-joins">
+      <div class="widget-card" v-for="card in statCards" :key="card.title">
+        <div class="widget-icon">
+          <el-icon :size="24" :color="card.color"><component :is="card.icon" /></el-icon>
+        </div>
+        <div class="widget-body">
+          <div class="widget-title">{{ card.title }}</div>
+          <h5 class="widget-value">{{ card.value }}</h5>
+        </div>
+        <div class="icon-bg"><el-icon :size="64"><component :is="card.icon" /></el-icon></div>
+      </div>
+    </div>
 
     <!-- Main content -->
     <el-row :gutter="16" class="content-row">
       <el-col :span="14">
-        <el-card shadow="never" class="panel">
+        <el-card shadow="never" class="panel-card">
           <template #header>
             <span class="panel-title">系统架构</span>
           </template>
@@ -30,7 +42,7 @@
       </el-col>
 
       <el-col :span="10">
-        <el-card shadow="never" class="panel">
+        <el-card shadow="never" class="panel-card">
           <template #header>
             <span class="panel-title">MCP 工具</span>
             <el-button size="small" type="primary" link @click="loadMcpTools">刷新</el-button>
@@ -91,46 +103,28 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.stats {
-  margin-bottom: 16px;
+.dashboard {
+  max-width: 1400px;
 }
-.stat-card {
-  border-radius: 8px;
-}
-.stat-content {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 8px 4px;
-}
-.stat-value {
-  font-size: 26px;
-  font-weight: 600;
-  color: #303133;
-}
-.stat-title {
-  font-size: 13px;
-  color: #909399;
-}
-.panel {
-  border-radius: 8px;
+.content-row {
+  margin-top: 4px;
 }
 .panel-title {
   font-weight: 600;
   color: #303133;
 }
-.arch-layout {
+.arch-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 0;
+  padding: 12px 0;
   border-bottom: 1px solid #f0f0f0;
 }
-.arch-layout:last-child {
+.arch-item:last-child {
   border-bottom: none;
 }
 .arch-tag {
-  width: 76px;
+  width: 86px;
   text-align: center;
 }
 .arch-desc {

@@ -1,0 +1,392 @@
+/* ============================================================
+   ApeAdmin Koho-style Theme
+   借鉴 Koho Admin (Pixelstrap, Bootstrap5) 的视觉骨架：
+   - 深色侧边栏 + 白色固定顶栏 + 浅灰内容区
+   - widget 卡片层次（图标+数值+标题）
+   - 页面标题面包屑区
+   配色已重映射为 ApeAdmin 蓝白灰现代 SaaS 风格
+   ============================================================ */
+
+:root {
+  /* Koho 主色 #534686 → 蓝色系 */
+  --theme-default: #409eff;
+  --theme-secondary: #79bbff;
+  --theme-sidebar-bg: #0f1c2e;       /* 深蓝黑侧栏（Koho #20263f 类） */
+  --theme-sidebar-text: rgba(255, 255, 255, 0.68);
+  --theme-sidebar-active: #409eff;
+  --theme-header-bg: #ffffff;
+  --theme-body-bg: #eff3f9;          /* Koho 内容区 #EFF3F9 */
+  --theme-card-border: #f1f3ff;
+  --theme-text-dark: #2b2b2b;
+  --theme-text-muted: rgba(43, 43, 43, 0.7);
+  --theme-border-soft: rgba(64, 158, 255, 0.1);
+  --theme-shadow: 0 0 20px rgba(89, 102, 122, 0.1);
+  --theme-radius: 8px;
+}
+
+/* ---------- 全局 ---------- */
+html,
+body,
+#app {
+  background-color: var(--theme-body-bg);
+}
+
+/* ---------- 布局：侧边栏 ---------- */
+.layout .aside {
+  background-color: var(--theme-sidebar-bg);
+  transition: width 0.3s ease;
+  overflow-x: hidden;
+}
+
+/* Logo 区（Koho logo-wrapper） */
+.layout .aside .logo {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.layout .aside .logo-text {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* 菜单项：Koho sidebar-list 质感 */
+.layout .aside .el-menu {
+  border-right: none;
+  background-color: transparent;
+  --el-menu-item-height: 46px;
+  --el-menu-sub-item-height: 42px;
+  --el-menu-base-level-padding: 20px;
+}
+
+.layout .aside .el-menu .el-menu-item,
+.layout .aside .el-menu .el-sub-menu__title {
+  color: var(--theme-sidebar-text);
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.3px;
+  transition: all 0.25s ease;
+  margin: 2px 10px;
+  border-radius: 8px;
+}
+
+.layout .aside .el-menu .el-menu-item:hover,
+.layout .aside .el-menu .el-sub-menu__title:hover {
+  color: #ffffff;
+  background-color: rgba(64, 158, 255, 0.12);
+}
+
+.layout .aside .el-menu .el-menu-item.is-active {
+  color: #ffffff;
+  background-color: var(--theme-sidebar-active);
+  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.35);
+}
+
+/* 子菜单背景 */
+.layout .aside .el-menu .el-menu--inline {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  margin: 2px 10px;
+}
+
+/* 分组标题（Koho sidebar-main-title） */
+.sidebar-group-title {
+  padding: 18px 22px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+/* ---------- 顶栏 ---------- */
+.layout .el-header {
+  height: 64px;
+  background-color: var(--theme-header-bg);
+  box-shadow: 0 0 20px rgba(89, 102, 122, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  z-index: 8;
+  transition: box-shadow 0.3s;
+}
+
+.layout .collapse-btn {
+  font-size: 22px;
+  color: #59667a;
+  cursor: pointer;
+  transition: color 0.2s;
+  padding: 6px;
+  border-radius: 6px;
+}
+.layout .collapse-btn:hover {
+  color: var(--theme-default);
+  background-color: rgba(64, 158, 255, 0.08);
+}
+
+.layout .page-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--theme-text);
+}
+
+/* 顶栏右侧用户区（Koho profile-media） */
+.layout .user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.layout .user-info:hover {
+  background: rgba(64, 158, 255, 0.06);
+}
+.layout .username {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+.layout .avatar {
+  background-color: var(--theme-default);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ---------- 内容区 ---------- */
+.layout .el-main {
+  background-color: var(--theme-body-bg);
+  padding: 20px;
+  overflow: auto;
+}
+
+/* 页面标题面包屑区（Koho .page-title） */
+.page-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #e9edf3;
+}
+.page-header-bar h3 {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--theme-text);
+  margin: 0;
+}
+.page-header-bar small {
+  display: block;
+  font-size: 12px;
+  color: var(--theme-text-muted);
+  margin-top: 3px;
+  font-weight: 400;
+}
+.page-header-bar .breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #909399;
+}
+.page-header-bar .breadcrumb a {
+  color: var(--theme-primary);
+  text-decoration: none;
+}
+.page-header-bar .breadcrumb span.sep {
+  color: #c0c4cc;
+}
+
+/* ---------- Widget 卡片（Koho .widget-joins） ---------- */
+.widget-joins {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.widget-card {
+  position: relative;
+  border: 1px solid var(--theme-border-soft);
+  border-radius: var(--theme-radius);
+  padding: 22px 24px;
+  background: #ffffff;
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.widget-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(64, 158, 255, 0.1);
+}
+.widget-card .widget-icon {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(64, 158, 255, 0.12), rgba(64, 158, 255, 0.04));
+  color: var(--theme-primary);
+}
+.widget-card .widget-icon svg {
+  width: 24px;
+  height: 24px;
+}
+.widget-card .widget-body {
+  margin-top: 16px;
+}
+.widget-card .widget-title {
+  color: var(--theme-text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+.widget-card .widget-value {
+  color: var(--theme-text);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+.widget-card .icon-bg {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  font-size: 64px;
+  opacity: 0.06;
+  color: var(--theme-primary);
+  pointer-events: none;
+}
+.widget-card .widget-footer {
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--theme-text-muted);
+}
+.widget-card .widget-footer .trend-up {
+  color: #67c23a;
+  font-weight: 600;
+}
+.widget-card .widget-footer .trend-down {
+  color: #f56c6c;
+  font-weight: 600;
+}
+
+/* ---------- 面板（Koho card） ---------- */
+.panel-card {
+  border-radius: var(--theme-radius);
+  border: 1px solid var(--theme-border-soft);
+  background: #ffffff;
+}
+.panel-card .el-card__header {
+  border-bottom: 1px solid #f0f2f5;
+  padding: 16px 20px;
+}
+.panel-card .el-card__body {
+  padding: 20px;
+}
+
+/* ---------- Element Plus 主题变量覆盖 ---------- */
+:root {
+  --el-color-primary: #409eff;
+  --el-color-primary-light-3: #79bbff;
+  --el-color-primary-light-5: #a0cfff;
+  --el-color-primary-light-7: #c6e2ff;
+  --el-color-primary-light-8: #d9ecff;
+  --el-color-primary-light-9: #ecf5ff;
+  --el-color-primary-dark-2: #337ecc;
+}
+
+/* ---------- 表格：Koho datatable 质感 ---------- */
+.el-table {
+  --el-table-header-bg-color: #f8fafc;
+  --el-table-header-text-color: #5a6273;
+  --el-table-row-hover-bg-color: #f5f8ff;
+  border-radius: 8px;
+}
+
+/* ---------- 登录页（Koho auth 质感） ---------- */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0b1e33 0%, #16345c 55%, #1d4f91 100%);
+  position: relative;
+  overflow: hidden;
+}
+.auth-page::before {
+  content: "";
+  position: absolute;
+  top: -30%;
+  right: -20%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(64, 158, 255, 0.25) 0%, transparent 70%);
+}
+.auth-page::after {
+  content: "";
+  position: absolute;
+  bottom: -25%;
+  left: -15%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
+}
+.auth-card {
+  width: 420px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 40px 36px;
+  box-shadow: 0 20px 60px rgba(0, 30, 70, 0.3);
+  position: relative;
+  z-index: 1;
+}
+.auth-card .auth-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+.auth-card .auth-logo span {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1f2d3d;
+}
+.auth-card .auth-title {
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2d3d;
+  margin-bottom: 6px;
+}
+.auth-card .auth-sub {
+  text-align: center;
+  font-size: 13px;
+  color: #909399;
+  margin-bottom: 28px;
+}
+.auth-card .el-button {
+  height: 44px;
+  font-size: 15px;
+  border-radius: 8px;
+}
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 1200px) {
+  .widget-joins {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 768px) {
+  .widget-joins {
+    grid-template-columns: 1fr;
+  }
+}

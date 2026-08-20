@@ -1,11 +1,12 @@
 <template>
-  <div class="login-page">
-    <div class="login-card">
-      <div class="login-header">
-        <el-icon :size="40" color="#409EFF"><Platform /></el-icon>
-        <h1>ApeAdmin</h1>
-        <p>FastAPI + Vue3 管理后台 · 插件 & MCP 体系</p>
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <el-icon :size="34" color="#409EFF"><Platform /></el-icon>
+        <span>ApeAdmin</span>
       </div>
+      <div class="auth-title">欢迎回来</div>
+      <div class="auth-sub">FastAPI + Vue3 管理后台 · 插件 & MCP 体系</div>
 
       <el-form
         ref="formRef"
@@ -42,7 +43,7 @@
         </el-form-item>
       </el-form>
 
-      <div class="login-tip">默认账号: admin / admin123</div>
+      <div class="auth-tip" style="text-align:center;font-size:12px;color:#c0c4cc;">默认账号: admin / admin123</div>
     </div>
   </div>
 </template>
@@ -90,40 +91,7 @@ async function handleLogin() {
 </script>
 
 <style scoped>
-.login-page {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #1f3a5f 0%, #2d5a8b 40%, #409eff 100%);
-}
-.login-card {
-  width: 400px;
-  padding: 40px 36px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-}
-.login-header {
-  text-align: center;
-  margin-bottom: 30px;
-}
-.login-header h1 {
-  margin: 12px 0 6px;
-  font-size: 24px;
-  color: #1f2d3d;
-}
-.login-header p {
-  font-size: 13px;
-  color: #909399;
-}
 .login-btn {
   width: 100%;
-}
-.login-tip {
-  margin-top: 16px;
-  text-align: center;
-  font-size: 12px;
-  color: #c0c4cc;
 }
 </style>
