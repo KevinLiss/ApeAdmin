@@ -46,6 +46,22 @@ async def list_roles(
     )
 
 
+@router.get("/all")
+async def list_all_roles(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
+    """Get all roles without pagination (for dropdowns/selects)."""
+    items, _ = await crud_role.get_multi(db, page=1, page_size=1000)
+    return success_response(
+        data=[
+            {"id": r.id, "name": r.name, "code": r.code}
+            for r in items
+            if r.status == 1
+        ]
+    )
+
+
 @router.post("")
 async def create_role(
     body: RoleCreate,
@@ -120,19 +136,3 @@ async def delete_role(
     if not ok:
         raise NotFoundException("角色不存在")
     return success_response(msg="删除成功")
-
-
-@router.get("/all")
-async def list_all_roles(
-    db: Annotated[AsyncSession, Depends(get_db)],
-    user: Annotated[User, Depends(get_current_user)],
-):
-    """Get all roles without pagination (for dropdowns/selects)."""
-    items, _ = await crud_role.get_multi(db, page=1, page_size=1000)
-    return success_response(
-        data=[
-            {"id": r.id, "name": r.name, "code": r.code}
-            for r in items
-            if r.status == 1
-        ]
-    )

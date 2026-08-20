@@ -23,7 +23,7 @@
       <el-table-column prop="name" label="角色名称" min-width="120" />
       <el-table-column prop="code" label="角色编码" min-width="120" />
       <el-table-column label="数据范围" width="120">
-        <template #default="{ row }">{{ scopeMap[row.data_scope] || row.data_scope }}</template>
+        <template #default="{ row }">{{ scopeText[row.data_scope] || row.data_scope }}</template>
       </el-table-column>
       <el-table-column label="状态" width="80">
         <template #default="{ row }">
@@ -98,7 +98,7 @@ interface RoleRow {
   id: number
   name: string
   code: string
-  dataScope: number
+  data_scope: number
   status: number
   remark: string
 }

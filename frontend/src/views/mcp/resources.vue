@@ -36,7 +36,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { getMcpResources } from '@/api'
+import { getMcpResources, getMcpResourcesRead } from '@/api'
 
 const resources = ref<any[]>([])
 const loading = ref(false)
