@@ -1,0 +1,62 @@
+# ========================================
+# Python / FastAPI Backend
+# ========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+runtimes/
+
+# Database
+*.db
+*.sqlite3
+
+# Alembic
+backend/alembic/versions/*.py
+!backend/alembic/versions/.gitkeep
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ========================================
+# Node / Vue3 Frontend
+# ========================================
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+
+# ========================================
+# Environment & Secrets
+# ========================================
+.env
+.env.*
+!.env.example
+
+# ========================================
+# OS Files
+# ========================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ========================================
+# Temporary / Agent Files
+# ========================================
+.temp/
+*.log
+*.tmp
