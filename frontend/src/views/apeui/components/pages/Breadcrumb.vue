@@ -1,154 +1,249 @@
-﻿<template>
+<template>
   <div>
     <PageHeader title="Breadcrumb" :breadcrumb="['APEUI库', 'Components', 'Breadcrumb']" />
 
-    <el-row :gutter="16">
-      <el-col :span="12" style="margin-bottom: 16px">
-        <el-card shadow="hover" header="基础面包屑">
-          <el-breadcrumb :separator-icon="ArrowRight" style="font-size: 14px">
-            <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-            <el-breadcrumb-item>系统管理</el-breadcrumb-item>
-            <el-breadcrumb-item>用户列表</el-breadcrumb-item>
-          </el-breadcrumb>
-          <el-divider />
-          <el-breadcrumb separator="/" style="font-size: 14px">
-            <el-breadcrumb-item :to="{ path: '/' }">Home</el-breadcrumb-item>
-            <el-breadcrumb-item>Components</el-breadcrumb-item>
-            <el-breadcrumb-item>Breadcrumb</el-breadcrumb-item>
-          </el-breadcrumb>
-          <el-divider />
-          <el-breadcrumb separator=">" style="font-size: 14px">
-            <el-breadcrumb-item>Level 1</el-breadcrumb-item>
-            <el-breadcrumb-item>Level 2</el-breadcrumb-item>
-            <el-breadcrumb-item>Level 3</el-breadcrumb-item>
-          </el-breadcrumb>
+    <el-row :gutter="30">
+      <!-- 1. Default Breadcrumb -->
+      <el-col :span="12" class="card-col">
+        <el-card shadow="hover">
+          <template #header>
+            <div class="card-header">
+              <span class="card-title">Default Breadcrumb</span>
+            </div>
+          </template>
+          <div class="breadcrumb-sections">
+            <div class="breadcrumb-section">
+              <div class="section-label">1 级</div>
+              <el-breadcrumb separator="/">
+                <el-breadcrumb-item :to="{ path: '/' }">Home</el-breadcrumb-item>
+              </el-breadcrumb>
+            </div>
+            <div class="breadcrumb-section">
+              <div class="section-label">2 级</div>
+              <el-breadcrumb separator="/">
+                <el-breadcrumb-item :to="{ path: '/' }">Home</el-breadcrumb-item>
+                <el-breadcrumb-item>Library</el-breadcrumb-item>
+              </el-breadcrumb>
+            </div>
+            <div class="breadcrumb-section">
+              <div class="section-label">3 级</div>
+              <el-breadcrumb separator="/">
+                <el-breadcrumb-item :to="{ path: '/' }">Home</el-breadcrumb-item>
+                <el-breadcrumb-item :to="{ path: '/' }">Library</el-breadcrumb-item>
+                <el-breadcrumb-item>Data</el-breadcrumb-item>
+              </el-breadcrumb>
+            </div>
+            <div class="breadcrumb-section">
+              <div class="section-label">带图标</div>
+              <el-breadcrumb separator="/">
+                <el-breadcrumb-item :to="{ path: '/' }">
+                  <el-icon><HomeFilled /></el-icon>
+                  Home
+                </el-breadcrumb-item>
+                <el-breadcrumb-item>Library</el-breadcrumb-item>
+                <el-breadcrumb-item>Data</el-breadcrumb-item>
+              </el-breadcrumb>
+            </div>
+          </div>
         </el-card>
       </el-col>
-      <el-col :span="12" style="margin-bottom: 16px">
-        <el-card shadow="hover" header="带图标">
-          <el-breadcrumb :separator-icon="ArrowRight">
-            <el-breadcrumb-item :to="{ path: '/' }">
-              <el-icon><HomeFilled /></el-icon>
-              <span> 首页</span>
-            </el-breadcrumb-item>
-            <el-breadcrumb-item>
-              <el-icon><Setting /></el-icon>
-              <span> 系统管理</span>
-            </el-breadcrumb-item>
-            <el-breadcrumb-item>
-              <el-icon><User /></el-icon>
-              <span> 用户管理</span>
-            </el-breadcrumb-item>
-          </el-breadcrumb>
-          <el-divider />
-          <el-breadcrumb separator="|">
-            <el-breadcrumb-item :to="{ path: '/' }">
-              <el-icon color="#534686"><Monitor /></el-icon>
-              <span> Dashboard</span>
-            </el-breadcrumb-item>
-            <el-breadcrumb-item>
-              <el-icon color="#534686"><Document /></el-icon>
-              <span> 文档</span>
-            </el-breadcrumb-item>
-            <el-breadcrumb-item>
-              <el-icon color="#534686"><EditPen /></el-icon>
-              <span> 编辑</span>
-            </el-breadcrumb-item>
-          </el-breadcrumb>
+
+      <!-- 2. Breadcrumb Styles -->
+      <el-col :span="12" class="card-col">
+        <el-card shadow="hover">
+          <template #header>
+            <div class="card-header">
+              <span class="card-title">Breadcrumb Styles</span>
+            </div>
+          </template>
+          <div class="breadcrumb-sections">
+            <div class="breadcrumb-section">
+              <div class="section-label">标准</div>
+              <el-breadcrumb :separator-icon="ArrowRight">
+                <el-breadcrumb-item :to="{ path: '/' }">Home</el-breadcrumb-item>
+                <el-breadcrumb-item :to="{ path: '/' }">Library</el-breadcrumb-item>
+                <el-breadcrumb-item>Bootstrap</el-breadcrumb-item>
+              </el-breadcrumb>
+            </div>
+            <div class="breadcrumb-section">
+              <div class="section-label">图标分隔</div>
+              <el-breadcrumb :separator-icon="ArrowRight">
+                <el-breadcrumb-item :to="{ path: '/' }">Home</el-breadcrumb-item>
+                <el-breadcrumb-item :to="{ path: '/' }">Library</el-breadcrumb-item>
+                <el-breadcrumb-item>Bootstrap</el-breadcrumb-item>
+              </el-breadcrumb>
+            </div>
+            <div class="breadcrumb-section">
+              <div class="section-label">无分隔符</div>
+              <div class="no-separator-breadcrumb">
+                <span class="no-sep-item">Home</span>
+                <span class="no-sep-item">Library</span>
+                <span class="no-sep-item">Bootstrap</span>
+              </div>
+            </div>
+          </div>
         </el-card>
       </el-col>
     </el-row>
 
-    <el-card shadow="hover" header="不同分隔符" style="margin-bottom: 16px">
-      <div class="breadcrumb-list">
-        <div class="breadcrumb-row" v-for="item in separators" :key="item.label">
-          <span class="sep-label">{{ item.label }}</span>
-          <el-breadcrumb :separator="item.sep">
-            <el-breadcrumb-item>首页</el-breadcrumb-item>
-            <el-breadcrumb-item>分类</el-breadcrumb-item>
-            <el-breadcrumb-item>详情</el-breadcrumb-item>
-          </el-breadcrumb>
-        </div>
-      </div>
-    </el-card>
-
-    <el-card shadow="hover" header="紫色主题面包屑">
-      <el-breadcrumb :separator-icon="ArrowRight" class="purple-breadcrumb">
-        <el-breadcrumb-item :to="{ path: '/' }">
-          <el-icon><HomeFilled /></el-icon>
-          <span>ApeAdmin</span>
-        </el-breadcrumb-item>
-        <el-breadcrumb-item>
-          <el-icon><Grid /></el-icon>
-          <span>APEUI 库</span>
-        </el-breadcrumb-item>
-        <el-breadcrumb-item>
-          <el-icon><Document /></el-icon>
-          <span>Components</span>
-        </el-breadcrumb-item>
-        <el-breadcrumb-item>
-          <el-icon><MoreFilled /></el-icon>
-          <span>Breadcrumb</span>
-        </el-breadcrumb-item>
-      </el-breadcrumb>
-    </el-card>
+    <!-- 3. Colored Breadcrumb -->
+    <el-row :gutter="30">
+      <el-col :span="24">
+        <el-card shadow="hover">
+          <template #header>
+            <div class="card-header">
+              <span class="card-title">Colored Breadcrumb</span>
+            </div>
+          </template>
+          <div class="colored-breadcrumb-grid">
+            <div
+              v-for="item in coloredBreadcrumbs"
+              :key="item.name"
+              class="colored-breadcrumb-item"
+              :style="{ background: item.bg }"
+            >
+              <el-breadcrumb
+                :separator="item.separator"
+                :class="['colored-breadcrumb', item.isLight ? 'colored-breadcrumb--light' : '']"
+              >
+                <el-breadcrumb-item :to="{ path: '/' }">Home</el-breadcrumb-item>
+                <el-breadcrumb-item>Library</el-breadcrumb-item>
+              </el-breadcrumb>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ArrowRight, HomeFilled, Setting, User, Monitor, Document, EditPen, Grid, MoreFilled } from '@element-plus/icons-vue'
+import { ArrowRight, HomeFilled } from '@element-plus/icons-vue'
 import PageHeader from '../PageHeader.vue'
 
-const separators = [
-  { label: 'separator="/"', sep: '/' },
-  { label: 'separator="-"', sep: '-' },
-  { label: 'separator=">"', sep: '>' },
-  { label: 'separator="·"', sep: '·' },
-  { label: 'separator="|"', sep: '|' },
+const coloredBreadcrumbs = [
+  { name: 'Primary', bg: '#534686', separator: '/', isLight: false },
+  { name: 'Secondary', bg: '#FFA47A', separator: '/', isLight: false },
+  { name: 'Success', bg: '#67C100', separator: '/', isLight: false },
+  { name: 'Info', bg: '#3EBCB9', separator: '/', isLight: false },
+  { name: 'Warning', bg: '#E56809', separator: '/', isLight: false },
+  { name: 'Danger', bg: '#DC0808', separator: '/', isLight: false },
+  { name: 'Light', bg: '#F4F4F4', separator: '/', isLight: true },
+  { name: 'Dark', bg: '#2C323F', separator: '/', isLight: false },
 ]
 </script>
 
 <style scoped>
-.breadcrumb-list {
+.card-col {
+  margin-bottom: 30px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+}
+
+.card-title {
+  font-weight: 600;
+  font-size: 15px;
+  color: #534686;
+}
+
+.breadcrumb-sections {
   display: flex;
   flex-direction: column;
   gap: 0;
 }
-.breadcrumb-row {
+
+.breadcrumb-section {
   display: flex;
   align-items: center;
-  gap: 24px;
-  padding: 12px 0;
+  gap: 16px;
+  padding: 14px 0;
   border-bottom: 1px solid #f0f0f5;
 }
-.breadcrumb-row:last-child {
+
+.breadcrumb-section:last-child {
   border-bottom: none;
 }
-.sep-label {
-  width: 130px;
+
+.section-label {
+  width: 80px;
+  flex-shrink: 0;
   color: #909399;
   font-size: 13px;
-  font-family: monospace;
-  white-space: nowrap;
-}
-.purple-breadcrumb :deep(.el-breadcrumb__item) {
-  font-size: 15px;
-}
-.purple-breadcrumb :deep(.el-breadcrumb__item .el-icon) {
-  margin-right: 4px;
-}
-.purple-breadcrumb :deep(.el-breadcrumb__inner) {
-  color: #534686;
   font-weight: 500;
 }
-.purple-breadcrumb :deep(.el-breadcrumb__inner a) {
-  color: #7b6fa8;
+
+/* 无分隔符面包屑 */
+.no-separator-breadcrumb {
+  display: flex;
+  align-items: center;
+}
+
+.no-sep-item {
+  font-size: 14px;
+  color: #534686;
+  margin-right: 24px;
+  position: relative;
+}
+
+.no-sep-item:last-child {
+  color: #606266;
+  margin-right: 0;
+}
+
+/* 彩色面包屑网格 */
+.colored-breadcrumb-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.colored-breadcrumb-item {
+  padding: 12px 16px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+}
+
+/* 深色背景 - 白色文字 */
+.colored-breadcrumb :deep(.el-breadcrumb__item) {
+  font-size: 14px;
+}
+
+.colored-breadcrumb :deep(.el-breadcrumb__inner) {
+  color: #fff !important;
   font-weight: 500;
 }
-.purple-breadcrumb :deep(.el-breadcrumb__inner a:hover) {
-  color: #534686;
+
+.colored-breadcrumb :deep(.el-breadcrumb__inner a) {
+  color: rgba(255, 255, 255, 0.85) !important;
+  font-weight: 500;
 }
-.purple-breadcrumb :deep(.el-breadcrumb__separator) {
-  color: #c0b8d8;
+
+.colored-breadcrumb :deep(.el-breadcrumb__inner a:hover) {
+  color: #fff !important;
+}
+
+.colored-breadcrumb :deep(.el-breadcrumb__separator) {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* 浅色背景 - 深色文字 */
+.colored-breadcrumb--light :deep(.el-breadcrumb__inner) {
+  color: #2C323F !important;
+}
+
+.colored-breadcrumb--light :deep(.el-breadcrumb__inner a) {
+  color: #534686 !important;
+}
+
+.colored-breadcrumb--light :deep(.el-breadcrumb__inner a:hover) {
+  color: #2C323F !important;
+}
+
+.colored-breadcrumb--light :deep(.el-breadcrumb__separator) {
+  color: #909399 !important;
 }
 </style>

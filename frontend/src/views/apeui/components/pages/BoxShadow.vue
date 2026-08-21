@@ -1,30 +1,115 @@
-﻿<template>
-  <div>
+<template>
+  <div class="box-shadow-page">
     <PageHeader title="Box Shadow" :breadcrumb="['APEUI库', 'Components', 'Box Shadow']" />
 
-    <el-row :gutter="16">
-      <el-col :span="6" v-for="item in shadows" :key="item.name" style="margin-bottom: 20px">
-        <el-card shadow="hover" :body-style="{ padding: '30px', textAlign: 'center' }">
-          <div :style="{ boxShadow: item.shadow, height: '80px', borderRadius: '8px', background: '#fff', marginBottom: '16px' }"></div>
-          <h4 style="margin: 0 0 4px; font-weight: 600">{{ item.name }}</h4>
-          <code style="font-size: 11px; color: #909399">{{ item.shadow }}</code>
-        </el-card>
-      </el-col>
-    </el-row>
+    <el-card class="shadow-card">
+      <template #header>
+        <div class="card-header">
+          <span class="card-title">Examples</span>
+          <span class="card-subtitle">Includes support for shadow-none and three default sizes.</span>
+        </div>
+      </template>
+
+      <!-- Larger shadow -->
+      <h6 class="group-title">Larger shadow</h6>
+      <el-row :gutter="30" class="shadow-group">
+        <el-col :span="8" v-for="n in 3" :key="'lg-' + n">
+          <div class="shadow-block" style="box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)">
+            Larger shadow
+          </div>
+        </el-col>
+      </el-row>
+
+      <!-- Regular shadow -->
+      <h6 class="group-title">Regular shadow</h6>
+      <el-row :gutter="30" class="shadow-group">
+        <el-col :span="8" v-for="n in 3" :key="'reg-' + n">
+          <div class="shadow-block" style="box-shadow: 0 .125rem .25rem rgba(0,0,0,.075)">
+            Regular shadow
+          </div>
+        </el-col>
+      </el-row>
+
+      <!-- Small shadow -->
+      <h6 class="group-title">Small shadow</h6>
+      <el-row :gutter="30" class="shadow-group">
+        <el-col :span="8" v-for="n in 3" :key="'sm-' + n">
+          <div class="shadow-block" style="box-shadow: 0 .0625rem .125rem rgba(0,0,0,.05)">
+            Small shadow
+          </div>
+        </el-col>
+      </el-row>
+
+      <!-- No shadow -->
+      <h6 class="group-title">No shadow</h6>
+      <el-row :gutter="30" class="shadow-group">
+        <el-col :span="8" v-for="n in 3" :key="'none-' + n">
+          <div class="shadow-block" style="box-shadow: none">
+            No shadow
+          </div>
+        </el-col>
+      </el-row>
+    </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
 import PageHeader from '../PageHeader.vue'
-
-const shadows = [
-  { name: 'Shadow Sm', shadow: '0 1px 3px rgba(0,0,0,0.08)' },
-  { name: 'Shadow Md', shadow: '0 4px 12px rgba(0,0,0,0.1)' },
-  { name: 'Shadow Lg', shadow: '0 8px 24px rgba(0,0,0,0.12)' },
-  { name: 'Shadow Xl', shadow: '0 16px 40px rgba(0,0,0,0.16)' },
-  { name: 'Purple Glow', shadow: '0 8px 24px rgba(83,70,134,0.25)' },
-  { name: 'Green Glow', shadow: '0 8px 24px rgba(103,193,0,0.25)' },
-  { name: 'Orange Glow', shadow: '0 8px 24px rgba(229,104,9,0.25)' },
-  { name: 'Red Glow', shadow: '0 8px 24px rgba(220,8,8,0.25)' },
-]
 </script>
+
+<style scoped>
+.box-shadow-page {
+  width: 100%;
+}
+
+.shadow-card {
+  margin-bottom: 30px;
+}
+
+.card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #534686;
+}
+
+.card-subtitle {
+  font-size: 13px;
+  color: #909399;
+  font-weight: 400;
+}
+
+.group-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #534686;
+  margin: 0 0 15px 0;
+  padding-left: 2px;
+}
+
+.shadow-group {
+  margin-bottom: 30px;
+}
+
+.shadow-group:last-child {
+  margin-bottom: 0;
+}
+
+.shadow-block {
+  background-color: #fff;
+  padding: 25px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #333;
+  border: 1px solid #ebeef5;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+</style>

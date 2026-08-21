@@ -1,66 +1,123 @@
-﻿<template>
-  <div>
+<template>
+  <div class="avatars-page">
     <PageHeader title="Avatars" :breadcrumb="['APEUI库', 'Components', 'Avatars']" />
 
-    <el-row :gutter="16">
-      <el-col :span="8" style="margin-bottom: 16px">
-        <el-card shadow="hover" header="Sizes">
-          <div style="display: flex; align-items: flex-end; gap: 16px">
-            <el-avatar :size="100">XL</el-avatar>
-            <el-avatar :size="64">L</el-avatar>
-            <el-avatar :size="40">M</el-avatar>
-            <el-avatar :size="28">S</el-avatar>
+    <el-row :gutter="30">
+      <!-- Sizing -->
+      <el-col :span="12">
+        <el-card class="avatar-card">
+          <template #header>
+            <span class="card-title">Sizing</span>
+          </template>
+          <div class="avatar-row">
+            <el-avatar
+              v-for="size in [100, 90, 80, 70, 60, 50, 40, 30, 20]"
+              :key="size"
+              :size="size"
+              class="purple-avatar"
+            >A</el-avatar>
           </div>
         </el-card>
       </el-col>
-      <el-col :span="8" style="margin-bottom: 16px">
-        <el-card shadow="hover" header="Status">
-          <div style="display: flex; gap: 24px; align-items: center">
-            <el-badge :value="3" :max="99">
-              <el-avatar :size="48">A</el-avatar>
-            </el-badge>
-            <el-badge is-dot type="success">
-              <el-avatar :size="48">B</el-avatar>
-            </el-badge>
-            <el-badge is-dot type="danger">
-              <el-avatar :size="48">C</el-avatar>
-            </el-badge>
+
+      <!-- Initials -->
+      <el-col :span="12">
+        <el-card class="avatar-card">
+          <template #header>
+            <span class="card-title">Initials</span>
+          </template>
+          <div class="avatar-row">
+            <el-avatar
+              v-for="size in [90, 80, 70, 60, 50, 40, 30, 20]"
+              :key="size"
+              :size="size"
+              class="purple-avatar"
+            >A</el-avatar>
           </div>
         </el-card>
       </el-col>
-      <el-col :span="8" style="margin-bottom: 16px">
-        <el-card shadow="hover" header="Group">
-          <el-avatar-group>
-            <el-avatar>U1</el-avatar>
-            <el-avatar>U2</el-avatar>
-            <el-avatar>U3</el-avatar>
-            <el-avatar>U4</el-avatar>
-          </el-avatar-group>
-        </el-card>
-      </el-col>
-      <el-col :span="12" style="margin-bottom: 16px">
-        <el-card shadow="hover" header="With Icons">
-          <div style="display: flex; gap: 16px">
-            <el-avatar :size="56" src="https://cube.elemecdn.com/0/88/03b0d432e8c87b879d3e4e37b8f6jpeg.jpeg" />
-            <el-avatar :size="56">
-              <el-icon :size="24"><User /></el-icon>
-            </el-avatar>
-            <el-avatar :size="56" style="background: #534686">
-              <el-icon :size="24"><Avatar /></el-icon>
-            </el-avatar>
-            <el-avatar :size="56" style="background: #67C100">
-              <el-icon :size="24"><CircleCheck /></el-icon>
-            </el-avatar>
+
+      <!-- Status Indicator -->
+      <el-col :span="12">
+        <el-card class="avatar-card">
+          <template #header>
+            <span class="card-title">Status Indicator</span>
+          </template>
+          <div class="avatar-row">
+            <div
+              v-for="size in [80, 70, 60, 50, 40, 30, 24, 20]"
+              :key="size"
+              class="status-wrapper"
+              :style="{ width: size + 'px', height: size + 'px' }"
+            >
+              <el-avatar :size="size" class="purple-avatar">A</el-avatar>
+              <span class="status-dot" :style="{ width: size * 0.28 + 'px', height: size * 0.28 + 'px' }"></span>
+            </div>
           </div>
         </el-card>
       </el-col>
-      <el-col :span="12" style="margin-bottom: 16px">
-        <el-card shadow="hover" header="Rounded & Shape">
-          <div style="display: flex; gap: 16px; align-items: center">
-            <el-avatar :size="56" shape="square" style="background: #534686">方</el-avatar>
-            <el-avatar :size="56" shape="round" style="background: #3EBCB9">圆</el-avatar>
-            <el-avatar :size="56" shape="circle" style="background: #E56809">O</el-avatar>
-            <el-avatar :size="56" style="background: linear-gradient(135deg, #534686, #7b6fa8)">渐</el-avatar>
+
+      <!-- Groups -->
+      <el-col :span="12">
+        <el-card class="avatar-card">
+          <template #header>
+            <span class="card-title">Groups</span>
+          </template>
+          <div class="groups-container">
+            <div v-for="group in avatarGroups" :key="group.size" class="avatar-group-row">
+              <span class="group-label">{{ group.size }}px</span>
+              <div class="avatar-group">
+                <el-avatar
+                  v-for="(item, index) in group.items"
+                  :key="index"
+                  :size="group.size"
+                  class="purple-avatar group-avatar"
+                  :style="{ marginLeft: index === 0 ? '0' : '-' + group.size * 0.3 + 'px', zIndex: 10 - index }"
+                >{{ item }}</el-avatar>
+              </div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+
+      <!-- Shape -->
+      <el-col :span="12">
+        <el-card class="avatar-card">
+          <template #header>
+            <span class="card-title">Shape</span>
+          </template>
+          <div class="avatar-row">
+            <el-avatar
+              v-for="shape in shapes"
+              :key="shape.label"
+              :size="100"
+              class="purple-avatar shape-avatar"
+              :style="{ borderRadius: shape.radius }"
+            >{{ shape.label }}</el-avatar>
+          </div>
+          <div class="shape-labels">
+            <span v-for="shape in shapes" :key="shape.label + '-lbl'" class="shape-label">{{ shape.name }}</span>
+          </div>
+        </el-card>
+      </el-col>
+
+      <!-- Ratio -->
+      <el-col :span="12">
+        <el-card class="avatar-card">
+          <template #header>
+            <span class="card-title">Ratio</span>
+          </template>
+          <div class="avatar-row">
+            <el-avatar
+              v-for="ratio in ratios"
+              :key="ratio.label"
+              :size="100"
+              class="purple-avatar ratio-avatar"
+              :style="{ borderRadius: ratio.radius }"
+            >{{ ratio.label }}</el-avatar>
+          </div>
+          <div class="shape-labels">
+            <span v-for="ratio in ratios" :key="ratio.label + '-lbl'" class="shape-label">{{ ratio.name }}</span>
           </div>
         </el-card>
       </el-col>
@@ -70,4 +127,129 @@
 
 <script setup lang="ts">
 import PageHeader from '../PageHeader.vue'
+
+const avatarGroups = [
+  { size: 70, items: ['A', 'B', 'C'] },
+  { size: 50, items: ['A', 'B', 'C'] },
+  { size: 40, items: ['A', 'B', 'C'] },
+]
+
+const shapes = [
+  { label: 'S8', name: '8px', radius: '8px' },
+  { label: 'S15', name: '15px', radius: '15px' },
+  { label: 'S25', name: '25px', radius: '25px' },
+  { label: 'S30', name: '30px', radius: '30px' },
+  { label: 'S35', name: '35px', radius: '35px' },
+  { label: 'CI', name: 'Circle', radius: '50%' },
+]
+
+const ratios = [
+  { label: 'R1', name: '1:1', radius: '0' },
+  { label: 'R2', name: '3:4', radius: '8px' },
+  { label: 'R3', name: '2:3', radius: '15px' },
+  { label: 'R4', name: '4:5', radius: '25px' },
+  { label: 'R5', name: '16:9', radius: '35px' },
+  { label: 'R6', name: 'Circle', radius: '50%' },
+]
 </script>
+
+<style scoped>
+.avatars-page {
+  width: 100%;
+}
+
+.avatar-card {
+  margin-bottom: 30px;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #534686;
+}
+
+.purple-avatar {
+  background-color: #534686;
+  color: #fff;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.avatar-row {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+/* Status Indicator */
+.status-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.status-dot {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: #4caf50;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  min-width: 6px;
+  min-height: 6px;
+}
+
+/* Groups */
+.groups-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.avatar-group-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.group-label {
+  font-size: 13px;
+  color: #909399;
+  width: 40px;
+  flex-shrink: 0;
+}
+
+.avatar-group {
+  display: flex;
+  align-items: center;
+}
+
+.group-avatar {
+  border: 2px solid #fff;
+}
+
+/* Shape & Ratio labels */
+.shape-avatar,
+.ratio-avatar {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.shape-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 12px;
+}
+
+.shape-label {
+  width: 100px;
+  text-align: center;
+  font-size: 12px;
+  color: #909399;
+}
+</style>

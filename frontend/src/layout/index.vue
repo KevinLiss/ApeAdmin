@@ -7,7 +7,7 @@
     <div class="layout-main" :class="{ 'is-collapsed': collapsed }">
       <KohoHeader :is-dark="isDark" @toggle-theme="toggleTheme" @profile="onProfile" @settings="onSettings" @logout="onLogout" />
 
-      <main class="main">
+      <main class="main" :class="{ 'apeui-content': isApeui }">
         <router-view />
       </main>
     </div>
@@ -15,18 +15,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import KohoSidebar from '@/components/KohoSidebar.vue'
 import KohoHeader from '@/components/KohoHeader.vue'
 import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
 
 const collapsed = ref(false)
 const isDark = ref(false)
+
+// 检测当前是否在 APEUI 库路由下
+const isApeui = computed(() => route.path.startsWith('/apeui'))
 
 function toggleCollapse() {
   collapsed.value = !collapsed.value

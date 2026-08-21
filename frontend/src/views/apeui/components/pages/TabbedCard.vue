@@ -1,229 +1,319 @@
-﻿<template>
-  <div>
+<template>
+  <div class="tabbed-card-page">
     <PageHeader title="Tabbed Card" :breadcrumb="['APEUI库', 'Components', 'Tabbed Card']" />
 
-    <el-card shadow="hover" style="margin-bottom: 16px">
-      <template #header>
-        <span style="font-weight: 600; color: #534686">用户管理</span>
-      </template>
-      <el-tabs v-model="activeTab1" type="card">
-        <el-tab-pane label="全部用户" name="all">
-          <el-table :data="users" style="width: 100%">
-            <el-table-column prop="name" label="姓名" />
-            <el-table-column prop="role" label="角色" />
-            <el-table-column prop="status" label="状态">
-              <template #default="{ row }">
-                <el-tag :type="row.status === '在线' ? 'success' : 'info'" size="small">{{ row.status }}</el-tag>
-              </template>
-            </el-table-column>
-          </el-table>
-        </el-tab-pane>
-        <el-tab-pane label="在线用户" name="online">
-          <el-table :data="users.filter(u => u.status === '在线')" style="width: 100%">
-            <el-table-column prop="name" label="姓名" />
-            <el-table-column prop="role" label="角色" />
-          </el-table>
-        </el-tab-pane>
-        <el-tab-pane label="离线用户" name="offline">
-          <el-table :data="users.filter(u => u.status === '离线')" style="width: 100%">
-            <el-table-column prop="name" label="姓名" />
-            <el-table-column prop="role" label="角色" />
-          </el-table>
-        </el-tab-pane>
-      </el-tabs>
-    </el-card>
-
-    <el-row :gutter="16">
-      <el-col :span="12" style="margin-bottom: 16px">
+    <el-row :gutter="30">
+      <!-- 1. Simple Tab -->
+      <el-col :span="12" class="koho-col">
         <el-card shadow="hover">
           <template #header>
-            <span style="font-weight: 600; color: #534686">系统日志</span>
+            <span class="card-title">Simple Tab</span>
           </template>
-          <el-tabs v-model="activeTab2" type="border-card">
-            <el-tab-pane label="Info" name="info">
-              <div class="log-list">
-                <div class="log-item" v-for="log in logsInfo" :key="log.time">
-                  <span class="log-time">{{ log.time }}</span>
-                  <el-tag type="info" size="small">INFO</el-tag>
-                  <span>{{ log.msg }}</span>
-                </div>
-              </div>
+          <el-tabs v-model="simpleTab">
+            <el-tab-pane label="Home" name="home">
+              <p class="lorem">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p>
+              <p class="lorem">Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident sunt in culpa qui officia.</p>
             </el-tab-pane>
-            <el-tab-pane label="Warning" name="warning">
-              <div class="log-list">
-                <div class="log-item" v-for="log in logsWarn" :key="log.time">
-                  <span class="log-time">{{ log.time }}</span>
-                  <el-tag type="warning" size="small">WARN</el-tag>
-                  <span>{{ log.msg }}</span>
-                </div>
-              </div>
+            <el-tab-pane label="Profile" name="profile">
+              <p class="lorem">Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
+              <p class="lorem">Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore.</p>
             </el-tab-pane>
-            <el-tab-pane label="Error" name="error">
-              <div class="log-list">
-                <div class="log-item" v-for="log in logsError" :key="log.time">
-                  <span class="log-time">{{ log.time }}</span>
-                  <el-tag type="danger" size="small">ERROR</el-tag>
-                  <span>{{ log.msg }}</span>
-                </div>
-              </div>
+            <el-tab-pane label="Contact" name="contact">
+              <p class="lorem">At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias.</p>
+              <p class="lorem">Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus.</p>
             </el-tab-pane>
           </el-tabs>
         </el-card>
       </el-col>
-      <el-col :span="12" style="margin-bottom: 16px">
+
+      <!-- 2. Tab With Icon -->
+      <el-col :span="12" class="koho-col">
         <el-card shadow="hover">
           <template #header>
-            <span style="font-weight: 600; color: #534686">数据统计</span>
+            <span class="card-title">Tab With Icon</span>
           </template>
-          <el-tabs v-model="activeTab3" type="line">
-            <el-tab-pane label="今日" name="today">
-              <div class="stat-block">
-                <div class="stat-item">
-                  <div class="stat-num" style="color: #534686">1,248</div>
-                  <div class="stat-label">访问量</div>
-                </div>
-                <div class="stat-item">
-                  <div class="stat-num" style="color: #67C100">326</div>
-                  <div class="stat-label">新增用户</div>
-                </div>
-                <div class="stat-item">
-                  <div class="stat-num" style="color: #E56809">89</div>
-                  <div class="stat-label">订单数</div>
-                </div>
-              </div>
+          <el-tabs v-model="iconTab">
+            <el-tab-pane name="home">
+              <template #label>
+                <span class="tab-with-icon"><el-icon><HomeFilled /></el-icon> Home</span>
+              </template>
+              <p class="lorem">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+              <p class="lorem">Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure dolor.</p>
             </el-tab-pane>
-            <el-tab-pane label="本周" name="week">
-              <div class="stat-block">
-                <div class="stat-item">
-                  <div class="stat-num" style="color: #534686">8,920</div>
-                  <div class="stat-label">访问量</div>
-                </div>
-                <div class="stat-item">
-                  <div class="stat-num" style="color: #67C100">2,105</div>
-                  <div class="stat-label">新增用户</div>
-                </div>
-                <div class="stat-item">
-                  <div class="stat-num" style="color: #E56809">612</div>
-                  <div class="stat-label">订单数</div>
-                </div>
-              </div>
+            <el-tab-pane name="profile">
+              <template #label>
+                <span class="tab-with-icon"><el-icon><User /></el-icon> Profile</span>
+              </template>
+              <p class="lorem">Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint occaecat.</p>
+              <p class="lorem">Cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum sed ut perspiciatis unde omnis.</p>
             </el-tab-pane>
-            <el-tab-pane label="本月" name="month">
-              <div class="stat-block">
-                <div class="stat-item">
-                  <div class="stat-num" style="color: #534686">35,640</div>
-                  <div class="stat-label">访问量</div>
-                </div>
-                <div class="stat-item">
-                  <div class="stat-num" style="color: #67C100">9,872</div>
-                  <div class="stat-label">新增用户</div>
-                </div>
-                <div class="stat-item">
-                  <div class="stat-num" style="color: #E56809">2,430</div>
-                  <div class="stat-label">订单数</div>
-                </div>
-              </div>
+            <el-tab-pane name="contact">
+              <template #label>
+                <span class="tab-with-icon"><el-icon><Message /></el-icon> Contact</span>
+              </template>
+              <p class="lorem">Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam eaque.</p>
+              <p class="lorem">Ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo nemo enim ipsam voluptatem.</p>
+            </el-tab-pane>
+          </el-tabs>
+        </el-card>
+      </el-col>
+
+      <!-- 3. Color Tab - Primary -->
+      <el-col :span="12" class="koho-col">
+        <el-card shadow="hover">
+          <template #header>
+            <span class="card-title">Color Tab — Primary</span>
+          </template>
+          <el-tabs v-model="colorPrimaryTab" type="card" class="tab-primary">
+            <el-tab-pane label="Home" name="home">
+              <p class="lorem">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+              <p class="lorem">Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute.</p>
+            </el-tab-pane>
+            <el-tab-pane label="Profile" name="profile">
+              <p class="lorem">Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint.</p>
+              <p class="lorem">Occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum sed ut perspiciatis.</p>
+            </el-tab-pane>
+            <el-tab-pane label="Contact" name="contact">
+              <p class="lorem">Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam.</p>
+              <p class="lorem">Eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo nemo enim ipsam.</p>
+            </el-tab-pane>
+          </el-tabs>
+        </el-card>
+      </el-col>
+
+      <!-- 4. Color Tab - Secondary -->
+      <el-col :span="12" class="koho-col">
+        <el-card shadow="hover">
+          <template #header>
+            <span class="card-title">Color Tab — Secondary</span>
+          </template>
+          <el-tabs v-model="colorSecondaryTab" type="card" class="tab-secondary">
+            <el-tab-pane label="Home" name="home">
+              <p class="lorem">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+              <p class="lorem">Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute.</p>
+            </el-tab-pane>
+            <el-tab-pane label="Profile" name="profile">
+              <p class="lorem">Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint.</p>
+              <p class="lorem">Occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum sed ut perspiciatis.</p>
+            </el-tab-pane>
+            <el-tab-pane label="Contact" name="contact">
+              <p class="lorem">Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam.</p>
+              <p class="lorem">Eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo nemo enim ipsam.</p>
+            </el-tab-pane>
+          </el-tabs>
+        </el-card>
+      </el-col>
+
+      <!-- 5. Material Tab -->
+      <el-col :span="12" class="koho-col">
+        <el-card shadow="hover">
+          <template #header>
+            <span class="card-title">Material Tab</span>
+          </template>
+          <el-tabs v-model="materialTab">
+            <el-tab-pane label="Home" name="home">
+              <p class="lorem">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+              <p class="lorem">Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute.</p>
+            </el-tab-pane>
+            <el-tab-pane label="Profile" name="profile">
+              <p class="lorem">Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint.</p>
+              <p class="lorem">Occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum sed ut perspiciatis.</p>
+            </el-tab-pane>
+            <el-tab-pane label="Contact" name="contact">
+              <p class="lorem">Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam.</p>
+              <p class="lorem">Eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo nemo enim ipsam.</p>
+            </el-tab-pane>
+          </el-tabs>
+        </el-card>
+      </el-col>
+
+      <!-- 6. Material Tab With Icon -->
+      <el-col :span="12" class="koho-col">
+        <el-card shadow="hover">
+          <template #header>
+            <span class="card-title">Material Tab With Icon</span>
+          </template>
+          <el-tabs v-model="materialIconTab">
+            <el-tab-pane name="home">
+              <template #label>
+                <span class="tab-with-icon"><el-icon><HomeFilled /></el-icon> Home</span>
+              </template>
+              <p class="lorem">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+              <p class="lorem">Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute.</p>
+            </el-tab-pane>
+            <el-tab-pane name="profile">
+              <template #label>
+                <span class="tab-with-icon"><el-icon><User /></el-icon> Profile</span>
+              </template>
+              <p class="lorem">Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint.</p>
+              <p class="lorem">Occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum sed ut perspiciatis.</p>
+            </el-tab-pane>
+            <el-tab-pane name="contact">
+              <template #label>
+                <span class="tab-with-icon"><el-icon><Message /></el-icon> Contact</span>
+              </template>
+              <p class="lorem">Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam.</p>
+              <p class="lorem">Eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo nemo enim ipsam.</p>
+            </el-tab-pane>
+          </el-tabs>
+        </el-card>
+      </el-col>
+
+      <!-- 7. Material Tab - Success -->
+      <el-col :span="12" class="koho-col">
+        <el-card shadow="hover">
+          <template #header>
+            <span class="card-title">Material Tab — Success</span>
+          </template>
+          <el-tabs v-model="materialSuccessTab" class="tab-success">
+            <el-tab-pane name="home">
+              <template #label>
+                <span class="tab-with-icon"><el-icon><HomeFilled /></el-icon> Home</span>
+              </template>
+              <p class="lorem">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+              <p class="lorem">Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute.</p>
+            </el-tab-pane>
+            <el-tab-pane name="profile">
+              <template #label>
+                <span class="tab-with-icon"><el-icon><User /></el-icon> Profile</span>
+              </template>
+              <p class="lorem">Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint.</p>
+              <p class="lorem">Occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum sed ut perspiciatis.</p>
+            </el-tab-pane>
+            <el-tab-pane name="contact">
+              <template #label>
+                <span class="tab-with-icon"><el-icon><Message /></el-icon> Contact</span>
+              </template>
+              <p class="lorem">Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam.</p>
+              <p class="lorem">Eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo nemo enim ipsam.</p>
+            </el-tab-pane>
+          </el-tabs>
+        </el-card>
+      </el-col>
+
+      <!-- 8. Tab With Table -->
+      <el-col :span="12" class="koho-col">
+        <el-card shadow="hover">
+          <template #header>
+            <span class="card-title">Tab With Table</span>
+          </template>
+          <el-tabs v-model="tableTab">
+            <el-tab-pane label="Online" name="online">
+              <el-table :data="onlineUsers" style="width: 100%" size="default">
+                <el-table-column prop="name" label="Name" min-width="150" />
+                <el-table-column prop="status" label="Status" width="110">
+                  <template #default="{ row }">
+                    <el-tag type="success" size="small" effect="light">{{ row.status }}</el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="date" label="Date" width="130" />
+              </el-table>
+            </el-tab-pane>
+            <el-tab-pane label="Offline" name="offline">
+              <el-table :data="offlineUsers" style="width: 100%" size="default">
+                <el-table-column prop="name" label="Name" min-width="150" />
+                <el-table-column prop="status" label="Status" width="110">
+                  <template #default="{ row }">
+                    <el-tag type="info" size="small" effect="light">{{ row.status }}</el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="date" label="Date" width="130" />
+              </el-table>
             </el-tab-pane>
           </el-tabs>
         </el-card>
       </el-col>
     </el-row>
-
-    <el-card shadow="hover">
-      <template #header>
-        <span style="font-weight: 600; color: #534686">可关闭标签页</span>
-      </template>
-      <el-tabs v-model="activeTab4" type="card" closable @tab-remove="handleRemove">
-        <el-tab-pane
-          v-for="tab in closableTabs"
-          :key="tab.name"
-          :label="tab.label"
-          :name="tab.name"
-          :closable="tab.closable"
-        >
-          <p style="margin: 0; color: #5a6273">{{ tab.content }}</p>
-        </el-tab-pane>
-      </el-tabs>
-    </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { HomeFilled, User, Message } from '@element-plus/icons-vue'
 import PageHeader from '../PageHeader.vue'
 
-const activeTab1 = ref('all')
-const activeTab2 = ref('info')
-const activeTab3 = ref('today')
-const activeTab4 = ref('tab1')
+const simpleTab = ref('home')
+const iconTab = ref('home')
+const colorPrimaryTab = ref('home')
+const colorSecondaryTab = ref('home')
+const materialTab = ref('profile')
+const materialIconTab = ref('profile')
+const materialSuccessTab = ref('home')
+const tableTab = ref('online')
 
-const users = [
-  { name: '张三', role: '管理员', status: '在线' },
-  { name: '李四', role: '编辑', status: '在线' },
-  { name: '王五', role: '访客', status: '离线' },
-  { name: '赵六', role: '编辑', status: '离线' },
+const onlineUsers = [
+  { name: 'Alice Anderson', status: 'Online', date: '2026-08-21' },
+  { name: 'Bob Brown', status: 'Online', date: '2026-08-20' },
+  { name: 'Charlie Clark', status: 'Online', date: '2026-08-19' },
+  { name: 'Diana Davis', status: 'Online', date: '2026-08-18' },
 ]
 
-const logsInfo = [
-  { time: '08:30:12', msg: '系统启动完成' },
-  { time: '09:15:33', msg: '用户 admin 登录' },
-  { time: '10:02:07', msg: '数据备份完成' },
+const offlineUsers = [
+  { name: 'Evan Evans', status: 'Offline', date: '2026-08-15' },
+  { name: 'Fiona Foster', status: 'Offline', date: '2026-08-12' },
+  { name: 'George Green', status: 'Offline', date: '2026-08-10' },
 ]
-const logsWarn = [
-  { time: '11:20:45', msg: 'CPU 使用率超过 80%' },
-  { time: '13:05:10', msg: '磁盘剩余空间不足 15%' },
-]
-const logsError = [
-  { time: '14:30:22', msg: '数据库连接超时' },
-  { time: '15:10:08', msg: 'API 接口返回 500 错误' },
-]
-
-const closableTabs = ref([
-  { label: '首页', name: 'tab1', content: '首页内容：欢迎来到 ApeAdmin 管理系统。', closable: false },
-  { label: '用户列表', name: 'tab2', content: '用户列表：共 1,248 名注册用户。', closable: true },
-  { label: '系统设置', name: 'tab3', content: '系统设置：配置全局参数。', closable: true },
-  { label: '审计日志', name: 'tab4', content: '审计日志：查看操作记录。', closable: true },
-])
-
-const handleRemove = (name: string) => {
-  closableTabs.value = closableTabs.value.filter(t => t.name !== name)
-}
 </script>
 
 <style scoped>
-.log-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.card-title {
+  font-weight: 600;
+  color: #534686;
 }
-.log-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 13px;
+
+.koho-col {
+  margin-bottom: 30px;
+}
+
+.lorem {
+  margin: 0 0 12px;
   color: #5a6273;
+  line-height: 1.7;
+  font-size: 14px;
 }
-.log-time {
-  color: #909399;
-  font-family: monospace;
-  white-space: nowrap;
+
+.lorem:last-child {
+  margin-bottom: 0;
 }
-.stat-block {
-  display: flex;
-  justify-content: space-around;
-  padding: 12px 0;
+
+.tab-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
-.stat-item {
-  text-align: center;
+
+/* Color Tab — Primary (purple, card type) */
+.tab-primary :deep(.el-tabs__item.is-active) {
+  color: #534686;
+  background-color: rgba(83, 70, 134, 0.05);
+  box-shadow: inset 0 2px 0 #534686;
 }
-.stat-num {
-  font-size: 28px;
-  font-weight: 800;
-  line-height: 1.2;
+
+.tab-primary :deep(.el-tabs__item:hover) {
+  color: #534686;
 }
-.stat-label {
-  color: #909399;
-  font-size: 13px;
-  margin-top: 4px;
+
+/* Color Tab — Secondary (orange, card type) */
+.tab-secondary :deep(.el-tabs__item.is-active) {
+  color: #d97e50;
+  background-color: rgba(255, 164, 122, 0.08);
+  box-shadow: inset 0 2px 0 #FFA47A;
+}
+
+.tab-secondary :deep(.el-tabs__item:hover) {
+  color: #d97e50;
+}
+
+/* Material Tab — Success (green, line type) */
+.tab-success :deep(.el-tabs__item.is-active) {
+  color: #529c00;
+}
+
+.tab-success :deep(.el-tabs__item:hover) {
+  color: #529c00;
+}
+
+.tab-success :deep(.el-tabs__active-bar) {
+  background-color: #67C100;
 }
 </style>
