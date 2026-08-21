@@ -4,11 +4,11 @@
 
     <el-card shadow="hover" class="feather-card">
       <template #header>
-        <span style="color: #7c3aed; font-weight: 600">Element Plus 图标 — 紫色主题</span>
+        <span style="color: #5A67F5; font-weight: 600">Element Plus 图标 — 系统蓝紫主题</span>
       </template>
       <div class="icon-grid">
         <div v-for="item in icons" :key="item.name" class="icon-item">
-          <el-icon :size="28" color="#7c3aed"><component :is="item.component" /></el-icon>
+          <el-icon :size="28" color="#5A67F5"><component :is="item.component" /></el-icon>
           <span class="icon-name">{{ item.name }}</span>
         </div>
       </div>
@@ -94,18 +94,18 @@ const icons: { name: string; component: Component }[] = [
   gap: 8px;
   padding: 16px 8px;
   border-radius: 8px;
-  background: #faf5ff;
-  border: 1px solid #ede9fe;
+  background: #EDF2FF;
+  border: 1px solid #D6DFFF;
   transition: all 0.2s;
 }
 .icon-item:hover {
   background: #EAF1FF;
-  border-color: #c4b5fd;
+  border-color: #7F8AF8;
   transform: translateY(-2px);
 }
 .icon-name {
   font-size: 12px;
-  color: #6b21a8;
+  color: #5A3FE9;
   text-align: center;
   word-break: break-all;
 }
