@@ -6,7 +6,7 @@
       <el-row :gutter="30">
         <!-- Left: Cart Items -->
         <el-col :xs="24" :lg="16">
-          <el-card class="koho-card cart-items-card" shadow="never">
+          <el-card class="ape-card cart-items-card" shadow="never">
             <h3 class="card-title">
               购物车
               <span class="item-count">{{ cartItems.length }} items</span>
@@ -44,7 +44,7 @@
 
         <!-- Right: Summary -->
         <el-col :xs="24" :lg="8">
-          <el-card class="koho-card summary-card" shadow="never">
+          <el-card class="ape-card summary-card" shadow="never">
             <h3 class="card-title">订单摘要</h3>
 
             <!-- Coupon -->
@@ -106,7 +106,7 @@
     </template>
 
     <!-- Empty Cart -->
-    <el-card class="koho-card" shadow="never" v-else>
+    <el-card class="ape-card" shadow="never" v-else>
       <el-empty description="Your cart is empty" :image-size="160">
         <el-button type="primary" @click="continueShopping">Start Shopping</el-button>
       </el-empty>

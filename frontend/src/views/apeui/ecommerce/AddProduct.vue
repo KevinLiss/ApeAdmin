@@ -10,7 +10,7 @@
     <el-row :gutter="30">
       <!-- Left: Basic Info -->
       <el-col :xs="24" :md="16">
-        <el-card class="koho-card form-card" shadow="never">
+        <el-card class="ape-card form-card" shadow="never">
           <h3 class="card-title">Basic Information</h3>
           <el-form :model="form" label-width="140px" label-position="right">
             <el-form-item label="Product Name" required>
@@ -53,7 +53,7 @@
         </el-card>
 
         <!-- SEO / Meta -->
-        <el-card class="koho-card form-card" shadow="never">
+        <el-card class="ape-card form-card" shadow="never">
           <h3 class="card-title">SEO & Meta</h3>
           <el-form :model="form" label-width="140px" label-position="right">
             <el-form-item label="Meta Title">
@@ -71,7 +71,7 @@
 
       <!-- Right: Media + Status -->
       <el-col :xs="24" :md="8">
-        <el-card class="koho-card form-card" shadow="never">
+        <el-card class="ape-card form-card" shadow="never">
           <h3 class="card-title">Product Image</h3>
           <el-upload
             action="#"
@@ -92,7 +92,7 @@
           </el-upload>
         </el-card>
 
-        <el-card class="koho-card form-card" shadow="never">
+        <el-card class="ape-card form-card" shadow="never">
           <h3 class="card-title">Status</h3>
           <el-form :model="form" label-width="140px" label-position="right">
             <el-form-item label="Publish Status">

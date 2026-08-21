@@ -1,10 +1,10 @@
 /* ============================================================
-   ApeUI Purple Theme — Koho #5A67F5 紫色系
+   ApeUI Purple Theme — ApeAdmin #5A67F5 紫色系
    覆盖 Element Plus CSS 变量，全局换肤
    ============================================================ */
 
 :root {
-  /* Koho 紫色主色 #5A67F5 */
+  /* ApeAdmin 主色 #5A67F5 */
   --el-color-primary: #5A67F5;
   --el-color-primary-light-3: #7F8AF8;
   --el-color-primary-light-5: #A5ACFA;
@@ -14,7 +14,7 @@
   --el-color-primary-dark-2: #4755E6;
   --el-color-primary-rgb: 90, 103, 245;
 
-  /* Koho 语义色 */
+  /* ApeAdmin 语义色 */
   --el-color-success: #67c100;
   --el-color-success-light-3: #96d44f;
   --el-color-success-light-5: #b2e080;
@@ -47,28 +47,28 @@
   --el-color-info-light-9: #e9f5f5;
   --el-color-info-dark-2: #319695;
 
-  /* Koho 字体 */
+  /* ApeAdmin 字体 */
   --el-font-family: 'Rubik', 'Roboto', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
   --el-font-size-base: 14px;
 
-  /* Koho 圆角 */
+  /* ApeAdmin 圆角 */
   --el-border-radius-base: 8px;
   --el-border-radius-small: 5px;
   --el-border-radius-round: 20px;
 
-  /* Koho 边框色 */
+  /* ApeAdmin 边框色 */
   --el-border-color: #e9edf3;
   --el-border-color-light: #f0f2f5;
   --el-border-color-lighter: #f5f7fa;
   --el-border-color-dark: #d0d4dc;
 
-  /* Koho 文字色 */
+  /* ApeAdmin 文字色 */
   --el-text-color-primary: #2b2b2b;
   --el-text-color-regular: #5a6273;
   --el-text-color-secondary: #909399;
   --el-text-color-placeholder: #c0c4cc;
 
-  /* Koho 背景色 */
+  /* ApeAdmin 背景色 */
   --el-bg-color: #ffffff;
   --el-bg-color-page: #eff3f9;
   --el-bg-color-overlay: #ffffff;
@@ -171,9 +171,9 @@ body {
 .stat-card .stat-trend .down { color: #dc0808; font-weight: 600; }
 
 /* ============================================================
-   Koho 卡片公共样式 — 所有 APEUI 页面共享
+   ApeAdmin 卡片公共样式 — 所有 APEUI 页面共享
    ============================================================ */
-.koho-card {
+.ape-card {
   background: #fff;
   border-radius: 20px;
   box-shadow: 0 0 20px rgba(8, 21, 66, 0.05);
@@ -182,24 +182,24 @@ body {
   transition: box-shadow 0.3s ease;
   overflow: hidden;
 }
-.koho-card:hover {
+.ape-card:hover {
   box-shadow: 0 0 40px rgba(8, 21, 66, 0.05);
 }
-.koho-card .card-header {
+.ape-card .card-header {
   padding: 25px 25px 0;
   border-bottom: none;
   background: transparent;
 }
-.koho-card .card-header h3 {
+.ape-card .card-header h3 {
   font-size: 20px;
   font-weight: 500;
   color: #5A67F5;
   margin: 0;
 }
-.koho-card .card-body {
+.ape-card .card-body {
   padding: 25px;
 }
-.koho-badge-soft {
+.ape-badge-soft {
   background-color: rgba(90, 103, 245, 0.05);
   font-size: 12px;
   color: #5A67F5;
@@ -209,8 +209,8 @@ body {
 }
 
 /* ============================================================
-   APEUI 内容区 — 全局 el-card Koho 风格覆盖
-   所有 /apeui 路由下的 el-card 自动变 Koho 风格
+   APEUI 内容区 — 全局 el-card ApeAdmin 风格覆盖
+   所有 /apeui 路由下的 el-card 自动变 ApeAdmin 风格
    ============================================================ */
 .apeui-content .el-card {
   border-radius: 20px;
@@ -223,7 +223,7 @@ body {
 .apeui-content .el-card:hover {
   box-shadow: 0 0 40px rgba(8, 21, 66, 0.08);
 }
-/* el-card header — Koho 风格：紫色标题、无边框、透明背景 */
+/* el-card header — ApeAdmin 风格：紫色标题、无边框、透明背景 */
 .apeui-content .el-card__header {
   padding: 25px 25px 0;
   border-bottom: none;
@@ -232,7 +232,7 @@ body {
   font-weight: 500;
   color: #5A67F5;
 }
-/* el-card body — Koho 风格：25px 内边距 */
+/* el-card body — ApeAdmin 风格：25px 内边距 */
 .apeui-content .el-card__body {
   padding: 25px;
 }
@@ -247,10 +247,10 @@ body {
 }
 
 /* ============================================================
-   APEUI 内容区 — 其他 EP 组件 Koho 风格微调
+   APEUI 内容区 — 其他 EP 组件 ApeAdmin 风格微调
    ============================================================ */
 
-/* el-row 间距统一为 30px (Koho gutter) */
+/* el-row 间距统一为 30px (ApeAdmin gutter) */
 .apeui-content .el-row {
   margin-bottom: 0;
 }
@@ -258,7 +258,7 @@ body {
   margin-top: 0;
 }
 
-/* el-table — Koho 风格 */
+/* el-table — ApeAdmin 风格 */
 .apeui-content .el-table {
   border-radius: 0;
   font-size: 14px;
@@ -273,7 +273,7 @@ body {
   border-bottom: 1px solid rgba(90, 103, 245, 0.06);
 }
 
-/* el-tag — Koho badge soft 风格 */
+/* el-tag — ApeAdmin badge soft 风格 */
 .apeui-content .el-tag {
   border-radius: 9px;
   font-size: 12px;
@@ -282,23 +282,23 @@ body {
   line-height: 28px;
 }
 
-/* el-button — Koho 圆角 */
+/* el-button — ApeAdmin 圆角 */
 .apeui-content .el-button {
   border-radius: 8px;
   font-weight: 500;
 }
 
-/* el-alert — Koho 风格圆角 */
+/* el-alert — ApeAdmin 风格圆角 */
 .apeui-content .el-alert {
   border-radius: 20px;
 }
 
-/* el-dialog — Koho 风格圆角 */
+/* el-dialog — ApeAdmin 风格圆角 */
 .apeui-content .el-dialog {
   border-radius: 20px;
 }
 
-/* el-tabs — Koho 风格 */
+/* el-tabs — ApeAdmin 风格 */
 .apeui-content .el-tabs__item {
   font-size: 15px;
   font-weight: 500;
@@ -311,7 +311,7 @@ body {
   background-color: #5A67F5;
 }
 
-/* el-collapse — Koho 风格 */
+/* el-collapse — ApeAdmin 风格 */
 .apeui-content .el-collapse {
   border-top: 1px solid rgba(90, 103, 245, 0.10);
   border-bottom: 1px solid rgba(90, 103, 245, 0.10);
@@ -322,7 +322,7 @@ body {
   color: #2b2b2b;
 }
 
-/* el-progress — Koho 风格 */
+/* el-progress — ApeAdmin 风格 */
 .apeui-content .el-progress-bar__outer {
   border-radius: 9px;
 }
@@ -330,7 +330,7 @@ body {
   border-radius: 9px;
 }
 
-/* PageHeader 标题颜色改为 Koho 风格 */
+/* PageHeader 标题颜色改为 ApeAdmin 风格 */
 .apeui-content .apeui-page-header h3 {
   font-size: 20px;
   font-weight: 500;

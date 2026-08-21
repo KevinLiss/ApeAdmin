@@ -7,7 +7,7 @@
       <el-row :gutter="30" class="dash-row">
         <!-- Profile Greeting -->
         <el-col :xs="24" :sm="12" :lg="10">
-          <div class="koho-card profile-greeting">
+          <div class="ape-card profile-greeting">
             <div class="greeting-body">
               <div class="greeting-text">
                 <h1>欢迎回来，威廉</h1>
@@ -26,9 +26,9 @@
 
         <!-- 年度概览 -->
         <el-col :xs="24" :sm="12" :lg="8">
-          <div class="koho-card yearly-view">
+          <div class="ape-card yearly-view">
             <div class="card-header">
-              <h3>年度概览 <span class="koho-badge-soft">50/100</span></h3>
+              <h3>年度概览 <span class="ape-badge-soft">50/100</span></h3>
               <h5 class="weekday-label">周一</h5>
             </div>
             <div class="card-body p-0">
@@ -39,7 +39,7 @@
 
         <!-- Activity Review -->
         <el-col :xs="24" :sm="12" :lg="6">
-          <div class="koho-card activity-review">
+          <div class="ape-card activity-review">
             <div class="card-header">
               <h3>活动</h3>
             </div>
@@ -65,7 +65,7 @@
       <el-row :gutter="30" class="dash-row">
         <!-- Transaction History -->
         <el-col :xs="24" :lg="10">
-          <div class="koho-card transaction-history">
+          <div class="ape-card transaction-history">
             <div class="card-header">
               <h3>交易</h3>
             </div>
@@ -122,7 +122,7 @@
 
         <!-- Value Chart: 2 sub-cards stacked -->
         <el-col :xs="24" :lg="6">
-          <div class="value-chart-sub1 koho-card">
+          <div class="value-chart-sub1 ape-card">
             <div class="value-chart-body">
               <div class="round-progress-section">
                 <v-chart class="knob-chart" :option="knobChartOption" autoresize />
@@ -134,7 +134,7 @@
             </div>
             <span class="value-badge">新增</span>
           </div>
-          <div class="value-chart-sub2 koho-card">
+          <div class="value-chart-sub2 ape-card">
             <div class="value-chart-body">
               <div class="stock-chart-section">
                 <v-chart class="stock-chart" :option="stockChartOption" autoresize />
@@ -155,7 +155,7 @@
               <v-chart class="beyo-chart" :option="beyoChartOption" autoresize />
             </div>
             <div class="beyo-detail">
-              <h3>超越边界 <span class="koho-badge-soft">6 小时前</span></h3>
+              <h3>超越边界 <span class="ape-badge-soft">6 小时前</span></h3>
               <p>全球最耀眼的年轻冲浪新星之一，伊凯诺亚·加萨拉什。</p>
               <div class="date-history">
                 <ul class="beyo-avatars">
@@ -179,7 +179,7 @@
       <el-row :gutter="30" class="dash-row">
         <!-- Investment Chart -->
         <el-col :xs="24" :lg="10">
-          <div class="koho-card investment-chart">
+          <div class="ape-card investment-chart">
             <div class="card-body">
               <el-row :gutter="20">
                 <el-col :sm="8">
@@ -219,7 +219,7 @@
 
         <!-- 热门社交媒体 -->
         <el-col :xs="24" :sm="12" :lg="6">
-          <div class="koho-card social-shared">
+          <div class="ape-card social-shared">
             <div class="card-header">
               <h3>热门社交媒体</h3>
             </div>
@@ -248,7 +248,7 @@
 
         <!-- Upgrade History -->
         <el-col :xs="24" :sm="12" :lg="8">
-          <div class="koho-card upgrade-history">
+          <div class="ape-card upgrade-history">
             <div class="upgrade-body">
               <div class="upgrade-text">
                 <h3>立即购买更多空间！</h3>
@@ -281,7 +281,7 @@ import {
 
 use([CanvasRenderer, LineChart, BarChart, GaugeChart, GridComponent, TooltipComponent, LegendComponent])
 
-/* Koho color constants */
+/* ApeAdmin color constants */
 const PRIMARY = '#5A67F5'
 const SECONDARY = '#FFA47A'
 const SUCCESS = '#67C100'
@@ -472,7 +472,7 @@ const profitChartOption = {
   background: linear-gradient(135deg, #5A67F5 0%, #47D8FF 100%);
   height: 254px;
   position: relative;
-  /* Koho 原版：插画从卡片顶部自然探出，不做裁切 */
+  /* ApeAdmin 原版：插画从卡片顶部自然探出，不做裁切 */
   overflow: visible;
 }
 .profile-greeting .greeting-body {
@@ -526,7 +526,7 @@ const profitChartOption = {
   right: 0;
 }
 .greeting-img img {
-  /* Koho 1:1：探出卡片顶部约 9px */
+  /* ApeAdmin 1:1：探出卡片顶部约 9px */
   height: 261px;
 }
 
@@ -540,7 +540,7 @@ const profitChartOption = {
   color: #5A67F5;
   margin: 0 0 5px;
 }
-.yearly-view .card-header h3 .koho-badge-soft {
+.yearly-view .card-header h3 .ape-badge-soft {
   float: right;
 }
 .weekday-label {
@@ -958,7 +958,7 @@ const profitChartOption = {
 .upgrade-history {
   position: relative;
   height: 250px;
-  /* Koho 原版：插画从顶部探出，不被裁切 */
+  /* ApeAdmin 原版：插画从顶部探出，不被裁切 */
   overflow: visible;
 }
 .upgrade-body {
@@ -1005,7 +1005,7 @@ const profitChartOption = {
   z-index: 1;
 }
 .upgrade-img img {
-  /* Koho 1:1：高度补齐至卡片底部贴齐（250 - 10 + 20 = 260） */
+  /* ApeAdmin 1:1：高度补齐至卡片底部贴齐（250 - 10 + 20 = 260） */
   height: 260px;
 }
 

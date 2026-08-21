@@ -7,7 +7,7 @@
     </PageHeader>
 
     <!-- Toolbar -->
-    <el-card class="koho-card toolbar-card" shadow="never">
+    <el-card class="ape-card toolbar-card" shadow="never">
       <div class="toolbar">
         <div class="toolbar-left">
           <el-select v-model="categoryFilter" placeholder="All Categories" clearable style="width: 180px">
@@ -29,7 +29,7 @@
     <!-- Product Grid -->
     <el-row :gutter="30" class="product-grid">
       <el-col v-for="product in pagedProducts" :key="product.id" :xs="12" :sm="8" :md="6" style="margin-bottom: 30px">
-        <el-card class="koho-card product-card" shadow="hover" :body-style="{ padding: '0' }">
+        <el-card class="ape-card product-card" shadow="hover" :body-style="{ padding: '0' }">
           <div class="product-img" :style="{ background: product.bgColor }">
             <el-icon :size="48" color="rgba(255,255,255,0.85)"><Goods /></el-icon>
             <span class="product-badge" v-if="product.badge" :style="{ background: product.badgeColor }">{{ product.badge }}</span>

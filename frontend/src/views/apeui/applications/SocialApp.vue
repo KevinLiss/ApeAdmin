@@ -5,7 +5,7 @@
     <el-row :gutter="30">
       <!-- Left: Friends List -->
       <el-col :xs="24" :md="6">
-        <div class="koho-card">
+        <div class="ape-card">
           <div class="card-title">
             <el-icon><User /></el-icon>
             <span>好友</span>
@@ -29,7 +29,7 @@
       <!-- Center: Feed -->
       <el-col :xs="24" :md="12">
         <!-- Post Box -->
-        <div class="koho-card">
+        <div class="ape-card">
           <div class="post-box">
             <el-avatar :size="40" :src="currentUser.avatar" />
             <el-input
@@ -50,7 +50,7 @@
         </div>
 
         <!-- Feed Items -->
-        <div v-for="post in posts" :key="post.id" class="koho-card">
+        <div v-for="post in posts" :key="post.id" class="ape-card">
           <div class="post-header">
             <el-avatar :size="44" :src="post.avatar" />
             <div class="post-meta">
@@ -88,7 +88,7 @@
       <!-- Right: Suggestions & Topics -->
       <el-col :xs="24" :md="6">
         <!-- People You May Know -->
-        <div class="koho-card">
+        <div class="ape-card">
           <div class="card-title">
             <el-icon><UserFilled /></el-icon>
             <span>People You May Know</span>
@@ -106,7 +106,7 @@
         </div>
 
         <!-- Trending Topics -->
-        <div class="koho-card">
+        <div class="ape-card">
           <div class="card-title">
             <el-icon><TrendCharts /></el-icon>
             <span>Trending Topics</span>
@@ -225,7 +225,7 @@ const onTopicClick = (topic: string) => ElMessage.info(`正在浏览 #${topic}`)
 </script>
 
 <style scoped>
-.koho-card {
+.ape-card {
   background: #fff;
   border-radius: 16px;
   padding: 24px;

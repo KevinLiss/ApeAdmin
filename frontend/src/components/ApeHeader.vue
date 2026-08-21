@@ -1,5 +1,5 @@
 <template>
-  <header class="koho-header" :class="{ 'close-icon': collapsed && !isMobile, 'is-mobile': isMobile }">
+  <header class="ape-header" :class="{ 'close-icon': collapsed && !isMobile, 'is-mobile': isMobile }">
     <div class="header-wrapper">
       <!-- Mobile hamburger -->
       <div v-if="isMobile" class="hamburger-btn" @click="$emit('toggle-mobile-sidebar')">
@@ -170,8 +170,8 @@ async function handleLogout() {
 </script>
 
 <style scoped>
-/* ===== Koho 1:1 Header ===== */
-.koho-header {
+/* ===== ApeAdmin 1:1 Header ===== */
+.ape-header {
   position: fixed;
   top: 0;
   left: 258px;
@@ -182,7 +182,7 @@ async function handleLogout() {
   z-index: 8;
   transition: left 0.3s ease;
 }
-.koho-header.close-icon {
+.ape-header.close-icon {
   left: 86px;
 }
 
@@ -515,48 +515,48 @@ async function handleLogout() {
 
 /* ≤1199px: mobile header */
 @media (max-width: 1199px) {
-  .koho-header {
+  .ape-header {
     left: 0;
   }
-  .koho-header.is-mobile .header-wrapper {
+  .ape-header.is-mobile .header-wrapper {
     padding: 0 12px;
   }
-  .koho-header.is-mobile .left-header {
+  .ape-header.is-mobile .left-header {
     max-width: none;
   }
-  .koho-header.is-mobile .icon-item {
+  .ape-header.is-mobile .icon-item {
     width: 36px;
     height: 36px;
   }
-  .koho-header.is-mobile .nav-menus {
+  .ape-header.is-mobile .nav-menus {
     gap: 4px;
   }
 }
 
 /* ≤991px: tablet */
 @media (max-width: 991px) {
-  .koho-header.is-mobile .icon-item {
+  .ape-header.is-mobile .icon-item {
     width: 34px;
     height: 34px;
   }
-  .koho-header.is-mobile .dropdown-panel {
+  .ape-header.is-mobile .dropdown-panel {
     width: 280px;
   }
 }
 
 /* ≤767px: large phone */
 @media (max-width: 767px) {
-  .koho-header.is-mobile .header-wrapper {
+  .ape-header.is-mobile .header-wrapper {
     padding: 0 10px;
   }
-  .koho-header.is-mobile .icon-item {
+  .ape-header.is-mobile .icon-item {
     width: 32px;
     height: 32px;
   }
-  .koho-header.is-mobile .profile-avatar {
+  .ape-header.is-mobile .profile-avatar {
     --el-avatar-size: 34px;
   }
-  .koho-header.is-mobile .dropdown-panel {
+  .ape-header.is-mobile .dropdown-panel {
     position: fixed;
     width: calc(100vw - 20px);
     right: 10px;
@@ -565,19 +565,19 @@ async function handleLogout() {
 
 /* ≤575px: small phone */
 @media (max-width: 575px) {
-  .koho-header.is-mobile .header-wrapper {
+  .ape-header.is-mobile .header-wrapper {
     padding: 0 8px;
   }
-  .koho-header.is-mobile .icon-item {
+  .ape-header.is-mobile .icon-item {
     width: 30px;
     height: 30px;
   }
-  .koho-header.is-mobile .profile-dropdown {
+  .ape-header.is-mobile .profile-dropdown {
     position: fixed;
     width: calc(100vw - 20px);
     right: 10px;
   }
-  .koho-header.is-mobile .badge-num {
+  .ape-header.is-mobile .badge-num {
     min-width: 15px;
     height: 15px;
     font-size: 10px;

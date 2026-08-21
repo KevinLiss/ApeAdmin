@@ -1,6 +1,6 @@
 <template>
   <aside
-    class="koho-sidebar"
+    class="ape-sidebar"
     :class="{
       'close-icon': collapsed && !isMobile,
       'mobile-open': isMobile && mobileOpen,
@@ -106,7 +106,7 @@
       </ul>
     </nav>
 
-    <!-- Bottom upgrade card (Koho sidebar-img-content) -->
+    <!-- Bottom upgrade card (ApeAdmin sidebar-img-content) -->
     <div class="sidebar-footer">
       <div class="upgrade-card">
         <img class="upgrade-img" src="/assets/images/sidebar/2.png" alt="" />
@@ -256,8 +256,8 @@ const apeuiMenus = [
 </script>
 
 <style scoped>
-/* ===== Koho 1:1 Sidebar ===== */
-.koho-sidebar {
+/* ===== ApeAdmin 1:1 Sidebar ===== */
+.ape-sidebar {
   position: fixed;
   top: 0;
   left: 0;
@@ -272,38 +272,38 @@ const apeuiMenus = [
   overflow: hidden;
 }
 /* Collapsed mode: allow flyout to overflow */
-.koho-sidebar.close-icon {
+.ape-sidebar.close-icon {
   overflow: visible;
 }
-/* Koho 1:1 collapsed: 86px icon-only mode */
-.koho-sidebar.close-icon {
+/* ApeAdmin 1:1 collapsed: 86px icon-only mode */
+.ape-sidebar.close-icon {
   width: 86px;
 }
-.koho-sidebar.close-icon .brand-text,
-.koho-sidebar.close-icon .toggle-sidebar {
+.ape-sidebar.close-icon .brand-text,
+.ape-sidebar.close-icon .toggle-sidebar {
   display: none;
 }
-.koho-sidebar.close-icon .logo-wrapper {
+.ape-sidebar.close-icon .logo-wrapper {
   cursor: pointer;
   justify-content: center;
   padding: 22px 0;
 }
-.koho-sidebar.close-icon .logo-inner {
+.ape-sidebar.close-icon .logo-inner {
   justify-content: center;
 }
-.koho-sidebar.close-icon .sidebar-main-title,
-.koho-sidebar.close-icon .sidebar-footer {
+.ape-sidebar.close-icon .sidebar-main-title,
+.ape-sidebar.close-icon .sidebar-footer {
   display: none;
 }
-.koho-sidebar.close-icon .sidebar-link {
+.ape-sidebar.close-icon .sidebar-link {
   justify-content: center;
   padding: 11px 0;
   margin: 2px 10px;
 }
-.koho-sidebar.close-icon .sidebar-link span {
+.ape-sidebar.close-icon .sidebar-link span {
   display: none;
 }
-.koho-sidebar.close-icon .sidebar-link.active::before {
+.ape-sidebar.close-icon .sidebar-link.active::before {
   display: none;
 }
 
@@ -349,7 +349,7 @@ const apeuiMenus = [
   padding: 12px 0;
 }
 /* Collapsed mode: allow flyout to overflow */
-.koho-sidebar.close-icon .sidebar-main {
+.ape-sidebar.close-icon .sidebar-main {
   overflow: visible;
 }
 .sidebar-main::-webkit-scrollbar {
@@ -437,7 +437,7 @@ const apeuiMenus = [
   background: var(--theme-default, #5A67F5);
 }
 
-/* Footer upgrade card (Koho sidebar-img-content 1:1) */
+/* Footer upgrade card (ApeAdmin sidebar-img-content 1:1) */
 .sidebar-footer {
   padding: 0 22px;
   margin-bottom: 24px;
@@ -525,8 +525,8 @@ const apeuiMenus = [
 }
 
 /* Collapsed: hide inline submenus, use flyout instead */
-.koho-sidebar.close-icon .submenu-item .sidebar-submenu,
-.koho-sidebar.close-icon .submenu-item .sub-arrow {
+.ape-sidebar.close-icon .submenu-item .sidebar-submenu,
+.ape-sidebar.close-icon .submenu-item .sub-arrow {
   display: none;
 }
 
@@ -591,10 +591,10 @@ const apeuiMenus = [
 }
 
 /* Mobile: drawer mode (≤1199px) */
-.koho-sidebar.mobile-hidden {
+.ape-sidebar.mobile-hidden {
   transform: translateX(-285px);
 }
-.koho-sidebar.mobile-open {
+.ape-sidebar.mobile-open {
   transform: translateX(0);
   box-shadow: 0 0 30px rgba(0, 0, 0, 0.15);
 }

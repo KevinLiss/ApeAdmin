@@ -3,7 +3,7 @@
     <PageHeader title="搜索结果" :breadcrumb="['APEUI库', '应用中心', '搜索结果']" />
 
     <!-- Search Bar -->
-    <div class="koho-card search-card">
+    <div class="ape-card search-card">
       <div class="search-bar">
         <el-input
           v-model="searchQuery"
@@ -30,7 +30,7 @@
     <el-row :gutter="30">
       <!-- Left: Filter Panel -->
       <el-col :xs="24" :sm="6">
-        <div class="koho-card">
+        <div class="ape-card">
           <div class="card-title">
             <el-icon><Filter /></el-icon>
             <span>筛选条件</span>
@@ -105,7 +105,7 @@
 
       <!-- Right: Statistics -->
       <el-col :xs="24" :sm="6">
-        <div class="koho-card">
+        <div class="ape-card">
           <div class="card-title">
             <el-icon><DataAnalysis /></el-icon>
             <span>数据统计</span>
@@ -240,7 +240,7 @@ const onResultClick = (result: any) => ElMessage.info(`打开：${result.title}`
 </script>
 
 <style scoped>
-.koho-card {
+.ape-card {
   background: #fff;
   border-radius: 16px;
   padding: 24px;

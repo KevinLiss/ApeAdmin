@@ -4,13 +4,13 @@
 
     <el-row :gutter="30">
       <!-- 1. 默认列表 -->
-      <el-col :span="12" class="koho-col">
+      <el-col :span="12" class="ape-col">
         <el-card shadow="hover">
           <template #header>
             <span class="card-title">默认列表</span>
           </template>
           <div>
-            <div class="koho-list-item" v-for="(item, idx) in defaultList" :key="idx">
+            <div class="ape-list-item" v-for="(item, idx) in defaultList" :key="idx">
               {{ item }}
             </div>
           </div>
@@ -18,14 +18,14 @@
       </el-col>
 
       <!-- 2. Links and Buttons -->
-      <el-col :span="12" class="koho-col">
+      <el-col :span="12" class="ape-col">
         <el-card shadow="hover">
           <template #header>
             <span class="card-title">链接与按钮</span>
           </template>
           <div>
             <div
-              class="koho-list-item link-item"
+              class="ape-list-item link-item"
               :class="{ active: item.active, disabled: item.disabled }"
               v-for="(item, idx) in linkList"
               :key="idx"
@@ -37,13 +37,13 @@
       </el-col>
 
       <!-- 3. Flush Style -->
-      <el-col :span="12" class="koho-col">
+      <el-col :span="12" class="ape-col">
         <el-card shadow="hover" :body-style="{ padding: 0 }">
           <template #header>
             <span class="card-title">紧凑样式</span>
           </template>
           <div>
-            <div class="koho-list-item" v-for="(item, idx) in flushList" :key="idx">
+            <div class="ape-list-item" v-for="(item, idx) in flushList" :key="idx">
               {{ item }}
             </div>
           </div>
@@ -51,14 +51,14 @@
       </el-col>
 
       <!-- 4. Contextual Classes -->
-      <el-col :span="12" class="koho-col">
+      <el-col :span="12" class="ape-col">
         <el-card shadow="hover" :body-style="{ padding: 0 }">
           <template #header>
             <span class="card-title">上下文样式</span>
           </template>
           <div>
             <div
-              class="koho-list-item"
+              class="ape-list-item"
               :class="`ctx-${item.ctx}`"
               v-for="(item, idx) in contextualList"
               :key="idx"
@@ -70,13 +70,13 @@
       </el-col>
 
       <!-- 5. With Badges -->
-      <el-col :span="12" class="koho-col">
+      <el-col :span="12" class="ape-col">
         <el-card shadow="hover">
           <template #header>
             <span class="card-title">带徽章</span>
           </template>
           <div>
-            <div class="koho-list-item badge-item" v-for="(item, idx) in badgeList" :key="idx">
+            <div class="ape-list-item badge-item" v-for="(item, idx) in badgeList" :key="idx">
               <span class="badge-label">{{ item.text }}</span>
               <el-badge :value="item.badge" :type="item.type" class="list-badge" />
             </div>
@@ -85,13 +85,13 @@
       </el-col>
 
       <!-- 6. Custom Content -->
-      <el-col :span="12" class="koho-col">
+      <el-col :span="12" class="ape-col">
         <el-card shadow="hover">
           <template #header>
             <span class="card-title">自定义内容</span>
           </template>
           <div>
-            <div class="koho-list-item custom-content-item" v-for="(item, idx) in customContentList" :key="idx">
+            <div class="ape-list-item custom-content-item" v-for="(item, idx) in customContentList" :key="idx">
               <div class="custom-content-header">
                 <span class="custom-content-title">{{ item.title }}</span>
                 <el-tag size="small" type="warning" effect="light">{{ item.subtitle }}</el-tag>
@@ -104,7 +104,7 @@
       </el-col>
 
       <!-- 7. JavaScript Behavior -->
-      <el-col :span="12" class="koho-col">
+      <el-col :span="12" class="ape-col">
         <el-card shadow="hover">
           <template #header>
             <span class="card-title">JavaScript 行为</span>
@@ -135,13 +135,13 @@
       </el-col>
 
       <!-- 8. With Icon -->
-      <el-col :span="12" class="koho-col">
+      <el-col :span="12" class="ape-col">
         <el-card shadow="hover">
           <template #header>
             <span class="card-title">带图标</span>
           </template>
           <div>
-            <div class="koho-list-item icon-list-item" v-for="(item, idx) in iconList" :key="idx">
+            <div class="ape-list-item icon-list-item" v-for="(item, idx) in iconList" :key="idx">
               <el-icon :size="18" color="#5A67F5"><component :is="item.icon" /></el-icon>
               <span class="icon-list-text">{{ item.text }}</span>
             </div>
@@ -150,13 +150,13 @@
       </el-col>
 
       <!-- 9. With Images -->
-      <el-col :span="12" class="koho-col">
+      <el-col :span="12" class="ape-col">
         <el-card shadow="hover">
           <template #header>
             <span class="card-title">带方形头像</span>
           </template>
           <div>
-            <div class="koho-list-item avatar-list-item" v-for="(item, idx) in imageList" :key="idx">
+            <div class="ape-list-item avatar-list-item" v-for="(item, idx) in imageList" :key="idx">
               <el-avatar :size="44" shape="square" :style="{ background: item.color, borderRadius: '10px' }">{{ item.initials }}</el-avatar>
               <div class="avatar-list-body">
                 <span class="avatar-list-name">{{ item.name }}</span>
@@ -168,13 +168,13 @@
       </el-col>
 
       <!-- 10. With Image Rounded -->
-      <el-col :span="12" class="koho-col">
+      <el-col :span="12" class="ape-col">
         <el-card shadow="hover">
           <template #header>
             <span class="card-title">带圆形头像</span>
           </template>
           <div>
-            <div class="koho-list-item avatar-list-item" v-for="(item, idx) in roundedImageList" :key="idx">
+            <div class="ape-list-item avatar-list-item" v-for="(item, idx) in roundedImageList" :key="idx">
               <el-avatar :size="44" :style="{ background: item.color }">{{ item.initials }}</el-avatar>
               <div class="avatar-list-body">
                 <span class="avatar-list-name">{{ item.name }}</span>
@@ -307,12 +307,12 @@ const roundedImageList = [
   color: #5A67F5;
 }
 
-.koho-col {
+.ape-col {
   margin-bottom: 30px;
 }
 
 /* Base list item */
-.koho-list-item {
+.ape-list-item {
   padding: 12px 16px;
   border-bottom: 1px solid rgba(90, 103, 245, 0.08);
   color: #5a6273;
@@ -320,12 +320,12 @@ const roundedImageList = [
   transition: background-color 0.2s ease;
 }
 
-.koho-list-item:last-child {
+.ape-list-item:last-child {
   border-bottom: none;
 }
 
 /* Active state */
-.koho-list-item.active {
+.ape-list-item.active {
   background-color: rgba(90, 103, 245, 0.08);
   color: #5A67F5;
   font-weight: 500;
@@ -333,7 +333,7 @@ const roundedImageList = [
 }
 
 /* Disabled state */
-.koho-list-item.disabled {
+.ape-list-item.disabled {
   color: #c0c4cc;
   cursor: not-allowed;
   pointer-events: none;

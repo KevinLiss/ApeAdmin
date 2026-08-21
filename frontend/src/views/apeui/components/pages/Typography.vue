@@ -12,12 +12,12 @@
           <el-row :gutter="20">
             <el-col :span="12">
               <div class="heading-list">
-                <h1>H1. Koho Heading</h1>
-                <h2>H2. Koho Heading</h2>
-                <h3>H3. Koho Heading</h3>
-                <h4>H4. Koho Heading</h4>
-                <h5>H5. Koho Heading</h5>
-                <h6>H6. Koho Heading</h6>
+                <h1>H1. ApeAdmin Heading</h1>
+                <h2>H2. ApeAdmin Heading</h2>
+                <h3>H3. ApeAdmin Heading</h3>
+                <h4>H4. ApeAdmin Heading</h4>
+                <h5>H5. ApeAdmin Heading</h5>
+                <h6>H6. ApeAdmin Heading</h6>
               </div>
             </el-col>
             <el-col :span="12">

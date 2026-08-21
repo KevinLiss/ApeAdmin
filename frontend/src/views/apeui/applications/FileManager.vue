@@ -5,7 +5,7 @@
     <el-row :gutter="30">
       <!-- Left: Folder Tree -->
       <el-col :xs="24" :sm="6">
-        <div class="koho-card">
+        <div class="ape-card">
           <div class="card-title">
             <el-icon><FolderOpened /></el-icon>
             <span>文件夹</span>
@@ -23,7 +23,7 @@
 
       <!-- Right: File List -->
       <el-col :xs="24" :sm="18">
-        <div class="koho-card">
+        <div class="ape-card">
           <!-- Toolbar -->
           <div class="toolbar">
             <div class="toolbar-left">
@@ -188,7 +188,7 @@ const onFileAction = (command: string, file: any) => {
 </script>
 
 <style scoped>
-.koho-card {
+.ape-card {
   background: #fff;
   border-radius: 16px;
   padding: 24px;

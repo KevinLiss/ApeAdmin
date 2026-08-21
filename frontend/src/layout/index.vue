@@ -5,8 +5,8 @@
       <div v-if="isMobile && mobileSidebarOpen" class="sidebar-overlay" @click="closeMobileSidebar"></div>
     </Transition>
 
-    <!-- Koho 1:1 Sidebar -->
-    <KohoSidebar
+    <!-- ApeAdmin 1:1 Sidebar -->
+    <ApeSidebar
       :collapsed="collapsed"
       :isMobile="isMobile"
       :mobileOpen="mobileSidebarOpen"
@@ -17,7 +17,7 @@
 
     <!-- Main column: header + content, offset by sidebar width -->
     <div class="layout-main" :class="{ 'is-collapsed': collapsed && !isMobile, 'is-mobile': isMobile }">
-      <KohoHeader
+      <ApeHeader
         :isDark="isDark"
         :collapsed="collapsed"
         :isMobile="isMobile"
@@ -39,8 +39,8 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import KohoSidebar from '@/components/KohoSidebar.vue'
-import KohoHeader from '@/components/KohoHeader.vue'
+import ApeSidebar from '@/components/ApeSidebar.vue'
+import ApeHeader from '@/components/ApeHeader.vue'
 import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
@@ -127,10 +127,11 @@ async function onLogout() {
   width: 100%;
 }
 .layout-main {
-  min-height: 100vh;
+  height: 100vh;
   margin-left: 258px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   transition: margin-left 0.3s ease;
 }
 .layout-main.is-collapsed {
@@ -143,8 +144,10 @@ async function onLogout() {
   flex: 1;
   background-color: var(--theme-body-bg, #eff3f9);
   padding: 20px;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   margin-top: 64px;
+  min-height: 0;
 }
 
 /* Mobile overlay */

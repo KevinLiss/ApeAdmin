@@ -1,5 +1,5 @@
 <template>
-  <!-- Koho 1:1 登录页 -->
+  <!-- ApeAdmin 1:1 登录页 -->
   <div class="login-card">
     <div>
       <div>
@@ -117,7 +117,7 @@ async function handleLogin() {
 </script>
 
 <style scoped>
-/* ===== Koho 1:1 Login ===== */
+/* ===== ApeAdmin 1:1 Login ===== */
 .login-card {
   min-height: 100vh;
   display: flex;

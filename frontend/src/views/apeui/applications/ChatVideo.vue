@@ -5,7 +5,7 @@
     <el-row :gutter="30">
       <!-- Main Video Area -->
       <el-col :xs="24" :md="18">
-        <div class="koho-card video-main">
+        <div class="ape-card video-main">
           <!-- Call Info Bar -->
           <div class="call-info-bar">
             <div class="call-info-left">
@@ -93,7 +93,7 @@
 
       <!-- Chat Sidebar -->
       <el-col :xs="24" :md="6">
-        <div class="koho-card chat-sidebar-card">
+        <div class="ape-card chat-sidebar-card">
           <div class="card-title">
             <el-icon><ChatDotRound /></el-icon>
             <span>通话聊天</span>
@@ -181,7 +181,7 @@ const onSendChat = () => {
 </script>
 
 <style scoped>
-.koho-card {
+.ape-card {
   background: #fff;
   border-radius: 16px;
   padding: 24px;

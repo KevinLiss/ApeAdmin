@@ -5,7 +5,7 @@
     <el-row :gutter="30">
       <!-- Left: Conversation List -->
       <el-col :xs="24" :sm="7" :md="6">
-        <div class="koho-card chat-sidebar">
+        <div class="ape-card chat-sidebar">
           <div class="card-title">
             <el-icon><ChatDotRound /></el-icon>
             <span>聊天</span>
@@ -46,7 +46,7 @@
 
       <!-- Center: Chat Area -->
       <el-col :xs="24" :sm="17" :md="12">
-        <div class="koho-card chat-area">
+        <div class="ape-card chat-area">
           <!-- Chat Header -->
           <div class="chat-header">
             <div class="chat-header-left">
@@ -100,7 +100,7 @@
 
       <!-- Right: 联系信息 -->
       <el-col :xs="24" :md="6">
-        <div class="koho-card">
+        <div class="ape-card">
           <div class="card-title">
             <el-icon><User /></el-icon>
             <span>联系信息</span>
@@ -231,7 +231,7 @@ const onDownload = (file: any) => ElMessage.success(`正在下载 ${file.name}`)
 </script>
 
 <style scoped>
-.koho-card {
+.ape-card {
   background: #fff;
   border-radius: 16px;
   padding: 24px;

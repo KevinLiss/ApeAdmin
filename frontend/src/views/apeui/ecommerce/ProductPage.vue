@@ -99,7 +99,7 @@
     </el-row>
 
     <!-- Tabs -->
-    <el-card class="koho-card detail-tabs-card" shadow="never">
+    <el-card class="ape-card detail-tabs-card" shadow="never">
       <el-tabs v-model="activeTab" class="detail-tabs">
         <el-tab-pane label="商品描述" name="description">
           <div class="tab-content">
@@ -162,7 +162,7 @@
     </el-card>
 
     <!-- 相关商品 -->
-    <el-card class="koho-card related-card" shadow="never">
+    <el-card class="ape-card related-card" shadow="never">
       <h3 class="section-title">相关商品</h3>
       <el-row :gutter="30">
         <el-col :xs="12" :sm="12" :md="6" v-for="rp in relatedProducts" :key="rp.id">

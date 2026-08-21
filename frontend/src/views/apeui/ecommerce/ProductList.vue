@@ -6,7 +6,7 @@
       </template>
     </PageHeader>
 
-    <el-card class="koho-card" shadow="never">
+    <el-card class="ape-card" shadow="never">
       <!-- Toolbar -->
       <div class="toolbar">
         <div class="toolbar-left">

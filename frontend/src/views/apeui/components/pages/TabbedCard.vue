@@ -4,7 +4,7 @@
 
     <el-row :gutter="30">
       <!-- 1. 简单标签页 -->
-      <el-col :span="12" class="koho-col">
+      <el-col :span="12" class="ape-col">
         <el-card shadow="hover">
           <template #header>
             <span class="card-title">简单标签页</span>
@@ -27,7 +27,7 @@
       </el-col>
 
       <!-- 2. Tab With Icon -->
-      <el-col :span="12" class="koho-col">
+      <el-col :span="12" class="ape-col">
         <el-card shadow="hover">
           <template #header>
             <span class="card-title">Tab With Icon</span>
@@ -59,7 +59,7 @@
       </el-col>
 
       <!-- 3. Color Tab - Primary -->
-      <el-col :span="12" class="koho-col">
+      <el-col :span="12" class="ape-col">
         <el-card shadow="hover">
           <template #header>
             <span class="card-title">Color Tab — Primary</span>
@@ -82,7 +82,7 @@
       </el-col>
 
       <!-- 4. Color Tab - Secondary -->
-      <el-col :span="12" class="koho-col">
+      <el-col :span="12" class="ape-col">
         <el-card shadow="hover">
           <template #header>
             <span class="card-title">Color Tab — Secondary</span>
@@ -105,7 +105,7 @@
       </el-col>
 
       <!-- 5. Material Tab -->
-      <el-col :span="12" class="koho-col">
+      <el-col :span="12" class="ape-col">
         <el-card shadow="hover">
           <template #header>
             <span class="card-title">Material Tab</span>
@@ -128,7 +128,7 @@
       </el-col>
 
       <!-- 6. Material Tab With Icon -->
-      <el-col :span="12" class="koho-col">
+      <el-col :span="12" class="ape-col">
         <el-card shadow="hover">
           <template #header>
             <span class="card-title">Material Tab With Icon</span>
@@ -160,7 +160,7 @@
       </el-col>
 
       <!-- 7. Material Tab - Success -->
-      <el-col :span="12" class="koho-col">
+      <el-col :span="12" class="ape-col">
         <el-card shadow="hover">
           <template #header>
             <span class="card-title">Material Tab — Success</span>
@@ -192,7 +192,7 @@
       </el-col>
 
       <!-- 8. Tab With Table -->
-      <el-col :span="12" class="koho-col">
+      <el-col :span="12" class="ape-col">
         <el-card shadow="hover">
           <template #header>
             <span class="card-title">Tab With Table</span>
@@ -261,7 +261,7 @@ const offlineUsers = [
   color: #5A67F5;
 }
 
-.koho-col {
+.ape-col {
   margin-bottom: 30px;
 }
 

@@ -6,7 +6,7 @@
       <!-- Row 1: 4 stat cards with mini charts -->
       <el-row :gutter="30" class="ecom-row">
         <el-col :xs="12" :sm="12" :lg="6" v-for="stat in statCards" :key="stat.title">
-          <div class="koho-card sale-chart">
+          <div class="ape-card sale-chart">
             <div class="sale-chart-body">
               <div class="sale-detail">
                 <div class="sale-icon" :style="{ background: stat.iconBg }">
@@ -29,7 +29,7 @@
       <el-row :gutter="30" class="ecom-row">
         <!-- 最近订单 Chart -->
         <el-col :xs="24" :sm="12" :lg="10">
-          <div class="koho-card recent-order">
+          <div class="ape-card recent-order">
             <div class="card-header">
               <h3>最近订单</h3>
             </div>
@@ -41,7 +41,7 @@
 
         <!-- 热销商品 Table -->
         <el-col :xs="24" :sm="12" :lg="8">
-          <div class="koho-card top-products">
+          <div class="ape-card top-products">
             <div class="card-header">
               <h3>热销商品</h3>
             </div>
@@ -76,7 +76,7 @@
 
         <!-- 各国销售额 — Radar Chart -->
         <el-col :xs="24" :sm="12" :lg="6">
-          <div class="koho-card country-sales-view">
+          <div class="ape-card country-sales-view">
             <div class="card-header">
               <h3>各国销售额</h3>
             </div>
@@ -91,7 +91,7 @@
       <el-row :gutter="30" class="ecom-row">
         <!-- 畅销榜单 Table -->
         <el-col :xs="24" :sm="12" :lg="10">
-          <div class="koho-card best-sellers">
+          <div class="ape-card best-sellers">
             <div class="card-header">
               <h3>畅销榜单</h3>
             </div>
@@ -141,7 +141,7 @@
         <el-col :xs="24" :sm="12" :lg="8">
           <el-row :gutter="30">
             <el-col :sm="12" v-for="product in productCards" :key="product.id">
-              <div class="koho-card rated-product" :class="product.bgClass">
+              <div class="ape-card rated-product" :class="product.bgClass">
                 <div class="rated-product-body">
                   <div class="rated-img-wrap">
                     <img :src="product.img" alt="" />
@@ -159,7 +159,7 @@
             </el-col>
           </el-row>
 
-          <div class="koho-card product-review">
+          <div class="ape-card product-review">
             <div class="review-body">
               <div class="review-header">
                 <div class="review-avatar">
@@ -180,9 +180,9 @@
           </div>
         </el-col>
 
-        <!-- Weekend Offer (Koho 1:1) -->
+        <!-- Weekend Offer (ApeAdmin 1:1) -->
         <el-col :xs="24" :sm="12" :lg="6">
-          <div class="koho-card weekend-view">
+          <div class="ape-card weekend-view">
             <div class="weekend-body">
               <div class="weekend-inner-bg"></div>
               <div class="weekend-img">
@@ -642,11 +642,11 @@ const countryChartOption = {
   margin: 0;
 }
 
-/* ==================== Weekend Offer (Koho 1:1) ==================== */
+/* ==================== Weekend Offer (ApeAdmin 1:1) ==================== */
 .weekend-view {
   position: relative;
   overflow-x: hidden;
-  /* Koho 原版：深紫底色 + offer-banner.svg 背景图 */
+  /* ApeAdmin 原版：深紫底色 + offer-banner.svg 背景图 */
   background-image: url("/assets/images/dashboard-2/offer-banner.svg");
   background-size: cover;
   background-repeat: no-repeat;
@@ -665,7 +665,7 @@ const countryChartOption = {
   justify-content: center;
   text-align: center;
 }
-/* Koho 原版 inner-bg：bg-ribbons.png 重复纹理 + 缓慢滚动动画 */
+/* ApeAdmin 原版 inner-bg：bg-ribbons.png 重复纹理 + 缓慢滚动动画 */
 .weekend-inner-bg {
   background: url(/assets/images/dashboard-2/bg-ribbons.png) repeat;
   position: absolute;
@@ -692,7 +692,7 @@ const countryChartOption = {
   object-fit: contain;
   transition: transform 0.3s;
 }
-/* Koho 原版 hover 弹跳动画 */
+/* ApeAdmin 原版 hover 弹跳动画 */
 .weekend-body:hover .weekend-img img {
   animation: anime2 1s linear alternate infinite;
 }
