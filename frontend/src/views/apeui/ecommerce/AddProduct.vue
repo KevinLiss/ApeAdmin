@@ -214,14 +214,14 @@ const handleUploadRemove = (file: any) => {
 
 const onSave = () => {
   if (!form.value.name) {
-    ElMessage.warning('Please enter product name')
+    ElMessage.warning('请输入商品名称')
     return
   }
   if (!form.value.price) {
-    ElMessage.warning('Please enter product price')
+    ElMessage.warning('请输入商品价格')
     return
   }
-  ElMessage.success('Product saved successfully')
+  ElMessage.success('商品保存成功')
 }
 
 const onCancel = () => {

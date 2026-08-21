@@ -34,12 +34,12 @@ import PageHeader from '../components/PageHeader.vue'
 const avatarBase = 'https://cube.elemecdn.com/'
 
 const users = [
-  { id: 1, name: 'Alice Chen', role: 'Product Manager', avatar: avatarBase + '0/88/03b0d432e8c87b879d3e4e37b8f6jpeg.jpeg' },
-  { id: 2, name: 'Bob Smith', role: 'Frontend Developer', avatar: avatarBase + '3/7c/3ea6be94a7beba6d1c0be4dd3f6fbcjpeg.jpeg' },
-  { id: 3, name: 'Carol Johnson', role: 'UX Designer', avatar: avatarBase + '9/c2/3b0b0e6e6f6b3b1b3b1b3b1b3b1b3b1b.jpeg' },
-  { id: 4, name: 'David Lee', role: 'Backend Developer', avatar: avatarBase + '1/34/19aa971b3b29b1f6c0e4dd3f6fbcjpeg.jpeg' },
-  { id: 5, name: 'Emma Wilson', role: 'Data Analyst', avatar: avatarBase + 'a/3f/a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3.jpeg' },
-  { id: 6, name: 'Frank Miller', role: 'DevOps Engineer', avatar: avatarBase + 'e/13/6734909d0f6c4e0b3b1b3b1b3b1b3b1b.jpeg' },
+  { id: 1, name: '陈爱丽', role: '产品经理', avatar: avatarBase + '0/88/03b0d432e8c87b879d3e4e37b8f6jpeg.jpeg' },
+  { id: 2, name: '史博文', role: '前端开发', avatar: avatarBase + '3/7c/3ea6be94a7beba6d1c0be4dd3f6fbcjpeg.jpeg' },
+  { id: 3, name: '姜卡罗', role: 'UX设计师', avatar: avatarBase + '9/c2/3b0b0e6e6f6b3b1b3b1b3b1b3b1b3b1b.jpeg' },
+  { id: 4, name: '李大卫', role: '后端开发', avatar: avatarBase + '1/34/19aa971b3b29b1f6c0e4dd3f6fbcjpeg.jpeg' },
+  { id: 5, name: '王艾玛', role: '数据分析师', avatar: avatarBase + 'a/3f/a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3.jpeg' },
+  { id: 6, name: '米法兰', role: '运维工程师', avatar: avatarBase + 'e/13/6734909d0f6c4e0b3b1b3b1b3b1b3b1b.jpeg' },
 ]
 
 const onFollow = (name: string) => {

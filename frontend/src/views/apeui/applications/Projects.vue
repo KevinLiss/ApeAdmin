@@ -14,16 +14,16 @@
       </div>
 
       <el-table :data="filteredData" border stripe>
-        <el-table-column prop="name" label="Project Name" min-width="160" />
-        <el-table-column prop="client" label="Client" min-width="120" />
-        <el-table-column prop="startDate" label="Start Date" min-width="120" />
-        <el-table-column prop="endDate" label="End Date" min-width="120" />
-        <el-table-column label="Status" min-width="100" align="center">
+        <el-table-column prop="name" label="项目名称" min-width="160" />
+        <el-table-column prop="client" label="客户" min-width="120" />
+        <el-table-column prop="startDate" label="开始日期" min-width="120" />
+        <el-table-column prop="endDate" label="结束日期" min-width="120" />
+        <el-table-column label="状态" min-width="100" align="center">
           <template #default="{ row }">
-            <el-tag :type="statusType(row.status)" effect="light">{{ row.status }}</el-tag>
+            <el-tag :type="statusType(row.status)" effect="light">{{ statusLabel(row.status) }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="team" label="Team" min-width="100" align="center" />
+        <el-table-column prop="team" label="团队" min-width="100" align="center" />
       </el-table>
     </el-card>
   </div>
@@ -46,11 +46,11 @@ interface Project {
 const search = ref('')
 
 const tableData: Project[] = [
-  { name: 'Website Redesign', client: 'Acme Corp', startDate: '2025-01-15', endDate: '2025-04-30', status: 'Ongoing', team: 5 },
-  { name: 'Mobile App Development', client: 'TechStart', startDate: '2025-02-01', endDate: '2025-08-15', status: 'Ongoing', team: 8 },
-  { name: 'Cloud Migration', client: 'GlobalSoft', startDate: '2024-11-10', endDate: '2025-03-20', status: 'Completed', team: 6 },
-  { name: 'Data Analytics Platform', client: 'DataFlow Ltd', startDate: '2025-03-01', endDate: '2025-09-01', status: 'Pending', team: 4 },
-  { name: 'E-commerce Integration', client: 'ShopHub', startDate: '2025-01-20', endDate: '2025-06-30', status: 'On Hold', team: 7 },
+  { name: '网站重设计', client: 'Acme Corp', startDate: '2025-01-15', endDate: '2025-04-30', status: '进行中', team: 5 },
+  { name: '移动应用开发', client: 'TechStart', startDate: '2025-02-01', endDate: '2025-08-15', status: '进行中', team: 8 },
+  { name: '云迁移', client: 'GlobalSoft', startDate: '2024-11-10', endDate: '2025-03-20', status: '已完成', team: 6 },
+  { name: '数据分析平台', client: 'DataFlow Ltd', startDate: '2025-03-01', endDate: '2025-09-01', status: '待处理', team: 4 },
+  { name: '电商集成', client: 'ShopHub', startDate: '2025-01-20', endDate: '2025-06-30', status: '已暂停', team: 7 },
 ]
 
 const filteredData = computed(() => {
@@ -62,13 +62,15 @@ const filteredData = computed(() => {
 
 const statusType = (status: string) => {
   const map: Record<string, string> = {
-    Ongoing: 'primary',
-    Completed: 'success',
-    Pending: 'warning',
-    'On Hold': 'info',
+    '进行中': 'primary',
+    '已完成': 'success',
+    '待处理': 'warning',
+    '已暂停': 'info',
   }
   return map[status] || 'info'
 }
+
+const statusLabel = (status: string) => status
 </script>
 
 <style scoped>

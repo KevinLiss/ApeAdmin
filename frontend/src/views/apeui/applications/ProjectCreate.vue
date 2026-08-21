@@ -62,10 +62,10 @@ const form = ref({
 
 const onSubmit = () => {
   if (!form.value.title || !form.value.client) {
-    ElMessage.warning('Please fill in the required fields')
+    ElMessage.warning('请填写必填字段')
     return
   }
-  ElMessage.success('Project created successfully')
+  ElMessage.success('项目创建成功')
 }
 
 const onCancel = () => {

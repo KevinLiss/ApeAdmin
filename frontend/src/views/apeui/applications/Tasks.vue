@@ -137,14 +137,14 @@ interface Task {
 const avatarBase = 'https://api.dicebear.com/7.x/avataaars/svg?seed='
 
 const tableData = ref<Task[]>([
-  { id: 1, name: '首页 V3 UI 重构', owner: '张伟', avatar: avatarBase + 'zhangwei', priority: '高', status: 'In Progress', deadline: '2026-08-25', progress: 65 },
-  { id: 2, name: '用户管理模块开发', owner: '李娜', avatar: avatarBase + 'lina', priority: '高', status: 'In Progress', deadline: '2026-08-28', progress: 40 },
-  { id: 3, name: '权限系统重构', owner: '王强', avatar: avatarBase + 'wangqiang', priority: '中', status: 'Pending', deadline: '2026-09-05', progress: 10 },
-  { id: 4, name: 'API 文档编写', owner: '陈晨', avatar: avatarBase + 'chenchen', priority: '低', status: 'Pending', deadline: '2026-09-10', progress: 5 },
+  { id: 1, name: '首页 V3 UI 重构', owner: '张伟', avatar: avatarBase + 'zhangwei', priority: '高', status: '进行中', deadline: '2026-08-25', progress: 65 },
+  { id: 2, name: '用户管理模块开发', owner: '李娜', avatar: avatarBase + 'lina', priority: '高', status: '进行中', deadline: '2026-08-28', progress: 40 },
+  { id: 3, name: '权限系统重构', owner: '王强', avatar: avatarBase + 'wangqiang', priority: '中', status: '待处理', deadline: '2026-09-05', progress: 10 },
+  { id: 4, name: 'API 文档编写', owner: '陈晨', avatar: avatarBase + 'chenchen', priority: '低', status: '待处理', deadline: '2026-09-10', progress: 5 },
   { id: 5, name: '项目初始化', owner: '赵敏', avatar: avatarBase + 'zhaomin', priority: '高', status: 'Completed', deadline: '2026-08-10', progress: 100 },
   { id: 6, name: '需求分析报告', owner: '刘洋', avatar: avatarBase + 'liuyang', priority: '中', status: 'Completed', deadline: '2026-08-15', progress: 100 },
-  { id: 7, name: '数据库优化方案', owner: '孙莉', avatar: avatarBase + 'sunli', priority: '中', status: 'On Hold', deadline: '2026-09-15', progress: 30 },
-  { id: 8, name: '单元测试覆盖', owner: '周杰', avatar: avatarBase + 'zhoujie', priority: '低', status: 'On Hold', deadline: '2026-09-20', progress: 20 },
+  { id: 7, name: '数据库优化方案', owner: '孙莉', avatar: avatarBase + 'sunli', priority: '中', status: '已暂停', deadline: '2026-09-15', progress: 30 },
+  { id: 8, name: '单元测试覆盖', owner: '周杰', avatar: avatarBase + 'zhoujie', priority: '低', status: '已暂停', deadline: '2026-09-20', progress: 20 },
 ])
 
 const search = ref('')
@@ -193,7 +193,7 @@ const progressColor = (p: number) => {
 // 编辑
 const editVisible = ref(false)
 const editForm = reactive<Task>({
-  id: 0, name: '', owner: '', avatar: '', priority: '中', status: 'Pending', deadline: '', progress: 0,
+  id: 0, name: '', owner: '', avatar: '', priority: '中', status: '待处理', deadline: '', progress: 0,
 })
 
 const handleEdit = (row: Task) => {

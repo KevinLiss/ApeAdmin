@@ -133,7 +133,7 @@ const sparklineBulletOption = {
   yAxis: { show: false, min: 0, max: 100 },
   series: [
     {
-      name: 'Range Low',
+      name: '范围低',
       type: 'bar',
       stack: 'bullet',
       data: [40],
@@ -142,7 +142,7 @@ const sparklineBulletOption = {
       barGap: '-100%',
     },
     {
-      name: 'Range Mid',
+      name: '范围中',
       type: 'bar',
       stack: 'bullet',
       data: [30],
@@ -151,7 +151,7 @@ const sparklineBulletOption = {
       barGap: '-100%',
     },
     {
-      name: 'Range High',
+      name: '范围高',
       type: 'bar',
       stack: 'bullet',
       data: [30],
@@ -160,7 +160,7 @@ const sparklineBulletOption = {
       barGap: '-100%',
     },
     {
-      name: 'Actual',
+      name: '实际',
       type: 'bar',
       data: [65],
       itemStyle: { color: PRIMARY },
@@ -168,7 +168,7 @@ const sparklineBulletOption = {
       barGap: '-50%',
     },
     {
-      name: 'Target',
+      name: '目标',
       type: 'bar',
       data: [75],
       itemStyle: { color: DANGER },

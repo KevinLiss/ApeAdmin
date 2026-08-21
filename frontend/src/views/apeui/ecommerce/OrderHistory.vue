@@ -143,19 +143,19 @@ import { ref, computed } from 'vue'
 
 const searchKey = ref('')
 const dateRange = ref([])
-const activeTab = ref('All')
+const activeTab = ref('全部')
 const currentPage = ref(1)
 const pageSize = ref(5)
 const detailVisible = ref(false)
 const currentOrder = ref(null as any)
 
 const statusTabs = computed(() => [
-  { label: 'All', value: 'All', count: orders.value.length },
-  { label: 'Pending', value: 'Pending', count: orders.value.filter(o => o.status === 'Pending').length },
-  { label: 'Processing', value: 'Processing', count: orders.value.filter(o => o.status === 'Processing').length },
-  { label: 'Shipped', value: 'Shipped', count: orders.value.filter(o => o.status === 'Shipped').length },
-  { label: 'Delivered', value: 'Delivered', count: orders.value.filter(o => o.status === 'Delivered').length },
-  { label: 'Cancelled', value: 'Cancelled', count: orders.value.filter(o => o.status === 'Cancelled').length },
+  { label: '全部', value: '全部', count: orders.value.length },
+  { label: '待处理', value: '待处理', count: orders.value.filter(o => o.status === '待处理').length },
+  { label: '处理中', value: '处理中', count: orders.value.filter(o => o.status === '处理中').length },
+  { label: '已发货', value: '已发货', count: orders.value.filter(o => o.status === '已发货').length },
+  { label: '已送达', value: '已送达', count: orders.value.filter(o => o.status === '已送达').length },
+  { label: '已取消', value: '已取消', count: orders.value.filter(o => o.status === '已取消').length },
 ])
 
 const orders = ref([
@@ -164,7 +164,7 @@ const orders = ref([
     product: 'iPhone 15 Pro Max 256GB',
     customer: '张伟',
     total: 1299.00,
-    status: 'Delivered',
+    status: '已送达',
     date: '2026-08-01',
     items: [{ name: 'iPhone 15 Pro Max 256GB', qty: 1, price: 1199.00 }, { name: '原装硅胶保护壳', qty: 1, price: 100.00 }],
     address: { name: '张伟', phone: '138-0000-0001', detail: '广东省广州市天河区珠江新城华夏路30号' },
@@ -184,7 +184,7 @@ const orders = ref([
     product: 'MacBook Air M3 13英寸',
     customer: '李娜',
     total: 1099.00,
-    status: 'Shipped',
+    status: '已发货',
     date: '2026-08-03',
     items: [{ name: 'MacBook Air M3 13英寸', qty: 1, price: 999.00 }, { name: 'USB-C 充电器', qty: 1, price: 100.00 }],
     address: { name: '李娜', phone: '138-0000-0002', detail: '北京市海淀区中关村大街1号' },
@@ -204,7 +204,7 @@ const orders = ref([
     product: 'iPad Pro 11英寸 M4',
     customer: '王芳',
     total: 899.00,
-    status: 'Processing',
+    status: '处理中',
     date: '2026-08-05',
     items: [{ name: 'iPad Pro 11英寸 M4', qty: 1, price: 899.00 }],
     address: { name: '王芳', phone: '138-0000-0003', detail: '上海市浦东新区世纪大道100号' },
@@ -223,7 +223,7 @@ const orders = ref([
     product: 'AirPods Pro 2 + Apple Care',
     customer: '刘强',
     total: 349.00,
-    status: 'Pending',
+    status: '待处理',
     date: '2026-08-07',
     items: [{ name: 'AirPods Pro 2', qty: 1, price: 249.00 }, { name: 'Apple Care+', qty: 1, price: 100.00 }],
     address: { name: '刘强', phone: '138-0000-0004', detail: '深圳市南山区科技园南区' },
@@ -238,7 +238,7 @@ const orders = ref([
     product: 'Apple Watch Ultra 2',
     customer: '陈静',
     total: 799.00,
-    status: 'Delivered',
+    status: '已送达',
     date: '2026-08-09',
     items: [{ name: 'Apple Watch Ultra 2', qty: 1, price: 799.00 }],
     address: { name: '陈静', phone: '138-0000-0005', detail: '杭州市西湖区文三路478号' },
@@ -258,7 +258,7 @@ const orders = ref([
     product: 'Magic Keyboard + Magic Mouse',
     customer: '赵磊',
     total: 258.00,
-    status: 'Cancelled',
+    status: '已取消',
     date: '2026-08-11',
     items: [{ name: 'Magic Keyboard', qty: 1, price: 179.00 }, { name: 'Magic Mouse', qty: 1, price: 79.00 }],
     address: { name: '赵磊', phone: '138-0000-0006', detail: '成都市武侯区天府大道北段1号' },
@@ -273,7 +273,7 @@ const orders = ref([
     product: 'iMac 24英寸 M3',
     customer: '孙丽',
     total: 1499.00,
-    status: 'Processing',
+    status: '处理中',
     date: '2026-08-13',
     items: [{ name: 'iMac 24英寸 M3', qty: 1, price: 1499.00 }],
     address: { name: '孙丽', phone: '138-0000-0007', detail: '武汉市洪山区珞瑜路1037号' },
@@ -292,7 +292,7 @@ const orders = ref([
     product: 'Mac Studio M2 Ultra',
     customer: '周涛',
     total: 3999.00,
-    status: 'Shipped',
+    status: '已发货',
     date: '2026-08-15',
     items: [{ name: 'Mac Studio M2 Ultra', qty: 1, price: 3999.00 }],
     address: { name: '周涛', phone: '138-0000-0008', detail: '南京市鼓楼区北京西路2号' },
@@ -311,7 +311,7 @@ const orders = ref([
 
 const filteredOrders = computed(() => {
   let result = orders.value
-  if (activeTab.value !== 'All') {
+  if (activeTab.value !== '全部') {
     result = result.filter(o => o.status === activeTab.value)
   }
   if (searchKey.value) {
@@ -322,11 +322,11 @@ const filteredOrders = computed(() => {
 
 function statusTagType(status: string) {
   const map: Record<string, string> = {
-    Pending: 'warning',
-    Processing: 'info',
-    Shipped: '',
-    Delivered: 'success',
-    Cancelled: 'danger',
+    '待处理': 'warning',
+    '处理中': 'info',
+    '已发货': '',
+    '已送达': 'success',
+    '已取消': 'danger',
   }
   return map[status] || ''
 }

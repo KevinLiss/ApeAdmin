@@ -212,7 +212,7 @@ const colors = [
   { name: 'Black', hex: '#2B2B2B' },
 ]
 
-const sizes = ['Small', 'Standard', 'Large', 'Extra Large']
+const sizes = ['小号', '标准', '大号', '加大号']
 
 const ratingBars = [
   { label: '5 Star', value: 72 },
@@ -224,32 +224,32 @@ const ratingBars = [
 
 const reviews = ref([
   { id: 1, user: 'Sarah Johnson', stars: 5, date: 'Aug 15, 2026', text: 'Best headphones I have ever owned! The noise cancellation is incredible and the sound quality is top-notch. Battery lasts for days.' },
-  { id: 2, user: 'Mike Chen', stars: 5, date: 'Aug 10, 2026', text: 'Comfortable to wear for hours. The ANC works great on flights. Highly recommend!' },
+  { id: 2, user: 'Mike Chen', stars: 5, date: 'Aug 10, 2026', text: '长时间佩戴也很舒适。降噪功能在飞行中表现出色。强烈推荐！' },
   { id: 3, user: 'Emily Davis', stars: 4, date: 'Aug 2, 2026', text: 'Sound is amazing but wish the case was a bit smaller. Overall very satisfied with the purchase.' },
 ])
 
 const shippingInfo = [
   { title: 'Free Shipping', desc: 'Free standard shipping on all orders over $50', icon: markRaw(Van), bg: '#5A67F5' },
-  { title: 'Fast Delivery', desc: 'Express delivery available (1-3 business days)', icon: markRaw(Box), bg: '#3EBCB9' },
-  { title: 'Easy Returns', desc: '30-day money-back guarantee, no questions asked', icon: markRaw(Wallet), bg: '#FFA47A' },
+  { title: '快速配送', desc: 'Express delivery available (1-3 business days)', icon: markRaw(Box), bg: '#3EBCB9' },
+  { title: '轻松退货', desc: '30-day money-back guarantee, no questions asked', icon: markRaw(Wallet), bg: '#FFA47A' },
 ]
 
 const relatedProducts = ref([
-  { id: 1, name: 'Smart Watch Pro', price: 199.00, rating: 5, bg: 'linear-gradient(135deg, #3EBCB9, #6ee0dd)' },
+  { id: 1, name: '智能手表 Pro', price: 199.00, rating: 5, bg: 'linear-gradient(135deg, #3EBCB9, #6ee0dd)' },
   { id: 2, name: 'Wireless Earbuds', price: 59.99, rating: 4.5, bg: 'linear-gradient(135deg, #FFA47A, #ffc4a3)' },
   { id: 3, name: 'Bluetooth Speaker', price: 39.99, rating: 4, bg: 'linear-gradient(135deg, #67C100, #85d533)' },
   { id: 4, name: 'USB-C Charger', price: 24.99, rating: 4.5, bg: 'linear-gradient(135deg, #E56809, #ff8a3c)' },
 ])
 
 const addToCart = () => {
-  ElMessage.success('Product added to cart')
+  ElMessage.success('商品已加入购物车')
 }
 const buyNow = () => {
-  ElMessage.success('Redirecting to checkout...')
+  ElMessage.success('正在跳转到结算页面...')
 }
 const toggleWishlist = () => {
   wishlisted.value = !wishlisted.value
-  ElMessage.success(wishlisted.value ? 'Added to wishlist' : 'Removed from wishlist')
+  ElMessage.success(wishlisted.value ? '已加入收藏' : '已移出收藏')
 }
 </script>
 

@@ -159,8 +159,8 @@ const mainSpeaker = computed(() => {
 })
 
 const chatMessages = ref([
-  { id: 1, name: 'Alice Chen', avatar: avatarBase + '3/7c/3ea6be94a7beba6d1c0be4dd3f6fbcjpeg.jpeg', time: '10:20', text: 'Can everyone see my screen?' },
-  { id: 2, name: 'Bob Smith', avatar: avatarBase + '1/34/19aa971b3b29b1f6c0e4dd3f6fbcjpeg.jpeg', time: '10:21', text: 'Yes, looks great!' },
+  { id: 1, name: 'Alice Chen', avatar: avatarBase + '3/7c/3ea6be94a7beba6d1c0be4dd3f6fbcjpeg.jpeg', time: '10:20', text: '大家能看到我的屏幕吗？' },
+  { id: 2, name: 'Bob Smith', avatar: avatarBase + '1/34/19aa971b3b29b1f6c0e4dd3f6fbcjpeg.jpeg', time: '10:21', text: '是的，看起来很棒！' },
   { id: 3, name: 'Carol Johnson', avatar: avatarBase + '9/c2/3b0b0e6e6f6b3b1b3b1b3b1b3b1b3b1b.jpeg', time: '10:22', text: 'Let\'s move to the next slide.' },
   { id: 4, name: 'David Lee', avatar: avatarBase + 'a/3f/a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3.jpeg', time: '10:24', text: 'I\'ll share the document after the call.' },
 ])
@@ -170,7 +170,7 @@ const onSwitchSpeaker = (p: any) => {
   ElMessage.info(`Switched to ${p.name}`)
 }
 const onHangup = () => ElMessage.warning('Call ended')
-const onFullscreen = () => ElMessage.info('Entering fullscreen mode')
+const onFullscreen = () => ElMessage.info('正在进入全屏模式')
 const onSettings = () => ElMessage.info('Settings opened')
 const onOpenChat = () => { chatOpen.value = true }
 const onSendChat = () => {

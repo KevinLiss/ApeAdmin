@@ -166,7 +166,7 @@
                   <img src="/koho/assets/images/dashboard-2/person1.png" alt="" />
                 </div>
                 <div class="review-info">
-                  <h4>Johanna Parvez</h4>
+                  <h4>乔安娜·帕尔韦兹</h4>
                   <div class="rating-stars">
                     <el-icon v-for="n in 5" :key="n" color="#FFA47A" size="14"><Star /></el-icon>
                   </div>
@@ -189,9 +189,9 @@
                 <img src="/koho/assets/images/dashboard-2/headphone.png" alt="headphone" />
               </div>
               <div class="weekend-detail">
-                <h3>Special Weekend Offer</h3>
-                <h5>Upto 50% Off Discount</h5>
-                <a class="weekend-btn" href="javascript:void(0)">See More</a>
+                <h3>周末特惠</h3>
+                <h5>低至5折优惠</h5>
+                <a class="weekend-btn" href="javascript:void(0)">查看更多</a>
               </div>
             </div>
           </div>

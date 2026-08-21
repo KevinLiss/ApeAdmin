@@ -56,7 +56,7 @@ const PRIMARY = '#5A67F5'
 const SECONDARY = '#FFA47A'
 const SUCCESS = '#67C100'
 const INFO = '#3EBCB9'
-const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep']
+const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月']
 
 /* 1. 面积图 — gradient area */
 const areaOption = {
@@ -86,25 +86,25 @@ const areaOption = {
 /* 2. Stacked Area — 3 series */
 const stackedAreaOption = {
   tooltip: { trigger: 'axis' },
-  legend: { data: ['Email', 'Affiliate', 'Direct'], bottom: 0 },
+  legend: { data: ['邮件', '联盟', '直接'], bottom: 0 },
   grid: { left: '3%', right: '4%', top: '5%', bottom: '15%', containLabel: true },
   xAxis: { type: 'category', data: months, boundaryGap: false },
   yAxis: { type: 'value' },
   series: [
     {
-      name: 'Email', type: 'line', stack: 'total', data: [120, 132, 101, 134, 90, 230, 210, 182, 191],
+      name: '邮件', type: 'line', stack: 'total', data: [120, 132, 101, 134, 90, 230, 210, 182, 191],
       smooth: true, symbol: 'none',
       areaStyle: { opacity: 0.7, color: PRIMARY },
       lineStyle: { color: PRIMARY },
     },
     {
-      name: 'Affiliate', type: 'line', stack: 'total', data: [220, 182, 191, 234, 290, 330, 310, 123, 442],
+      name: '联盟', type: 'line', stack: 'total', data: [220, 182, 191, 234, 290, 330, 310, 123, 442],
       smooth: true, symbol: 'none',
       areaStyle: { opacity: 0.7, color: SECONDARY },
       lineStyle: { color: SECONDARY },
     },
     {
-      name: 'Direct', type: 'line', stack: 'total', data: [150, 232, 201, 154, 190, 330, 410, 150, 232],
+      name: '直接', type: 'line', stack: 'total', data: [150, 232, 201, 154, 190, 330, 410, 150, 232],
       smooth: true, symbol: 'none',
       areaStyle: { opacity: 0.7, color: SUCCESS },
       lineStyle: { color: SUCCESS },
@@ -123,8 +123,8 @@ const barLineOption = {
     { type: 'value', name: 'Target' },
   ],
   series: [
-    { name: 'Sales', type: 'bar', data: [320, 332, 301, 334, 390, 330, 320, 332, 301], itemStyle: { color: PRIMARY, borderRadius: [4, 4, 0, 0] } },
-    { name: 'Target', type: 'line', yAxisIndex: 1, data: [300, 350, 330, 360, 400, 380, 350, 380, 350], smooth: true, lineStyle: { color: SECONDARY, width: 3 }, itemStyle: { color: SECONDARY } },
+    { name: '销售', type: 'bar', data: [320, 332, 301, 334, 390, 330, 320, 332, 301], itemStyle: { color: PRIMARY, borderRadius: [4, 4, 0, 0] } },
+    { name: '目标', type: 'line', yAxisIndex: 1, data: [300, 350, 330, 360, 400, 380, 350, 380, 350], smooth: true, lineStyle: { color: SECONDARY, width: 3 }, itemStyle: { color: SECONDARY } },
   ],
 }
 

@@ -62,12 +62,19 @@
         </li>
 
         <!-- Dashboards -->
-        <li class="sidebar-list submenu-item" v-for="grp in apeuiMenus" :key="grp.title">
+        <li
+          class="sidebar-list submenu-item"
+          v-for="grp in apeuiMenus"
+          :key="grp.title"
+          @mouseenter="collapsed && !isMobile && (hoverSub = grp.title)"
+          @mouseleave="collapsed && !isMobile && (hoverSub = '')"
+        >
           <a class="sidebar-link sidebar-title" href="javascript:void(0)" @click="toggleSub(grp.title)">
             <el-icon class="menu-icon"><component :is="grp.icon" /></el-icon>
             <span>{{ grp.title }}</span>
             <el-icon class="sub-arrow" :class="{ open: openedSub === grp.title }"><ArrowDown /></el-icon>
           </a>
+          <!-- Expanded mode: inline submenu -->
           <ul class="sidebar-submenu" v-show="openedSub === grp.title">
             <li v-for="item in grp.items" :key="item.path">
               <router-link :to="item.path" :class="{ active: route.path === item.path }">
@@ -75,6 +82,20 @@
               </router-link>
             </li>
           </ul>
+          <!-- Collapsed mode: flyout submenu -->
+          <div
+            class="flyout-submenu"
+            v-if="collapsed && !isMobile && hoverSub === grp.title"
+          >
+            <h6>{{ grp.title }}</h6>
+            <ul>
+              <li v-for="item in grp.items" :key="item.path">
+                <router-link :to="item.path" :class="{ active: route.path === item.path }">
+                  {{ item.title }}
+                </router-link>
+              </li>
+            </ul>
+          </div>
         </li>
       </ul>
     </nav>
@@ -109,6 +130,7 @@ defineEmits<{
 const route = useRoute()
 const activeMenu = computed(() => route.path)
 const openedSub = ref<string>('')
+const hoverSub = ref<string>('')
 
 function toggleSub(title: string) {
   openedSub.value = openedSub.value === title ? '' : title
@@ -251,6 +273,10 @@ const apeuiMenus = [
   transition: width 0.3s ease;
   overflow: hidden;
 }
+/* Collapsed mode: allow flyout to overflow */
+.koho-sidebar.close-icon {
+  overflow: visible;
+}
 /* Koho 1:1 collapsed: 86px icon-only mode */
 .koho-sidebar.close-icon {
   width: 86px;
@@ -323,6 +349,10 @@ const apeuiMenus = [
   flex: 1;
   overflow-y: auto;
   padding: 12px 0;
+}
+/* Collapsed mode: allow flyout to overflow */
+.koho-sidebar.close-icon .sidebar-main {
+  overflow: visible;
 }
 .sidebar-main::-webkit-scrollbar {
   width: 4px;
@@ -496,10 +526,70 @@ const apeuiMenus = [
   background: rgba(90, 103, 245, 0.08);
 }
 
-/* Collapsed: hide submenus */
+/* Collapsed: hide inline submenus, use flyout instead */
 .koho-sidebar.close-icon .submenu-item .sidebar-submenu,
 .koho-sidebar.close-icon .submenu-item .sub-arrow {
   display: none;
+}
+
+/* Flyout submenu (collapsed mode hover) */
+.flyout-submenu {
+  position: absolute;
+  left: 86px;
+  top: 0;
+  min-width: 180px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 8px 30px rgba(89, 102, 122, 0.18);
+  padding: 10px;
+  z-index: 100;
+  animation: flyoutIn 0.2s ease;
+}
+.flyout-submenu::-webkit-scrollbar {
+  width: 4px;
+}
+.flyout-submenu::-webkit-scrollbar-thumb {
+  background: #d8dde6;
+  border-radius: 4px;
+}
+.flyout-submenu h6 {
+  margin: 0 0 8px;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--theme-default, #5A67F5);
+  border-bottom: 1px solid #f0f2f5;
+  padding-bottom: 8px;
+}
+.flyout-submenu ul {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+}
+.flyout-submenu ul li a {
+  display: block;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #5a6273;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.flyout-submenu ul li a:hover {
+  background: #eff3f9;
+  color: var(--theme-default, #5A67F5);
+}
+.flyout-submenu ul li a.active {
+  color: var(--theme-default, #5A67F5);
+  font-weight: 600;
+  background: rgba(90, 103, 245, 0.08);
+}
+@keyframes flyoutIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 /* Mobile: drawer mode (≤1199px) */

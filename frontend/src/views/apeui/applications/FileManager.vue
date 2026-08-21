@@ -149,12 +149,12 @@ const folderTree = [
 const files = ref([
   { id: 1, name: 'Annual Report 2025.pdf', size: '2.4 MB', date: '2025-08-15', type: 'PDF', icon: Document, iconBg: '#fef0e6', iconColor: '#E56809', tagType: 'warning' as const },
   { id: 2, name: 'Q3 Invoice.xlsx', size: '1.2 MB', date: '2025-08-12', type: 'Excel', icon: Files, iconBg: '#e8f5e9', iconColor: '#67C100', tagType: 'success' as const },
-  { id: 3, name: 'Service Contract.docx', size: '856 KB', date: '2025-08-10', type: 'Word', icon: Document, iconBg: '#e3f2fd', iconColor: '#3EBCB9', tagType: 'info' as const },
-  { id: 4, name: 'Profile Photo.jpg', size: '3.8 MB', date: '2025-08-08', type: 'Image', icon: Picture, iconBg: '#EAF1FF', iconColor: '#5A67F5', tagType: 'primary' as const },
-  { id: 5, name: 'Dashboard Screenshot.png', size: '1.6 MB', date: '2025-08-06', type: 'Image', icon: Picture, iconBg: '#EAF1FF', iconColor: '#5A67F5', tagType: 'primary' as const },
-  { id: 6, name: 'Product Demo.mp4', size: '124 MB', date: '2025-08-03', type: 'Video', icon: VideoPlay, iconBg: '#ffe0e0', iconColor: '#DC0808', tagType: 'danger' as const },
-  { id: 7, name: 'Backup Archive.zip', size: '45 MB', date: '2025-07-28', type: 'Archive', icon: Files, iconBg: '#fff3e0', iconColor: '#E56809', tagType: 'warning' as const },
-  { id: 8, name: 'Budget Plan.xlsx', size: '780 KB', date: '2025-07-25', type: 'Excel', icon: Files, iconBg: '#e8f5e9', iconColor: '#67C100', tagType: 'success' as const },
+  { id: 3, name: '服务合同.docx', size: '856 KB', date: '2025-08-10', type: 'Word', icon: Document, iconBg: '#e3f2fd', iconColor: '#3EBCB9', tagType: 'info' as const },
+  { id: 4, name: '个人照片.jpg', size: '3.8 MB', date: '2025-08-08', type: '图片', icon: Picture, iconBg: '#EAF1FF', iconColor: '#5A67F5', tagType: 'primary' as const },
+  { id: 5, name: '仪表盘截图.png', size: '1.6 MB', date: '2025-08-06', type: '图片', icon: Picture, iconBg: '#EAF1FF', iconColor: '#5A67F5', tagType: 'primary' as const },
+  { id: 6, name: 'Product Demo.mp4', size: '124 MB', date: '2025-08-03', type: '视频', icon: VideoPlay, iconBg: '#ffe0e0', iconColor: '#DC0808', tagType: 'danger' as const },
+  { id: 7, name: '备份归档.zip', size: '45 MB', date: '2025-07-28', type: '归档', icon: Files, iconBg: '#fff3e0', iconColor: '#E56809', tagType: 'warning' as const },
+  { id: 8, name: '预算计划.xlsx', size: '780 KB', date: '2025-07-25', type: 'Excel', icon: Files, iconBg: '#e8f5e9', iconColor: '#67C100', tagType: 'success' as const },
 ])
 
 const filteredFiles = computed(() => {
@@ -177,7 +177,7 @@ const onFolderClick = (data: any) => {
 }
 
 const onUpload = () => {
-  ElMessage.success('Upload dialog opened')
+  ElMessage.success('上传对话框已打开')
 }
 
 const onFileAction = (command: string, file: any) => {

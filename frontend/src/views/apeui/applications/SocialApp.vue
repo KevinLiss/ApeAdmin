@@ -148,80 +148,80 @@ const currentUser = ref({
 const postText = ref('')
 
 const friends = ref([
-  { id: 1, name: 'Alice Chen', avatar: avatarBase + '3/7c/3ea6be94a7beba6d1c0be4dd3f6fbcjpeg.jpeg', status: 'online' },
-  { id: 2, name: 'Bob Smith', avatar: avatarBase + '1/34/19aa971b3b29b1f6c0e4dd3f6fbcjpeg.jpeg', status: 'online' },
-  { id: 3, name: 'Carol Johnson', avatar: avatarBase + '9/c2/3b0b0e6e6f6b3b1b3b1b3b1b3b1b3b1b.jpeg', status: 'away' },
-  { id: 4, name: 'David Lee', avatar: avatarBase + 'a/3f/a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3.jpeg', status: 'offline' },
-  { id: 5, name: 'Emma Wilson', avatar: avatarBase + 'e/13/6734909d0f6c4e0b3b1b3b1b3b1b3b1b.jpeg', status: 'online' },
-  { id: 6, name: 'Frank Miller', avatar: avatarBase + '0/88/03b0d432e8c87b879d3e4e37b8f6f6jpeg.jpeg', status: 'away' },
+  { id: 1, name: '陈爱丽', avatar: avatarBase + '3/7c/3ea6be94a7beba6d1c0be4dd3f6fbcjpeg.jpeg', status: 'online' },
+  { id: 2, name: '史博文', avatar: avatarBase + '1/34/19aa971b3b29b1f6c0e4dd3f6fbcjpeg.jpeg', status: 'online' },
+  { id: 3, name: '姜卡罗', avatar: avatarBase + '9/c2/3b0b0e6e6f6b3b1b3b1b3b1b3b1b3b1b.jpeg', status: 'away' },
+  { id: 4, name: '李大卫', avatar: avatarBase + 'a/3f/a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3.jpeg', status: 'offline' },
+  { id: 5, name: '王艾玛', avatar: avatarBase + 'e/13/6734909d0f6c4e0b3b1b3b1b3b1b3b1b.jpeg', status: 'online' },
+  { id: 6, name: '米法兰', avatar: avatarBase + '0/88/03b0d432e8c87b879d3e4e37b8f6f6jpeg.jpeg', status: 'away' },
 ])
 
 const posts = ref([
   {
-    id: 1, name: 'Alice Chen', avatar: avatarBase + '3/7c/3ea6be94a7beba6d1c0be4dd3f6fbcjpeg.jpeg',
-    time: '2 hours ago', content: 'Just launched our new product design! So excited to share this with everyone. The team has been working incredibly hard over the past few months.',
+    id: 1, name: '陈爱丽', avatar: avatarBase + '3/7c/3ea6be94a7beba6d1c0be4dd3f6fbcjpeg.jpeg',
+    time: '2小时前', content: '刚刚发布了新产品设计！非常兴奋能和大家分享。过去几个月团队一直在努力工作。',
     image: avatarBase + '0/88/03b0d432e8c87b879d3e4e37b8f6f6jpeg.jpeg',
     likes: 42, comments: 12, shares: 5,
   },
   {
-    id: 2, name: 'Bob Smith', avatar: avatarBase + '1/34/19aa971b3b29b1f6c0e4dd3f6fbcjpeg.jpeg',
-    time: '5 hours ago', content: 'Amazing conference today! Learned so much about the latest trends in AI and machine learning. Looking forward to applying these insights.',
+    id: 2, name: '史博文', avatar: avatarBase + '1/34/19aa971b3b29b1f6c0e4dd3f6fbcjpeg.jpeg',
+    time: '5小时前', content: '今天的会议太棒了！学到了很多关于 AI 和机器学习最新趋势的知识。期待将这些见解应用到实际工作中。',
     image: '', likes: 28, comments: 8, shares: 3,
   },
   {
-    id: 3, name: 'Carol Johnson', avatar: avatarBase + '9/c2/3b0b0e6e6f6b3b1b3b1b3b1b3b1b3b1b.jpeg',
-    time: 'Yesterday', content: 'Beautiful sunset at the beach today. Sometimes you need to step away from the screen and enjoy nature.',
+    id: 3, name: '姜卡罗', avatar: avatarBase + '9/c2/3b0b0e6e6f6b3b1b3b1b3b1b3b1b3b1b.jpeg',
+    time: '昨天', content: '今天海边的日落真美。有时候需要离开屏幕，享受一下大自然的美好。',
     image: avatarBase + 'a/3f/a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3.jpeg',
     likes: 156, comments: 24, shares: 18,
   },
   {
-    id: 4, name: 'David Lee', avatar: avatarBase + 'a/3f/a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3.jpeg',
-    time: '2 days ago', content: 'Just finished reading "Clean Code" by Robert C. Martin. Highly recommend it to every developer. The principles are timeless.',
+    id: 4, name: '李大卫', avatar: avatarBase + 'a/3f/a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3.jpeg',
+    time: '2天前', content: '刚读完《代码整洁之道》，作者是 Robert C. Martin。强烈推荐给每位开发者，书中的原则经得起时间考验。',
     image: '', likes: 35, comments: 15, shares: 10,
   },
   {
-    id: 5, name: 'Emma Wilson', avatar: avatarBase + 'e/13/6734909d0f6c4e0b3b1b3b1b3b1b3b1b.jpeg',
-    time: '3 days ago', content: 'Team dinner was a blast! Great food, great company. These moments remind me why I love working with this team.',
+    id: 5, name: '王艾玛', avatar: avatarBase + 'e/13/6734909d0f6c4e0b3b1b3b1b3b1b3b1b.jpeg',
+    time: '3天前', content: '团队聚餐太开心了！美食加上好友相伴，这些时刻让我想起为什么喜欢和这个团队一起工作。',
     image: avatarBase + '0/88/03b0d432e8c87b879d3e4e37b8f6f6jpeg.jpeg',
     likes: 89, comments: 20, shares: 7,
   },
 ])
 
 const suggestions = ref([
-  { id: 1, name: 'Grace Park', avatar: avatarBase + '3/7c/3ea6be94a7beba6d1c0be4dd3f6fbcjpeg.jpeg', mutual: 5 },
-  { id: 2, name: 'Henry Brown', avatar: avatarBase + '1/34/19aa971b3b29b1f6c0e4dd3f6fbcjpeg.jpeg', mutual: 3 },
-  { id: 3, name: 'Ivy Davis', avatar: avatarBase + '9/c2/3b0b0e6e6f6b3b1b3b1b3b1b3b1b3b1b.jpeg', mutual: 8 },
+  { id: 1, name: '朴格蕾丝', avatar: avatarBase + '3/7c/3ea6be94a7beba6d1c0be4dd3f6fbcjpeg.jpeg', mutual: 5 },
+  { id: 2, name: '布朗亨利', avatar: avatarBase + '1/34/19aa971b3b29b1f6c0e4dd3f6fbcjpeg.jpeg', mutual: 3 },
+  { id: 3, name: '戴艾薇', avatar: avatarBase + '9/c2/3b0b0e6e6f6b3b1b3b1b3b1b3b1b3b1b.jpeg', mutual: 8 },
 ])
 
 const topics = ref([
   { name: 'AI', type: 'primary' as const, size: 'large' as const },
   { name: 'Vue3', type: 'success' as const, size: 'default' as const },
-  { name: 'Design', type: 'info' as const, size: 'large' as const },
-  { name: 'Startup', type: 'warning' as const, size: 'default' as const },
-  { name: 'Remote Work', type: 'danger' as const, size: 'default' as const },
-  { name: 'WebDev', type: 'primary' as const, size: 'large' as const },
-  { name: 'Coffee', type: 'info' as const, size: 'small' as const },
-  { name: 'Travel', type: 'success' as const, size: 'default' as const },
-  { name: 'Photography', type: 'warning' as const, size: 'default' as const },
+  { name: '设计', type: 'info' as const, size: 'large' as const },
+  { name: '创业', type: 'warning' as const, size: 'default' as const },
+  { name: '远程办公', type: 'danger' as const, size: 'default' as const },
+  { name: 'Web开发', type: 'primary' as const, size: 'large' as const },
+  { name: '咖啡', type: 'info' as const, size: 'small' as const },
+  { name: '旅行', type: 'success' as const, size: 'default' as const },
+  { name: '摄影', type: 'warning' as const, size: 'default' as const },
 ])
 
 const onPublish = () => {
   if (!postText.value.trim()) {
-    ElMessage.warning('Please write something first')
+    ElMessage.warning('请先输入内容')
     return
   }
-  ElMessage.success('Posted successfully!')
+  ElMessage.success('发布成功！')
   postText.value = ''
 }
-const onAddImage = () => ElMessage.info('Image picker opened')
-const onAddVideo = () => ElMessage.info('Video picker opened')
-const onCheckIn = () => ElMessage.info('Check-in opened')
-const onLike = (post: any) => { post.likes++; ElMessage.success(`Liked ${post.name}'s post`) }
-const onComment = (post: any) => ElMessage.info(`Commenting on ${post.name}'s post`)
-const onShare = (post: any) => ElMessage.success(`Shared ${post.name}'s post`)
-const onMessage = (name: string) => ElMessage.info(`Messaging ${name}`)
-const onFollow = (name: string) => ElMessage.success(`Followed ${name}`)
-const onTopicClick = (topic: string) => ElMessage.info(`Browsing #${topic}`)
+const onAddImage = () => ElMessage.info('图片选择器已打开')
+const onAddVideo = () => ElMessage.info('视频选择器已打开')
+const onCheckIn = () => ElMessage.info('签到功能已打开')
+const onLike = (post: any) => { post.likes++; ElMessage.success(`赞了 ${post.name} 的帖子`) }
+const onComment = (post: any) => ElMessage.info(`正在评论 ${post.name} 的帖子`)
+const onShare = (post: any) => ElMessage.success(`转发了 ${post.name} 的帖子`)
+const onMessage = (name: string) => ElMessage.info(`正在发消息给 ${name}`)
+const onFollow = (name: string) => ElMessage.success(`已关注 ${name}`)
+const onTopicClick = (topic: string) => ElMessage.info(`正在浏览 #${topic}`)
 </script>
 
 <style scoped>

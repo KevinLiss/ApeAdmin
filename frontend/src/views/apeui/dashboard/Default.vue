@@ -398,7 +398,7 @@ const stockChartOption = {
 /* 4. 超越边界 — Bar chart 3 series */
 const beyoChartOption = {
   series: [
-    { name: 'Net Profit', type: 'bar', data: [30, 70, 40, 50, 70, 50, 90], barWidth: 18, itemStyle: { borderRadius: 6, color: '#B7B1D7' } },
+    { name: '净利润', type: 'bar', data: [30, 70, 40, 50, 70, 50, 90], barWidth: 18, itemStyle: { borderRadius: 6, color: '#B7B1D7' } },
     { name: 'Revenue', type: 'bar', data: [60, 40, 30, 60, 80, 70, 75], barWidth: 18, itemStyle: { borderRadius: 6, color: '#B7B1D7' } },
     { name: 'Free Cash Flow', type: 'bar', data: [40, 60, 35, 90, 60, 60, 60], barWidth: 18, itemStyle: { borderRadius: 6, color: '#FFFFFF' } },
   ],

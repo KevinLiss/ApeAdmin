@@ -150,7 +150,7 @@ const handleCommand = (command: string) => {
 }
 
 const handleSplitMain = () => {
-  ElMessage.info('Split button main action')
+  ElMessage.info('拆分按钮主操作')
 }
 </script>
 

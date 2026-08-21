@@ -8,7 +8,7 @@
         <el-avatar :size="100" src="https://cube.elemecdn.com/0/88/03b0d432e8c87b879d3e4e37b8f6jpeg.jpeg" />
         <div>
           <h2 style="margin: 0 0 8px 0">张伟</h2>
-          <div style="color: #666; margin-bottom: 4px">邮箱：john.doe@example.com</div>
+          <div style="color: #666; margin-bottom: 4px">邮箱：zhangwei@example.com</div>
           <div style="margin-bottom: 4px">
             角色： <el-tag size="small" type="primary" effect="light">管理员</el-tag>
           </div>
@@ -25,12 +25,12 @@
       <el-col :span="12">
         <el-card header="个人信息">
           <el-descriptions :column="1" border>
-            <el-descriptions-item label="Full Name">张伟</el-descriptions-item>
-            <el-descriptions-item label="Email">john.doe@example.com</el-descriptions-item>
-            <el-descriptions-item label="Phone">+1 (555) 123-4567</el-descriptions-item>
-            <el-descriptions-item label="Department">工程部</el-descriptions-item>
-            <el-descriptions-item label="Location">中国 广州</el-descriptions-item>
-            <el-descriptions-item label="Joined">2023-06-15</el-descriptions-item>
+            <el-descriptions-item label="姓名">张伟</el-descriptions-item>
+            <el-descriptions-item label="邮箱">zhangwei@example.com</el-descriptions-item>
+            <el-descriptions-item label="手机">13800138000</el-descriptions-item>
+            <el-descriptions-item label="部门">工程部</el-descriptions-item>
+            <el-descriptions-item label="所在地">中国 广州</el-descriptions-item>
+            <el-descriptions-item label="入职日期">2023-06-15</el-descriptions-item>
           </el-descriptions>
         </el-card>
       </el-col>

@@ -61,14 +61,14 @@ const comboOption = {
   tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
   legend: { data: ['Revenue', 'Growth'], bottom: 0 },
   grid: { left: '3%', right: '4%', top: '5%', bottom: '15%', containLabel: true },
-  xAxis: { type: 'category', data: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'] },
+  xAxis: { type: 'category', data: ['1月', '2月', '3月', '4月', '5月', '6月', '7月'] },
   yAxis: [
     { type: 'value', name: 'Revenue', position: 'left' },
     { type: 'value', name: 'Growth %', position: 'right' },
   ],
   series: [
-    { name: 'Revenue', type: 'bar', data: [320, 332, 301, 334, 390, 330, 320], itemStyle: { color: PRIMARY, borderRadius: [4, 4, 0, 0] } },
-    { name: 'Growth', type: 'line', yAxisIndex: 1, data: [10, 15, 12, 20, 18, 25, 22], smooth: true, lineStyle: { color: SECONDARY, width: 3 }, itemStyle: { color: SECONDARY } },
+    { name: '收入', type: 'bar', data: [320, 332, 301, 334, 390, 330, 320], itemStyle: { color: PRIMARY, borderRadius: [4, 4, 0, 0] } },
+    { name: '增长', type: 'line', yAxisIndex: 1, data: [10, 15, 12, 20, 18, 25, 22], smooth: true, lineStyle: { color: SECONDARY, width: 3 }, itemStyle: { color: SECONDARY } },
   ],
 }
 
@@ -108,14 +108,14 @@ function genScatter(centerX: number, centerY: number, count: number) {
 }
 const scatterOption = {
   tooltip: { trigger: 'item' },
-  legend: { data: ['Group A', 'Group B', 'Group C'], bottom: 0 },
+  legend: { data: ['甲组', '乙组', '丙组'], bottom: 0 },
   grid: { left: '3%', right: '4%', top: '5%', bottom: '15%', containLabel: true },
   xAxis: { type: 'value', min: 0, max: 100 },
   yAxis: { type: 'value', min: 0, max: 100 },
   series: [
-    { name: 'Group A', type: 'scatter', data: genScatter(25, 25, 30), itemStyle: { color: PRIMARY } },
-    { name: 'Group B', type: 'scatter', data: genScatter(75, 75, 30), itemStyle: { color: SECONDARY } },
-    { name: 'Group C', type: 'scatter', data: genScatter(50, 50, 30), itemStyle: { color: SUCCESS } },
+    { name: '甲组', type: 'scatter', data: genScatter(25, 25, 30), itemStyle: { color: PRIMARY } },
+    { name: '乙组', type: 'scatter', data: genScatter(75, 75, 30), itemStyle: { color: SECONDARY } },
+    { name: '丙组', type: 'scatter', data: genScatter(50, 50, 30), itemStyle: { color: SUCCESS } },
   ],
 }
 
@@ -129,14 +129,14 @@ function genBubble(centerX: number, centerY: number, count: number) {
 }
 const bubbleOption = {
   tooltip: { trigger: 'item' },
-  legend: { data: ['East', 'West', 'North'], bottom: 0 },
+  legend: { data: ['东', '西', '北'], bottom: 0 },
   grid: { left: '3%', right: '4%', top: '5%', bottom: '15%', containLabel: true },
   xAxis: { type: 'value', min: 0, max: 100 },
   yAxis: { type: 'value', min: 0, max: 100 },
   series: [
-    { name: 'East', type: 'scatter', data: genBubble(30, 70, 15), symbolSize: (d: number[]) => d[2], itemStyle: { color: PRIMARY, opacity: 0.7 } },
-    { name: 'West', type: 'scatter', data: genBubble(70, 30, 15), symbolSize: (d: number[]) => d[2], itemStyle: { color: SECONDARY, opacity: 0.7 } },
-    { name: 'North', type: 'scatter', data: genBubble(50, 50, 15), symbolSize: (d: number[]) => d[2], itemStyle: { color: SUCCESS, opacity: 0.7 } },
+    { name: '东', type: 'scatter', data: genBubble(30, 70, 15), symbolSize: (d: number[]) => d[2], itemStyle: { color: PRIMARY, opacity: 0.7 } },
+    { name: '西', type: 'scatter', data: genBubble(70, 30, 15), symbolSize: (d: number[]) => d[2], itemStyle: { color: SECONDARY, opacity: 0.7 } },
+    { name: '北', type: 'scatter', data: genBubble(50, 50, 15), symbolSize: (d: number[]) => d[2], itemStyle: { color: SUCCESS, opacity: 0.7 } },
   ],
 }
 </script>

@@ -127,7 +127,7 @@ const funnelOption = {
 const polarBarOption = {
   tooltip: { trigger: 'item' },
   polar: { radius: '75%' },
-  angleAxis: { type: 'category', data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], startAngle: 90 },
+  angleAxis: { type: 'category', data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'], startAngle: 90 },
   radiusAxis: { type: 'value', axisLine: { lineStyle: { color: '#ccc' } } },
   series: [{
     type: 'bar',

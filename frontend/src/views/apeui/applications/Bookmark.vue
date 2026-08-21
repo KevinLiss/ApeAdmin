@@ -99,20 +99,20 @@ interface Bookmark {
 }
 
 const bookmarks = ref<Bookmark[]>([
-  { id: 1, title: 'GitHub', url: 'https://github.com', description: '全球最大的代码托管平台，协作与版本管理', category: 'Work', icon: 'GH', color: '#24292e', favorited: true },
-  { id: 2, title: 'Stack Overflow', url: 'https://stackoverflow.com', description: '开发者问答社区，解决编程疑难杂症', category: 'Work', icon: 'SO', color: '#f48024', favorited: false },
-  { id: 3, title: 'Vue.js 官网', url: 'https://vuejs.org', description: 'Vue3 渐进式 JavaScript 框架官方文档', category: 'Tools', icon: 'V', color: '#42b883', favorited: true },
-  { id: 4, title: 'Figma', url: 'https://figma.com', description: '在线协作设计工具，原型与界面设计', category: 'Tools', icon: 'Fi', color: '#a259ff', favorited: true },
-  { id: 5, title: 'Notion', url: 'https://notion.so', description: '一体化笔记与知识库管理工具', category: 'Personal', icon: 'No', color: '#000000', favorited: false },
-  { id: 6, title: 'Twitter / X', url: 'https://twitter.com', description: '社交媒体平台，关注技术动态与社区', category: 'Social', icon: 'X', color: '#1d9bf0', favorited: false },
-  { id: 7, title: 'MDN Web Docs', url: 'https://developer.mozilla.org', description: 'Web 开发权威文档，HTML/CSS/JS 参考', category: 'Work', icon: 'MD', color: '#005ca9', favorited: true },
-  { id: 8, title: 'Element Plus', url: 'https://element-plus.org', description: 'Vue3 UI 组件库，企业级后台组件', category: 'Tools', icon: 'EP', color: '#5A67F5', favorited: true },
+  { id: 1, title: 'GitHub', url: 'https://github.com', description: '全球最大的代码托管平台，协作与版本管理', category: '工作', icon: 'GH', color: '#24292e', favorited: true },
+  { id: 2, title: 'Stack Overflow 问答', url: 'https://stackoverflow.com', description: '开发者问答社区，解决编程疑难杂症', category: '工作', icon: 'SO', color: '#f48024', favorited: false },
+  { id: 3, title: 'Vue.js 官网', url: 'https://vuejs.org', description: 'Vue3 渐进式 JavaScript 框架官方文档', category: '工具', icon: 'V', color: '#42b883', favorited: true },
+  { id: 4, title: 'Figma', url: 'https://figma.com', description: '在线协作设计工具，原型与界面设计', category: '工具', icon: 'Fi', color: '#a259ff', favorited: true },
+  { id: 5, title: 'Notion', url: 'https://notion.so', description: '一体化笔记与知识库管理工具', category: '个人', icon: 'No', color: '#000000', favorited: false },
+  { id: 6, title: 'Twitter / X', url: 'https://twitter.com', description: '社交媒体平台，关注技术动态与社区', category: '社交', icon: 'X', color: '#1d9bf0', favorited: false },
+  { id: 7, title: 'MDN Web 文档', url: 'https://developer.mozilla.org', description: 'Web 开发权威文档，HTML/CSS/JS 参考', category: '工作', icon: 'MD', color: '#005ca9', favorited: true },
+  { id: 8, title: 'Element Plus', url: 'https://element-plus.org', description: 'Vue3 UI 组件库，企业级后台组件', category: '工具', icon: 'EP', color: '#5A67F5', favorited: true },
 ])
 
 const activeCategory = ref('All')
 
 const categories = computed(() => {
-  const cats = ['All', 'Work', 'Personal', 'Social', 'Tools']
+  const cats = ['全部', '工作', '个人', '社交', '工具']
   return cats.map((c) => ({
     label: c,
     value: c,
@@ -150,7 +150,7 @@ const editForm = reactive({
   title: '',
   url: '',
   description: '',
-  category: 'Work',
+  category: '工作',
   icon: '',
 })
 let nextId = 9

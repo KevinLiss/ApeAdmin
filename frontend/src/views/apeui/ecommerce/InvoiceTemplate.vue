@@ -167,7 +167,7 @@ const items = [
   { name: 'iPhone 15 Pro Max 256GB', sku: 'IP15PM-256', qty: 1, price: 1199.00 },
   { name: 'AirPods Pro 2 (USB-C)', sku: 'APP-PRO2-USBC', qty: 2, price: 249.00 },
   { name: 'Apple Watch Ultra 2', sku: 'AW-ULT2', qty: 1, price: 799.00 },
-  { name: 'Magic Keyboard for iPad', sku: 'MK-IPAD-11', qty: 1, price: 279.00 },
+  { name: 'iPad 妙控键盘', sku: 'MK-IPAD-11', qty: 1, price: 279.00 },
   { name: 'AppleCare+ Protection Plan', sku: 'ACP-PRO', qty: 2, price: 199.00 },
 ]
 

@@ -156,42 +156,42 @@ const inputText = ref('')
 const activeConvId = ref(1)
 
 const conversations = ref([
-  { id: 1, name: 'Alice Chen', avatar: avatarBase + '3/7c/3ea6be94a7beba6d1c0be4dd3f6fbcjpeg.jpeg', lastMsg: 'Sure, I\'ll send the report by Friday', time: '10:42', unread: 2, status: 'online', role: 'Product Manager' },
-  { id: 2, name: 'Bob Smith', avatar: avatarBase + '1/34/19aa971b3b29b1f6c0e4dd3f6fbcjpeg.jpeg', lastMsg: 'Great! Let\'s schedule a meeting', time: '09:30', unread: 0, status: 'online', role: 'Frontend Developer' },
-  { id: 3, name: 'Carol Johnson', avatar: avatarBase + '9/c2/3b0b0e6e6f6b3b1b3b1b3b1b3b1b3b1b.jpeg', lastMsg: 'The design mockups are ready for review', time: 'Yesterday', unread: 5, status: 'away', role: 'UX Designer' },
-  { id: 4, name: 'David Lee', avatar: avatarBase + 'a/3f/a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3.jpeg', lastMsg: 'Thanks for the update!', time: 'Yesterday', unread: 0, status: 'offline', role: 'Backend Developer' },
-  { id: 5, name: 'Emma Wilson', avatar: avatarBase + 'e/13/6734909d0f6c4e0b3b1b3b1b3b1b3b1b.jpeg', lastMsg: 'Can you review my pull request?', time: 'Mon', unread: 1, status: 'online', role: 'Data Analyst' },
-  { id: 6, name: 'Frank Miller', avatar: avatarBase + '0/88/03b0d432e8c87b879d3e4e37b8f6f6jpeg.jpeg', lastMsg: 'Deployment is complete', time: 'Sun', unread: 0, status: 'offline', role: 'DevOps Engineer' },
-  { id: 7, name: 'Grace Park', avatar: avatarBase + '3/7c/3ea6be94a7beba6d1c0be4dd3f6fbcjpeg.jpeg', lastMsg: 'Let\'s catch up next week', time: 'Sun', unread: 3, status: 'away', role: 'QA Engineer' },
+  { id: 1, name: '陈爱丽', avatar: avatarBase + '3/7c/3ea6be94a7beba6d1c0be4dd3f6fbcjpeg.jpeg', lastMsg: '好的，我周五前发报告', time: '10:42', unread: 2, status: 'online', role: '产品经理' },
+  { id: 2, name: '史博文', avatar: avatarBase + '1/34/19aa971b3b29b1f6c0e4dd3f6fbcjpeg.jpeg', lastMsg: '太好了！我们安排个会议', time: '09:30', unread: 0, status: 'online', role: '前端开发' },
+  { id: 3, name: '姜卡罗', avatar: avatarBase + '9/c2/3b0b0e6e6f6b3b1b3b1b3b1b3b1b3b1b.jpeg', lastMsg: '设计稿已准备好供审阅', time: '昨天', unread: 5, status: 'away', role: 'UX设计师' },
+  { id: 4, name: '李大卫', avatar: avatarBase + 'a/3f/a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3.jpeg', lastMsg: '感谢更新！', time: '昨天', unread: 0, status: 'offline', role: '后端开发' },
+  { id: 5, name: '王艾玛', avatar: avatarBase + 'e/13/6734909d0f6c4e0b3b1b3b1b3b1b3b1b.jpeg', lastMsg: '你能审查我的合并请求吗？', time: '周一', unread: 1, status: 'online', role: '数据分析师' },
+  { id: 6, name: '米法兰', avatar: avatarBase + '0/88/03b0d432e8c87b879d3e4e37b8f6f6jpeg.jpeg', lastMsg: '部署已完成', time: '周日', unread: 0, status: 'offline', role: '运维工程师' },
+  { id: 7, name: '朴格蕾丝', avatar: avatarBase + '3/7c/3ea6be94a7beba6d1c0be4dd3f6fbcjpeg.jpeg', lastMsg: '下周再聚吧', time: '周日', unread: 3, status: 'away', role: '测试工程师' },
 ])
 
 const messagesData: Record<number, any[]> = {
   1: [
-    { id: 1, fromMe: false, text: 'Hi William! How are you doing today?', time: '10:15' },
-    { id: 2, fromMe: true, text: 'Hey Alice! I\'m doing great, thanks for asking. How about you?', time: '10:17' },
-    { id: 3, fromMe: false, text: 'I\'m good too. I wanted to talk to you about the Q3 report.', time: '10:20' },
-    { id: 4, fromMe: true, text: 'Sure, what do you need? I can help with the data analysis part.', time: '10:22' },
-    { id: 5, fromMe: false, text: 'That would be perfect! Can you have it ready by this Friday?', time: '10:30' },
-    { id: 6, fromMe: true, text: 'Absolutely. I\'ll start working on it right away.', time: '10:35' },
-    { id: 7, fromMe: false, text: 'Sure, I\'ll send the report by Friday', time: '10:42' },
-    { id: 8, fromMe: true, text: 'Sounds great! Looking forward to seeing the final version.', time: '10:44' },
+    { id: 1, fromMe: false, text: '嗨，威廉！你今天怎么样？', time: '10:15' },
+    { id: 2, fromMe: true, text: '嘿，爱丽！我很好，谢谢关心。你呢？', time: '10:17' },
+    { id: 3, fromMe: false, text: '我也不错。我想和你聊聊第三季度报告的事。', time: '10:20' },
+    { id: 4, fromMe: true, text: '当然，你需要什么？我可以帮忙做数据分析部分。', time: '10:22' },
+    { id: 5, fromMe: false, text: '太好了！你能在本周五前完成吗？', time: '10:30' },
+    { id: 6, fromMe: true, text: '没问题，我马上开始做。', time: '10:35' },
+    { id: 7, fromMe: false, text: '好的，我周五前发报告', time: '10:42' },
+    { id: 8, fromMe: true, text: '听起来不错！期待看到最终版本。', time: '10:44' },
   ],
   2: [
-    { id: 1, fromMe: false, text: 'Hey, did you see the new component library update?', time: '09:10' },
-    { id: 2, fromMe: true, text: 'Yes! The new features look amazing. We should upgrade.', time: '09:15' },
-    { id: 3, fromMe: false, text: 'Great! Let\'s schedule a meeting to discuss the migration plan.', time: '09:30' },
+    { id: 1, fromMe: false, text: '嘿，你看到新的组件库更新了吗？', time: '09:10' },
+    { id: 2, fromMe: true, text: '是的！新功能看起来很棒。我们应该升级。', time: '09:15' },
+    { id: 3, fromMe: false, text: '太好了！我们安排个会议讨论迁移计划吧。', time: '09:30' },
   ],
   3: [
-    { id: 1, fromMe: false, text: 'The design mockups are ready for review', time: 'Yesterday' },
+    { id: 1, fromMe: false, text: '设计稿已准备好供审阅', time: '昨天' },
   ],
   4: [
-    { id: 1, fromMe: false, text: 'Thanks for the update!', time: 'Yesterday' },
+    { id: 1, fromMe: false, text: '感谢更新！', time: '昨天' },
   ],
   5: [
-    { id: 1, fromMe: false, text: 'Can you review my pull request?', time: 'Mon' },
+    { id: 1, fromMe: false, text: '你能审查我的合并请求吗？', time: '周一' },
   ],
   6: [
-    { id: 1, fromMe: false, text: 'Deployment is complete', time: 'Sun' },
+    { id: 1, fromMe: false, text: '部署已完成', time: '周日' },
   ],
   7: [
     { id: 1, fromMe: false, text: 'Let\'s catch up next week', time: 'Sun' },
@@ -208,9 +208,9 @@ const filteredConversations = computed(() => {
 
 const sharedFiles = ref([
   { id: 1, name: 'Q3 Report Draft.pdf', size: '2.4 MB', date: 'Aug 15', icon: Document, bg: '#fef0e6', color: '#E56809' },
-  { id: 2, name: 'Design Specs.xlsx', size: '1.1 MB', date: 'Aug 12', icon: Files, bg: '#e8f5e9', color: '#67C100' },
-  { id: 3, name: 'Meeting Notes.docx', size: '320 KB', date: 'Aug 10', icon: Document, bg: '#e3f2fd', color: '#3EBCB9' },
-  { id: 4, name: 'Project Archive.zip', size: '45 MB', date: 'Aug 05', icon: Files, bg: '#EAF1FF', color: '#5A67F5' },
+  { id: 2, name: '设计规范.xlsx', size: '1.1 MB', date: 'Aug 12', icon: Files, bg: '#e8f5e9', color: '#67C100' },
+  { id: 3, name: '会议记录.docx', size: '320 KB', date: 'Aug 10', icon: Document, bg: '#e3f2fd', color: '#3EBCB9' },
+  { id: 4, name: '项目归档.zip', size: '45 MB', date: 'Aug 05', icon: Files, bg: '#EAF1FF', color: '#5A67F5' },
 ])
 
 const onSelectConv = (conv: any) => {
@@ -222,12 +222,12 @@ const onSend = () => {
   ElMessage.success('Message sent')
   inputText.value = ''
 }
-const onSendFile = () => ElMessage.info('File attachment opened')
-const onSendImage = () => ElMessage.info('Image picker opened')
-const onCall = () => ElMessage.success('Calling ' + activeConversation.value.name)
-const onVideoCall = () => ElMessage.success('Starting video call with ' + activeConversation.value.name)
-const onMoreOptions = () => ElMessage.info('More options')
-const onDownload = (file: any) => ElMessage.success(`Downloading ${file.name}`)
+const onSendFile = () => ElMessage.info('文件附件已打开')
+const onSendImage = () => ElMessage.info('图片选择器已打开')
+const onCall = () => ElMessage.success('正在呼叫 ' + activeConversation.value.name)
+const onVideoCall = () => ElMessage.success('正在发起视频通话，对方：' + activeConversation.value.name)
+const onMoreOptions = () => ElMessage.info('更多选项')
+const onDownload = (file: any) => ElMessage.success(`正在下载 ${file.name}`)
 </script>
 
 <style scoped>

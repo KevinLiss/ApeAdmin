@@ -164,12 +164,12 @@
 import PageHeader from '../PageHeader.vue'
 
 const gridOptions = [
-  { name: 'Extra small', minWidth: '<576px', prefix: '.col-', columns: 12, gutter: '1.5rem' },
+  { name: '超小屏', minWidth: '<576px', prefix: '.col-', columns: 12, gutter: '1.5rem' },
   { name: 'Small', minWidth: '≥576px', prefix: '.col-sm-', columns: 12, gutter: '1.5rem' },
   { name: 'Medium', minWidth: '≥768px', prefix: '.col-md-', columns: 12, gutter: '1.5rem' },
   { name: 'Large', minWidth: '≥992px', prefix: '.col-lg-', columns: 12, gutter: '1.5rem' },
-  { name: 'Extra large', minWidth: '≥1200px', prefix: '.col-xl-', columns: 12, gutter: '1.5rem' },
-  { name: 'Extra extra large', minWidth: '≥1400px', prefix: '.col-xxl-', columns: 12, gutter: '1.5rem' }
+  { name: '超大屏', minWidth: '≥1200px', prefix: '.col-xl-', columns: 12, gutter: '1.5rem' },
+  { name: '超超大屏', minWidth: '≥1400px', prefix: '.col-xxl-', columns: 12, gutter: '1.5rem' }
 ]
 </script>
 

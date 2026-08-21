@@ -232,10 +232,10 @@ const textColorList = [
   { name: 'Primary Text',   color: '#5A67F5' },
   { name: 'Secondary Text', color: '#FFA47A' },
   { name: 'Success Text',   color: '#67C100' },
-  { name: 'Info Text',      color: '#3EBCB9' },
+  { name: '信息文字',      color: '#3EBCB9' },
   { name: 'Warning Text',   color: '#E56809' },
-  { name: 'Danger Text',    color: '#DC0808' },
-  { name: 'Dark Text',      color: '#2C323F' },
+  { name: '危险文字',    color: '#DC0808' },
+  { name: '深色文字',      color: '#2C323F' },
 ]
 </script>
 

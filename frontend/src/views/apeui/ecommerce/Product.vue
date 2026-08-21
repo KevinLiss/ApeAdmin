@@ -94,27 +94,27 @@ interface Product {
   wishlisted: boolean
 }
 
-const categories = ['All', 'Electronics', 'Fashion', 'Home & Living', 'Sports', 'Beauty']
-const categoryFilter = ref('All')
+const categories = ['全部', '电子产品', '时尚服饰', '家居生活', '运动户外', '美妆护肤']
+const categoryFilter = ref('全部')
 const sortBy = ref('')
 const searchQuery = ref('')
 const currentPage = ref(1)
 const pageSize = ref(8)
 
 const products = ref<Product[]>([
-  { id: 1, name: 'Wireless Bluetooth Headphones', category: 'Electronics', price: 79.99, oldPrice: 129.99, rating: 4.5, reviews: 128, bgColor: 'linear-gradient(135deg, #5A67F5, #8FA0FF)', badge: 'Sale', badgeColor: '#DC0808', wishlisted: false },
-  { id: 2, name: 'Smart Watch Pro Series 7', category: 'Electronics', price: 199.00, oldPrice: 299.00, rating: 5, reviews: 342, bgColor: 'linear-gradient(135deg, #3EBCB9, #6ee0dd)', badge: 'Hot', badgeColor: '#E56809', wishlisted: false },
-  { id: 3, name: 'Premium Cotton Casual T-Shirt', category: 'Fashion', price: 29.99, rating: 4, reviews: 89, bgColor: 'linear-gradient(135deg, #FFA47A, #ffc4a3)', wishlisted: true },
-  { id: 4, name: 'Running Sneakers Air Max', category: 'Sports', price: 89.99, oldPrice: 119.99, rating: 4.5, reviews: 215, bgColor: 'linear-gradient(135deg, #67C100, #85d533)', badge: 'New', badgeColor: '#5A67F5', wishlisted: false },
-  { id: 5, name: 'Smartphone X Pro Max 256GB', category: 'Electronics', price: 999.00, oldPrice: 1099.00, rating: 5, reviews: 521, bgColor: 'linear-gradient(135deg, #5A67F5, #4F58E8)', badge: 'Hot', badgeColor: '#E56809', wishlisted: false },
-  { id: 6, name: 'Ceramic Coffee Mug Set of 4', category: 'Home & Living', price: 34.99, rating: 4, reviews: 67, bgColor: 'linear-gradient(135deg, #E56809, #ff8a3c)', wishlisted: false },
-  { id: 7, name: 'Organic Skincare Gift Set', category: 'Beauty', price: 59.99, oldPrice: 89.99, rating: 4.5, reviews: 156, bgColor: 'linear-gradient(135deg, #FFA47A, #ffd0b8)', badge: 'Sale', badgeColor: '#DC0808', wishlisted: true },
-  { id: 8, name: 'Premium Yoga Mat Non-Slip', category: 'Sports', price: 49.99, rating: 4, reviews: 98, bgColor: 'linear-gradient(135deg, #3EBCB9, #5dd4d1)', wishlisted: false },
+  { id: 1, name: '无线蓝牙耳机', category: '电子产品', price: 79.99, oldPrice: 129.99, rating: 4.5, reviews: 128, bgColor: 'linear-gradient(135deg, #5A67F5, #8FA0FF)', badge: '特惠', badgeColor: '#DC0808', wishlisted: false },
+  { id: 2, name: '智能手表 Pro 7代', category: '电子产品', price: 199.00, oldPrice: 299.00, rating: 5, reviews: 342, bgColor: 'linear-gradient(135deg, #3EBCB9, #6ee0dd)', badge: '热门', badgeColor: '#E56809', wishlisted: false },
+  { id: 3, name: '精梳棉休闲T恤', category: '时尚服饰', price: 29.99, rating: 4, reviews: 89, bgColor: 'linear-gradient(135deg, #FFA47A, #ffc4a3)', wishlisted: true },
+  { id: 4, name: '气垫跑步鞋 Air Max', category: '运动户外', price: 89.99, oldPrice: 119.99, rating: 4.5, reviews: 215, bgColor: 'linear-gradient(135deg, #67C100, #85d533)', badge: '新品', badgeColor: '#5A67F5', wishlisted: false },
+  { id: 5, name: '智能手机 X Pro Max 256GB', category: '电子产品', price: 999.00, oldPrice: 1099.00, rating: 5, reviews: 521, bgColor: 'linear-gradient(135deg, #5A67F5, #4F58E8)', badge: '热门', badgeColor: '#E56809', wishlisted: false },
+  { id: 6, name: '陶瓷咖啡杯套装（4只装）', category: '家居生活', price: 34.99, rating: 4, reviews: 67, bgColor: 'linear-gradient(135deg, #E56809, #ff8a3c)', wishlisted: false },
+  { id: 7, name: '有机护肤礼盒套装', category: '美妆护肤', price: 59.99, oldPrice: 89.99, rating: 4.5, reviews: 156, bgColor: 'linear-gradient(135deg, #FFA47A, #ffd0b8)', badge: '特惠', badgeColor: '#DC0808', wishlisted: true },
+  { id: 8, name: '防滑专业瑜伽垫', category: '运动户外', price: 49.99, rating: 4, reviews: 98, bgColor: 'linear-gradient(135deg, #3EBCB9, #5dd4d1)', wishlisted: false },
 ])
 
 const filteredProducts = computed(() => {
   let result = products.value
-  if (categoryFilter.value && categoryFilter.value !== 'All') {
+  if (categoryFilter.value && categoryFilter.value !== '全部') {
     result = result.filter(p => p.category === categoryFilter.value)
   }
   if (searchQuery.value) {

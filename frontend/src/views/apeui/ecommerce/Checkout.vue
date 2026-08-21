@@ -287,7 +287,7 @@ const cartItems = ref([
   { name: 'iPhone 15 Pro Max 256GB', qty: 1, price: 1199.00 },
   { name: 'AirPods Pro 2 (USB-C)', qty: 1, price: 249.00 },
   { name: 'Apple Watch Ultra 2', qty: 1, price: 799.00 },
-  { name: 'Magic Keyboard for iPad', qty: 2, price: 279.00 },
+  { name: 'iPad 妙控键盘', qty: 2, price: 279.00 },
 ])
 
 const itemsTotal = computed(() => cartItems.value.reduce((sum, i) => sum + i.price * i.qty, 0))

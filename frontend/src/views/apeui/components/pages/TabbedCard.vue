@@ -242,16 +242,16 @@ const materialSuccessTab = ref('home')
 const tableTab = ref('online')
 
 const onlineUsers = [
-  { name: 'Alice Anderson', status: 'Online', date: '2026-08-21' },
-  { name: 'Bob Brown', status: 'Online', date: '2026-08-20' },
-  { name: 'Charlie Clark', status: 'Online', date: '2026-08-19' },
-  { name: 'Diana Davis', status: 'Online', date: '2026-08-18' },
+  { name: '艾丽斯·安德森', status: '在线', date: '2026-08-21' },
+  { name: '鲍勃·布朗', status: '在线', date: '2026-08-20' },
+  { name: '查理·克拉克', status: '在线', date: '2026-08-19' },
+  { name: '戴安娜·戴维斯', status: '在线', date: '2026-08-18' },
 ]
 
 const offlineUsers = [
-  { name: 'Evan Evans', status: 'Offline', date: '2026-08-15' },
-  { name: 'Fiona Foster', status: 'Offline', date: '2026-08-12' },
-  { name: 'George Green', status: 'Offline', date: '2026-08-10' },
+  { name: '伊万·埃文斯', status: '离线', date: '2026-08-15' },
+  { name: '菲奥娜·福斯特', status: '离线', date: '2026-08-12' },
+  { name: '乔治·格林', status: '离线', date: '2026-08-10' },
 ]
 </script>
 

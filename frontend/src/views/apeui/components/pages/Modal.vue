@@ -113,7 +113,7 @@ const resetForm = () => {
 
 const submitForm = () => {
   if (!userForm.value.name || !userForm.value.email) {
-    ElMessage.warning('Please fill in username and email')
+    ElMessage.warning('请填写用户名和邮箱')
     return
   }
   ElMessage.success(`User "${userForm.value.name}" created successfully`)

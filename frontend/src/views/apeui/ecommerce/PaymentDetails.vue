@@ -32,10 +32,10 @@
                 <el-input v-model="searchKey" placeholder="搜索订单号/客户" clearable style="width: 220px" :prefix-icon="Search" />
                 <el-select v-model="statusFilter" placeholder="状态" clearable style="width: 130px">
                   <el-option label="全部" value="" />
-                  <el-option label="Paid" value="Paid" />
-                  <el-option label="Pending" value="Pending" />
-                  <el-option label="Refunded" value="Refunded" />
-                  <el-option label="Failed" value="Failed" />
+                  <el-option label="已支付" value="已支付" />
+                  <el-option label="待处理" value="待处理" />
+                  <el-option label="已退款" value="已退款" />
+                  <el-option label="支付失败" value="支付失败" />
                 </el-select>
                 <el-button type="primary" :icon="Download">导出</el-button>
               </div>
@@ -63,7 +63,7 @@
             <el-table-column label="操作" width="120" fixed="right">
               <template #default="{ row }">
                 <el-button link type="primary" size="small" @click="viewDetail(row)">查看</el-button>
-                <el-button v-if="row.status === 'Pending'" link type="warning" size="small" @click="remind(row)">催收</el-button>
+                <el-button v-if="row.status === '待处理'" link type="warning" size="small" @click="remind(row)">催收</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -148,14 +148,14 @@ const stats = [
 ]
 
 const transactions = ref([
-  { orderNo: 'ORD-2026-0801', customer: '张伟', amount: 1280.00, method: 'Visa', status: 'Paid', date: '2026-08-01' },
-  { orderNo: 'ORD-2026-0802', customer: '李娜', amount: 560.00, method: 'PayPal', status: 'Pending', date: '2026-08-03' },
-  { orderNo: 'ORD-2026-0803', customer: '王芳', amount: 2340.50, method: 'Mastercard', status: 'Paid', date: '2026-08-05' },
-  { orderNo: 'ORD-2026-0804', customer: '刘强', amount: 890.00, method: '微信支付', status: 'Refunded', date: '2026-08-07' },
-  { orderNo: 'ORD-2026-0805', customer: '陈静', amount: 1670.00, method: '支付宝', status: 'Paid', date: '2026-08-09' },
-  { orderNo: 'ORD-2026-0806', customer: '赵磊', amount: 420.00, method: 'Visa', status: 'Failed', date: '2026-08-11' },
-  { orderNo: 'ORD-2026-0807', customer: '孙丽', amount: 3120.00, method: 'Mastercard', status: 'Paid', date: '2026-08-13' },
-  { orderNo: 'ORD-2026-0808', customer: '周涛', amount: 780.00, method: 'PayPal', status: 'Pending', date: '2026-08-15' },
+  { orderNo: 'ORD-2026-0801', customer: '张伟', amount: 1280.00, method: 'Visa', status: '已支付', date: '2026-08-01' },
+  { orderNo: 'ORD-2026-0802', customer: '李娜', amount: 560.00, method: 'PayPal', status: '待处理', date: '2026-08-03' },
+  { orderNo: 'ORD-2026-0803', customer: '王芳', amount: 2340.50, method: '万事达卡', status: '已支付', date: '2026-08-05' },
+  { orderNo: 'ORD-2026-0804', customer: '刘强', amount: 890.00, method: '微信支付', status: '已退款', date: '2026-08-07' },
+  { orderNo: 'ORD-2026-0805', customer: '陈静', amount: 1670.00, method: '支付宝', status: '已支付', date: '2026-08-09' },
+  { orderNo: 'ORD-2026-0806', customer: '赵磊', amount: 420.00, method: 'Visa', status: '支付失败', date: '2026-08-11' },
+  { orderNo: 'ORD-2026-0807', customer: '孙丽', amount: 3120.00, method: '万事达卡', status: '已支付', date: '2026-08-13' },
+  { orderNo: 'ORD-2026-0808', customer: '周涛', amount: 780.00, method: 'PayPal', status: '待处理', date: '2026-08-15' },
 ])
 
 const methodDistribution = [
@@ -181,10 +181,10 @@ const avgAmount = computed(() => {
 
 function statusTagType(status: string) {
   const map: Record<string, string> = {
-    Paid: 'success',
-    Pending: 'warning',
-    Refunded: 'info',
-    Failed: 'danger',
+    '已支付': 'success',
+    '待处理': 'warning',
+    '已退款': 'info',
+    '支付失败': 'danger',
   }
   return map[status] || ''
 }

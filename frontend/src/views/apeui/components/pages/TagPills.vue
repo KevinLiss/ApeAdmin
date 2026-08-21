@@ -107,11 +107,11 @@ import { Check, CircleCheck, Delete, Warning, InfoFilled, Star, Bell, ChatDotRou
 import PageHeader from '../PageHeader.vue'
 
 const closableTags = ref([
-  { name: 'Primary', type: 'primary' },
-  { name: 'Success', type: 'success' },
-  { name: 'Info', type: 'info' },
-  { name: 'Warning', type: 'warning' },
-  { name: 'Danger', type: 'danger' },
+  { name: '主要', type: 'primary' },
+  { name: '成功', type: 'success' },
+  { name: '信息', type: 'info' },
+  { name: '警告', type: 'warning' },
+  { name: '危险', type: 'danger' },
 ])
 
 const tagInput = ref('')

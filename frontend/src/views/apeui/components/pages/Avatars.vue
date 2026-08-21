@@ -129,9 +129,9 @@
 import PageHeader from '../PageHeader.vue'
 
 const avatarGroups = [
-  { size: 70, items: ['A', 'B', 'C'] },
-  { size: 50, items: ['A', 'B', 'C'] },
-  { size: 40, items: ['A', 'B', 'C'] },
+  { size: 70, items: ['甲', '乙', '丙'] },
+  { size: 50, items: ['甲', '乙', '丙'] },
+  { size: 40, items: ['甲', '乙', '丙'] },
 ]
 
 const shapes = [
