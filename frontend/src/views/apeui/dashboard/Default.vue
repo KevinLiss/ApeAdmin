@@ -29,7 +29,7 @@
           <div class="ape-card yearly-view">
             <div class="card-header">
               <h3>年度概览 <span class="ape-badge-soft">50/100</span></h3>
-              <h5 class="weekday-label">周一</h5>
+              <h5 class="weekday-label">本周</h5>
             </div>
             <div class="card-body p-0">
               <v-chart class="yearly-chart" :option="yearlyChartOption" autoresize />
@@ -155,8 +155,8 @@
               <v-chart class="beyo-chart" :option="beyoChartOption" autoresize />
             </div>
             <div class="beyo-detail">
-              <h3>超越边界 <span class="ape-badge-soft">6 小时前</span></h3>
-              <p>全球最耀眼的年轻冲浪新星之一，伊凯诺亚·加萨拉什。</p>
+              <h3>系统运营概览 <span class="ape-badge-soft">6 小时前</span></h3>
+              <p>本周系统稳定运行 99.9%，累计处理请求 128 万次，异常率低于 0.1%。</p>
               <div class="date-history">
                 <ul class="beyo-avatars">
                   <li><img src="/assets/images/dashboard/beyo-line/1.png" alt="" /></li>
@@ -166,8 +166,8 @@
                   <li><h2>+ 350</h2></li>
                 </ul>
                 <div class="date-label">
-                  <h3>10</h3>
-                  <p>六月</p>
+                  <h3>21</h3>
+                  <p>八月</p>
                 </div>
               </div>
             </div>
@@ -188,7 +188,7 @@
                     <v-chart class="invest-chart-sm" :option="investChartOption" autoresize />
                     <div class="chart-detail">
                       <h5>总投资</h5>
-                      <h2>$7454.25</h2>
+                      <h2>$7,454.25</h2>
                     </div>
                   </div>
                 </el-col>
@@ -198,17 +198,17 @@
                     <v-chart class="invest-chart-sm" :option="gainChartOption" autoresize />
                     <div class="chart-detail">
                       <h5>总收益</h5>
-                      <h2>$7454.25</h2>
+                      <h2>$5,328.10</h2>
                     </div>
                   </div>
                 </el-col>
                 <el-col :sm="8">
                   <div class="investment-group">
-                    <span class="invest-label">+15.4%</span>
+                    <span class="invest-label">+11.2%</span>
                     <v-chart class="invest-chart-sm" :option="profitChartOption" autoresize />
                     <div class="chart-detail">
                       <h5>6 个月利润</h5>
-                      <h2>$7454.25</h2>
+                      <h2>$3,186.47</h2>
                     </div>
                   </div>
                 </el-col>
@@ -288,17 +288,20 @@ const SUCCESS = '#67C100'
 
 /* ---- Activity Review data ---- */
 const activities = [
-  { id: 1, avatar: '/assets/images/dashboard/activity/1.jpg', title: 'Jim Smith 的审核请求', subtitle: '2019年1月3日 12:25 于塔梅库拉', time: '14分钟前' },
-  { id: 2, avatar: '/assets/images/dashboard/activity/2.jpg', title: '新增联系人', subtitle: '2019年1月2日 15:10 于弗雷斯诺', time: '22分钟前' },
-  { id: 3, avatar: '/assets/images/dashboard/activity/3.jpg', title: '已发送审核 (504)236-7302', subtitle: '2019年1月2日 19:35 于艾里斯', time: '30分钟前' },
+  { id: 1, avatar: '/assets/images/dashboard/activity/1.jpg', title: 'Jim Smith 的审核请求', subtitle: '2026年8月21日 09:15 于广州', time: '14分钟前' },
+  { id: 2, avatar: '/assets/images/dashboard/activity/2.jpg', title: '新增联系人', subtitle: '2026年8月20日 16:30 于深圳', time: '2小时前' },
+  { id: 3, avatar: '/assets/images/dashboard/activity/3.jpg', title: '已发送审核 (020)888-3002', subtitle: '2026年8月20日 14:05 于上海', time: '5小时前' },
 ]
 
-/* ---- Transaction History data ---- */
+/* ---- Transaction History data ----
+ * 收入统一为正值（绿色 + 号），币种统一 $
+ * 进度条颜色按进度高低着色：<60% 红、60-79% 橙、80-89% 青、≥90% 绿
+ */
 const transactions = [
-  { id: 1, icon: '/assets/images/dashboard/transaction/1.png', name: '耐克运动鞋 NK', delivery: '免运费', date: '2022年5月12日', days: '6天内', income: 456, progress: 65, progressClass: 'progress-success', payment: 'PayPal' },
-  { id: 2, icon: '/assets/images/dashboard/transaction/2.png', name: '女士手提包', delivery: '运费¥83.65', date: '2022年5月6日', days: '5天内', income: -80, progress: 45, progressClass: 'progress-warning', payment: '信用卡' },
-  { id: 3, icon: '/assets/images/dashboard/transaction/3.png', name: '太阳镜', delivery: '免运费', date: '2022年9月28日', days: '4个月内', income: -4232, progress: 85, progressClass: 'progress-danger', payment: 'PayPal' },
-  { id: 4, icon: '/assets/images/dashboard/transaction/4.png', name: '棉质T恤', delivery: '运费¥283.65', date: '2022年3月22日', days: '8天内', income: -645, progress: 75, progressClass: 'progress-info', payment: '信用卡' },
+  { id: 1, icon: '/assets/images/dashboard/transaction/1.png', name: '耐克运动鞋 NK', delivery: '免运费', date: '2026年8月18日', days: '6天内', income: 456, progress: 65, progressClass: 'progress-warning', payment: 'PayPal' },
+  { id: 2, icon: '/assets/images/dashboard/transaction/2.png', name: '女士手提包', delivery: '运费$83.65', date: '2026年8月15日', days: '5天内', income: 1280, progress: 45, progressClass: 'progress-danger', payment: '信用卡' },
+  { id: 3, icon: '/assets/images/dashboard/transaction/3.png', name: '太阳镜', delivery: '免运费', date: '2026年8月10日', days: '4个月内', income: 4232, progress: 85, progressClass: 'progress-info', payment: 'PayPal' },
+  { id: 4, icon: '/assets/images/dashboard/transaction/4.png', name: '棉质T恤', delivery: '运费$283.65', date: '2026年8月5日', days: '8天内', income: 645, progress: 75, progressClass: 'progress-warning', payment: '信用卡' },
 ]
 
 /* ---- 社交媒体 data ---- */
@@ -395,7 +398,7 @@ const stockChartOption = {
   tooltip: { show: false },
 }
 
-/* 4. 超越边界 — Bar chart 3 series */
+/* 4. 系统运营概览 — Bar chart 3 series */
 const beyoChartOption = {
   series: [
     { name: '净利润', type: 'bar', data: [30, 70, 40, 50, 70, 50, 90], barWidth: 18, itemStyle: { borderRadius: 6, color: '#B7B1D7' } },

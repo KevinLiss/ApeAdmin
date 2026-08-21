@@ -54,7 +54,7 @@
                     </div>
                     <div>
                       <h5>{{ p.name }}</h5>
-                      <p>{{ p.items }} Items</p>
+                      <p>{{ p.items }} 件</p>
                     </div>
                   </div>
                   <div class="tp-coupon">
@@ -223,11 +223,12 @@ const PRIMARY = '#5A67F5'
 const SECONDARY = '#FFA47A'
 
 /* ---- Helper: stacked bar chart option for stat cards ---- */
-function makeStatChartOption(color1: string, color2: string) {
+/* 为每张统计卡片生成差异化柱状图数据，避免卡片间图表重复 */
+function makeStatChartOption(color1: string, color2: string, dataA: number[], dataB: number[]) {
   return {
     series: [
-      { type: 'bar', stack: 'total', data: [20, 60, 50, 70, 40, 80, 20], barWidth: 12, itemStyle: { borderRadius: 0, color: color1 } },
-      { type: 'bar', stack: 'total', data: [80, 40, 50, 30, 60, 20, 20], barWidth: 12, itemStyle: { borderRadius: 2, color: color2 } },
+      { type: 'bar', stack: 'total', data: dataA, barWidth: 12, itemStyle: { borderRadius: 0, color: color1 } },
+      { type: 'bar', stack: 'total', data: dataB, barWidth: 12, itemStyle: { borderRadius: 2, color: color2 } },
     ],
     grid: { left: 0, right: 0, top: 0, bottom: 0 },
     xAxis: { type: 'category', show: false },
@@ -236,12 +237,19 @@ function makeStatChartOption(color1: string, color2: string) {
   }
 }
 
+const statChartData = {
+  sales: { a: [30, 55, 40, 70, 45, 80, 60], b: [70, 45, 60, 30, 55, 20, 40] },
+  income: { a: [45, 30, 65, 40, 70, 50, 35], b: [55, 70, 35, 60, 30, 50, 65] },
+  orders: { a: [20, 40, 60, 50, 75, 35, 55], b: [80, 60, 40, 50, 25, 65, 45] },
+  visitors: { a: [60, 35, 55, 70, 40, 65, 50], b: [40, 65, 45, 30, 60, 35, 50] },
+}
+
 /* ---- Stat Cards ---- */
 const statCards = [
-  { title: '总销售', value: '54,750', icon: markRaw(ShoppingBag), iconBg: '#5A67F5', chartOption: makeStatChartOption(PRIMARY, '#dad8e0') },
-  { title: '总收入', value: '$35,532', icon: markRaw(Money), iconBg: '#FFA47A', chartOption: makeStatChartOption(SECONDARY, '#faded1') },
-  { title: '已支付订单', value: '55,900', icon: markRaw(Document), iconBg: '#5A67F5', chartOption: makeStatChartOption(PRIMARY, '#dad8e0') },
-  { title: '总访客', value: '67,900', icon: markRaw(User), iconBg: '#FFA47A', chartOption: makeStatChartOption(SECONDARY, '#faded1') },
+  { title: '总销售', value: '54,750', icon: markRaw(ShoppingBag), iconBg: '#5A67F5', chartOption: makeStatChartOption(PRIMARY, '#dad8e0', statChartData.sales.a, statChartData.sales.b) },
+  { title: '总收入', value: '$35,532', icon: markRaw(Money), iconBg: '#FFA47A', chartOption: makeStatChartOption(SECONDARY, '#faded1', statChartData.income.a, statChartData.income.b) },
+  { title: '已支付订单', value: '55,900', icon: markRaw(Document), iconBg: '#5A67F5', chartOption: makeStatChartOption(PRIMARY, '#dad8e0', statChartData.orders.a, statChartData.orders.b) },
+  { title: '总访客', value: '67,900', icon: markRaw(User), iconBg: '#FFA47A', chartOption: makeStatChartOption(SECONDARY, '#faded1', statChartData.visitors.a, statChartData.visitors.b) },
 ]
 
 /* ---- 热销商品 ---- */
@@ -289,7 +297,7 @@ const recentChartOption = {
       areaStyle: { color: PRIMARY, opacity: 0.2 },
     },
   ],
-  grid: { left: 30, right: 20, top: 20, bottom: 30 },
+  grid: { left: 40, right: 20, top: 20, bottom: 30 },
   xAxis: {
     type: 'category',
     data: ['1月', '2月', '3月', '4月', '5月', '6月', '7月'],
@@ -297,7 +305,12 @@ const recentChartOption = {
     axisTick: { show: false },
     axisLabel: { color: '#909399', fontSize: 12 },
   },
-  yAxis: { show: false },
+  yAxis: {
+    type: 'value',
+    splitNumber: 4,
+    axisLabel: { color: '#909399', fontSize: 11 },
+    splitLine: { lineStyle: { color: '#f0f2f5', type: 'dashed' } },
+  },
   tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
 }
 
@@ -312,13 +325,13 @@ const countryChartOption = {
   }],
   radar: {
     indicator: [
-      { name: 'Sun', max: 100 },
-      { name: 'Mon', max: 100 },
-      { name: 'Tue', max: 100 },
-      { name: 'Wed', max: 100 },
-      { name: 'Thu', max: 100 },
-      { name: 'Fri', max: 100 },
-      { name: 'Sat', max: 100 },
+      { name: '中国', max: 100 },
+      { name: '美国', max: 100 },
+      { name: '日本', max: 100 },
+      { name: '德国', max: 100 },
+      { name: '英国', max: 100 },
+      { name: '法国', max: 100 },
+      { name: '巴西', max: 100 },
     ],
     axisName: { color: '#909399', fontSize: 12 },
     splitArea: { show: false },
@@ -403,10 +416,11 @@ const countryChartOption = {
   flex-direction: column;
 }
 .tp-item {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 62px 32px 74px;
   align-items: center;
   padding: 10px 0;
-  gap: 15px;
+  gap: 10px;
   border-bottom: 1px solid #f5f5f5;
 }
 .tp-item:last-child {
@@ -416,7 +430,7 @@ const countryChartOption = {
   display: flex;
   align-items: center;
   gap: 12px;
-  flex: 1;
+  min-width: 0;
 }
 .tp-icon img {
   width: 36px;
@@ -439,7 +453,7 @@ const countryChartOption = {
 }
 .tp-coupon h5 {
   margin: 0;
-  font-size: 13px;
+  font-size: 12px;
   color: #909399;
 }
 .tp-coupon p {
@@ -447,20 +461,27 @@ const countryChartOption = {
   font-size: 13px;
   font-weight: 500;
   color: #5A67F5;
+  white-space: nowrap;
 }
 .tp-flag {
   font-size: 22px;
+  text-align: center;
+}
+.tp-discount {
+  text-align: right;
 }
 .tp-discount h5 {
   margin: 0;
   font-size: 14px;
   font-weight: 500;
   color: #DC0808;
+  white-space: nowrap;
 }
 .tp-discount p {
   margin: 2px 0 0;
   font-size: 13px;
   color: #2B2B2B;
+  white-space: nowrap;
 }
 
 /* ==================== Country Sales ==================== */
@@ -481,17 +502,31 @@ const countryChartOption = {
   border-collapse: collapse;
 }
 .best-sellers-table thead th {
-  font-size: 16px;
-  font-weight: 500;
-  color: #2B2B2B;
-  padding: 0 10px 15px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #5A67F5;
+  padding: 10px 10px 10px 0;
   text-align: left;
-  border-bottom: none;
+  border-bottom: 2px solid #5A67F5;
+  background: rgba(90, 103, 245, 0.06);
+  border-radius: 6px 6px 0 0;
+}
+.best-sellers-table thead th:first-child {
+  padding-left: 12px;
+  border-top-left-radius: 6px;
+}
+.best-sellers-table thead th:last-child {
+  padding-right: 12px;
+  border-top-right-radius: 6px;
+  text-align: right;
 }
 .best-sellers-table tbody td {
   padding: 12px 10px 12px 0;
   vertical-align: middle;
   border-bottom: 1px solid #f5f5f5;
+}
+.best-sellers-table tbody tr:first-child td {
+  padding-top: 14px;
 }
 .best-sellers-table tbody tr:last-child td {
   border-bottom: none;
