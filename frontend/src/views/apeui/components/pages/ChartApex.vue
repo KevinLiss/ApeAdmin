@@ -1,12 +1,12 @@
 <template>
   <div>
-    <PageHeader title="Chart Apex" :breadcrumb="['APEUI库', 'Components', 'Chart Apex']" />
+    <PageHeader title="Apex 图表" :breadcrumb="['APEUI库', '组件示例', 'Apex 图表']" />
 
     <el-row :gutter="30">
       <el-col :span="12" style="margin-bottom: 16px">
         <el-card shadow="hover">
           <template #header>
-            <span class="card-title">Basic Line Chart</span>
+            <span class="card-title">基础折线图</span>
           </template>
           <v-chart class="chart" :option="basicLineOption" autoresize />
         </el-card>
@@ -58,7 +58,7 @@ const SUCCESS = '#67C100'
 
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-/* 1. Basic Line Chart — 3 lines */
+/* 1. 基础折线图 — 3 lines */
 const basicLineOption = {
   tooltip: { trigger: 'axis' },
   legend: { data: ['Product A', 'Product B', 'Product C'], bottom: 0 },

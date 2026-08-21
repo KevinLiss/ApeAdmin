@@ -1,14 +1,14 @@
 <template>
   <div>
-    <PageHeader title="Breadcrumb" :breadcrumb="['APEUI库', 'Components', 'Breadcrumb']" />
+    <PageHeader title="面包屑" :breadcrumb="['APEUI库', '组件示例', '面包屑']" />
 
     <el-row :gutter="30">
-      <!-- 1. Default Breadcrumb -->
+      <!-- 1. 默认面包屑 -->
       <el-col :span="12" class="card-col">
         <el-card shadow="hover">
           <template #header>
             <div class="card-header">
-              <span class="card-title">Default Breadcrumb</span>
+              <span class="card-title">默认面包屑</span>
             </div>
           </template>
           <div class="breadcrumb-sections">

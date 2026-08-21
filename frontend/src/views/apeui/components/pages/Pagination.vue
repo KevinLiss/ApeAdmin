@@ -1,6 +1,6 @@
 ﻿<template>
   <div>
-    <PageHeader title="Pagination" :breadcrumb="['APEUI库', 'Components', 'Pagination']" />
+    <PageHeader title="分页" :breadcrumb="['APEUI库', '组件示例', '分页']" />
 
     <el-row :gutter="16">
       <el-col :span="12" style="margin-bottom: 16px">

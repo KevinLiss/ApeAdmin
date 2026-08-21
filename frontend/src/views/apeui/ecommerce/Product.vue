@@ -1,8 +1,8 @@
 <template>
   <div class="product-page">
-    <PageHeader title="Product" :breadcrumb="['APEUI库', 'Ecommerce', 'Product']">
+    <PageHeader title="商品管理" :breadcrumb="['APEUI库', '电商模块', '商品管理']">
       <template #actions>
-        <el-button type="primary" :icon="Grid">Grid View</el-button>
+        <el-button type="primary" :icon="Grid">网格视图</el-button>
       </template>
     </PageHeader>
 

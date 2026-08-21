@@ -1,6 +1,6 @@
 ﻿<template>
   <div>
-    <PageHeader title="Themify Icon" :breadcrumb="['APEUI库', 'Components', 'Themify Icon']" />
+    <PageHeader title="Themify 图标" :breadcrumb="['APEUI库', '组件示例', 'Themify 图标']" />
 
     <el-card shadow="hover">
       <template #header>Element Plus Icons — Arrows &amp; Navigation</template>

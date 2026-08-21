@@ -1,13 +1,13 @@
 <template>
   <div>
-    <PageHeader title="Chart Peity" :breadcrumb="['APEUI库', 'Components', 'Chart Peity']" />
+    <PageHeader title="Peity 图表" :breadcrumb="['APEUI库', '组件示例', 'Peity 图表']" />
 
     <el-row :gutter="30">
-      <!-- Mini Line Charts -->
+      <!-- 迷你折线图 -->
       <el-col :span="12" style="margin-bottom: 16px">
         <el-card shadow="hover">
           <template #header>
-            <span class="card-title">Mini Line Charts</span>
+            <span class="card-title">迷你折线图</span>
           </template>
           <div class="mini-grid">
             <div class="mini-item">
@@ -122,7 +122,7 @@ const miniBase = {
   tooltip: { show: false },
 }
 
-/* --- Mini Line Charts --- */
+/* --- 迷你折线图 --- */
 const miniLine1 = {
   ...miniBase,
   series: [{ type: 'line', data: [5, 20, 15, 35, 25, 40, 30, 50, 45], smooth: true, symbol: 'none', lineStyle: { color: PRIMARY, width: 2 } }],

@@ -1,12 +1,12 @@
 <template>
   <div>
-    <PageHeader title="Chart Sparkline" :breadcrumb="['APEUI库', 'Components', 'Chart Sparkline']" />
+    <PageHeader title="迷你走势图" :breadcrumb="['APEUI库', '组件示例', '迷你走势图']" />
 
     <el-row :gutter="30">
       <el-col :span="12" style="margin-bottom: 16px">
         <el-card shadow="hover">
           <template #header>
-            <span class="card-title">Sparkline Line</span>
+            <span class="card-title">迷你走势线</span>
           </template>
           <v-chart class="chart" :option="sparklineLineOption" autoresize />
         </el-card>
@@ -64,7 +64,7 @@ const sparkBase = {
   tooltip: { show: false },
 }
 
-/* 1. Sparkline Line — no axes, thin line */
+/* 1. 迷你走势线 — no axes, thin line */
 const sparklineLineOption = {
   ...sparkBase,
   series: [{

@@ -1,6 +1,6 @@
 <template>
   <div class="checkout-page">
-    <PageHeader title="Checkout" :breadcrumb="['APEUI库', 'Ecommerce', 'Checkout']" />
+    <PageHeader title="结算页面" :breadcrumb="['APEUI库', '电商模块', '结算页面']" />
 
     <el-row :gutter="30">
       <!-- 左侧：步骤导航 -->

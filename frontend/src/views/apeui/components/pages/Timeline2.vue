@@ -1,13 +1,13 @@
 <template>
   <div class="timeline2-page">
-    <PageHeader title="Timeline v2" :breadcrumb="['APEUI库', 'Components', 'Timeline v2']" />
+    <PageHeader title="时间轴二" :breadcrumb="['APEUI库', '组件示例', '时间轴二']" />
 
     <el-row :gutter="30">
-      <!-- Left column: Activity Timeline -->
+      <!-- Left column: 活动时间轴 -->
       <el-col :span="12" class="col-item">
         <el-card shadow="hover">
           <template #header>
-            <span class="card-title">Activity Timeline</span>
+            <span class="card-title">活动时间轴</span>
           </template>
           <el-timeline>
             <!-- Activity 1 -->

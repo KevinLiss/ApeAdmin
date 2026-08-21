@@ -1,13 +1,25 @@
 <template>
-  <aside class="koho-sidebar" :class="{ 'close-icon': collapsed }">
+  <aside
+    class="koho-sidebar"
+    :class="{
+      'close-icon': collapsed && !isMobile,
+      'mobile-open': isMobile && mobileOpen,
+      'mobile-hidden': isMobile && !mobileOpen
+    }"
+  >
     <!-- Logo + toggle -->
-    <div class="logo-wrapper" :class="{ 'logo-collapsed': collapsed }" @click="collapsed && $emit('toggle')">
+    <div class="logo-wrapper" :class="{ 'logo-collapsed': collapsed && !isMobile }" @click="(collapsed && !isMobile) && $emit('toggle')">
       <div class="logo-inner">
         <el-icon :size="28" color="#5A67F5"><Platform /></el-icon>
         <span class="brand-text">ApeAdmin</span>
       </div>
-      <div class="toggle-sidebar" @click.stop="$emit('toggle')">
+      <!-- Desktop: toggle button -->
+      <div v-if="!isMobile" class="toggle-sidebar" @click.stop="$emit('toggle')">
         <el-icon :size="18"><Expand v-if="collapsed" /><Fold v-else /></el-icon>
+      </div>
+      <!-- Mobile: close button -->
+      <div v-else class="toggle-sidebar mobile-close-btn" @click.stop="$emit('close-mobile')">
+        <el-icon :size="18"><Close /></el-icon>
       </div>
     </div>
 
@@ -85,10 +97,13 @@ import { useRoute } from 'vue-router'
 
 defineProps<{
   collapsed: boolean
+  isMobile?: boolean
+  mobileOpen?: boolean
 }>()
 defineEmits<{
   (e: 'toggle'): void
   (e: 'upgrade'): void
+  (e: 'close-mobile'): void
 }>()
 
 const route = useRoute()
@@ -111,110 +126,110 @@ const mcpMenus = [
   { title: '资源列表', path: '/mcp/resources', icon: 'FolderOpened' },
 ]
 
-  // APEUI库 - Koho 五大类页面 (逐页独立路由)
+  // APEUI库 - 五大模块 (逐页独立路由)
 const apeuiMenus = [
   {
-    title: 'Dashboards',
+    title: '数据看板',
     icon: 'Odometer',
     items: [
-      { title: 'Default', path: '/apeui/dashboard/default' },
-      { title: 'Ecommerce', path: '/apeui/dashboard/ecommerce' },
+      { title: '默认看板', path: '/apeui/dashboard/default' },
+      { title: '电商看板', path: '/apeui/dashboard/ecommerce' },
     ],
   },
   {
-    title: 'Applications',
+    title: '应用中心',
     icon: 'Grid',
     items: [
-      { title: 'Project List', path: '/apeui/app/projects' },
-      { title: 'Create new', path: '/apeui/app/project-create' },
-      { title: 'File Manager', path: '/apeui/app/file-manager' },
-      { title: 'Kanban Board', path: '/apeui/app/kanban' },
-      { title: 'Bookmarks', path: '/apeui/app/bookmark' },
-      { title: 'Contacts', path: '/apeui/app/contacts' },
-      { title: 'Tasks', path: '/apeui/app/tasks' },
-      { title: 'Calendar', path: '/apeui/app/calendar' },
-      { title: 'Social App', path: '/apeui/app/social' },
-      { title: 'To-Do', path: '/apeui/app/todo' },
-      { title: 'Search Result', path: '/apeui/app/search' },
-      { title: 'Chat App', path: '/apeui/app/chat' },
-      { title: 'Video Chat', path: '/apeui/app/chat-video' },
+      { title: '项目列表', path: '/apeui/app/projects' },
+      { title: '新建项目', path: '/apeui/app/project-create' },
+      { title: '文件管理', path: '/apeui/app/file-manager' },
+      { title: '看板视图', path: '/apeui/app/kanban' },
+      { title: '书签管理', path: '/apeui/app/bookmark' },
+      { title: '通讯录', path: '/apeui/app/contacts' },
+      { title: '任务列表', path: '/apeui/app/tasks' },
+      { title: '日历', path: '/apeui/app/calendar' },
+      { title: '社交应用', path: '/apeui/app/social' },
+      { title: '待办事项', path: '/apeui/app/todo' },
+      { title: '搜索结果', path: '/apeui/app/search' },
+      { title: '聊天应用', path: '/apeui/app/chat' },
+      { title: '视频聊天', path: '/apeui/app/chat-video' },
     ],
   },
   {
-    title: 'Ecommerce',
+    title: '电商模块',
     icon: 'ShoppingCart',
     items: [
-      { title: 'Product', path: '/apeui/ecommerce/product' },
-      { title: 'Product Page', path: '/apeui/ecommerce/product-page' },
-      { title: 'Add Product', path: '/apeui/ecommerce/add-product' },
-      { title: 'Product List', path: '/apeui/ecommerce/product-list' },
-      { title: 'Payment Details', path: '/apeui/ecommerce/payment' },
-      { title: 'Order History', path: '/apeui/ecommerce/order-history' },
-      { title: 'Invoice', path: '/apeui/ecommerce/invoice' },
-      { title: 'Cart', path: '/apeui/ecommerce/cart' },
-      { title: 'Wishlist', path: '/apeui/ecommerce/wishlist' },
-      { title: 'Checkout', path: '/apeui/ecommerce/checkout' },
-      { title: 'Pricing', path: '/apeui/ecommerce/pricing' },
+      { title: '商品管理', path: '/apeui/ecommerce/product' },
+      { title: '商品详情页', path: '/apeui/ecommerce/product-page' },
+      { title: '添加商品', path: '/apeui/ecommerce/add-product' },
+      { title: '商品列表', path: '/apeui/ecommerce/product-list' },
+      { title: '支付详情', path: '/apeui/ecommerce/payment' },
+      { title: '订单历史', path: '/apeui/ecommerce/order-history' },
+      { title: '发票模板', path: '/apeui/ecommerce/invoice' },
+      { title: '购物车', path: '/apeui/ecommerce/cart' },
+      { title: '心愿单', path: '/apeui/ecommerce/wishlist' },
+      { title: '结算页面', path: '/apeui/ecommerce/checkout' },
+      { title: '定价方案', path: '/apeui/ecommerce/pricing' },
     ],
   },
   {
-    title: 'Users',
+    title: '用户中心',
     icon: 'UserFilled',
     items: [
-      { title: 'Users Profile', path: '/apeui/users/profile' },
-      { title: 'Users Edit', path: '/apeui/users/edit-profile' },
-      { title: 'Users Cards', path: '/apeui/users/cards' },
+      { title: '用户资料', path: '/apeui/users/profile' },
+      { title: '编辑资料', path: '/apeui/users/edit-profile' },
+      { title: '用户卡片', path: '/apeui/users/cards' },
     ],
   },
   {
-    title: 'Components',
+    title: '组件示例',
     icon: 'Box',
     items: [
-      { title: 'State Color', path: '/apeui/components/state-color' },
-      { title: 'Typography', path: '/apeui/components/typography' },
-      { title: 'Avatars', path: '/apeui/components/avatars' },
-      { title: 'Grid', path: '/apeui/components/grid' },
-      { title: 'Tag & Pills', path: '/apeui/components/tag-pills' },
-      { title: 'Progress', path: '/apeui/components/progress-bar' },
-      { title: 'Modal', path: '/apeui/components/modal' },
-      { title: 'Alert', path: '/apeui/components/alert' },
-      { title: 'Popover', path: '/apeui/components/popover' },
-      { title: 'Tooltip', path: '/apeui/components/tooltip' },
-      { title: 'Dropdown', path: '/apeui/components/dropdown' },
-      { title: 'Accordion', path: '/apeui/components/accordion' },
-      { title: 'Tabs Bootstrap', path: '/apeui/components/tabs-bootstrap' },
-      { title: 'Tabs Line', path: '/apeui/components/tabs-line' },
-      { title: 'Shadow', path: '/apeui/components/box-shadow' },
-      { title: 'Lists', path: '/apeui/components/list' },
-      { title: 'Scrollable', path: '/apeui/components/scrollable' },
-      { title: 'Tree View', path: '/apeui/components/tree' },
-      { title: 'Rating', path: '/apeui/components/rating' },
-      { title: 'SweetAlert2', path: '/apeui/components/sweet-alert2' },
-      { title: 'Pagination', path: '/apeui/components/pagination' },
-      { title: 'Breadcrumb', path: '/apeui/components/breadcrumb' },
-      { title: 'Range Slider', path: '/apeui/components/range-slider' },
-      { title: 'Basic Card', path: '/apeui/components/basic-card' },
-      { title: 'Creative Card', path: '/apeui/components/creative-card' },
-      { title: 'Tabbed Card', path: '/apeui/components/tabbed-card' },
-      { title: 'Draggable Card', path: '/apeui/components/dragable-card' },
-      { title: 'Timeline 1', path: '/apeui/components/timeline-1' },
-      { title: 'Timeline 2', path: '/apeui/components/timeline-2' },
-      { title: 'Buttons', path: '/apeui/components/buttons' },
-      { title: 'Button Group', path: '/apeui/components/button-group' },
-      { title: 'Apex Chart', path: '/apeui/components/chart-apex' },
-      { title: 'Google Chart', path: '/apeui/components/chart-google' },
-      { title: 'Sparkline', path: '/apeui/components/chart-sparkline' },
-      { title: 'Flot Chart', path: '/apeui/components/chart-flot' },
-      { title: 'Knob Chart', path: '/apeui/components/chart-knob' },
-      { title: 'Morris Chart', path: '/apeui/components/chart-morris' },
-      { title: 'Chartjs', path: '/apeui/components/chartjs' },
-      { title: 'Chartist', path: '/apeui/components/chartist' },
-      { title: 'Peity Chart', path: '/apeui/components/chart-peity' },
-      { title: 'Flag Icon', path: '/apeui/components/flag-icon' },
-      { title: 'Font Awesome', path: '/apeui/components/font-awesome' },
-      { title: 'Ico Icon', path: '/apeui/components/ico-icon' },
-      { title: 'Themify Icon', path: '/apeui/components/themify-icon' },
-      { title: 'Feather Icon', path: '/apeui/components/feather-icon' },
+      { title: '状态颜色', path: '/apeui/components/state-color' },
+      { title: '排版样式', path: '/apeui/components/typography' },
+      { title: '头像', path: '/apeui/components/avatars' },
+      { title: '栅格布局', path: '/apeui/components/grid' },
+      { title: '标签与胶囊', path: '/apeui/components/tag-pills' },
+      { title: '进度条', path: '/apeui/components/progress-bar' },
+      { title: '模态框', path: '/apeui/components/modal' },
+      { title: '警告提示', path: '/apeui/components/alert' },
+      { title: '气泡卡片', path: '/apeui/components/popover' },
+      { title: '文字提示', path: '/apeui/components/tooltip' },
+      { title: '下拉菜单', path: '/apeui/components/dropdown' },
+      { title: '折叠面板', path: '/apeui/components/accordion' },
+      { title: 'Bootstrap 标签页', path: '/apeui/components/tabs-bootstrap' },
+      { title: '线型标签页', path: '/apeui/components/tabs-line' },
+      { title: '阴影效果', path: '/apeui/components/box-shadow' },
+      { title: '列表', path: '/apeui/components/list' },
+      { title: '滚动区域', path: '/apeui/components/scrollable' },
+      { title: '树形视图', path: '/apeui/components/tree' },
+      { title: '评分', path: '/apeui/components/rating' },
+      { title: '弹窗提示', path: '/apeui/components/sweet-alert2' },
+      { title: '分页', path: '/apeui/components/pagination' },
+      { title: '面包屑', path: '/apeui/components/breadcrumb' },
+      { title: '范围滑块', path: '/apeui/components/range-slider' },
+      { title: '基础卡片', path: '/apeui/components/basic-card' },
+      { title: '创意卡片', path: '/apeui/components/creative-card' },
+      { title: '标签页卡片', path: '/apeui/components/tabbed-card' },
+      { title: '可拖拽卡片', path: '/apeui/components/dragable-card' },
+      { title: '时间轴一', path: '/apeui/components/timeline-1' },
+      { title: '时间轴二', path: '/apeui/components/timeline-2' },
+      { title: '按钮', path: '/apeui/components/buttons' },
+      { title: '按钮组', path: '/apeui/components/button-group' },
+      { title: 'Apex 图表', path: '/apeui/components/chart-apex' },
+      { title: 'Google 图表', path: '/apeui/components/chart-google' },
+      { title: '迷你走势图', path: '/apeui/components/chart-sparkline' },
+      { title: 'Flot 图表', path: '/apeui/components/chart-flot' },
+      { title: '旋钮图表', path: '/apeui/components/chart-knob' },
+      { title: 'Morris 图表', path: '/apeui/components/chart-morris' },
+      { title: 'Chart.js 图表', path: '/apeui/components/chartjs' },
+      { title: 'Chartist 图表', path: '/apeui/components/chartist' },
+      { title: 'Peity 图表', path: '/apeui/components/chart-peity' },
+      { title: '国旗图标', path: '/apeui/components/flag-icon' },
+      { title: 'Font Awesome 图标', path: '/apeui/components/font-awesome' },
+      { title: 'Ico 图标', path: '/apeui/components/ico-icon' },
+      { title: 'Themify 图标', path: '/apeui/components/themify-icon' },
+      { title: 'Feather 图标', path: '/apeui/components/feather-icon' },
     ],
   },
 ]
@@ -485,6 +500,23 @@ const apeuiMenus = [
 .koho-sidebar.close-icon .submenu-item .sidebar-submenu,
 .koho-sidebar.close-icon .submenu-item .sub-arrow {
   display: none;
+}
+
+/* Mobile: drawer mode (≤1199px) */
+.koho-sidebar.mobile-hidden {
+  transform: translateX(-285px);
+}
+.koho-sidebar.mobile-open {
+  transform: translateX(0);
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.15);
+}
+/* Mobile close button styling */
+.mobile-close-btn {
+  background: rgba(90, 103, 245, 0.1);
+  color: var(--theme-default, #5A67F5);
+}
+.mobile-close-btn:hover {
+  background: rgba(90, 103, 245, 0.2);
 }
 
 .upgrade-btn:hover {

@@ -1,6 +1,6 @@
 <template>
   <div class="social-app">
-    <PageHeader title="Social App" :breadcrumb="['APEUI库', 'Applications', 'Social App']" />
+    <PageHeader title="社交应用" :breadcrumb="['APEUI库', '应用中心', '社交应用']" />
 
     <el-row :gutter="30">
       <!-- Left: Friends List -->
@@ -8,7 +8,7 @@
         <div class="koho-card">
           <div class="card-title">
             <el-icon><User /></el-icon>
-            <span>Friends</span>
+            <span>好友</span>
           </div>
           <div class="friend-list">
             <div v-for="friend in friends" :key="friend.id" class="friend-item">
@@ -42,10 +42,10 @@
             />
           </div>
           <div class="post-actions">
-            <el-button text :icon="Picture" @click="onAddImage">Photo</el-button>
-            <el-button text :icon="VideoCamera" @click="onAddVideo">Video</el-button>
-            <el-button text :icon="Location" @click="onCheckIn">Check-in</el-button>
-            <el-button type="primary" :icon="Promotion" @click="onPublish" class="publish-btn">Publish</el-button>
+            <el-button text :icon="Picture" @click="onAddImage">照片</el-button>
+            <el-button text :icon="VideoCamera" @click="onAddVideo">视频</el-button>
+            <el-button text :icon="Location" @click="onCheckIn">签到</el-button>
+            <el-button type="primary" :icon="Promotion" @click="onPublish" class="publish-btn">发布</el-button>
           </div>
         </div>
 
@@ -61,9 +61,9 @@
               <el-button text :icon="MoreFilled" circle />
               <template #dropdown>
                 <el-dropdown-menu>
-                  <el-dropdown-item>Save Post</el-dropdown-item>
-                  <el-dropdown-item>Copy Link</el-dropdown-item>
-                  <el-dropdown-item divided>Report</el-dropdown-item>
+                  <el-dropdown-item>保存动态</el-dropdown-item>
+                  <el-dropdown-item>复制链接</el-dropdown-item>
+                  <el-dropdown-item divided>举报</el-dropdown-item>
                 </el-dropdown-menu>
               </template>
             </el-dropdown>

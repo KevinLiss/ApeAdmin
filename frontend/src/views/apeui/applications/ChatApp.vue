@@ -1,6 +1,6 @@
 <template>
   <div class="chat-app">
-    <PageHeader title="Chat App" :breadcrumb="['APEUI库', 'Applications', 'Chat App']" />
+    <PageHeader title="聊天应用" :breadcrumb="['APEUI库', '应用中心', '聊天应用']" />
 
     <el-row :gutter="30">
       <!-- Left: Conversation List -->
@@ -8,7 +8,7 @@
         <div class="koho-card chat-sidebar">
           <div class="card-title">
             <el-icon><ChatDotRound /></el-icon>
-            <span>Chats</span>
+            <span>聊天</span>
           </div>
           <el-input
             v-model="searchText"
@@ -93,17 +93,17 @@
               clearable
             />
             <el-button text circle :icon="Picture" @click="onSendImage" />
-            <el-button type="primary" :icon="Promotion" @click="onSend" round>Send</el-button>
+            <el-button type="primary" :icon="Promotion" @click="onSend" round>发送</el-button>
           </div>
         </div>
       </el-col>
 
-      <!-- Right: Contact Info -->
+      <!-- Right: 联系信息 -->
       <el-col :xs="24" :md="6">
         <div class="koho-card">
           <div class="card-title">
             <el-icon><User /></el-icon>
-            <span>Contact Info</span>
+            <span>联系信息</span>
           </div>
           <div class="contact-profile">
             <el-avatar :size="80" :src="activeConversation.avatar" />
@@ -119,7 +119,7 @@
 
           <div class="contact-section-title">
             <el-icon><Folder /></el-icon>
-            Shared Files
+            共享文件
           </div>
           <div class="shared-files">
             <div v-for="file in sharedFiles" :key="file.id" class="shared-file-item">
@@ -368,7 +368,7 @@ const onDownload = (file: any) => ElMessage.success(`Downloading ${file.name}`)
   border-top: 1px solid #f0f0f0;
 }
 
-/* Contact Info */
+/* 联系信息 */
 .contact-profile {
   text-align: center;
   padding: 12px 0;

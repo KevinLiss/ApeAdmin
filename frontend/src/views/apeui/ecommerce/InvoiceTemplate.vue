@@ -1,6 +1,6 @@
 <template>
   <div class="invoice-template-page">
-    <PageHeader title="Invoice" :breadcrumb="['APEUI库', 'Ecommerce', 'Invoice']" />
+    <PageHeader title="发票模板" :breadcrumb="['APEUI库', '电商模块', '发票模板']" />
 
     <el-row :gutter="30">
       <!-- 左侧：发票卡片 -->
@@ -13,13 +13,13 @@
                 <el-icon :size="36" color="#5A67F5"><Shop /></el-icon>
               </div>
               <div>
-                <h2 class="company-name">ApeAdmin Store</h2>
+                <h2 class="company-name">ApeAdmin 商店</h2>
                 <p class="company-meta">广州市天河区珠江新城华夏路30号</p>
                 <p class="company-meta">contact@apeadmin.com · +86 020-8888-0000</p>
               </div>
             </div>
             <div class="invoice-meta">
-              <h1 class="invoice-title">INVOICE</h1>
+              <h1 class="invoice-title">发票</h1>
               <div class="meta-row"><span class="meta-label">发票编号：</span><span class="meta-value">INV-2026-0821-001</span></div>
               <div class="meta-row"><span class="meta-label">开具日期：</span><span class="meta-value">2026-08-21</span></div>
               <div class="meta-row"><span class="meta-label">到期日期：</span><span class="meta-value">2026-09-05</span></div>
@@ -99,7 +99,7 @@
               <div class="footer-block">
                 <div class="block-label">付款方式</div>
                 <div class="footer-value">银行转账</div>
-                <div class="footer-detail">账户名：ApeAdmin Store</div>
+                <div class="footer-detail">账户名：ApeAdmin 商店</div>
                 <div class="footer-detail">账号：6228 4800 1234 5678 901</div>
                 <div class="footer-detail">开户行：中国银行天河支行</div>
               </div>

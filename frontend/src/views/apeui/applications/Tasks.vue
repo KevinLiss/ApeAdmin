@@ -1,6 +1,6 @@
 <template>
   <div>
-    <PageHeader title="Tasks" :breadcrumb="['APEUI库', 'Applications', 'Tasks']">
+    <PageHeader title="任务列表" :breadcrumb="['APEUI库', '应用中心', '任务列表']">
       <template #actions>
         <el-button type="primary" :icon="Plus">新建任务</el-button>
       </template>

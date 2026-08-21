@@ -1,13 +1,13 @@
 <template>
   <div class="tabbed-card-page">
-    <PageHeader title="Tabbed Card" :breadcrumb="['APEUI库', 'Components', 'Tabbed Card']" />
+    <PageHeader title="标签页卡片" :breadcrumb="['APEUI库', '组件示例', '标签页卡片']" />
 
     <el-row :gutter="30">
-      <!-- 1. Simple Tab -->
+      <!-- 1. 简单标签页 -->
       <el-col :span="12" class="koho-col">
         <el-card shadow="hover">
           <template #header>
-            <span class="card-title">Simple Tab</span>
+            <span class="card-title">简单标签页</span>
           </template>
           <el-tabs v-model="simpleTab">
             <el-tab-pane label="Home" name="home">

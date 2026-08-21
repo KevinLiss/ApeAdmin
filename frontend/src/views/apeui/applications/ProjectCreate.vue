@@ -1,6 +1,6 @@
 <template>
   <div>
-    <PageHeader title="Create New Project" :breadcrumb="['APEUI库', 'Applications', 'Create New Project']" />
+    <PageHeader title="新建项目" :breadcrumb="['APEUI库', '应用中心', '新建项目']" />
 
     <el-card>
       <el-form :model="form" label-width="140px" style="max-width: 640px">
@@ -37,8 +37,8 @@
           <el-input v-model="form.description" type="textarea" :rows="4" placeholder="Enter project description" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="onSubmit">Submit</el-button>
-          <el-button @click="onCancel">Cancel</el-button>
+          <el-button type="primary" @click="onSubmit">提交</el-button>
+          <el-button @click="onCancel">取消</el-button>
         </el-form-item>
       </el-form>
     </el-card>

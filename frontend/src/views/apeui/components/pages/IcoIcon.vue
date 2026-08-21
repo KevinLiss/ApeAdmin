@@ -1,6 +1,6 @@
 ﻿<template>
   <div>
-    <PageHeader title="Ico Icon" :breadcrumb="['APEUI库', 'Components', 'Ico Icon']" />
+    <PageHeader title="Ico 图标" :breadcrumb="['APEUI库', '组件示例', 'Ico 图标']" />
 
     <el-card shadow="hover">
       <template #header>Element Plus Icons — Data &amp; Media</template>

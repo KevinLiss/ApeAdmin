@@ -1,51 +1,51 @@
-﻿<template>
+<template>
   <div>
-    <PageHeader title="Tabs Bootstrap Style" :breadcrumb="['APEUI库', 'Components', 'Tabs Bootstrap']" />
+    <PageHeader title="Bootstrap 标签页" :breadcrumb="['APEUI库', '组件示例', 'Bootstrap 标签页']" />
 
-    <el-card shadow="hover" header="Basic Tabs (default style)" style="margin-bottom: 16px">
+    <el-card shadow="hover" header="基础标签页（默认样式）" style="margin-bottom: 16px">
       <el-tabs v-model="activeName1">
-        <el-tab-pane label="Dashboard" name="dashboard">Dashboard content goes here.</el-tab-pane>
-        <el-tab-pane label="Analytics" name="analytics">Analytics content goes here.</el-tab-pane>
-        <el-tab-pane label="Reports" name="reports">Reports content goes here.</el-tab-pane>
-        <el-tab-pane label="Settings" name="settings">Settings content goes here.</el-tab-pane>
+        <el-tab-pane label="看板" name="dashboard">这里是看板面板内容。</el-tab-pane>
+        <el-tab-pane label="分析" name="analytics">这里是分析面板内容。</el-tab-pane>
+        <el-tab-pane label="报表" name="reports">这里是报表面板内容。</el-tab-pane>
+        <el-tab-pane label="设置" name="settings">这里是设置面板内容。</el-tab-pane>
       </el-tabs>
     </el-card>
 
-    <el-card shadow="hover" header="Card Tabs (type=&quot;card&quot;)" style="margin-bottom: 16px">
+    <el-card shadow="hover" header="卡片式标签页（type=card）" style="margin-bottom: 16px">
       <el-tabs v-model="activeName2" type="card">
-        <el-tab-pane label="Overview" name="overview">Overview panel content.</el-tab-pane>
-        <el-tab-pane label="Activity" name="activity">Activity panel content.</el-tab-pane>
-        <el-tab-pane label="Users" name="users">Users panel content.</el-tab-pane>
+        <el-tab-pane label="概览" name="overview">概览面板内容。</el-tab-pane>
+        <el-tab-pane label="活动" name="activity">活动面板内容。</el-tab-pane>
+        <el-tab-pane label="用户" name="users">用户面板内容。</el-tab-pane>
       </el-tabs>
     </el-card>
 
-    <el-card shadow="hover" header="Border Card Tabs (type=&quot;border-card&quot;)" style="margin-bottom: 16px">
+    <el-card shadow="hover" header="边框卡片标签页（type=border-card）" style="margin-bottom: 16px">
       <el-tabs v-model="activeName3" type="border-card">
-        <el-tab-pane label="Overview" name="overview">Overview panel content inside a bordered card.</el-tab-pane>
-        <el-tab-pane label="Activity" name="activity">Activity panel content.</el-tab-pane>
-        <el-tab-pane label="Users" name="users">Users panel content.</el-tab-pane>
+        <el-tab-pane label="概览" name="overview">边框卡片内的概览面板内容。</el-tab-pane>
+        <el-tab-pane label="活动" name="activity">活动面板内容。</el-tab-pane>
+        <el-tab-pane label="用户" name="users">用户面板内容。</el-tab-pane>
       </el-tabs>
     </el-card>
 
-    <el-card shadow="hover" header="With Icons">
+    <el-card shadow="hover" header="带图标">
       <el-tabs v-model="activeName4" type="card">
         <el-tab-pane name="dashboard">
           <template #label>
-            <span class="tab-label"><el-icon><Odometer /></el-icon> Dashboard</span>
+            <span class="tab-label"><el-icon><Odometer /></el-icon> 看板</span>
           </template>
-          Dashboard content.
+          看板面板内容。
         </el-tab-pane>
         <el-tab-pane name="users">
           <template #label>
-            <span class="tab-label"><el-icon><User /></el-icon> Users</span>
+            <span class="tab-label"><el-icon><User /></el-icon> 用户</span>
           </template>
-          Users content.
+          用户面板内容。
         </el-tab-pane>
         <el-tab-pane name="settings">
           <template #label>
-            <span class="tab-label"><el-icon><Setting /></el-icon> Settings</span>
+            <span class="tab-label"><el-icon><Setting /></el-icon> 设置</span>
           </template>
-          Settings content.
+          设置面板内容。
         </el-tab-pane>
       </el-tabs>
     </el-card>

@@ -1,6 +1,6 @@
 <template>
   <div class="product-page-detail">
-    <PageHeader title="Product Page" :breadcrumb="['APEUI库', 'Ecommerce', 'Product Page']" />
+    <PageHeader title="商品详情页" :breadcrumb="['APEUI库', '电商模块', '商品详情页']" />
 
     <!-- Product Detail -->
     <el-row :gutter="30" class="detail-row">
@@ -27,16 +27,16 @@
       <!-- Right: Info -->
       <el-col :xs="24" :sm="24" :md="12" :lg="14">
         <div class="product-detail-info">
-          <span class="detail-category">Electronics</span>
-          <h2 class="detail-title">Wireless Bluetooth Noise-Cancelling Headphones</h2>
+          <span class="detail-category">电子产品</span>
+          <h2 class="detail-title">无线蓝牙降噪耳机</h2>
           <div class="detail-rating-row">
             <el-rate v-model="rating" disabled size="large" />
-            <span class="review-link">(256 reviews)</span>
+            <span class="review-link">（256 条评价）</span>
           </div>
           <div class="detail-price-row">
             <span class="detail-price">$159.99</span>
             <span class="detail-old-price">$199.99</span>
-            <el-tag type="danger" effect="dark" round>20% OFF</el-tag>
+            <el-tag type="danger" effect="dark" round>20% 折扣</el-tag>
           </div>
           <p class="detail-short-desc">
             Experience premium sound quality with active noise cancellation. Up to 40 hours of battery life and ultra-fast USB-C charging.
@@ -44,7 +44,7 @@
 
           <!-- Color Selection -->
           <div class="option-row">
-            <span class="option-label">Color:</span>
+            <span class="option-label">颜色：</span>
             <div class="color-options">
               <span
                 v-for="color in colors"
@@ -61,7 +61,7 @@
 
           <!-- Size Selection -->
           <div class="option-row">
-            <span class="option-label">Size:</span>
+            <span class="option-label">尺码：</span>
             <div class="size-options">
               <button
                 v-for="size in sizes"
@@ -76,15 +76,15 @@
           <!-- Quantity + Actions -->
           <div class="action-row">
             <div class="quantity-block">
-              <span class="option-label">Quantity:</span>
+              <span class="option-label">数量：</span>
               <el-input-number v-model="quantity" :min="1" :max="10" />
             </div>
             <div class="action-buttons">
               <el-button type="primary" size="large" @click="addToCart">
-                <el-icon class="mr-4"><ShoppingCart /></el-icon>Add to Cart
+                <el-icon class="mr-4"><ShoppingCart /></el-icon>加入购物车
               </el-button>
               <el-button type="danger" size="large" @click="buyNow">
-                <el-icon class="mr-4"><Lightning /></el-icon>Buy Now
+                <el-icon class="mr-4"><Lightning /></el-icon>立即购买
               </el-button>
               <el-button size="large" circle @click="toggleWishlist">
                 <el-icon :color="wishlisted ? '#DC0808' : '#5A67F5'">
@@ -103,13 +103,13 @@
       <el-tabs v-model="activeTab" class="detail-tabs">
         <el-tab-pane label="Description" name="description">
           <div class="tab-content">
-            <p>The Wireless Bluetooth Noise-Cancelling Headphones deliver an immersive audio experience with cutting-edge technology. Featuring advanced ANC that blocks up to 90% of ambient noise, these headphones are perfect for travel, work, or relaxation.</p>
+            <p>The 无线蓝牙降噪耳机 deliver an immersive audio experience with cutting-edge technology. Featuring advanced ANC that blocks up to 90% of ambient noise, these headphones are perfect for travel, work, or relaxation.</p>
             <ul class="feature-list">
-              <li><strong>Active Noise Cancellation:</strong> Block out distractions with one touch</li>
-              <li><strong>40-Hour Battery:</strong> All-day listening on a single charge</li>
-              <li><strong>USB-C Fast Charge:</strong> 10 minutes = 5 hours of playback</li>
-              <li><strong>Premium Memory Foam:</strong> All-day comfort with protein leather ear cups</li>
-              <li><strong>Bluetooth 5.3:</strong> Rock-solid connection with multipoint pairing</li>
+              <li><strong>主动降噪：</strong> 一键屏蔽外界干扰</li>
+              <li><strong>40 小时续航：</strong> 单次充电，全天畅听</li>
+              <li><strong>USB-C 快充：</strong> 充电 10 分钟，畅听 5 小时</li>
+              <li><strong>优质记忆棉：</strong> 蛋白皮革耳罩，全天佩戴舒适</li>
+              <li><strong>蓝牙 5.3：</strong> 多点配对，连接稳定可靠</li>
             </ul>
           </div>
         </el-tab-pane>
@@ -119,7 +119,7 @@
               <div class="rating-overview">
                 <h2>4.6</h2>
                 <el-rate v-model="rating" disabled size="small" />
-                <p>Based on 256 reviews</p>
+                <p>基于 256 条用户评价</p>
               </div>
               <div class="rating-breakdown">
                 <div class="rating-bar-item" v-for="bar in ratingBars" :key="bar.label">
@@ -161,9 +161,9 @@
       </el-tabs>
     </el-card>
 
-    <!-- Related Products -->
+    <!-- 相关商品 -->
     <el-card class="koho-card related-card" shadow="never">
-      <h3 class="section-title">Related Products</h3>
+      <h3 class="section-title">相关商品</h3>
       <el-row :gutter="30">
         <el-col :xs="12" :sm="12" :md="6" v-for="rp in relatedProducts" :key="rp.id">
           <div class="related-product-card">
@@ -235,10 +235,10 @@ const shippingInfo = [
 ]
 
 const relatedProducts = ref([
-  { id: 1, name: 'Smart Watch Pro', price: 199.00, rating: 5, bgColor: 'linear-gradient(135deg, #3EBCB9, #6ee0dd)' },
-  { id: 2, name: 'Wireless Earbuds', price: 59.99, rating: 4.5, bgColor: 'linear-gradient(135deg, #FFA47A, #ffc4a3)' },
-  { id: 3, name: 'Bluetooth Speaker', price: 39.99, rating: 4, bgColor: 'linear-gradient(135deg, #67C100, #85d533)' },
-  { id: 4, name: 'USB-C Charger', price: 24.99, rating: 4.5, bgColor: 'linear-gradient(135deg, #E56809, #ff8a3c)' },
+  { id: 1, name: 'Smart Watch Pro', price: 199.00, rating: 5, bg: 'linear-gradient(135deg, #3EBCB9, #6ee0dd)' },
+  { id: 2, name: 'Wireless Earbuds', price: 59.99, rating: 4.5, bg: 'linear-gradient(135deg, #FFA47A, #ffc4a3)' },
+  { id: 3, name: 'Bluetooth Speaker', price: 39.99, rating: 4, bg: 'linear-gradient(135deg, #67C100, #85d533)' },
+  { id: 4, name: 'USB-C Charger', price: 24.99, rating: 4.5, bg: 'linear-gradient(135deg, #E56809, #ff8a3c)' },
 ])
 
 const addToCart = () => {

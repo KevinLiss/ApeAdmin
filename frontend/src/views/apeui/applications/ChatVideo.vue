@@ -1,6 +1,6 @@
 <template>
   <div class="chat-video">
-    <PageHeader title="Video Chat" :breadcrumb="['APEUI库', 'Applications', 'Video Chat']" />
+    <PageHeader title="视频聊天" :breadcrumb="['APEUI库', '应用中心', '视频聊天']" />
 
     <el-row :gutter="30">
       <!-- Main Video Area -->
@@ -96,7 +96,7 @@
         <div class="koho-card chat-sidebar-card">
           <div class="card-title">
             <el-icon><ChatDotRound /></el-icon>
-            <span>In-Call Chat</span>
+            <span>通话聊天</span>
             <el-button text circle :icon="Close" size="small" style="margin-left: auto" @click="chatOpen = false" />
           </div>
 

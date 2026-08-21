@@ -1,6 +1,6 @@
 <template>
   <div>
-    <PageHeader title="Users Cards" :breadcrumb="['APEUI库', 'Users', 'Users Cards']" />
+    <PageHeader title="用户卡片" :breadcrumb="['APEUI库', '用户中心', '用户卡片']" />
 
     <el-row :gutter="16">
       <el-col v-for="user in users" :key="user.id" :span="8" style="margin-bottom: 16px">
@@ -19,7 +19,7 @@
               <el-icon :size="18"><Share /></el-icon>
             </el-link>
           </div>
-          <el-button type="primary" round @click="onFollow(user.name)">Follow</el-button>
+          <el-button type="primary" round @click="onFollow(user.name)">关注</el-button>
         </el-card>
       </el-col>
     </el-row>

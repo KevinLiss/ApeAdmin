@@ -1,6 +1,6 @@
 <template>
   <div>
-    <PageHeader title="To-Do" :breadcrumb="['APEUI库', 'Applications', 'To-Do']" />
+    <PageHeader title="待办事项" :breadcrumb="['APEUI库', '应用中心', '待办事项']" />
 
     <el-row :gutter="30">
       <!-- 左侧分类 -->

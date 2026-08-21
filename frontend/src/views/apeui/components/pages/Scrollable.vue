@@ -1,6 +1,6 @@
 <template>
   <div>
-    <PageHeader title="Scrollable" :breadcrumb="['APEUI库', 'Components', 'Scrollable']" />
+    <PageHeader title="滚动区域" :breadcrumb="['APEUI库', '组件示例', '滚动区域']" />
 
     <el-row :gutter="16">
       <el-col :span="12" style="margin-bottom: 16px">
@@ -55,7 +55,7 @@
         </el-card>
       </el-col>
       <el-col :span="12" style="margin-bottom: 16px">
-        <el-card shadow="hover" header="Always Visible">
+        <el-card shadow="hover" header="始终可见">
           <el-scrollbar height="200px" always>
             <p v-for="i in 12" :key="i" style="margin: 0 0 10px; color: #5a6273; line-height: 1.8">
               always 属性：滚动条始终可见（不随鼠标移出隐藏）。第 {{ i }} 行。

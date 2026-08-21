@@ -1,8 +1,8 @@
 <template>
   <div class="product-list-page">
-    <PageHeader title="Product List" :breadcrumb="['APEUI库', 'Ecommerce', 'Product List']">
+    <PageHeader title="商品列表" :breadcrumb="['APEUI库', '电商模块', '商品列表']">
       <template #actions>
-        <el-button type="primary" :icon="Plus" @click="onAdd">Add Product</el-button>
+        <el-button type="primary" :icon="Plus" @click="onAdd">添加商品</el-button>
       </template>
     </PageHeader>
 
@@ -10,21 +10,21 @@
       <!-- Toolbar -->
       <div class="toolbar">
         <div class="toolbar-left">
-          <el-input v-model="searchQuery" placeholder="Search by product name..." :prefix-icon="Search" clearable style="width: 260px" />
-          <el-select v-model="categoryFilter" placeholder="All Categories" clearable style="width: 180px">
+          <el-input v-model="searchQuery" placeholder="按商品名称搜索..." :prefix-icon="Search" clearable style="width: 260px" />
+          <el-select v-model="categoryFilter" placeholder="全部分类" clearable style="width: 180px">
             <el-option v-for="cat in categories" :key="cat" :label="cat" :value="cat" />
           </el-select>
-          <el-select v-model="statusFilter" placeholder="All Status" clearable style="width: 150px">
-            <el-option label="Published" value="published" />
-            <el-option label="Draft" value="draft" />
-            <el-option label="Out of Stock" value="out" />
+          <el-select v-model="statusFilter" placeholder="全部状态" clearable style="width: 150px">
+            <el-option label="已上架" value="published" />
+            <el-option label="草稿" value="draft" />
+            <el-option label="缺货" value="out" />
           </el-select>
         </div>
       </div>
 
       <!-- Table -->
       <el-table :data="pagedData" class="product-table" stripe>
-        <el-table-column label="Product" min-width="240">
+        <el-table-column label="商品" min-width="240">
           <template #default="{ row }">
             <div class="product-cell">
               <div class="product-thumb" :style="{ background: row.bgColor }">
@@ -37,33 +37,33 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="category" label="Category" width="140" />
-        <el-table-column label="Price" width="120">
+        <el-table-column prop="category" label="分类" width="140" />
+        <el-table-column label="价格" width="120">
           <template #default="{ row }">
             <span class="price-text">${{ row.price.toFixed(2) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="stock" label="Stock" width="100" sortable>
+        <el-table-column prop="stock" label="库存" width="100" sortable>
           <template #default="{ row }">
             <span :class="{ 'stock-low': row.stock < 50 }">{{ row.stock }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="Status" width="130">
+        <el-table-column label="状态" width="130">
           <template #default="{ row }">
             <el-tag :type="statusTagType(row.status)" effect="light" round>
               {{ statusLabel(row.status) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="sales" label="Sales" width="100" sortable>
+        <el-table-column prop="sales" label="销量" width="100" sortable>
           <template #default="{ row }">
             <span class="sales-text">{{ row.sales }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="Actions" width="180" fixed="right">
+        <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" :icon="Edit" @click="onEdit(row)">Edit</el-button>
-            <el-button link type="danger" :icon="Delete" @click="onDelete(row)">Delete</el-button>
+            <el-button link type="primary" :icon="Edit" @click="onEdit(row)">编辑</el-button>
+            <el-button link type="danger" :icon="Delete" @click="onDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -101,7 +101,7 @@ interface ProductItem {
   bgColor: string
 }
 
-const categories = ['Electronics', 'Fashion', 'Home & Living', 'Sports', 'Beauty']
+const categories = ['电子产品', '时尚服饰', '家居生活', '运动户外', '美妆护肤']
 const searchQuery = ref('')
 const categoryFilter = ref('')
 const statusFilter = ref('')
@@ -109,14 +109,14 @@ const currentPage = ref(1)
 const pageSize = ref(8)
 
 const products = ref<ProductItem[]>([
-  { id: 1, name: 'Wireless Bluetooth Headphones', sku: 'SKU-HP-001', category: 'Electronics', price: 79.99, stock: 245, status: 'published', sales: 1280, bgColor: 'linear-gradient(135deg, #5A67F5, #8FA0FF)' },
-  { id: 2, name: 'Smart Watch Pro Series 7', sku: 'SKU-SW-002', category: 'Electronics', price: 199.00, stock: 78, status: 'published', sales: 856, bgColor: 'linear-gradient(135deg, #3EBCB9, #6ee0dd)' },
-  { id: 3, name: 'Premium Cotton Casual T-Shirt', sku: 'SKU-TS-003', category: 'Fashion', price: 29.99, stock: 560, status: 'published', sales: 2100, bgColor: 'linear-gradient(135deg, #FFA47A, #ffc4a3)' },
-  { id: 4, name: 'Running Sneakers Air Max', sku: 'SKU-SN-004', category: 'Sports', price: 89.99, stock: 34, status: 'published', sales: 670, bgColor: 'linear-gradient(135deg, #67C100, #85d533)' },
-  { id: 5, name: 'Smartphone X Pro Max 256GB', sku: 'SKU-SP-005', category: 'Electronics', price: 999.00, stock: 0, status: 'out', sales: 430, bgColor: 'linear-gradient(135deg, #5A67F5, #4F58E8)' },
-  { id: 6, name: 'Ceramic Coffee Mug Set of 4', sku: 'SKU-MG-006', category: 'Home & Living', price: 34.99, stock: 320, status: 'published', sales: 450, bgColor: 'linear-gradient(135deg, #E56809, #ff8a3c)' },
-  { id: 7, name: 'Organic Skincare Gift Set', sku: 'SKU-SK-007', category: 'Beauty', price: 59.99, stock: 120, status: 'draft', sales: 0, bgColor: 'linear-gradient(135deg, #FFA47A, #ffd0b8)' },
-  { id: 8, name: 'Premium Yoga Mat Non-Slip', sku: 'SKU-YM-008', category: 'Sports', price: 49.99, stock: 180, status: 'published', sales: 920, bgColor: 'linear-gradient(135deg, #3EBCB9, #5dd4d1)' },
+  { id: 1, name: '无线蓝牙耳机', sku: 'SKU-HP-001', category: '电子产品', price: 79.99, stock: 245, status: 'published', sales: 1280, bgColor: 'linear-gradient(135deg, #5A67F5, #8FA0FF)' },
+  { id: 2, name: '智能手表 Pro 7代', sku: 'SKU-SW-002', category: '电子产品', price: 199.00, stock: 78, status: 'published', sales: 856, bgColor: 'linear-gradient(135deg, #3EBCB9, #6ee0dd)' },
+  { id: 3, name: '精梳棉休闲T恤', sku: 'SKU-TS-003', category: '时尚服饰', price: 29.99, stock: 560, status: 'published', sales: 2100, bgColor: 'linear-gradient(135deg, #FFA47A, #ffc4a3)' },
+  { id: 4, name: '气垫跑步鞋 Air Max', sku: 'SKU-SN-004', category: '运动户外', price: 89.99, stock: 34, status: 'published', sales: 670, bgColor: 'linear-gradient(135deg, #67C100, #85d533)' },
+  { id: 5, name: '智能手机 X Pro Max 256GB', sku: 'SKU-SP-005', category: '电子产品', price: 999.00, stock: 0, status: 'out', sales: 430, bgColor: 'linear-gradient(135deg, #5A67F5, #4F58E8)' },
+  { id: 6, name: '陶瓷咖啡杯套装（4只装）', sku: 'SKU-MG-006', category: '家居生活', price: 34.99, stock: 320, status: 'published', sales: 450, bgColor: 'linear-gradient(135deg, #E56809, #ff8a3c)' },
+  { id: 7, name: '有机护肤礼盒套装', sku: 'SKU-SK-007', category: '美妆护肤', price: 59.99, stock: 120, status: 'draft', sales: 0, bgColor: 'linear-gradient(135deg, #FFA47A, #ffd0b8)' },
+  { id: 8, name: '防滑专业瑜伽垫', sku: 'SKU-YM-008', category: '运动户外', price: 49.99, stock: 180, status: 'published', sales: 920, bgColor: 'linear-gradient(135deg, #3EBCB9, #5dd4d1)' },
 ])
 
 const filteredData = computed(() => {
@@ -146,22 +146,22 @@ const statusTagType = (status: string) => {
 }
 
 const statusLabel = (status: string) => {
-  if (status === 'published') return 'Published'
-  if (status === 'draft') return 'Draft'
-  if (status === 'out') return 'Out of Stock'
+  if (status === 'published') return '已上架'
+  if (status === 'draft') return '草稿'
+  if (status === 'out') return '缺货'
   return status
 }
 
-const onAdd = () => ElMessage.info('Navigate to Add Product page')
-const onEdit = (row: ProductItem) => ElMessage.info(`Editing ${row.name}`)
+const onAdd = () => ElMessage.info('跳转到添加商品页面')
+const onEdit = (row: ProductItem) => ElMessage.info(`正在编辑「${row.name}」`)
 const onDelete = (row: ProductItem) => {
-  ElMessageBox.confirm(`Are you sure you want to delete "${row.name}"?`, 'Delete Product', {
-    confirmButtonText: 'Delete',
-    cancelButtonText: 'Cancel',
+  ElMessageBox.confirm(`确定要删除「${row.name}」吗？`, '删除商品', {
+    confirmButtonText: '删除',
+    cancelButtonText: '取消',
     type: 'warning',
   }).then(() => {
     products.value = products.value.filter(p => p.id !== row.id)
-    ElMessage.success('Product deleted successfully')
+    ElMessage.success('商品删除成功')
   }).catch(() => {})
 }
 </script>

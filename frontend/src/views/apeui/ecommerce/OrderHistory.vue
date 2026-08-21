@@ -1,6 +1,6 @@
 <template>
   <div class="order-history-page">
-    <PageHeader title="Order History" :breadcrumb="['APEUI库', 'Ecommerce', 'Order History']">
+    <PageHeader title="订单历史" :breadcrumb="['APEUI库', '电商模块', '订单历史']">
       <template #actions>
         <el-button type="primary" :icon="Download">导出订单</el-button>
       </template>

@@ -1,6 +1,6 @@
 <template>
   <div class="payment-details-page">
-    <PageHeader title="Payment Details" :breadcrumb="['APEUI库', 'Ecommerce', 'Payment Details']" />
+    <PageHeader title="支付详情" :breadcrumb="['APEUI库', '电商模块', '支付详情']" />
 
     <!-- 顶部统计卡片 -->
     <el-row :gutter="30" class="stat-row">

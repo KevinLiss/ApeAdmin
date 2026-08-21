@@ -1,11 +1,11 @@
 <template>
   <div class="grid-page">
-    <PageHeader title="Grid System" :breadcrumb="['APEUI库', 'Components', 'Grid']" />
+    <PageHeader title="栅格布局" :breadcrumb="['APEUI库', '组件示例', '栅格布局']" />
 
-    <!-- 1. Grid Options -->
+    <!-- 1. 栅格选项 -->
     <el-card shadow="hover" style="margin-bottom: 20px">
       <template #header>
-        <span class="card-title">Grid Options</span>
+        <span class="card-title">栅格选项</span>
       </template>
       <p class="card-desc">Bootstrap 5 栅格系统支持六个响应式断点，每个断点对应不同的最小宽度和类前缀。下方表格展示了完整的断点参数。</p>
       <el-table :data="gridOptions" border style="width: 100%" :header-cell-style="{ background: '#f5f4fa', color: '#5A67F5', fontWeight: 600 }">

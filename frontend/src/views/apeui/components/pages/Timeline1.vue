@@ -1,12 +1,12 @@
 <template>
   <div class="timeline1-page">
-    <PageHeader title="Timeline v1" :breadcrumb="['APEUI库', 'Components', 'Timeline v1']" />
+    <PageHeader title="时间轴一" :breadcrumb="['APEUI库', '组件示例', '时间轴一']" />
 
     <el-row :gutter="30">
       <el-col :span="24" class="col-item">
         <el-card shadow="hover">
           <template #header>
-            <span class="card-title">Vertical Timeline</span>
+            <span class="card-title">垂直时间轴</span>
           </template>
           <el-timeline>
             <!-- Node 1 -->

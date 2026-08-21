@@ -1,12 +1,12 @@
 <template>
   <div>
-    <PageHeader title="Chart Flot" :breadcrumb="['APEUI库', 'Components', 'Chart Flot']" />
+    <PageHeader title="Flot 图表" :breadcrumb="['APEUI库', '组件示例', 'Flot 图表']" />
 
     <el-row :gutter="30">
       <el-col :span="12" style="margin-bottom: 16px">
         <el-card shadow="hover">
           <template #header>
-            <span class="card-title">Basic Pie</span>
+            <span class="card-title">基础饼图</span>
           </template>
           <v-chart class="chart" :option="basicPieOption" autoresize />
         </el-card>
@@ -58,7 +58,7 @@ const SUCCESS = '#67C100'
 const INFO = '#3EBCB9'
 const WARNING = '#E56809'
 
-/* 1. Basic Pie — 5 sectors */
+/* 1. 基础饼图 — 5 sectors */
 const basicPieOption = {
   tooltip: { trigger: 'item' },
   legend: { bottom: 0, left: 'center' },

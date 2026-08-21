@@ -1,25 +1,25 @@
-﻿<template>
+<template>
   <div>
-    <PageHeader title="Modal / Dialog" :breadcrumb="['APEUI库', 'Components', 'Modal']" />
+    <PageHeader title="模态框" :breadcrumb="['APEUI库', '组件示例', '模态框']" />
 
-    <el-card shadow="hover" header="Basic Dialog" style="margin-bottom: 16px">
-      <el-button type="primary" @click="basicVisible = true">Open Basic Dialog</el-button>
+    <el-card shadow="hover" header="基础对话框" style="margin-bottom: 16px">
+      <el-button type="primary" @click="basicVisible = true">打开基础对话框</el-button>
       <el-dialog v-model="basicVisible" title="Basic Dialog" width="480px">
-        <p>This is a basic dialog. Click outside or press ESC to close.</p>
-        <p style="color: #5a6273">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+        <p>这是一个基础对话框。点击外部区域或按 ESC 键关闭。</p>
+        <p style="color: #5a6273">这是用于演示的示例文本，仅用于展示对话框内的内容效果。</p>
         <template #footer>
-          <el-button @click="basicVisible = false">Cancel</el-button>
-          <el-button type="primary" @click="basicVisible = false">Confirm</el-button>
+          <el-button @click="basicVisible = false">取消</el-button>
+          <el-button type="primary" @click="basicVisible = false">确认</el-button>
         </template>
       </el-dialog>
     </el-card>
 
-    <el-card shadow="hover" header="Dialog Sizes" style="margin-bottom: 16px">
+    <el-card shadow="hover" header="对话框尺寸" style="margin-bottom: 16px">
       <div style="display: flex; flex-wrap: wrap; gap: 12px">
-        <el-button type="primary" @click="openSize('small')">Small</el-button>
-        <el-button type="primary" @click="openSize('medium')">Medium</el-button>
-        <el-button type="primary" @click="openSize('large')">Large</el-button>
-        <el-button type="primary" @click="openSize('fullscreen')">Fullscreen</el-button>
+        <el-button type="primary" @click="openSize('small')">小</el-button>
+        <el-button type="primary" @click="openSize('medium')">中</el-button>
+        <el-button type="primary" @click="openSize('large')">大</el-button>
+        <el-button type="primary" @click="openSize('fullscreen')">全屏</el-button>
       </div>
       <el-dialog v-model="sizeVisible" :title="`${sizeLabel} Dialog`" :width="sizeWidth" :fullscreen="isFullscreen">
         <p>This is a <strong>{{ sizeLabel }}</strong> dialog.</p>
@@ -28,13 +28,13 @@
           previewing, or detailed configuration panels.
         </p>
         <template #footer>
-          <el-button @click="sizeVisible = false">Close</el-button>
+          <el-button @click="sizeVisible = false">关闭</el-button>
         </template>
       </el-dialog>
     </el-card>
 
-    <el-card shadow="hover" header="Dialog with Form" style="margin-bottom: 16px">
-      <el-button type="primary" @click="formVisible = true">Open Form Dialog</el-button>
+    <el-card shadow="hover" header="表单对话框" style="margin-bottom: 16px">
+      <el-button type="primary" @click="formVisible = true">打开表单对话框</el-button>
       <el-dialog v-model="formVisible" title="User Form" width="520px" @close="resetForm">
         <el-form ref="userFormRef" :model="userForm" label-width="90px">
           <el-form-item label="Username" required>
@@ -55,18 +55,18 @@
           </el-form-item>
         </el-form>
         <template #footer>
-          <el-button @click="formVisible = false">Cancel</el-button>
-          <el-button type="primary" @click="submitForm">Submit</el-button>
+          <el-button @click="formVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitForm">提交</el-button>
         </template>
       </el-dialog>
     </el-card>
 
-    <el-card shadow="hover" header="Nested Dialog">
-      <el-button type="primary" @click="outerVisible = true">Open Outer Dialog</el-button>
+    <el-card shadow="hover" header="嵌套对话框">
+      <el-button type="primary" @click="outerVisible = true">打开外层对话框</el-button>
       <el-dialog v-model="outerVisible" title="Outer Dialog" width="600px" append-to-body>
         <p>This is the outer dialog. Open the inner dialog below.</p>
         <div style="margin-top: 16px">
-          <el-button type="primary" @click="innerVisible = true">Open Inner Dialog</el-button>
+          <el-button type="primary" @click="innerVisible = true">打开内层对话框</el-button>
         </div>
         <el-dialog v-model="innerVisible" title="Inner Dialog" width="400px" append-to-body>
           <p>This is the inner (nested) dialog.</p>

@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard-ecommerce">
-    <PageHeader title="Ecommerce Dashboard" :breadcrumb="['APEUI库', 'Dashboard', 'Ecommerce']" />
+    <PageHeader title="电商看板" :breadcrumb="['APEUI库', '数据看板', '电商看板']" />
 
     <div class="ecom-container">
       <!-- Row 1: 4 stat cards with mini charts -->
@@ -25,13 +25,13 @@
         </el-col>
       </el-row>
 
-      <!-- Row 2: Recent Orders (5/12) + Top Products (4/12) + Sales By Countries (3/12) -->
+      <!-- Row 2: 最近订单 (5/12) + 热销商品 (4/12) + 各国销售额 (3/12) -->
       <el-row :gutter="30" class="ecom-row">
-        <!-- Recent Orders Chart -->
+        <!-- 最近订单 Chart -->
         <el-col :xs="24" :sm="12" :lg="10">
           <div class="koho-card recent-order">
             <div class="card-header">
-              <h3>Recent Orders</h3>
+              <h3>最近订单</h3>
             </div>
             <div class="card-body pb-0">
               <v-chart class="recent-chart" :option="recentChartOption" autoresize />
@@ -39,11 +39,11 @@
           </div>
         </el-col>
 
-        <!-- Top Products Table -->
+        <!-- 热销商品 Table -->
         <el-col :xs="24" :sm="12" :lg="8">
           <div class="koho-card top-products">
             <div class="card-header">
-              <h3>Top Products</h3>
+              <h3>热销商品</h3>
             </div>
             <div class="card-body">
               <div class="top-products-list">
@@ -58,7 +58,7 @@
                     </div>
                   </div>
                   <div class="tp-coupon">
-                    <h5>Coupon Code</h5>
+                    <h5>优惠码</h5>
                     <p>{{ p.code }}</p>
                   </div>
                   <div class="tp-flag">
@@ -74,11 +74,11 @@
           </div>
         </el-col>
 
-        <!-- Sales By Countries — Radar Chart -->
+        <!-- 各国销售额 — Radar Chart -->
         <el-col :xs="24" :sm="12" :lg="6">
           <div class="koho-card country-sales-view">
             <div class="card-header">
-              <h3>Sales By Countries</h3>
+              <h3>各国销售额</h3>
             </div>
             <div class="card-body p-0">
               <v-chart class="country-chart" :option="countryChartOption" autoresize />
@@ -87,23 +87,23 @@
         </el-col>
       </el-row>
 
-      <!-- Row 3: Best Sellers (5/12) + Product Slider+Review (4/12) + Weekend Offer (3/12) -->
+      <!-- Row 3: 畅销榜单 (5/12) + Product Slider+Review (4/12) + Weekend Offer (3/12) -->
       <el-row :gutter="30" class="ecom-row">
-        <!-- Best Sellers Table -->
+        <!-- 畅销榜单 Table -->
         <el-col :xs="24" :sm="12" :lg="10">
           <div class="koho-card best-sellers">
             <div class="card-header">
-              <h3>Best Sellers</h3>
+              <h3>畅销榜单</h3>
             </div>
             <div class="card-body">
               <table class="best-sellers-table">
                 <thead>
                   <tr>
-                    <th>Name</th>
-                    <th>Date</th>
-                    <th>Product</th>
-                    <th>Total</th>
-                    <th>Status</th>
+                    <th>名称</th>
+                    <th>日期</th>
+                    <th>商品</th>
+                    <th>合计</th>
+                    <th>状态</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -166,14 +166,14 @@
                   <img src="/koho/assets/images/dashboard-2/person1.png" alt="" />
                 </div>
                 <div class="review-info">
-                  <h4>Johanna Parvez</h4>
+                  <h4>乔安娜·帕尔韦兹</h4>
                   <div class="rating-stars">
                     <el-icon v-for="n in 5" :key="n" color="#FFA47A" size="14"><Star /></el-icon>
                   </div>
                 </div>
               </div>
               <div class="review-text">
-                <p>I love this good looking shoes, but comfort is where it's at for Me. I can't say how well they are for playing football, but for everyday wear they are amazing. I think they're more comfortable than My lebron 17s.</p>
+                <p>我很喜欢这双漂亮的鞋，但舒适度才是我最看重的。虽然没法评价它们踢足球时的表现，但日常穿着简直太棒了。比我的勒布朗17代还要舒服。</p>
               </div>
             </div>
           </div>
@@ -188,9 +188,9 @@
                 <img src="/koho/assets/images/dashboard-2/headphone.png" alt="" />
               </div>
               <div class="weekend-detail">
-                <h3>Special Weekend Offer</h3>
-                <h5>Upto 50% Off Discount</h5>
-                <a class="weekend-btn" href="javascript:void(0)">See More</a>
+                <h3>周末特惠</h3>
+                <h5>最高 5 折优惠</h5>
+                <a class="weekend-btn" href="javascript:void(0)">查看更多</a>
               </div>
             </div>
           </div>
@@ -243,7 +243,7 @@ const statCards = [
   { title: 'Total Visitor', value: '67,900', icon: markRaw(User), iconBg: '#FFA47A', chartOption: makeStatChartOption(SECONDARY, '#faded1') },
 ]
 
-/* ---- Top Products ---- */
+/* ---- 热销商品 ---- */
 const topProducts = [
   { icon: '/koho/assets/images/dashboard-2/chair.png', name: 'Wood Chair Dark', items: 100, code: 'PIX001', flag: '🇬🇧', discount: '-51%', price: '$99.00' },
   { icon: '/koho/assets/images/dashboard-2/shoes.png', name: 'Sneaker For Men', items: 150, code: 'PIX002', flag: '🇺🇸', discount: '-78%', price: '$66.00' },
@@ -252,7 +252,7 @@ const topProducts = [
   { icon: '/koho/assets/images/dashboard-2/watch.png', name: 'Mi Watch Revolve', items: 541, code: 'PIX005', flag: '🇧🇷', discount: '-50%', price: '$58.00' },
 ]
 
-/* ---- Best Sellers ---- */
+/* ---- 畅销榜单 ---- */
 const bestSellers = [
   { id: 1, avatar: '/koho/assets/images/dashboard-2/person1.png', name: 'John Keter', year: '2019', date: '06 August', product: 'Brande Shoes', total: '$37,618', progress: 65, progressClass: 'progress-success' },
   { id: 2, avatar: '/koho/assets/images/dashboard-2/person2.png', name: 'Harry Venter', year: '2020', date: '21 March', product: 'Headphone', total: '$59,105', progress: 45, progressClass: 'progress-warning' },
@@ -269,7 +269,7 @@ const productCards = [
 
 /* ===== ECharts ===== */
 
-/* Recent Orders — Area + Line combo */
+/* 最近订单 — Area + Line combo */
 const recentChartOption = {
   series: [
     {
@@ -384,7 +384,7 @@ const countryChartOption = {
   height: 100px;
 }
 
-/* ==================== Recent Orders ==================== */
+/* ==================== 最近订单 ==================== */
 .recent-order .card-body {
   padding: 0 25px 0;
 }
@@ -393,7 +393,7 @@ const countryChartOption = {
   height: 355px;
 }
 
-/* ==================== Top Products ==================== */
+/* ==================== 热销商品 ==================== */
 .top-products .card-body {
   padding: 15px 25px 25px;
 }
@@ -471,7 +471,7 @@ const countryChartOption = {
   height: 335px;
 }
 
-/* ==================== Best Sellers ==================== */
+/* ==================== 畅销榜单 ==================== */
 .best-sellers .card-body {
   padding: 15px 25px 25px;
 }

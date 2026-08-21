@@ -1,12 +1,12 @@
 <template>
   <div>
-    <PageHeader title="Chartist" :breadcrumb="['APEUI库', 'Components', 'Chartist']" />
+    <PageHeader title="Chartist 图表" :breadcrumb="['APEUI库', '组件示例', 'Chartist 图表']" />
 
     <el-row :gutter="30">
       <el-col :span="12" style="margin-bottom: 16px">
         <el-card shadow="hover">
           <template #header>
-            <span class="card-title">Radar Chart</span>
+            <span class="card-title">雷达图</span>
           </template>
           <v-chart class="chart" :option="radarOption" autoresize />
         </el-card>
@@ -59,7 +59,7 @@ const INFO = '#3EBCB9'
 const WARNING = '#E56809'
 const DANGER = '#DC0808'
 
-/* 1. Radar Chart — 6 dimensions, 2 series */
+/* 1. 雷达图 — 6 dimensions, 2 series */
 const radarOption = {
   tooltip: { trigger: 'item' },
   legend: { data: ['Actual', 'Target'], bottom: 0 },

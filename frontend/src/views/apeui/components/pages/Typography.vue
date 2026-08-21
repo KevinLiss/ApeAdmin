@@ -1,13 +1,13 @@
 <template>
   <div>
-    <PageHeader title="Typography" :breadcrumb="['APEUI库', 'Components', 'Typography']" />
+    <PageHeader title="排版样式" :breadcrumb="['APEUI库', '组件示例', '排版样式']" />
 
     <el-row :gutter="30">
       <!-- Headings -->
       <el-col :lg="12" :xs="24" class="typo-col">
         <el-card shadow="hover">
           <template #header>
-            <span class="card-title">Headings</span>
+            <span class="card-title">标题</span>
           </template>
           <el-row :gutter="20">
             <el-col :span="12">

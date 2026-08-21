@@ -1,6 +1,6 @@
 ﻿<template>
   <div>
-    <PageHeader title="Flag Icons" :breadcrumb="['APEUI库', 'Components', 'Flag Icons']" />
+    <PageHeader title="国旗图标" :breadcrumb="['APEUI库', '组件示例', '国旗图标']" />
 
     <el-card shadow="hover">
       <template #header>Unicode Emoji Flags</template>

@@ -1,18 +1,18 @@
 <template>
   <div>
-    <PageHeader title="Dropdown" :breadcrumb="['APEUI库', 'Components', 'Dropdown']" />
+    <PageHeader title="下拉菜单" :breadcrumb="['APEUI库', '组件示例', '下拉菜单']" />
 
-    <el-card shadow="hover" header="Basic Dropdown" style="margin-bottom: 16px">
+    <el-card shadow="hover" header="基础下拉" style="margin-bottom: 16px">
       <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center">
         <el-dropdown @command="handleCommand">
           <el-button type="primary">
-            Actions<el-icon class="el-icon--right"><ArrowDown /></el-icon>
+            操作<el-icon class="el-icon--right"><ArrowDown /></el-icon>
           </el-button>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item command="create">Create</el-dropdown-item>
-              <el-dropdown-item command="edit">Edit</el-dropdown-item>
-              <el-dropdown-item command="delete" divided>Delete</el-dropdown-item>
+              <el-dropdown-item command="create">创建</el-dropdown-item>
+              <el-dropdown-item command="edit">编辑</el-dropdown-item>
+              <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -40,7 +40,7 @@
       </div>
     </el-card>
 
-    <el-card shadow="hover" header="With Icons & Description" style="margin-bottom: 16px">
+    <el-card shadow="hover" header="带图标与描述" style="margin-bottom: 16px">
       <el-dropdown trigger="click">
         <span class="dropdown-link">
           Hover to expand
@@ -48,10 +48,10 @@
         </span>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item :icon="Plus">Create</el-dropdown-item>
-            <el-dropdown-item :icon="Edit">Edit</el-dropdown-item>
+            <el-dropdown-item :icon="Plus">创建</el-dropdown-item>
+            <el-dropdown-item :icon="Edit">编辑</el-dropdown-item>
             <el-dropdown-item :icon="Download">Download</el-dropdown-item>
-            <el-dropdown-item :icon="Delete" divided>Delete</el-dropdown-item>
+            <el-dropdown-item :icon="Delete" divided>删除</el-dropdown-item>
             <el-dropdown-item :icon="Setting" disabled>Settings (disabled)</el-dropdown-item>
           </el-dropdown-menu>
         </template>
@@ -64,19 +64,19 @@
             <el-dropdown-menu>
               <el-dropdown-item command="profile">
                 <div>
-                  <div style="font-weight: 600">Profile</div>
-                  <div style="font-size: 12px; color: #909399">Manage your account info</div>
+                  <div style="font-weight: 600">资料</div>
+                  <div style="font-size: 12px; color: #909399">管理您的账户信息</div>
                 </div>
               </el-dropdown-item>
               <el-dropdown-item command="security">
                 <div>
-                  <div style="font-weight: 600">Security</div>
+                  <div style="font-weight: 600">安全</div>
                   <div style="font-size: 12px; color: #909399">Password & 2FA</div>
                 </div>
               </el-dropdown-item>
               <el-dropdown-item command="billing" divided>
                 <div>
-                  <div style="font-weight: 600">Billing</div>
+                  <div style="font-weight: 600">账单</div>
                   <div style="font-size: 12px; color: #909399">Plans & invoices</div>
                 </div>
               </el-dropdown-item>
@@ -86,14 +86,14 @@
       </div>
     </el-card>
 
-    <el-card shadow="hover" header="Trigger Types" style="margin-bottom: 16px">
+    <el-card shadow="hover" header="触发方式" style="margin-bottom: 16px">
       <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center">
         <el-dropdown trigger="hover">
           <el-button>Hover Trigger<el-icon class="el-icon--right"><ArrowDown /></el-icon></el-button>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item>Item A</el-dropdown-item>
-              <el-dropdown-item>Item B</el-dropdown-item>
+              <el-dropdown-item>项目 A</el-dropdown-item>
+              <el-dropdown-item>项目 B</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -102,8 +102,8 @@
           <el-button>Click Trigger<el-icon class="el-icon--right"><ArrowDown /></el-icon></el-button>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item>Item A</el-dropdown-item>
-              <el-dropdown-item>Item B</el-dropdown-item>
+              <el-dropdown-item>项目 A</el-dropdown-item>
+              <el-dropdown-item>项目 B</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -112,15 +112,15 @@
           <el-button>Right-Click Trigger<el-icon class="el-icon--right"><ArrowDown /></el-icon></el-button>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item>Item A</el-dropdown-item>
-              <el-dropdown-item>Item B</el-dropdown-item>
+              <el-dropdown-item>项目 A</el-dropdown-item>
+              <el-dropdown-item>项目 B</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
       </div>
     </el-card>
 
-    <el-card shadow="hover" header="Nested / Multi-level Dropdown">
+    <el-card shadow="hover" header="嵌套/多级下拉">
       <el-dropdown trigger="click">
         <el-button type="primary">
           Multi-Level Menu
@@ -128,10 +128,10 @@
         </el-button>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item command="dashboard">Dashboard</el-dropdown-item>
-            <el-dropdown-item command="projects">Projects</el-dropdown-item>
-            <el-dropdown-item divided command="reports">Reports</el-dropdown-item>
-            <el-dropdown-item command="analytics">Analytics</el-dropdown-item>
+            <el-dropdown-item command="dashboard">看板</el-dropdown-item>
+            <el-dropdown-item command="projects">项目</el-dropdown-item>
+            <el-dropdown-item divided command="reports">报表</el-dropdown-item>
+            <el-dropdown-item command="analytics">分析</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>

@@ -1,31 +1,31 @@
 <template>
   <div>
-    <PageHeader title="Accordion / Collapse" :breadcrumb="['APEUI库', 'Components', 'Accordion']" />
+    <PageHeader title="折叠面板" :breadcrumb="['APEUI库', '组件示例', '折叠面板']" />
 
     <el-row :gutter="16">
       <el-col :span="12" style="margin-bottom: 16px">
-        <el-card shadow="hover" header="Basic Collapse" style="margin-bottom: 16px">
+        <el-card shadow="hover" header="基础折叠" style="margin-bottom: 16px">
           <el-collapse v-model="activeNames">
             <el-collapse-item title="Consistency" name="1">
               <div>Consistent with real life: in line with the process and logic of real life, and comply with the language and habits that the users are used to.</div>
             </el-collapse-item>
             <el-collapse-item title="Feedback" name="2">
-              <div>Operation feedback: enable the users to clearly perceive their operations by style updates and interactive effects.</div>
+              <div>操作反馈：通过样式更新与交互效果，让用户清晰感知自己的每一次操作。</div>
             </el-collapse-item>
             <el-collapse-item title="Efficiency" name="3">
-              <div>Simplify the process: keep the operation simple and intuitive.</div>
+              <div>简化流程：保持操作简单直观。</div>
             </el-collapse-item>
           </el-collapse>
         </el-card>
 
-        <el-card shadow="hover" header="Custom Title">
+        <el-card shadow="hover" header="自定义标题">
           <el-collapse accordion>
             <el-collapse-item name="1">
               <template #title>
                 <div class="custom-title">
                   <el-icon color="#5A67F5" :size="18"><InfoFilled /></el-icon>
-                  <span style="margin-left: 8px">General Settings</span>
-                  <el-tag size="small" type="primary" style="margin-left: 8px">New</el-tag>
+                  <span style="margin-left: 8px">通用设置</span>
+                  <el-tag size="small" type="primary" style="margin-left: 8px">新建</el-tag>
                 </div>
               </template>
               <div>
@@ -56,7 +56,7 @@
       </el-col>
 
       <el-col :span="12" style="margin-bottom: 16px">
-        <el-card shadow="hover" header="Accordion Mode" style="margin-bottom: 16px">
+        <el-card shadow="hover" header="手风琴模式" style="margin-bottom: 16px">
           <el-collapse accordion v-model="accordionActive">
             <el-collapse-item title="Panel One (always open)" name="1">
               <div>With accordion mode only one panel stays open at a time.</div>
@@ -70,7 +70,7 @@
           </el-collapse>
         </el-card>
 
-        <el-card shadow="hover" header="Disabled & Mix">
+        <el-card shadow="hover" header="禁用与混合">
           <el-collapse v-model="activeNames2">
             <el-collapse-item title="Enabled panel" name="a">
               <div>This panel is active.</div>

@@ -1,12 +1,12 @@
 <template>
   <div>
-    <PageHeader title="Chart Morris" :breadcrumb="['APEUI库', 'Components', 'Chart Morris']" />
+    <PageHeader title="Morris 图表" :breadcrumb="['APEUI库', '组件示例', 'Morris 图表']" />
 
     <el-row :gutter="30">
       <el-col :span="12" style="margin-bottom: 16px">
         <el-card shadow="hover">
           <template #header>
-            <span class="card-title">Area Chart</span>
+            <span class="card-title">面积图</span>
           </template>
           <v-chart class="chart" :option="areaOption" autoresize />
         </el-card>
@@ -58,7 +58,7 @@ const SUCCESS = '#67C100'
 const INFO = '#3EBCB9'
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep']
 
-/* 1. Area Chart — gradient area */
+/* 1. 面积图 — gradient area */
 const areaOption = {
   tooltip: { trigger: 'axis' },
   grid: { left: '3%', right: '4%', top: '8%', bottom: '5%', containLabel: true },

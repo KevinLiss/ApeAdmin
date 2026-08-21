@@ -1,9 +1,9 @@
 <template>
   <div class="add-product-page">
-    <PageHeader title="Add Product" :breadcrumb="['APEUI库', 'Ecommerce', 'Add Product']">
+    <PageHeader title="添加商品" :breadcrumb="['APEUI库', '电商模块', '添加商品']">
       <template #actions>
-        <el-button @click="onCancel">Cancel</el-button>
-        <el-button type="primary" @click="onSave">Save Product</el-button>
+        <el-button @click="onCancel">取消</el-button>
+        <el-button type="primary" @click="onSave">保存商品</el-button>
       </template>
     </PageHeader>
 
@@ -134,8 +134,8 @@
 
     <!-- Footer Actions -->
     <div class="footer-actions">
-      <el-button @click="onCancel">Cancel</el-button>
-      <el-button type="primary" @click="onSave">Save Product</el-button>
+      <el-button @click="onCancel">取消</el-button>
+      <el-button type="primary" @click="onSave">保存商品</el-button>
     </div>
   </div>
 </template>

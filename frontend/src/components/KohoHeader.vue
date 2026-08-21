@@ -1,30 +1,37 @@
 <template>
-  <header class="koho-header" :class="{ 'close-icon': collapsed }">
+  <header class="koho-header" :class="{ 'close-icon': collapsed && !isMobile, 'is-mobile': isMobile }">
     <div class="header-wrapper">
+      <!-- Mobile hamburger -->
+      <div v-if="isMobile" class="hamburger-btn" @click="$emit('toggle-mobile-sidebar')">
+        <el-icon :size="22"><Menu /></el-icon>
+      </div>
+
       <!-- Search -->
       <div class="left-header">
-        <div class="search-box">
+        <!-- Desktop: inline search -->
+        <div v-if="!isMobile" class="search-box">
           <input class="search-input" type="text" placeholder="点击这里搜索........" v-model="keyword" @keyup.enter="onSearch" />
           <span class="search-icon"><el-icon :size="16"><Search /></el-icon></span>
+        </div>
+        <!-- Mobile: icon search -->
+        <div v-else class="mobile-search" @click="mobileSearchOpen = !mobileSearchOpen">
+          <el-icon :size="20"><Search /></el-icon>
+          <Transition name="search-slide">
+            <input v-if="mobileSearchOpen" class="mobile-search-input" type="text" placeholder="搜索..." v-model="keyword" @keyup.enter="onSearch" ref="mobileSearchRef" />
+          </Transition>
         </div>
       </div>
 
       <!-- Right icons -->
       <div class="nav-right">
         <ul class="nav-menus">
-          <!-- Language -->
-          <li class="icon-item language-nav" @click="langVisible = !langVisible">
-            <span class="flag-icon"></span>
-            <span class="lang-txt">中文</span>
-          </li>
-
           <!-- Theme toggle -->
           <li class="icon-item" @click="$emit('toggle-theme')">
             <el-icon :size="18"><Moon v-if="!isDark" /><Sunny v-else /></el-icon>
           </li>
 
-          <!-- Bookmark -->
-          <li class="icon-item" @click="bookmarkVisible = !bookmarkVisible">
+          <!-- Bookmark (hidden on mobile ≤575px) -->
+          <li v-if="!isMobile || windowWidth > 575" class="icon-item" @click="bookmarkVisible = !bookmarkVisible">
             <el-icon :size="18"><Star /></el-icon>
           </li>
 
@@ -43,13 +50,13 @@
             </div>
           </li>
 
-          <!-- Messages -->
-          <li class="icon-item" @click="msgVisible = !msgVisible">
+          <!-- Messages (hidden on mobile ≤767px) -->
+          <li v-if="!isMobile || windowWidth > 767" class="icon-item" @click="msgVisible = !msgVisible">
             <el-icon :size="18"><ChatDotRound /></el-icon>
           </li>
 
-          <!-- Fullscreen -->
-          <li class="icon-item" @click="toggleFullscreen">
+          <!-- Fullscreen (hidden on mobile) -->
+          <li v-if="!isMobile" class="icon-item" @click="toggleFullscreen">
             <el-icon :size="18"><FullScreen /></el-icon>
           </li>
 
@@ -57,7 +64,7 @@
           <li class="profile-nav" @click="profileVisible = !profileVisible">
             <div class="profile-media">
               <el-avatar :size="38" class="profile-avatar">{{ avatarText }}</el-avatar>
-              <div class="profile-info">
+              <div v-if="!isMobile || windowWidth > 810" class="profile-info">
                 <span class="profile-name">{{ userStore.nickname || userStore.username || 'Admin' }}</span>
                 <p class="profile-role">{{ roleText }} <el-icon :size="12"><ArrowDown /></el-icon></p>
               </div>
@@ -75,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
@@ -83,23 +90,51 @@ import { useUserStore } from '@/stores/user'
 const props = defineProps<{
   isDark?: boolean
   collapsed?: boolean
+  isMobile?: boolean
 }>()
 const emit = defineEmits<{
   (e: 'toggle-theme'): void
   (e: 'profile'): void
   (e: 'settings'): void
   (e: 'logout'): void
+  (e: 'toggle-mobile-sidebar'): void
 }>()
 
 const router = useRouter()
 const userStore = useUserStore()
 
 const keyword = ref('')
-const langVisible = ref(false)
 const bookmarkVisible = ref(false)
 const notifVisible = ref(false)
 const msgVisible = ref(false)
 const profileVisible = ref(false)
+const mobileSearchOpen = ref(false)
+const mobileSearchRef = ref<HTMLInputElement>()
+const windowWidth = ref(window.innerWidth)
+
+// Watch mobile search open state to auto-focus
+import { watch } from 'vue'
+watch(mobileSearchOpen, async (val) => {
+  if (val) {
+    await nextTick()
+    mobileSearchRef.value?.focus()
+  }
+})
+
+// Close dropdowns on outside click
+function handleClickOutside(e: MouseEvent) {
+  const target = e.target as HTMLElement
+  if (!target.closest('.has-badge')) notifVisible.value = false
+  if (!target.closest('.profile-nav')) profileVisible.value = false
+}
+
+onMounted(() => {
+  window.addEventListener('resize', () => { windowWidth.value = window.innerWidth })
+  document.addEventListener('click', handleClickOutside)
+})
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 
 const notifications = [
   { text: '系统健康检查完成', time: '10 分钟', color: '#5A67F5' },
@@ -418,10 +453,135 @@ async function handleLogout() {
   }
 }
 
-/* collapsed state */
-@media (max-width: 768px) {
+/* ===== Mobile responsive ===== */
+
+/* Hamburger button (mobile only) */
+.hamburger-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #59667a;
+  background: #eff3f9;
+  margin-right: 10px;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.hamburger-btn:hover {
+  background: rgba(90, 103, 245, 0.1);
+  color: var(--theme-default, #5A67F5);
+}
+
+/* Mobile search */
+.mobile-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: #59667a;
+  flex: 1;
+}
+.mobile-search:hover {
+  color: var(--theme-default, #5A67F5);
+}
+.mobile-search-input {
+  flex: 1;
+  height: 38px;
+  border: 1px solid #eef0f4;
+  border-radius: 8px;
+  padding: 0 12px;
+  font-size: 14px;
+  background: #f8fafc;
+  outline: none;
+  max-width: 200px;
+}
+.mobile-search-input:focus {
+  border-color: var(--theme-default, #5A67F5);
+  box-shadow: 0 0 0 3px rgba(90, 103, 245, 0.12);
+}
+.search-slide-enter-active,
+.search-slide-leave-active {
+  transition: all 0.25s ease;
+}
+.search-slide-enter-from,
+.search-slide-leave-to {
+  opacity: 0;
+  transform: translateX(-10px);
+}
+
+/* ≤1199px: mobile header */
+@media (max-width: 1199px) {
   .koho-header {
     left: 0;
+  }
+  .koho-header.is-mobile .header-wrapper {
+    padding: 0 12px;
+  }
+  .koho-header.is-mobile .left-header {
+    max-width: none;
+  }
+  .koho-header.is-mobile .icon-item {
+    width: 36px;
+    height: 36px;
+  }
+  .koho-header.is-mobile .nav-menus {
+    gap: 4px;
+  }
+}
+
+/* ≤991px: tablet */
+@media (max-width: 991px) {
+  .koho-header.is-mobile .icon-item {
+    width: 34px;
+    height: 34px;
+  }
+  .koho-header.is-mobile .dropdown-panel {
+    width: 280px;
+  }
+}
+
+/* ≤767px: large phone */
+@media (max-width: 767px) {
+  .koho-header.is-mobile .header-wrapper {
+    padding: 0 10px;
+  }
+  .koho-header.is-mobile .icon-item {
+    width: 32px;
+    height: 32px;
+  }
+  .koho-header.is-mobile .profile-avatar {
+    --el-avatar-size: 34px;
+  }
+  .koho-header.is-mobile .dropdown-panel {
+    position: fixed;
+    width: calc(100vw - 20px);
+    right: 10px;
+  }
+}
+
+/* ≤575px: small phone */
+@media (max-width: 575px) {
+  .koho-header.is-mobile .header-wrapper {
+    padding: 0 8px;
+  }
+  .koho-header.is-mobile .icon-item {
+    width: 30px;
+    height: 30px;
+  }
+  .koho-header.is-mobile .profile-dropdown {
+    position: fixed;
+    width: calc(100vw - 20px);
+    right: 10px;
+  }
+  .koho-header.is-mobile .badge-num {
+    min-width: 15px;
+    height: 15px;
+    font-size: 10px;
+    line-height: 15px;
   }
 }
 </style>

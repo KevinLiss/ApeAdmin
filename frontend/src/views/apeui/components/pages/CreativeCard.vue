@@ -1,14 +1,14 @@
 <template>
   <div>
-    <PageHeader title="Creative Card" :breadcrumb="['APEUI库', 'Components', 'Creative Card']" />
+    <PageHeader title="创意卡片" :breadcrumb="['APEUI库', '组件示例', '创意卡片']" />
 
     <el-row :gutter="30">
-      <!-- 1. Border Left Primary -->
+      <!-- 1. 左侧边框主要 -->
       <el-col :span="12" class="card-col">
         <el-card shadow="hover" class="border-left-primary">
           <template #header>
             <div class="card-header">
-              <span class="card-title">Border Left Primary</span>
+              <span class="card-title">左侧边框主要</span>
             </div>
           </template>
           <div class="card-body">
@@ -108,12 +108,12 @@
         </el-card>
       </el-col>
 
-      <!-- 8. Border Left Primary -->
+      <!-- 8. 左侧边框主要 -->
       <el-col :span="12" class="card-col">
         <el-card shadow="hover" class="border-left-primary">
           <template #header>
             <div class="card-header">
-              <span class="card-title">Border Left Primary</span>
+              <span class="card-title">左侧边框主要</span>
             </div>
           </template>
           <div class="card-body">

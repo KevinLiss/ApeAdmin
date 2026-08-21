@@ -1,12 +1,12 @@
 <template>
   <div>
-    <PageHeader title="Chartjs" :breadcrumb="['APEUI库', 'Components', 'Chartjs']" />
+    <PageHeader title="Chart.js 图表" :breadcrumb="['APEUI库', '组件示例', 'Chart.js 图表']" />
 
     <el-row :gutter="30">
       <el-col :span="12" style="margin-bottom: 16px">
         <el-card shadow="hover">
           <template #header>
-            <span class="card-title">Basic Bar</span>
+            <span class="card-title">基础柱状图</span>
           </template>
           <v-chart class="chart" :option="basicBarOption" autoresize />
         </el-card>
@@ -56,7 +56,7 @@ const PRIMARY = '#5A67F5'
 const SECONDARY = '#FFA47A'
 const SUCCESS = '#67C100'
 
-/* 1. Basic Bar — purple bars, 6 months */
+/* 1. 基础柱状图 — purple bars, 6 months */
 const basicBarOption = {
   tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
   grid: { left: '3%', right: '4%', top: '10%', bottom: '5%', containLabel: true },

@@ -1,6 +1,6 @@
 <template>
   <div class="file-manager">
-    <PageHeader title="File Manager" :breadcrumb="['APEUI库', 'Applications', 'File Manager']" />
+    <PageHeader title="文件管理" :breadcrumb="['APEUI库', '应用中心', '文件管理']" />
 
     <el-row :gutter="30">
       <!-- Left: Folder Tree -->
@@ -8,7 +8,7 @@
         <div class="koho-card">
           <div class="card-title">
             <el-icon><FolderOpened /></el-icon>
-            <span>Folders</span>
+            <span>文件夹</span>
           </div>
           <el-tree
             :data="folderTree"
@@ -27,7 +27,7 @@
           <!-- Toolbar -->
           <div class="toolbar">
             <div class="toolbar-left">
-              <el-button type="primary" :icon="Upload" @click="onUpload">Upload</el-button>
+              <el-button type="primary" :icon="Upload" @click="onUpload">上传</el-button>
               <el-button-group style="margin-left: 12px">
                 <el-button :type="viewMode === 'grid' ? 'primary' : 'default'" @click="viewMode = 'grid'">
                   <el-icon><Grid /></el-icon>
@@ -55,7 +55,7 @@
 
           <div class="current-folder">
             <el-breadcrumb separator="/">
-              <el-breadcrumb-item>Root</el-breadcrumb-item>
+              <el-breadcrumb-item>根目录</el-breadcrumb-item>
               <el-breadcrumb-item>{{ currentFolder }}</el-breadcrumb-item>
             </el-breadcrumb>
           </div>
@@ -72,9 +72,9 @@
                 <el-button text :icon="MoreFilled" circle size="small" />
                 <template #dropdown>
                   <el-dropdown-menu>
-                    <el-dropdown-item command="download">Download</el-dropdown-item>
-                    <el-dropdown-item command="rename">Rename</el-dropdown-item>
-                    <el-dropdown-item command="delete" divided>Delete</el-dropdown-item>
+                    <el-dropdown-item command="download">下载</el-dropdown-item>
+                    <el-dropdown-item command="rename">重命名</el-dropdown-item>
+                    <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
               </el-dropdown>

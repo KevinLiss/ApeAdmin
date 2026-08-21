@@ -1,6 +1,6 @@
 <template>
   <div>
-    <PageHeader title="Bookmarks" :breadcrumb="['APEUI库', 'Applications', 'Bookmarks']">
+    <PageHeader title="书签管理" :breadcrumb="['APEUI库', '应用中心', '书签管理']">
       <template #actions>
         <el-button type="primary" :icon="Plus" @click="openAdd">新增书签</el-button>
       </template>

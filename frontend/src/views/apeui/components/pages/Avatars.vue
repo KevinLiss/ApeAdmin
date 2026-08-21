@@ -1,13 +1,13 @@
 <template>
   <div class="avatars-page">
-    <PageHeader title="Avatars" :breadcrumb="['APEUI库', 'Components', 'Avatars']" />
+    <PageHeader title="头像" :breadcrumb="['APEUI库', '组件示例', '头像']" />
 
     <el-row :gutter="30">
       <!-- Sizing -->
       <el-col :span="12">
         <el-card class="avatar-card">
           <template #header>
-            <span class="card-title">Sizing</span>
+            <span class="card-title">尺寸</span>
           </template>
           <div class="avatar-row">
             <el-avatar

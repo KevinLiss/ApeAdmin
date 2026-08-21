@@ -1,13 +1,13 @@
 <template>
   <div class="basic-card-page">
-    <PageHeader title="Basic Card" :breadcrumb="['APEUI库', 'Components', 'Basic Card']" />
+    <PageHeader title="基础卡片" :breadcrumb="['APEUI库', '组件示例', '基础卡片']" />
 
     <el-row :gutter="30">
       <!-- 1. Basic Card -->
       <el-col :span="12" class="col-item">
         <el-card shadow="hover">
           <template #header>
-            <span class="card-title">Basic Card</span>
+            <span class="card-title">基础卡片</span>
           </template>
           <p class="card-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
           <p class="card-text">Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>

@@ -1,6 +1,6 @@
 <template>
   <div class="wishlist-page">
-    <PageHeader title="Wishlist" :breadcrumb="['APEUI库', 'Ecommerce', 'Wishlist']">
+    <PageHeader title="心愿单" :breadcrumb="['APEUI库', '电商模块', '心愿单']">
       <template #actions>
         <el-button :icon="ShoppingCart" @click="addAllToCart">全部移入购物车</el-button>
       </template>

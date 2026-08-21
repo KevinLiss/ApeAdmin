@@ -1,11 +1,32 @@
 <template>
   <div class="layout">
+    <!-- Mobile overlay -->
+    <Transition name="overlay-fade">
+      <div v-if="isMobile && mobileSidebarOpen" class="sidebar-overlay" @click="closeMobileSidebar"></div>
+    </Transition>
+
     <!-- Koho 1:1 Sidebar -->
-    <KohoSidebar :collapsed="collapsed" @toggle="toggleCollapse" @upgrade="onUpgrade" />
+    <KohoSidebar
+      :collapsed="collapsed"
+      :isMobile="isMobile"
+      :mobileOpen="mobileSidebarOpen"
+      @toggle="toggleCollapse"
+      @upgrade="onUpgrade"
+      @close-mobile="closeMobileSidebar"
+    />
 
     <!-- Main column: header + content, offset by sidebar width -->
-    <div class="layout-main" :class="{ 'is-collapsed': collapsed }">
-      <KohoHeader :is-dark="isDark" @toggle-theme="toggleTheme" @profile="onProfile" @settings="onSettings" @logout="onLogout" />
+    <div class="layout-main" :class="{ 'is-collapsed': collapsed && !isMobile, 'is-mobile': isMobile }">
+      <KohoHeader
+        :isDark="isDark"
+        :collapsed="collapsed"
+        :isMobile="isMobile"
+        @toggle-theme="toggleTheme"
+        @profile="onProfile"
+        @settings="onSettings"
+        @logout="onLogout"
+        @toggle-mobile-sidebar="toggleMobileSidebar"
+      />
 
       <main class="main" :class="{ 'apeui-content': isApeui }">
         <router-view />
@@ -15,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import KohoSidebar from '@/components/KohoSidebar.vue'
@@ -28,13 +49,53 @@ const userStore = useUserStore()
 
 const collapsed = ref(false)
 const isDark = ref(false)
+const isMobile = ref(false)
+const mobileSidebarOpen = ref(false)
 
 // 检测当前是否在 APEUI 库路由下
 const isApeui = computed(() => route.path.startsWith('/apeui'))
 
+// 响应式检测：≤1199px 为移动端
+function checkMobile() {
+  const w = window.innerWidth
+  isMobile.value = w <= 1199
+  if (isMobile.value) {
+    mobileSidebarOpen.value = false
+    collapsed.value = false
+  } else if (w <= 1400) {
+    // 1200-1400px：桌面端图标折叠模式
+    collapsed.value = true
+  } else {
+    // >1400px：完全展开
+    collapsed.value = false
+  }
+}
+
 function toggleCollapse() {
   collapsed.value = !collapsed.value
 }
+
+function toggleMobileSidebar() {
+  mobileSidebarOpen.value = !mobileSidebarOpen.value
+}
+
+function closeMobileSidebar() {
+  mobileSidebarOpen.value = false
+}
+
+// 路由变化时自动关闭移动端侧边栏
+watch(() => route.path, () => {
+  if (isMobile.value) mobileSidebarOpen.value = false
+})
+
+onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
+})
 
 function toggleTheme() {
   isDark.value = !isDark.value
@@ -75,11 +136,47 @@ async function onLogout() {
 .layout-main.is-collapsed {
   margin-left: 86px;
 }
+.layout-main.is-mobile {
+  margin-left: 0;
+}
 .main {
   flex: 1;
   background-color: var(--theme-body-bg, #eff3f9);
   padding: 20px;
   overflow: auto;
   margin-top: 64px;
+}
+
+/* Mobile overlay */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 8;
+  cursor: pointer;
+}
+.overlay-fade-enter-active,
+.overlay-fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+.overlay-fade-enter-from,
+.overlay-fade-leave-to {
+  opacity: 0;
+}
+
+/* Responsive: content area */
+@media (max-width: 991px) {
+  .main {
+    padding: 15px;
+  }
+}
+@media (max-width: 575px) {
+  .main {
+    padding: 12px;
+    margin-top: 56px;
+  }
 }
 </style>

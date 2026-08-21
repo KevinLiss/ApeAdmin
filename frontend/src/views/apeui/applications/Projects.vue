@@ -1,6 +1,6 @@
 <template>
   <div>
-    <PageHeader title="Project List" :breadcrumb="['APEUI库', 'Applications', 'Project List']" />
+    <PageHeader title="项目列表" :breadcrumb="['APEUI库', '应用中心', '项目列表']" />
 
     <el-card>
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px">

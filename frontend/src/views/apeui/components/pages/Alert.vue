@@ -1,8 +1,8 @@
-﻿<template>
+<template>
   <div>
-    <PageHeader title="Alert" :breadcrumb="['APEUI库', 'Components', 'Alert']" />
+    <PageHeader title="警告提示" :breadcrumb="['APEUI库', '组件示例', '警告提示']" />
 
-    <el-card shadow="hover" header="Alert Types" style="margin-bottom: 16px">
+    <el-card shadow="hover" header="警告类型" style="margin-bottom: 16px">
       <div style="display: flex; flex-direction: column; gap: 14px">
         <el-alert title="Success alert text" type="success" />
         <el-alert title="Info alert text" type="info" />
@@ -11,7 +11,7 @@
       </div>
     </el-card>
 
-    <el-card shadow="hover" header="With / Without Icons" style="margin-bottom: 16px">
+    <el-card shadow="hover" header="带/不带图标" style="margin-bottom: 16px">
       <div style="display: flex; flex-direction: column; gap: 14px">
         <el-alert title="With icon" type="info" show-icon />
         <el-alert title="Success with icon" type="success" show-icon />
@@ -22,7 +22,7 @@
       </div>
     </el-card>
 
-    <el-card shadow="hover" header="Closable" style="margin-bottom: 16px">
+    <el-card shadow="hover" header="可关闭" style="margin-bottom: 16px">
       <div style="display: flex; flex-direction: column; gap: 14px">
         <el-alert title="Closable success alert" type="success" closable />
         <el-alert title="Closable info alert" type="info" closable />
@@ -31,7 +31,7 @@
       </div>
     </el-card>
 
-    <el-card shadow="hover" header="Center Alignment" style="margin-bottom: 16px">
+    <el-card shadow="hover" header="居中显示" style="margin-bottom: 16px">
       <div style="display: flex; flex-direction: column; gap: 14px">
         <el-alert title="Center aligned success" type="success" center show-icon />
         <el-alert title="Center aligned info" type="info" center show-icon />
@@ -39,7 +39,7 @@
       </div>
     </el-card>
 
-    <el-card shadow="hover" header="With Description">
+    <el-card shadow="hover" header="带描述">
       <div style="display: flex; flex-direction: column; gap: 14px">
         <el-alert title="Success with description" type="success" description="A brief description about this success alert." show-icon />
         <el-alert title="Warning with description" type="warning" description="A brief description about this warning alert." show-icon />
@@ -47,13 +47,13 @@
         <el-alert title="Rich content" type="warning" show-icon>
           <template #default>
             <div>
-              <p>This alert supports custom rich content inside:</p>
+              <p>此警告支持在内部放置自定义富内容：</p>
               <ul style="padding-left: 18px; margin: 8px 0">
-                <li>Bullet point one</li>
-                <li>Bullet point two</li>
-                <li>Bullet point three</li>
+                <li>项目符号一</li>
+                <li>项目符号二</li>
+                <li>项目符号三</li>
               </ul>
-              <el-button size="small" type="primary" plain>Action Button</el-button>
+              <el-button size="small" type="primary" plain>操作按钮</el-button>
             </div>
           </template>
         </el-alert>

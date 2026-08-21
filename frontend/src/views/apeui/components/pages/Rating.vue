@@ -1,6 +1,6 @@
 <template>
   <div>
-    <PageHeader title="Rating" :breadcrumb="['APEUI库', 'Components', 'Rating']" />
+    <PageHeader title="评分" :breadcrumb="['APEUI库', '组件示例', '评分']" />
 
     <el-row :gutter="16">
       <el-col :span="12" style="margin-bottom: 16px">

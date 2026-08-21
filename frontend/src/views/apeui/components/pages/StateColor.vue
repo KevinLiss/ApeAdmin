@@ -1,10 +1,10 @@
 <template>
   <div>
-    <PageHeader title="State Color" :breadcrumb="['APEUI库', 'Components', 'State Color']" />
+    <PageHeader title="状态颜色" :breadcrumb="['APEUI库', '组件示例', '状态颜色']" />
 
     <el-card shadow="hover">
       <template #header>
-        <span class="card-title">Default Color</span>
+        <span class="card-title">默认颜色</span>
       </template>
 
       <el-row :gutter="30">

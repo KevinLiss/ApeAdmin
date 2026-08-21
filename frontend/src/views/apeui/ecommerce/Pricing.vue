@@ -1,21 +1,21 @@
 <template>
   <div class="pricing-page">
-    <PageHeader title="Pricing" :breadcrumb="['APEUI库', 'Ecommerce', 'Pricing']" />
+    <PageHeader title="定价方案" :breadcrumb="['APEUI库', '电商模块', '定价方案']" />
 
     <div class="pricing-header">
-      <h2>Choose Your Plan</h2>
-      <p>Select the plan that best fits your business needs</p>
+      <h2>选择您的套餐</h2>
+      <p>选择最适合您业务需求的套餐方案</p>
     </div>
 
     <el-row :gutter="24" class="pricing-cards">
       <el-col :span="8" v-for="plan in plans" :key="plan.name">
         <el-card shadow="hover" :class="['pricing-card', { popular: plan.popular }]">
-          <div class="plan-badge" v-if="plan.popular">Most Popular</div>
+          <div class="plan-badge" v-if="plan.popular">最受欢迎</div>
           <div class="plan-name">{{ plan.name }}</div>
           <div class="plan-price">
             <span class="currency">$</span>
             <span class="amount">{{ plan.price }}</span>
-            <span class="period">/month</span>
+            <span class="period">/月</span>
           </div>
           <p class="plan-desc">{{ plan.description }}</p>
           <ul class="plan-features">
@@ -30,7 +30,7 @@
             class="plan-btn"
             round
           >
-            Get Started
+            开始使用
           </el-button>
         </el-card>
       </el-col>

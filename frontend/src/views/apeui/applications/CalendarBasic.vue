@@ -1,6 +1,6 @@
 <template>
   <div>
-    <PageHeader title="Calendar" :breadcrumb="['APEUI库', 'Applications', 'Calendar']" />
+    <PageHeader title="日历" :breadcrumb="['APEUI库', '应用中心', '日历']" />
 
     <el-row :gutter="30">
       <el-col :span="16">

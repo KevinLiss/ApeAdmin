@@ -1,6 +1,6 @@
 <template>
   <div class="cart-page">
-    <PageHeader title="Cart" :breadcrumb="['APEUI库', 'Ecommerce', 'Cart']" />
+    <PageHeader title="购物车" :breadcrumb="['APEUI库', '电商模块', '购物车']" />
 
     <template v-if="cartItems.length > 0">
       <el-row :gutter="30">
@@ -8,7 +8,7 @@
         <el-col :xs="24" :lg="16">
           <el-card class="koho-card cart-items-card" shadow="never">
             <h3 class="card-title">
-              Shopping Cart
+              购物车
               <span class="item-count">{{ cartItems.length }} items</span>
             </h3>
 
@@ -21,23 +21,23 @@
                 <span class="cart-item-category">{{ item.category }}</span>
               </div>
               <div class="cart-item-price">
-                <span class="price-label">Price</span>
+                <span class="price-label">单价</span>
                 <span class="price-value">${{ item.price.toFixed(2) }}</span>
               </div>
               <div class="cart-item-qty">
-                <span class="price-label">Qty</span>
+                <span class="price-label">数量</span>
                 <el-input-number v-model="item.qty" :min="1" :max="20" size="small" @change="recalc" />
               </div>
               <div class="cart-item-subtotal">
-                <span class="price-label">Subtotal</span>
+                <span class="price-label">小计</span>
                 <span class="subtotal-value">${{ (item.price * item.qty).toFixed(2) }}</span>
               </div>
               <el-button link type="danger" :icon="Delete" circle @click="removeItem(index)" />
             </div>
 
             <div class="cart-footer">
-              <el-button :icon="ArrowLeft" @click="continueShopping">Continue Shopping</el-button>
-              <el-button type="danger" plain @click="clearCart">Clear Cart</el-button>
+              <el-button :icon="ArrowLeft" @click="continueShopping">继续购物</el-button>
+              <el-button type="danger" plain @click="clearCart">清空购物车</el-button>
             </div>
           </el-card>
         </el-col>
@@ -45,14 +45,14 @@
         <!-- Right: Summary -->
         <el-col :xs="24" :lg="8">
           <el-card class="koho-card summary-card" shadow="never">
-            <h3 class="card-title">Order Summary</h3>
+            <h3 class="card-title">订单摘要</h3>
 
             <!-- Coupon -->
             <div class="coupon-section">
-              <span class="summary-label">Coupon Code</span>
+              <span class="summary-label">优惠码</span>
               <div class="coupon-input-row">
                 <el-input v-model="couponCode" placeholder="Enter code" />
-                <el-button type="primary" @click="applyCoupon">Apply</el-button>
+                <el-button type="primary" @click="applyCoupon">应用</el-button>
               </div>
               <div class="coupon-applied" v-if="couponApplied">
                 <el-tag type="success" effect="dark" round>Coupon applied: {{ couponCode.toUpperCase() }} (-10%)</el-tag>
@@ -67,32 +67,32 @@
               <span>${{ subtotal.toFixed(2) }}</span>
             </div>
             <div class="summary-row" v-if="discount > 0">
-              <span>Discount</span>
+              <span>折扣</span>
               <span class="discount-text">-${{ discount.toFixed(2) }}</span>
             </div>
             <div class="summary-row">
-              <span>Shipping</span>
+              <span>运费</span>
               <span>{{ shipping === 0 ? 'Free' : '$' + shipping.toFixed(2) }}</span>
             </div>
             <div class="summary-row">
-              <span>Tax (8%)</span>
+              <span>税费（8%）</span>
               <span>${{ tax.toFixed(2) }}</span>
             </div>
 
             <el-divider />
 
             <div class="summary-total">
-              <span>Total</span>
+              <span>合计</span>
               <span class="total-value">${{ total.toFixed(2) }}</span>
             </div>
 
             <el-button type="primary" size="large" class="checkout-btn" @click="checkout">
               <el-icon class="mr-4"><Wallet /></el-icon>
-              Proceed to Checkout
+              前往结算
             </el-button>
 
             <div class="payment-methods">
-              <span class="summary-label">We Accept</span>
+              <span class="summary-label">我们支持</span>
               <div class="payment-icons">
                 <span class="pay-icon visa">VISA</span>
                 <span class="pay-icon mc">MC</span>

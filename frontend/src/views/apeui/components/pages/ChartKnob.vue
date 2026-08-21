@@ -1,12 +1,12 @@
 <template>
   <div>
-    <PageHeader title="Chart Knob" :breadcrumb="['APEUI库', 'Components', 'Chart Knob']" />
+    <PageHeader title="旋钮图表" :breadcrumb="['APEUI库', '组件示例', '旋钮图表']" />
 
     <el-row :gutter="30">
       <el-col :span="12" style="margin-bottom: 16px">
         <el-card shadow="hover">
           <template #header>
-            <span class="card-title">Basic Gauge</span>
+            <span class="card-title">基础仪表盘</span>
           </template>
           <v-chart class="chart" :option="basicGaugeOption" autoresize />
         </el-card>
@@ -57,7 +57,7 @@ const SECONDARY = '#FFA47A'
 const SUCCESS = '#67C100'
 const INFO = '#3EBCB9'
 
-/* 1. Basic Gauge — 65% */
+/* 1. 基础仪表盘 — 65% */
 const basicGaugeOption = {
   series: [{
     type: 'gauge',

@@ -1,10 +1,10 @@
 <template>
   <div>
-    <PageHeader title="Feather Icon" :breadcrumb="['APEUI库', 'Components', 'Feather Icon']" />
+    <PageHeader title="Feather 图标" :breadcrumb="['APEUI库', '组件示例', 'Feather 图标']" />
 
     <el-card shadow="hover" class="feather-card">
       <template #header>
-        <span style="color: #7c3aed; font-weight: 600">Element Plus Icons — Purple Theme</span>
+        <span style="color: #7c3aed; font-weight: 600">Element Plus 图标 — 紫色主题</span>
       </template>
       <div class="icon-grid">
         <div v-for="item in icons" :key="item.name" class="icon-item">

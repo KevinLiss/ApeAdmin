@@ -1,6 +1,6 @@
 <template>
   <div>
-    <PageHeader title="Contacts" :breadcrumb="['APEUI库', 'Applications', 'Contacts']" />
+    <PageHeader title="通讯录" :breadcrumb="['APEUI库', '应用中心', '通讯录']" />
 
     <el-row :gutter="30">
       <!-- 左侧联系人列表 -->

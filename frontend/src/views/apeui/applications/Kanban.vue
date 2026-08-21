@@ -1,6 +1,6 @@
 <template>
   <div>
-    <PageHeader title="Kanban Board" :breadcrumb="['APEUI库', 'Applications', 'Kanban Board']">
+    <PageHeader title="看板视图" :breadcrumb="['APEUI库', '应用中心', '看板视图']">
       <template #actions>
         <el-button type="primary" :icon="Plus" @click="dialogVisible = true">新建任务</el-button>
       </template>

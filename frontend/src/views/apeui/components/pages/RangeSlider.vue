@@ -1,12 +1,12 @@
 <template>
   <div>
-    <PageHeader title="Range Slider" :breadcrumb="['APEUI库', 'Components', 'Range Slider']" />
+    <PageHeader title="范围滑块" :breadcrumb="['APEUI库', '组件示例', '范围滑块']" />
 
     <el-row :gutter="30">
-      <!-- Default Slider -->
+      <!-- 默认滑块 -->
       <el-col :span="12" style="margin-bottom: 30px">
         <el-card>
-          <template #header><span class="card-title">Default Slider</span></template>
+          <template #header><span class="card-title">默认滑块</span></template>
           <div class="slider-demo">
             <el-slider v-model="defaultVal" />
             <div class="slider-value">Value: {{ defaultVal }}</div>

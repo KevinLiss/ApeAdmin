@@ -1,28 +1,28 @@
 <template>
   <div class="search-result">
-    <PageHeader title="Search Result" :breadcrumb="['APEUI库', 'Applications', 'Search Result']" />
+    <PageHeader title="搜索结果" :breadcrumb="['APEUI库', '应用中心', '搜索结果']" />
 
     <!-- Search Bar -->
     <div class="koho-card search-card">
       <div class="search-bar">
         <el-input
           v-model="searchQuery"
-          placeholder="Search anything..."
+          placeholder="搜索任意内容..."
           :prefix-icon="Search"
           size="large"
           clearable
           class="search-input"
         />
-        <el-button type="primary" size="large" :icon="Search" @click="onSearch">Search</el-button>
+        <el-button type="primary" size="large" :icon="Search" @click="onSearch">搜索</el-button>
       </div>
       <!-- Filter Tabs -->
       <div class="filter-tabs">
         <el-radio-group v-model="activeFilter" @change="onFilterChange">
-          <el-radio-button label="all">All ({{ totalResults }})</el-radio-button>
-          <el-radio-button label="posts">Posts ({{ typeCounts.posts }})</el-radio-button>
-          <el-radio-button label="users">Users ({{ typeCounts.users }})</el-radio-button>
-          <el-radio-button label="images">Images ({{ typeCounts.images }})</el-radio-button>
-          <el-radio-button label="files">Files ({{ typeCounts.files }})</el-radio-button>
+          <el-radio-button label="all">全部 ({{ totalResults }})</el-radio-button>
+          <el-radio-button label="posts">文章 ({{ typeCounts.posts }})</el-radio-button>
+          <el-radio-button label="users">用户 ({{ typeCounts.users }})</el-radio-button>
+          <el-radio-button label="images">图片 ({{ typeCounts.images }})</el-radio-button>
+          <el-radio-button label="files">文件 ({{ typeCounts.files }})</el-radio-button>
         </el-radio-group>
       </div>
     </div>
@@ -33,45 +33,45 @@
         <div class="koho-card">
           <div class="card-title">
             <el-icon><Filter /></el-icon>
-            <span>Filters</span>
+            <span>筛选条件</span>
           </div>
 
           <!-- Time Range -->
           <div class="filter-group">
-            <div class="filter-label">Time Range</div>
-            <el-select v-model="filters.timeRange" placeholder="Any time" style="width: 100%">
-              <el-option label="Any time" value="any" />
-              <el-option label="Past 24 hours" value="24h" />
-              <el-option label="Past week" value="week" />
-              <el-option label="Past month" value="month" />
-              <el-option label="Past year" value="year" />
+            <div class="filter-label">时间范围</div>
+            <el-select v-model="filters.timeRange" placeholder="任意时间" style="width: 100%">
+              <el-option label="任意时间" value="any" />
+              <el-option label="过去 24 小时" value="24h" />
+              <el-option label="过去一周" value="week" />
+              <el-option label="过去一个月" value="month" />
+              <el-option label="过去一年" value="year" />
             </el-select>
           </div>
 
           <!-- Type -->
           <div class="filter-group">
-            <div class="filter-label">Type</div>
-            <el-select v-model="filters.type" placeholder="All types" style="width: 100%">
-              <el-option label="All types" value="" />
-              <el-option label="Post" value="posts" />
-              <el-option label="User" value="users" />
-              <el-option label="Image" value="images" />
-              <el-option label="File" value="files" />
+            <div class="filter-label">类型</div>
+            <el-select v-model="filters.type" placeholder="全部类型" style="width: 100%">
+              <el-option label="全部类型" value="" />
+              <el-option label="文章" value="posts" />
+              <el-option label="用户" value="users" />
+              <el-option label="图片" value="images" />
+              <el-option label="文件" value="files" />
             </el-select>
           </div>
 
           <!-- Sort -->
           <div class="filter-group">
-            <div class="filter-label">Sort By</div>
-            <el-select v-model="filters.sort" placeholder="Relevance" style="width: 100%">
-              <el-option label="Relevance" value="relevance" />
-              <el-option label="Newest first" value="newest" />
-              <el-option label="Oldest first" value="oldest" />
-              <el-option label="Most viewed" value="views" />
+            <div class="filter-label">排序方式</div>
+            <el-select v-model="filters.sort" placeholder="相关度" style="width: 100%">
+              <el-option label="相关度" value="relevance" />
+              <el-option label="最新优先" value="newest" />
+              <el-option label="最早优先" value="oldest" />
+              <el-option label="最多浏览" value="views" />
             </el-select>
           </div>
 
-          <el-button type="primary" plain style="width: 100%; margin-top: 8px" @click="onResetFilters">Reset Filters</el-button>
+          <el-button type="primary" plain style="width: 100%; margin-top: 8px" @click="onResetFilters">重置筛选</el-button>
         </div>
       </el-col>
 
@@ -79,7 +79,7 @@
       <el-col :xs="24" :sm="12">
         <div class="results-container">
           <div class="results-count">
-            About {{ totalResults }} results for "<span class="highlight">{{ searchQuery || 'all' }}</span>"
+            共找到 {{ totalResults }} 条关于 "<span class="highlight">{{ searchQuery || '全部' }}</span>" 的结果
           </div>
           <div v-for="result in filteredResults" :key="result.id" class="result-item" @click="onResultClick(result)">
             <div class="result-header">
@@ -108,11 +108,11 @@
         <div class="koho-card">
           <div class="card-title">
             <el-icon><DataAnalysis /></el-icon>
-            <span>Statistics</span>
+            <span>数据统计</span>
           </div>
           <div class="stat-total">
             <div class="stat-number">{{ totalResults }}</div>
-            <div class="stat-label">Total Results</div>
+            <div class="stat-label">结果总数</div>
           </div>
           <div class="stat-breakdown">
             <div v-for="item in breakdown" :key="item.label" class="stat-row">
@@ -142,7 +142,7 @@ import {
 } from '@element-plus/icons-vue'
 import PageHeader from '../components/PageHeader.vue'
 
-const searchQuery = ref('Vue3 components')
+const searchQuery = ref('Vue3 组件')
 const activeFilter = ref('all')
 const currentPage = ref(1)
 
@@ -156,68 +156,68 @@ const typeCounts = { posts: 18, users: 6, images: 9, files: 5 }
 const totalResults = 38
 
 const breakdown = [
-  { label: 'Posts', count: 18, percent: 75, color: '#5A67F5', icon: Document },
-  { label: 'Images', count: 9, percent: 38, color: '#3EBCB9', icon: Picture },
-  { label: 'Users', count: 6, percent: 25, color: '#67C100', icon: User },
-  { label: 'Files', count: 5, percent: 21, color: '#E56809', icon: Files },
+  { label: '文章', count: 18, percent: 75, color: '#5A67F5', icon: Document },
+  { label: '图片', count: 9, percent: 38, color: '#3EBCB9', icon: Picture },
+  { label: '用户', count: 6, percent: 25, color: '#67C100', icon: User },
+  { label: '文件', count: 5, percent: 21, color: '#E56809', icon: Files },
 ]
 
 const results = ref([
   {
-    id: 1, type: 'posts', typeLabel: 'Post', tagType: 'primary' as const,
-    title: 'Building Reusable Components in Vue 3 — A Complete Guide',
+    id: 1, type: 'posts', typeLabel: '文章', tagType: 'primary' as const,
+    title: 'Vue 3 可复用组件构建完整指南',
     url: 'https://vuejs.org/guide/components',
-    summary: 'Learn how to build reusable, maintainable components in Vue 3 using Composition API, defineModel, and provide/inject patterns. This comprehensive guide covers props, emits, slots, and best practices.',
-    tags: ['Vue3', 'Components', 'Composition API'],
+    summary: '学习如何使用 Composition API、defineModel 以及 provide/inject 模式在 Vue 3 中构建可复用、易维护的组件。本指南涵盖 props、emits、插槽及最佳实践。',
+    tags: ['Vue3', '组件', '组合式 API'],
   },
   {
-    id: 2, type: 'posts', typeLabel: 'Post', tagType: 'primary' as const,
-    title: 'Element Plus vs Ant Design Vue: Which UI Library to Choose in 2025?',
+    id: 2, type: 'posts', typeLabel: '文章', tagType: 'primary' as const,
+    title: 'Element Plus 对比 Ant Design Vue：2025 年如何选择 UI 组件库？',
     url: 'https://element-plus.org/blog',
-    summary: 'A detailed comparison of the two most popular Vue 3 UI component libraries, covering bundle size, accessibility, component coverage, and developer experience.',
-    tags: ['Element Plus', 'Ant Design', 'Comparison'],
+    summary: '对 Vue 3 两大主流 UI 组件库的详细对比，涵盖包体积、无障碍支持、组件覆盖面和开发体验。',
+    tags: ['Element Plus', 'Ant Design', '对比'],
   },
   {
-    id: 3, type: 'users', typeLabel: 'User', tagType: 'success' as const,
-    title: 'Evan You — Creator of Vue.js',
+    id: 3, type: 'users', typeLabel: '用户', tagType: 'success' as const,
+    title: '尤雨溪 — Vue.js 创始人',
     url: 'https://github.com/yyx990803',
-    summary: 'Evan You is the creator of Vue.js and Vite. He has been working on open-source JavaScript frameworks and tooling since 2013.',
-    tags: ['JavaScript', 'Open Source', 'Vue'],
+    summary: '尤雨溪是 Vue.js 与 Vite 的创始人，自 2013 年起一直从事开源 JavaScript 框架与工具的开发。',
+    tags: ['JavaScript', '开源', 'Vue'],
   },
   {
-    id: 4, type: 'posts', typeLabel: 'Post', tagType: 'primary' as const,
-    title: 'State Management in Vue 3: Pinia vs Vuex 5',
+    id: 4, type: 'posts', typeLabel: '文章', tagType: 'primary' as const,
+    title: 'Vue 3 状态管理：Pinia 与 Vuex 5 对比',
     url: 'https://pinia.vuejs.org',
-    summary: 'Pinia is the official state management solution for Vue. It offers a simpler API, better TypeScript support, and removes mutations from the equation entirely.',
-    tags: ['Pinia', 'Vuex', 'State Management'],
+    summary: 'Pinia 是 Vue 官方状态管理方案，提供更简洁的 API 与更好的 TypeScript 支持，并彻底移除了 mutations 概念。',
+    tags: ['Pinia', 'Vuex', '状态管理'],
   },
   {
-    id: 5, type: 'images', typeLabel: 'Image', tagType: 'info' as const,
-    title: 'Vue 3 Component Architecture Diagram',
+    id: 5, type: 'images', typeLabel: '图片', tagType: 'info' as const,
+    title: 'Vue 3 组件架构示意图',
     url: 'https://figma.com/vue3-architecture',
-    summary: 'A visual representation of Vue 3 component lifecycle, reactivity system, and rendering pipeline. Useful for onboarding new developers.',
-    tags: ['Diagram', 'Architecture', 'Visualization'],
+    summary: 'Vue 3 组件生命周期、响应式系统与渲染管线的可视化示意，便于新开发者快速上手。',
+    tags: ['示意图', '架构', '可视化'],
   },
   {
-    id: 6, type: 'files', typeLabel: 'File', tagType: 'warning' as const,
-    title: 'vue3-starter-template.zip — Production Ready Starter Kit',
+    id: 6, type: 'files', typeLabel: '文件', tagType: 'warning' as const,
+    title: 'vue3-starter-template.zip — 生产级启动模板',
     url: 'https://github.com/vue3/starter',
-    summary: 'A production-ready Vue 3 starter template with Vite, Pinia, Vue Router, Element Plus, and pre-configured ESLint + Prettier.',
-    tags: ['Template', 'Vite', 'Starter Kit'],
+    summary: '基于 Vite、Pinia、Vue Router、Element Plus 的生产级 Vue 3 启动模板，并预配置 ESLint 与 Prettier。',
+    tags: ['模板', 'Vite', '启动套件'],
   },
   {
-    id: 7, type: 'posts', typeLabel: 'Post', tagType: 'primary' as const,
-    title: 'Composition API Deep Dive: ref, reactive, computed, and watch',
+    id: 7, type: 'posts', typeLabel: '文章', tagType: 'primary' as const,
+    title: '组合式 API 深入解析：ref、reactive、computed 与 watch',
     url: 'https://vuejs.org/guide/reactivity',
-    summary: 'Master the Vue 3 Composition API with practical examples. Understand when to use ref vs reactive, how computed caching works, and watch strategies.',
-    tags: ['Composition API', 'Reactivity', 'Tutorial'],
+    summary: '通过实际示例掌握 Vue 3 组合式 API。理解 ref 与 reactive 的使用场景、computed 缓存机制以及 watch 策略。',
+    tags: ['组合式 API', '响应式', '教程'],
   },
   {
-    id: 8, type: 'users', typeLabel: 'User', tagType: 'success' as const,
-    title: 'Sarah Drasner — Vue Core Team Member',
+    id: 8, type: 'users', typeLabel: '用户', tagType: 'success' as const,
+    title: 'Sarah Drasner — Vue 核心团队成员',
     url: 'https://github.com/sdras',
-    summary: 'Sarah Drasner is a member of the Vue core team, author of SVG Animations, and a prominent speaker in the frontend community.',
-    tags: ['Vue Core', 'SVG', 'Animation'],
+    summary: 'Sarah Drasner 是 Vue 核心团队成员、《SVG Animations》作者，也是前端社区知名演讲者。',
+    tags: ['Vue 核心', 'SVG', '动画'],
   },
 ])
 
@@ -226,17 +226,17 @@ const filteredResults = computed(() => {
   return results.value.filter(r => r.type === activeFilter.value)
 })
 
-const onSearch = () => ElMessage.success(`Searching for "${searchQuery.value}"`)
+const onSearch = () => ElMessage.success(`正在搜索："${searchQuery.value}"`)
 const onFilterChange = (val: string) => {
   currentPage.value = 1
-  ElMessage.info(`Filter: ${val}`)
+  ElMessage.info(`筛选条件：${val}`)
 }
 const onResetFilters = () => {
   filters.value = { timeRange: 'any', type: '', sort: 'relevance' }
   activeFilter.value = 'all'
-  ElMessage.success('Filters reset')
+  ElMessage.success('筛选已重置')
 }
-const onResultClick = (result: any) => ElMessage.info(`Opening: ${result.title}`)
+const onResultClick = (result: any) => ElMessage.info(`打开：${result.title}`)
 </script>
 
 <style scoped>

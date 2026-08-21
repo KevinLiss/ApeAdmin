@@ -1,6 +1,6 @@
 <template>
   <div>
-    <PageHeader title="Draggable Card" :breadcrumb="['APEUI库', 'Components', 'Draggable Card']" />
+    <PageHeader title="可拖拽卡片" :breadcrumb="['APEUI库', '组件示例', '可拖拽卡片']" />
 
     <el-card shadow="hover" style="margin-bottom: 16px">
       <template #header>

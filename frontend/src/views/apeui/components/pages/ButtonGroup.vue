@@ -1,31 +1,31 @@
-﻿<template>
+<template>
   <div>
-    <PageHeader title="Button Group" :breadcrumb="['APEUI库', 'Components', 'Button Group']" />
+    <PageHeader title="按钮组" :breadcrumb="['APEUI库', '组件示例', '按钮组']" />
 
-    <el-card shadow="hover" header="Basic Groups" style="margin-bottom: 16px">
+    <el-card shadow="hover" header="基础按钮组" style="margin-bottom: 16px">
       <div style="display: flex; flex-direction: column; gap: 16px">
         <el-button-group>
-          <el-button>Left</el-button>
-          <el-button>Center</el-button>
-          <el-button>Right</el-button>
+          <el-button>左</el-button>
+          <el-button>中</el-button>
+          <el-button>右</el-button>
         </el-button-group>
         <el-button-group>
-          <el-button type="primary"><el-icon><ArrowLeft /></el-icon> Prev</el-button>
-          <el-button type="primary">Next <el-icon><ArrowRight /></el-icon></el-button>
+          <el-button type="primary"><el-icon><ArrowLeft /></el-icon> 上一页</el-button>
+          <el-button type="primary">下一页 <el-icon><ArrowRight /></el-icon></el-button>
         </el-button-group>
       </div>
     </el-card>
 
-    <el-card shadow="hover" header="Color Variants" style="margin-bottom: 16px">
+    <el-card shadow="hover" header="颜色变体" style="margin-bottom: 16px">
       <el-button-group>
-        <el-button type="success">Success</el-button>
-        <el-button type="warning">Warning</el-button>
-        <el-button type="danger">Danger</el-button>
-        <el-button type="info">Info</el-button>
+        <el-button type="success">成功</el-button>
+        <el-button type="warning">警告</el-button>
+        <el-button type="danger">危险</el-button>
+        <el-button type="info">信息</el-button>
       </el-button-group>
     </el-card>
 
-    <el-card shadow="hover" header="Icon Groups" style="margin-bottom: 16px">
+    <el-card shadow="hover" header="图标按钮组" style="margin-bottom: 16px">
       <el-button-group>
         <el-button type="primary"><el-icon><EditPen /></el-icon></el-button>
         <el-button type="primary"><el-icon><Share /></el-icon></el-button>
@@ -33,7 +33,7 @@
       </el-button-group>
     </el-card>
 
-    <el-card shadow="hover" header="Sizes">
+    <el-card shadow="hover" header="尺寸">
       <div style="display: flex; flex-direction: column; gap: 16px">
         <el-button-group size="large">
           <el-button type="primary">L</el-button>

@@ -1,12 +1,12 @@
 <template>
   <div class="box-shadow-page">
-    <PageHeader title="Box Shadow" :breadcrumb="['APEUI库', 'Components', 'Box Shadow']" />
+    <PageHeader title="阴影效果" :breadcrumb="['APEUI库', '组件示例', '阴影效果']" />
 
     <el-card class="shadow-card">
       <template #header>
         <div class="card-header">
-          <span class="card-title">Examples</span>
-          <span class="card-subtitle">Includes support for shadow-none and three default sizes.</span>
+          <span class="card-title">示例</span>
+          <span class="card-subtitle">支持 shadow-none 及三种默认尺寸。</span>
         </div>
       </template>
 

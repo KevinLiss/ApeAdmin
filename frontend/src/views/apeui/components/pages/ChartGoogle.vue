@@ -1,12 +1,12 @@
 <template>
   <div>
-    <PageHeader title="Chart Google" :breadcrumb="['APEUI库', 'Components', 'Chart Google']" />
+    <PageHeader title="Google 图表" :breadcrumb="['APEUI库', '组件示例', 'Google 图表']" />
 
     <el-row :gutter="30">
       <el-col :span="12" style="margin-bottom: 16px">
         <el-card shadow="hover">
           <template #header>
-            <span class="card-title">Line + Bar Combo</span>
+            <span class="card-title">折线与柱状组合图</span>
           </template>
           <v-chart class="chart" :option="comboOption" autoresize />
         </el-card>
@@ -56,7 +56,7 @@ const PRIMARY = '#5A67F5'
 const SECONDARY = '#FFA47A'
 const SUCCESS = '#67C100'
 
-/* 1. Line + Bar Combo — dual y-axis */
+/* 1. 折线与柱状组合图 — dual y-axis */
 const comboOption = {
   tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
   legend: { data: ['Revenue', 'Growth'], bottom: 0 },

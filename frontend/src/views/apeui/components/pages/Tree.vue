@@ -1,10 +1,10 @@
 <template>
   <div class="apeui-page">
-    <PageHeader title="Tree View" breadcrumb="Components / Tree View" />
+    <PageHeader title="树形视图" breadcrumb="组件示例 / 树形视图" />
     <el-card shadow="never" class="apeui-card">
       <template #header>
         <div class="card-header">
-          <span>Tree View</span>
+          <span>树形视图</span>
         </div>
       </template>
       <el-tree

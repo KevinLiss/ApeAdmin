@@ -1,19 +1,19 @@
 <template>
   <div class="dashboard-default">
-    <PageHeader title="Default Dashboard" :breadcrumb="['APEUI库', 'Dashboard', 'Default']" />
+    <PageHeader title="默认看板" :breadcrumb="['APEUI库', '数据看板', '默认看板']" />
 
     <div class="dash-container">
-      <!-- Row 1: Profile Greeting (10/24) + Yearly Overview (8/24) + Activity Review (6/24) -->
+      <!-- Row 1: Profile Greeting (10/24) + 年度概览 (8/24) + Activity Review (6/24) -->
       <el-row :gutter="30" class="dash-row">
         <!-- Profile Greeting -->
         <el-col :xs="24" :sm="12" :lg="10">
           <div class="koho-card profile-greeting">
             <div class="greeting-body">
               <div class="greeting-text">
-                <h1>Welcome, William</h1>
-                <p>You have completed 40% of your this week! Start a new goal &amp; improve your result</p>
+                <h1>欢迎回来，威廉</h1>
+                <p>本周进度已完成 40%！设定新目标，持续提升成绩</p>
                 <a class="greeting-btn" href="javascript:void(0)">
-                  Continue
+                  继续
                   <el-icon><ArrowRight /></el-icon>
                 </a>
               </div>
@@ -24,12 +24,12 @@
           </div>
         </el-col>
 
-        <!-- Yearly Overview -->
+        <!-- 年度概览 -->
         <el-col :xs="24" :sm="12" :lg="8">
           <div class="koho-card yearly-view">
             <div class="card-header">
-              <h3>Yearly Overview <span class="koho-badge-soft">50/100</span></h3>
-              <h5 class="weekday-label">Monday</h5>
+              <h3>年度概览 <span class="koho-badge-soft">50/100</span></h3>
+              <h5 class="weekday-label">周一</h5>
             </div>
             <div class="card-body p-0">
               <v-chart class="yearly-chart" :option="yearlyChartOption" autoresize />
@@ -41,7 +41,7 @@
         <el-col :xs="24" :sm="12" :lg="6">
           <div class="koho-card activity-review">
             <div class="card-header">
-              <h3>Activity</h3>
+              <h3>活动</h3>
             </div>
             <div class="card-body">
               <div class="activity-list">
@@ -61,23 +61,23 @@
         </el-col>
       </el-row>
 
-      <!-- Row 2: Transaction (10/24) + Value Chart sub-cards (6/24) + Beyond the Lines (8/24) -->
+      <!-- Row 2: Transaction (10/24) + Value Chart sub-cards (6/24) + 超越边界 (8/24) -->
       <el-row :gutter="30" class="dash-row">
         <!-- Transaction History -->
         <el-col :xs="24" :lg="10">
           <div class="koho-card transaction-history">
             <div class="card-header">
-              <h3>Transaction</h3>
+              <h3>交易</h3>
             </div>
             <div class="transaction-body">
               <table class="transaction-table">
                 <thead>
                   <tr>
-                    <th>Item Name</th>
-                    <th>Date and Time</th>
-                    <th>Income</th>
-                    <th>Progress</th>
-                    <th>Status</th>
+                    <th>项目名称</th>
+                    <th>日期时间</th>
+                    <th>收入</th>
+                    <th>进度</th>
+                    <th>状态</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -128,11 +128,11 @@
                 <v-chart class="knob-chart" :option="knobChartOption" autoresize />
               </div>
               <div class="valuechart-detail">
-                <p>Our Sale Value</p>
+                <p>销售总额</p>
                 <h2>$7454.25</h2>
               </div>
             </div>
-            <span class="value-badge">New</span>
+            <span class="value-badge">新增</span>
           </div>
           <div class="value-chart-sub2 koho-card">
             <div class="value-chart-body">
@@ -140,23 +140,23 @@
                 <v-chart class="stock-chart" :option="stockChartOption" autoresize />
               </div>
               <div class="valuechart-detail">
-                <p>Today Value</p>
+                <p>今日销售</p>
                 <h2>$5263.04</h2>
               </div>
             </div>
-            <span class="value-badge">Hot</span>
+            <span class="value-badge">热门</span>
           </div>
         </el-col>
 
-        <!-- Beyond the Lines -->
+        <!-- 超越边界 -->
         <el-col :xs="24" :lg="8">
           <div class="beyo-line">
             <div class="beyo-header">
               <v-chart class="beyo-chart" :option="beyoChartOption" autoresize />
             </div>
             <div class="beyo-detail">
-              <h3>Beyond the Lines <span class="koho-badge-soft">6 hours ago</span></h3>
-              <p>One of the world's brightest, young surf stars, Kanoa Igarashi.</p>
+              <h3>超越边界 <span class="koho-badge-soft">6 小时前</span></h3>
+              <p>全球最耀眼的年轻冲浪新星之一，伊凯诺亚·加萨拉什。</p>
               <div class="date-history">
                 <ul class="beyo-avatars">
                   <li><img src="/koho/assets/images/dashboard/beyo-line/1.png" alt="" /></li>
@@ -167,7 +167,7 @@
                 </ul>
                 <div class="date-label">
                   <h3>10</h3>
-                  <p>june</p>
+                  <p>六月</p>
                 </div>
               </div>
             </div>
@@ -175,7 +175,7 @@
         </el-col>
       </el-row>
 
-      <!-- Row 3: Investment Chart 3-col (10/24) + Top Social Media (6/24) + Upgrade History (8/24) -->
+      <!-- Row 3: Investment Chart 3-col (10/24) + 热门社交媒体 (6/24) + Upgrade History (8/24) -->
       <el-row :gutter="30" class="dash-row">
         <!-- Investment Chart -->
         <el-col :xs="24" :lg="10">
@@ -187,7 +187,7 @@
                     <span class="invest-label">+13.6%</span>
                     <v-chart class="invest-chart-sm" :option="investChartOption" autoresize />
                     <div class="chart-detail">
-                      <h5>Total Investment</h5>
+                      <h5>总投资</h5>
                       <h2>$7454.25</h2>
                     </div>
                   </div>
@@ -197,7 +197,7 @@
                     <span class="invest-label">+15.4%</span>
                     <v-chart class="invest-chart-sm" :option="gainChartOption" autoresize />
                     <div class="chart-detail">
-                      <h5>Total Gain</h5>
+                      <h5>总收益</h5>
                       <h2>$7454.25</h2>
                     </div>
                   </div>
@@ -207,7 +207,7 @@
                     <span class="invest-label">+15.4%</span>
                     <v-chart class="invest-chart-sm" :option="profitChartOption" autoresize />
                     <div class="chart-detail">
-                      <h5>Profit in 6 months</h5>
+                      <h5>6 个月利润</h5>
                       <h2>$7454.25</h2>
                     </div>
                   </div>
@@ -217,11 +217,11 @@
           </div>
         </el-col>
 
-        <!-- Top Social Media -->
+        <!-- 热门社交媒体 -->
         <el-col :xs="24" :sm="12" :lg="6">
           <div class="koho-card social-shared">
             <div class="card-header">
-              <h3>Top Social Media</h3>
+              <h3>热门社交媒体</h3>
             </div>
             <div class="card-body">
               <div class="social-list">
@@ -231,7 +231,7 @@
                   </div>
                   <div class="social-info">
                     <h5>{{ social.name }}</h5>
-                    <p>Social Media</p>
+                    <p>社交媒体</p>
                   </div>
                   <div class="social-trend">
                     <el-icon class="trend-up-icon"><CaretTop /></el-icon>
@@ -251,9 +251,9 @@
           <div class="koho-card upgrade-history">
             <div class="upgrade-body">
               <div class="upgrade-text">
-                <h3>Buy more space now!</h3>
-                <p>Invite 2 Friends and get 5 GB extra space.</p>
-                <a class="upgrade-btn" href="javascript:void(0)">Upgrade now</a>
+                <h3>立即购买更多空间！</h3>
+                <p>邀请 2 位好友，即可获得 5 GB 额外空间。</p>
+                <a class="upgrade-btn" href="javascript:void(0)">立即升级</a>
               </div>
             </div>
             <div class="upgrade-img">
@@ -288,20 +288,20 @@ const SUCCESS = '#67C100'
 
 /* ---- Activity Review data ---- */
 const activities = [
-  { id: 1, avatar: '/koho/assets/images/dashboard/activity/1.jpg', title: 'Review request Jim Smith', subtitle: 'Jan 03 2019 12:25 PM at Tamecula', time: '14m Ago' },
-  { id: 2, avatar: '/koho/assets/images/dashboard/activity/2.jpg', title: 'New contact added', subtitle: 'Jan 02 2019 03:10 PM at Fresno', time: '22m Ago' },
-  { id: 3, avatar: '/koho/assets/images/dashboard/activity/3.jpg', title: 'Sent review (504)236-7302', subtitle: 'Jan 02 2019 07:35 PM at Iris', time: '30m Ago' },
+  { id: 1, avatar: '/koho/assets/images/dashboard/activity/1.jpg', title: 'Jim Smith 的审核请求', subtitle: '2019年1月3日 12:25 于塔梅库拉', time: '14分钟前' },
+  { id: 2, avatar: '/koho/assets/images/dashboard/activity/2.jpg', title: '新增联系人', subtitle: '2019年1月2日 15:10 于弗雷斯诺', time: '22分钟前' },
+  { id: 3, avatar: '/koho/assets/images/dashboard/activity/3.jpg', title: '已发送审核 (504)236-7302', subtitle: '2019年1月2日 19:35 于艾里斯', time: '30分钟前' },
 ]
 
 /* ---- Transaction History data ---- */
 const transactions = [
-  { id: 1, icon: '/koho/assets/images/dashboard/transaction/1.png', name: 'Nike Sports NK', delivery: 'Free delivery', date: '12 May 2022', days: 'In 6 Days', income: 456, progress: 65, progressClass: 'progress-success', payment: 'Paypal' },
-  { id: 2, icon: '/koho/assets/images/dashboard/transaction/2.png', name: 'Women Bag', delivery: '₹83.65 delivery', date: '06 May 2022', days: 'In 5 Days', income: -80, progress: 45, progressClass: 'progress-warning', payment: 'Credit Card' },
-  { id: 3, icon: '/koho/assets/images/dashboard/transaction/3.png', name: 'Sunglasses', delivery: 'Free delivery', date: '28 Sep 2022', days: 'In 4 Months', income: -4232, progress: 85, progressClass: 'progress-danger', payment: 'Paypal' },
-  { id: 4, icon: '/koho/assets/images/dashboard/transaction/4.png', name: 'Cotton T-shirt', delivery: '₹283.65 delivery', date: '22 Mar 2022', days: 'In 8 Days', income: -645, progress: 75, progressClass: 'progress-info', payment: 'Credit Card' },
+  { id: 1, icon: '/koho/assets/images/dashboard/transaction/1.png', name: '耐克运动鞋 NK', delivery: '免运费', date: '2022年5月12日', days: '6天内', income: 456, progress: 65, progressClass: 'progress-success', payment: 'PayPal' },
+  { id: 2, icon: '/koho/assets/images/dashboard/transaction/2.png', name: '女士手提包', delivery: '运费¥83.65', date: '2022年5月6日', days: '5天内', income: -80, progress: 45, progressClass: 'progress-warning', payment: '信用卡' },
+  { id: 3, icon: '/koho/assets/images/dashboard/transaction/3.png', name: '太阳镜', delivery: '免运费', date: '2022年9月28日', days: '4个月内', income: -4232, progress: 85, progressClass: 'progress-danger', payment: 'PayPal' },
+  { id: 4, icon: '/koho/assets/images/dashboard/transaction/4.png', name: '棉质T恤', delivery: '运费¥283.65', date: '2022年3月22日', days: '8天内', income: -645, progress: 75, progressClass: 'progress-info', payment: '信用卡' },
 ]
 
-/* ---- Social Media data ---- */
+/* ---- 社交媒体 data ---- */
 const socialMedia = [
   { name: 'Facebook', icon: '/koho/assets/images/dashboard/social-media/fb.png', trend: '3.7%', value: '$24,000' },
   { name: 'Instagram', icon: '/koho/assets/images/dashboard/social-media/insta.png', trend: '3.7%', value: '$33,000' },
@@ -310,7 +310,7 @@ const socialMedia = [
 
 /* ===== ECharts Options ===== */
 
-/* 1. Yearly Overview — Area chart with gradient */
+/* 1. 年度概览 — Area chart with gradient */
 const yearlyChartOption = {
   series: [{
     type: 'line',
@@ -395,7 +395,7 @@ const stockChartOption = {
   tooltip: { show: false },
 }
 
-/* 4. Beyond the Lines — Bar chart 3 series */
+/* 4. 超越边界 — Bar chart 3 series */
 const beyoChartOption = {
   series: [
     { name: 'Net Profit', type: 'bar', data: [30, 70, 40, 50, 70, 50, 90], barWidth: 18, itemStyle: { borderRadius: 6, color: '#B7B1D7' } },
@@ -530,7 +530,7 @@ const profitChartOption = {
   height: 261px;
 }
 
-/* ==================== Yearly Overview ==================== */
+/* ==================== 年度概览 ==================== */
 .yearly-view .card-header {
   padding: 25px 25px 0;
 }
@@ -774,7 +774,7 @@ const profitChartOption = {
   height: 120px;
 }
 
-/* ==================== Beyond the Lines ==================== */
+/* ==================== 超越边界 ==================== */
 .beyo-line {
   background-color: #fff;
   border-radius: 20px;
@@ -890,7 +890,7 @@ const profitChartOption = {
   margin: 0;
 }
 
-/* ==================== Top Social Media ==================== */
+/* ==================== 热门社交媒体 ==================== */
 .social-shared .card-header {
   padding: 25px 25px 0;
 }

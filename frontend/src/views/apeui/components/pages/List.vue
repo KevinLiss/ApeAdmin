@@ -1,13 +1,13 @@
 <template>
   <div class="list-page">
-    <PageHeader title="Lists" :breadcrumb="['APEUI库', 'Components', 'Lists']" />
+    <PageHeader title="列表" :breadcrumb="['APEUI库', '组件示例', '列表']" />
 
     <el-row :gutter="30">
-      <!-- 1. Default List -->
+      <!-- 1. 默认列表 -->
       <el-col :span="12" class="koho-col">
         <el-card shadow="hover">
           <template #header>
-            <span class="card-title">Default List</span>
+            <span class="card-title">默认列表</span>
           </template>
           <div>
             <div class="koho-list-item" v-for="(item, idx) in defaultList" :key="idx">
@@ -21,7 +21,7 @@
       <el-col :span="12" class="koho-col">
         <el-card shadow="hover">
           <template #header>
-            <span class="card-title">Links and Buttons</span>
+            <span class="card-title">链接与按钮</span>
           </template>
           <div>
             <div
@@ -40,7 +40,7 @@
       <el-col :span="12" class="koho-col">
         <el-card shadow="hover" :body-style="{ padding: 0 }">
           <template #header>
-            <span class="card-title">Flush Style</span>
+            <span class="card-title">紧凑样式</span>
           </template>
           <div>
             <div class="koho-list-item" v-for="(item, idx) in flushList" :key="idx">
@@ -54,7 +54,7 @@
       <el-col :span="12" class="koho-col">
         <el-card shadow="hover" :body-style="{ padding: 0 }">
           <template #header>
-            <span class="card-title">Contextual Classes</span>
+            <span class="card-title">上下文样式</span>
           </template>
           <div>
             <div
@@ -73,7 +73,7 @@
       <el-col :span="12" class="koho-col">
         <el-card shadow="hover">
           <template #header>
-            <span class="card-title">With Badges</span>
+            <span class="card-title">带徽章</span>
           </template>
           <div>
             <div class="koho-list-item badge-item" v-for="(item, idx) in badgeList" :key="idx">
@@ -88,7 +88,7 @@
       <el-col :span="12" class="koho-col">
         <el-card shadow="hover">
           <template #header>
-            <span class="card-title">Custom Content</span>
+            <span class="card-title">自定义内容</span>
           </template>
           <div>
             <div class="koho-list-item custom-content-item" v-for="(item, idx) in customContentList" :key="idx">
@@ -107,28 +107,28 @@
       <el-col :span="12" class="koho-col">
         <el-card shadow="hover">
           <template #header>
-            <span class="card-title">JavaScript Behavior</span>
+            <span class="card-title">JavaScript 行为</span>
           </template>
           <el-tabs v-model="jsTab" tab-position="left" class="js-tabs">
-            <el-tab-pane label="Home" name="home">
-              <h4 class="js-tab-heading">Home</h4>
-              <p class="lorem">Welcome to the home tab! This is where your dashboard overview lives, showing key metrics and recent activity at a glance. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-              <p class="lorem">Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo.</p>
+            <el-tab-pane label="首页" name="home">
+              <h4 class="js-tab-heading">首页</h4>
+              <p class="lorem">欢迎来到首页标签页！这里是仪表盘概览，可以一目了然地查看关键指标和近期动态。这是用于演示的占位文本，展示段落内容的排版效果。</p>
+              <p class="lorem">第二段占位文本，用于演示多段落内容在标签页中的展示效果，帮助开发者了解组件在不同内容长度下的渲染表现。</p>
             </el-tab-pane>
-            <el-tab-pane label="Profile" name="profile">
-              <h4 class="js-tab-heading">Profile</h4>
-              <p class="lorem">Your profile settings are managed here. Update your personal information, change your avatar, and configure privacy preferences. Duis aute irure dolor in reprehenderit.</p>
-              <p class="lorem">In voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt.</p>
+            <el-tab-pane label="个人资料" name="profile">
+              <h4 class="js-tab-heading">个人资料</h4>
+              <p class="lorem">您的个人资料设置在此管理。可以更新个人信息、更换头像以及配置隐私偏好。这是用于演示的占位文本内容。</p>
+              <p class="lorem">第二段占位文本，展示较长的描述性内容在标签页中的排版效果，帮助您了解组件对多段落内容的适配能力。</p>
             </el-tab-pane>
-            <el-tab-pane label="Messages" name="messages">
-              <h4 class="js-tab-heading">Messages</h4>
-              <p class="lorem">All your conversations in one place. View, reply, and manage your message threads with team members and clients. Nemo enim ipsam voluptatem quia voluptas.</p>
-              <p class="lorem">Sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt neque porro quisquam est.</p>
+            <el-tab-pane label="消息" name="messages">
+              <h4 class="js-tab-heading">消息</h4>
+              <p class="lorem">所有对话集中在此。查看、回复并管理与团队成员和客户的消息线程。这是用于演示的占位文本内容。</p>
+              <p class="lorem">第二段占位文本，展示较长内容的排版效果，帮助开发者了解组件在不同内容长度下的渲染表现。</p>
             </el-tab-pane>
-            <el-tab-pane label="Settings" name="settings">
-              <h4 class="js-tab-heading">Settings</h4>
-              <p class="lorem">Configure system-wide settings including security policies, notification preferences, and integration options. At vero eos et accusamus et iusto odio dignissimos.</p>
-              <p class="lorem">Ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident.</p>
+            <el-tab-pane label="设置" name="settings">
+              <h4 class="js-tab-heading">设置</h4>
+              <p class="lorem">在此配置系统级设置，包括安全策略、通知偏好和集成选项。这是用于演示的占位文本内容。</p>
+              <p class="lorem">第二段占位文本，展示较长内容的排版效果，帮助您了解组件对多段落内容的适配能力。</p>
             </el-tab-pane>
           </el-tabs>
         </el-card>
@@ -138,7 +138,7 @@
       <el-col :span="12" class="koho-col">
         <el-card shadow="hover">
           <template #header>
-            <span class="card-title">With Icon</span>
+            <span class="card-title">带图标</span>
           </template>
           <div>
             <div class="koho-list-item icon-list-item" v-for="(item, idx) in iconList" :key="idx">
@@ -153,7 +153,7 @@
       <el-col :span="12" class="koho-col">
         <el-card shadow="hover">
           <template #header>
-            <span class="card-title">With Images</span>
+            <span class="card-title">带方形头像</span>
           </template>
           <div>
             <div class="koho-list-item avatar-list-item" v-for="(item, idx) in imageList" :key="idx">
@@ -171,7 +171,7 @@
       <el-col :span="12" class="koho-col">
         <el-card shadow="hover">
           <template #header>
-            <span class="card-title">With Image Rounded</span>
+            <span class="card-title">带圆形头像</span>
           </template>
           <div>
             <div class="koho-list-item avatar-list-item" v-for="(item, idx) in roundedImageList" :key="idx">
@@ -194,82 +194,82 @@ import { HomeFilled, Star, Message, Setting } from '@element-plus/icons-vue'
 import type { Component } from 'vue'
 import PageHeader from '../PageHeader.vue'
 
-// 1. Default List
+// 1. 默认列表
 const defaultList = [
-  'Cras justo odio',
-  'Dapibus ac facilisis in',
-  'Morbi leo risus',
-  'Porta ac consectetur ac',
-  'Vestibulum at eros',
+  '第一条列表项',
+  '第二条列表项',
+  '第三条列表项',
+  '第四条列表项',
+  '第五条列表项',
 ]
 
 // 2. Links and Buttons
 const linkList = [
-  { text: 'The current active link item', active: true, disabled: false },
-  { text: 'A second link item', active: false, disabled: false },
-  { text: 'A third link item', active: false, disabled: false },
-  { text: 'A fourth link item', active: false, disabled: false },
-  { text: 'A disabled link item', active: false, disabled: true },
+  { text: '当前激活的链接项', active: true, disabled: false },
+  { text: '第二个链接项', active: false, disabled: false },
+  { text: '第三个链接项', active: false, disabled: false },
+  { text: '第四个链接项', active: false, disabled: false },
+  { text: '禁用的链接项', active: false, disabled: true },
 ]
 
 // 3. Flush Style
 const flushList = [
-  'Cras justo odio',
-  'Dapibus ac facilisis in',
-  'Morbi leo risus',
-  'Porta ac consectetur ac',
-  'Vestibulum at eros',
-  'Cras justo odio',
-  'Dapibus ac facilisis in',
-  'Morbi leo risus',
-  'Porta ac consectetur ac',
+  '第一条列表项',
+  '第二条列表项',
+  '第三条列表项',
+  '第四条列表项',
+  '第五条列表项',
+  '第六条列表项',
+  '第七条列表项',
+  '第八条列表项',
+  '第九条列表项',
 ]
 
 // 4. Contextual Classes
 type CtxType = 'primary' | 'secondary' | 'success' | 'danger' | 'warning' | 'info' | 'light' | 'dark' | 'brand'
 const contextualList: { text: string; ctx: CtxType }[] = [
-  { text: 'A simple primary list item', ctx: 'primary' },
-  { text: 'A simple secondary list item', ctx: 'secondary' },
-  { text: 'A simple success list item', ctx: 'success' },
-  { text: 'A simple danger list item', ctx: 'danger' },
-  { text: 'A simple warning list item', ctx: 'warning' },
-  { text: 'A simple info list item', ctx: 'info' },
-  { text: 'A simple light list item', ctx: 'light' },
-  { text: 'A simple dark list item', ctx: 'dark' },
-  { text: 'A simple brand list item', ctx: 'brand' },
+  { text: '主要样式的列表项', ctx: 'primary' },
+  { text: '次要样式的列表项', ctx: 'secondary' },
+  { text: '成功样式的列表项', ctx: 'success' },
+  { text: '危险样式的列表项', ctx: 'danger' },
+  { text: '警告样式的列表项', ctx: 'warning' },
+  { text: '信息样式的列表项', ctx: 'info' },
+  { text: '浅色样式的列表项', ctx: 'light' },
+  { text: '深色样式的列表项', ctx: 'dark' },
+  { text: '品牌色样式的列表项', ctx: 'brand' },
 ]
 
 // 5. With Badges
 type BadgeType = 'primary' | 'success' | 'warning' | 'info' | 'danger'
 const badgeList: { text: string; badge: string | number; type: BadgeType }[] = [
-  { text: 'Inbox messages', badge: 14, type: 'primary' },
-  { text: 'Draft emails', badge: 2, type: 'success' },
-  { text: 'Sent items', badge: 1, type: 'warning' },
-  { text: 'Storage used', badge: '100%', type: 'info' },
-  { text: 'Pending tasks', badge: 2, type: 'danger' },
-  { text: 'Promotional offer', badge: 'sale', type: 'primary' },
-  { text: 'Unread notifications', badge: 14, type: 'danger' },
+  { text: '收件箱消息', badge: 14, type: 'primary' },
+  { text: '草稿邮件', badge: 2, type: 'success' },
+  { text: '已发送', badge: 1, type: 'warning' },
+  { text: '已用存储', badge: '100%', type: 'info' },
+  { text: '待办任务', badge: 2, type: 'danger' },
+  { text: '促销优惠', badge: '特惠', type: 'primary' },
+  { text: '未读通知', badge: 14, type: 'danger' },
 ]
 
 // 6. Custom Content
 const customContentList = [
   {
-    title: 'List item heading',
-    subtitle: 'Featured',
-    time: '3 days ago',
-    desc: 'Some placeholder content in a paragraph that goes a little deeper for discussion and provides more detail about the topic at hand.',
+    title: '列表项标题',
+    subtitle: '推荐',
+    time: '3天前',
+    desc: '这是一段用于演示的占位内容，展示列表项在带有详细描述时的排版效果，帮助您了解组件对丰富内容的适配能力。',
   },
   {
-    title: 'A second list item heading',
-    subtitle: 'New',
-    time: '5 days ago',
-    desc: 'Another piece of placeholder content. This text is here to demonstrate how the list item will render with longer descriptive content.',
+    title: '第二个列表项标题',
+    subtitle: '新增',
+    time: '5天前',
+    desc: '另一段占位内容，用于演示列表项在较长描述文本下的渲染效果，展示组件对多行内容的支持。',
   },
   {
-    title: 'A third list item heading',
-    subtitle: 'Updated',
-    time: '1 week ago',
-    desc: 'A final piece of placeholder content to round out the demonstration. This shows how multiple list items stack vertically with rich content.',
+    title: '第三个列表项标题',
+    subtitle: '已更新',
+    time: '1周前',
+    desc: '最后一段占位内容，用于展示多个列表项纵向排列时丰富内容的效果，帮助您全面了解组件的展示能力。',
   },
 ]
 
@@ -278,26 +278,26 @@ const jsTab = ref('home')
 
 // 8. With Icon
 const iconList: { text: string; icon: Component }[] = [
-  { text: 'Home dashboard', icon: HomeFilled },
-  { text: 'Favorite items', icon: Star },
-  { text: 'Message center', icon: Message },
-  { text: 'System settings', icon: Setting },
+  { text: '首页看板', icon: HomeFilled },
+  { text: '收藏项', icon: Star },
+  { text: '消息中心', icon: Message },
+  { text: '系统设置', icon: Setting },
 ]
 
 // 9. With Images (square rounded)
 const imageList = [
-  { name: 'Alice Anderson', desc: 'Project Manager', initials: 'AA', color: '#5A67F5' },
-  { name: 'Bob Brown', desc: 'Lead Developer', initials: 'BB', color: '#67C100' },
-  { name: 'Charlie Clark', desc: 'UI Designer', initials: 'CC', color: '#E56809' },
-  { name: 'Diana Davis', desc: 'QA Engineer', initials: 'DD', color: '#3EBCB9' },
+  { name: '艾丽斯·安德森', desc: '项目经理', initials: '艾', color: '#5A67F5' },
+  { name: '鲍勃·布朗', desc: '首席开发', initials: '鲍', color: '#67C100' },
+  { name: '查理·克拉克', desc: 'UI设计师', initials: '查', color: '#E56809' },
+  { name: '戴安娜·戴维斯', desc: '测试工程师', initials: '戴', color: '#3EBCB9' },
 ]
 
 // 10. With Image Rounded
 const roundedImageList = [
-  { name: 'Evan Evans', desc: 'DevOps Engineer', initials: 'EE', color: '#7F8AF8' },
-  { name: 'Fiona Foster', desc: 'Product Owner', initials: 'FF', color: '#DC0808' },
-  { name: 'George Green', desc: 'Backend Developer', initials: 'GG', color: '#E56809' },
-  { name: 'Hannah Hill', desc: 'Data Analyst', initials: 'HH', color: '#5A67F5' },
+  { name: '伊万·埃文斯', desc: '运维工程师', initials: '伊', color: '#7F8AF8' },
+  { name: '菲奥娜·福斯特', desc: '产品负责人', initials: '菲', color: '#DC0808' },
+  { name: '乔治·格林', desc: '后端开发', initials: '乔', color: '#E56809' },
+  { name: '汉娜·希尔', desc: '数据分析师', initials: '汉', color: '#5A67F5' },
 ]
 </script>
 

@@ -1,27 +1,27 @@
 <template>
   <div>
-    <PageHeader title="Users Edit" :breadcrumb="['APEUI库', 'Users', 'Users Edit']" />
+    <PageHeader title="编辑资料" :breadcrumb="['APEUI库', '用户中心', '编辑资料']" />
 
     <el-card>
       <el-form :model="form" label-width="120px" style="max-width: 600px">
-        <el-form-item label="First Name">
-          <el-input v-model="form.firstName" placeholder="Enter first name" />
+        <el-form-item label="姓">
+          <el-input v-model="form.firstName" placeholder="请输入姓" />
         </el-form-item>
-        <el-form-item label="Last Name">
-          <el-input v-model="form.lastName" placeholder="Enter last name" />
+        <el-form-item label="名">
+          <el-input v-model="form.lastName" placeholder="请输入名" />
         </el-form-item>
-        <el-form-item label="Email">
-          <el-input v-model="form.email" placeholder="Enter email address" />
+        <el-form-item label="邮箱">
+          <el-input v-model="form.email" placeholder="请输入邮箱地址" />
         </el-form-item>
-        <el-form-item label="Phone">
-          <el-input v-model="form.phone" placeholder="Enter phone number" />
+        <el-form-item label="手机">
+          <el-input v-model="form.phone" placeholder="请输入手机号码" />
         </el-form-item>
-        <el-form-item label="Bio">
-          <el-input v-model="form.bio" type="textarea" :rows="4" placeholder="Tell us about yourself" />
+        <el-form-item label="简介">
+          <el-input v-model="form.bio" type="textarea" :rows="4" placeholder="介绍一下你自己" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="onSave">Save</el-button>
-          <el-button @click="onCancel">Cancel</el-button>
+          <el-button type="primary" @click="onSave">保存</el-button>
+          <el-button @click="onCancel">取消</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -34,15 +34,15 @@ import { ElMessage } from 'element-plus'
 import PageHeader from '../components/PageHeader.vue'
 
 const form = ref({
-  firstName: 'John',
-  lastName: 'Doe',
-  email: 'john.doe@example.com',
-  phone: '+1 (555) 123-4567',
+  firstName: '张',
+  lastName: '伟',
+  email: 'zhangwei@example.com',
+  phone: '13800138000',
   bio: '',
 })
 
 const onSave = () => {
-  ElMessage.success('Profile saved successfully')
+  ElMessage.success('资料保存成功')
 }
 
 const onCancel = () => {

@@ -1,6 +1,6 @@
 ﻿<template>
   <div>
-    <PageHeader title="Font Awesome Icons" :breadcrumb="['APEUI库', 'Components', 'Font Awesome']" />
+    <PageHeader title="Font Awesome 图标" :breadcrumb="['APEUI库', '组件示例', 'Font Awesome 图标']" />
 
     <el-card shadow="hover">
       <template #header>

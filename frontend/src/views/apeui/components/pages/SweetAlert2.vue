@@ -1,6 +1,6 @@
 <template>
   <div>
-    <PageHeader title="SweetAlert2" :breadcrumb="['APEUI库', 'Components', 'SweetAlert2']" />
+    <PageHeader title="弹窗提示" :breadcrumb="['APEUI库', '组件示例', '弹窗提示']" />
 
     <el-row :gutter="16">
       <el-col :span="12" style="margin-bottom: 16px">
@@ -34,10 +34,10 @@
       <el-col :span="12" style="margin-bottom: 16px">
         <el-card shadow="hover" header="ElMessage Toast 通知">
           <div class="btn-group-vertical">
-            <el-button type="success" @click="showToast('success')">Success Toast</el-button>
-            <el-button type="warning" @click="showToast('warning')">Warning Toast</el-button>
-            <el-button type="danger" @click="showToast('error')">Error Toast</el-button>
-            <el-button @click="showToast('info')">Info Toast</el-button>
+            <el-button type="success" @click="showToast('success')">成功提示</el-button>
+            <el-button type="warning" @click="showToast('warning')">警告提示</el-button>
+            <el-button type="danger" @click="showToast('error')">错误提示</el-button>
+            <el-button @click="showToast('info')">信息提示</el-button>
           </div>
         </el-card>
       </el-col>

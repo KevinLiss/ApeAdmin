@@ -1,10 +1,10 @@
 <template>
   <div>
-    <PageHeader title="Progress" :breadcrumb="['APEUI库', 'Components', 'Progress']" />
+    <PageHeader title="进度条" :breadcrumb="['APEUI库', '组件示例', '进度条']" />
 
     <el-row :gutter="16">
       <el-col :span="14" style="margin-bottom: 16px">
-        <el-card shadow="hover" header="Linear Progress" style="margin-bottom: 16px">
+        <el-card shadow="hover" header="线性进度" style="margin-bottom: 16px">
           <div style="display: flex; flex-direction: column; gap: 18px">
             <el-progress :percentage="20" />
             <el-progress :percentage="40" status="success" />
@@ -14,7 +14,7 @@
           </div>
         </el-card>
 
-        <el-card shadow="hover" header="Colors & Striped">
+        <el-card shadow="hover" header="颜色与条纹">
           <div style="display: flex; flex-direction: column; gap: 14px">
             <el-progress :percentage="35" color="#5A67F5" />
             <el-progress :percentage="55" color="#3ebcb9" />
@@ -26,7 +26,7 @@
       </el-col>
 
       <el-col :span="10" style="margin-bottom: 16px">
-        <el-card shadow="hover" header="Circle Progress" style="margin-bottom: 16px">
+        <el-card shadow="hover" header="环形进度" style="margin-bottom: 16px">
           <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: center">
             <el-progress type="circle" :percentage="0" />
             <el-progress type="circle" :percentage="25" />
@@ -37,7 +37,7 @@
           </div>
         </el-card>
 
-        <el-card shadow="hover" header="Dashboard Progress">
+        <el-card shadow="hover" header="仪表盘进度">
           <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: center">
             <el-progress type="dashboard" :percentage="60" />
             <el-progress type="dashboard" :percentage="80" status="success" />
@@ -48,18 +48,18 @@
       </el-col>
     </el-row>
 
-    <el-card shadow="hover" header="Animated Progress">
+    <el-card shadow="hover" header="动画进度">
       <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 16px">
         <el-progress :percentage="dynamicPercentage" color="#5A67F5" style="flex: 1" />
         <el-progress type="circle" :percentage="dynamicPercentage" color="#5A67F5" />
-        <el-button type="primary" :disabled="dynamicPercentage >= 100" @click="increase">Increase</el-button>
-        <el-button type="warning" :disabled="dynamicPercentage <= 0" @click="decrease">Decrease</el-button>
+        <el-button type="primary" :disabled="dynamicPercentage >= 100" @click="increase">增加</el-button>
+        <el-button type="warning" :disabled="dynamicPercentage <= 0" @click="decrease">减少</el-button>
       </div>
       <div style="margin-bottom: 16px">
         <el-progress :percentage="dynamicPercentage" striped striped-flow :duration="5" />
       </div>
       <div style="display: flex; align-items: center; gap: 16px">
-        <span style="min-width: 80px; color: #5a6273">Custom:</span>
+        <span style="min-width: 80px; color: #5a6273">自定义：</span>
         <el-slider v-model="dynamicPercentage" :max="100" style="flex: 1" />
         <span style="min-width: 40px; text-align: right">{{ dynamicPercentage }}%</span>
       </div>
