@@ -8,7 +8,7 @@
         <span class="card-title">Grid Options</span>
       </template>
       <p class="card-desc">Bootstrap 5 栅格系统支持六个响应式断点，每个断点对应不同的最小宽度和类前缀。下方表格展示了完整的断点参数。</p>
-      <el-table :data="gridOptions" border style="width: 100%" :header-cell-style="{ background: '#f5f4fa', color: '#534686', fontWeight: 600 }">
+      <el-table :data="gridOptions" border style="width: 100%" :header-cell-style="{ background: '#f5f4fa', color: '#5A67F5', fontWeight: 600 }">
         <el-table-column prop="name" label="名称" width="180" />
         <el-table-column prop="minWidth" label="最小宽度" width="140" />
         <el-table-column prop="prefix" label="类前缀" width="140" />
@@ -176,7 +176,7 @@ const gridOptions = [
 <style scoped>
 .card-title {
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
   font-size: 15px;
 }
 .card-desc {
@@ -194,21 +194,21 @@ const gridOptions = [
 .grid-label {
   margin: 0 0 8px 0;
   font-size: 13px;
-  color: #534686;
+  color: #5A67F5;
   font-weight: 500;
 }
 .grid-row {
   margin-bottom: 0;
 }
 .grid-cell {
-  background: rgba(83, 70, 134, 0.1);
+  background: rgba(90, 103, 245, 0.1);
   border-radius: 6px;
   height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 13px;
-  color: #534686;
+  color: #5A67F5;
   font-weight: 600;
 }
 

@@ -75,7 +75,7 @@ import PageHeader from '../PageHeader.vue'
 .card-title {
   font-size: 16px;
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
 }
 
 .card-subtitle {
@@ -87,7 +87,7 @@ import PageHeader from '../PageHeader.vue'
 .group-title {
   font-size: 14px;
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
   margin: 0 0 15px 0;
   padding-left: 2px;
 }

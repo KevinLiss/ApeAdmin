@@ -86,7 +86,7 @@ onMounted(fetchData)
   background: #f5f7fa;
   padding: 2px 6px;
   border-radius: 4px;
-  color: #409eff;
+  color: #5A67F5;
 }
 .result-box {
   margin-top: 12px;

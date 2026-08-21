@@ -115,7 +115,7 @@ const disabledVal = ref(70)
 .slider-value {
   margin-top: 16px;
   font-size: 14px;
-  color: #534686;
+  color: #5A67F5;
   font-weight: 500;
 }
 .vertical-demo {
@@ -127,6 +127,6 @@ const disabledVal = ref(70)
 .card-title {
   font-size: 20px;
   font-weight: 500;
-  color: #534686;
+  color: #5A67F5;
 }
 </style>

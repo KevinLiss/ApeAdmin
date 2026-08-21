@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div>
     <PageHeader title="Progress" :breadcrumb="['APEUI库', 'Components', 'Progress']" />
 
@@ -16,7 +16,7 @@
 
         <el-card shadow="hover" header="Colors & Striped">
           <div style="display: flex; flex-direction: column; gap: 14px">
-            <el-progress :percentage="35" color="#534686" />
+            <el-progress :percentage="35" color="#5A67F5" />
             <el-progress :percentage="55" color="#3ebcb9" />
             <el-progress :percentage="75" color="#67c100" />
             <el-progress :percentage="90" color="#e56809" />
@@ -33,7 +33,7 @@
             <el-progress type="circle" :percentage="50" status="success" />
             <el-progress type="circle" :percentage="75" status="warning" />
             <el-progress type="circle" :percentage="100" status="exception" />
-            <el-progress type="circle" :percentage="65" color="#534686" :width="100" />
+            <el-progress type="circle" :percentage="65" color="#5A67F5" :width="100" />
           </div>
         </el-card>
 
@@ -42,7 +42,7 @@
             <el-progress type="dashboard" :percentage="60" />
             <el-progress type="dashboard" :percentage="80" status="success" />
             <el-progress type="dashboard" :percentage="45" status="warning" />
-            <el-progress type="dashboard" :percentage="30" color="#534686" :width="120" />
+            <el-progress type="dashboard" :percentage="30" color="#5A67F5" :width="120" />
           </div>
         </el-card>
       </el-col>
@@ -50,8 +50,8 @@
 
     <el-card shadow="hover" header="Animated Progress">
       <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 16px">
-        <el-progress :percentage="dynamicPercentage" color="#534686" style="flex: 1" />
-        <el-progress type="circle" :percentage="dynamicPercentage" color="#534686" />
+        <el-progress :percentage="dynamicPercentage" color="#5A67F5" style="flex: 1" />
+        <el-progress type="circle" :percentage="dynamicPercentage" color="#5A67F5" />
         <el-button type="primary" :disabled="dynamicPercentage >= 100" @click="increase">Increase</el-button>
         <el-button type="warning" :disabled="dynamicPercentage <= 0" @click="decrease">Decrease</el-button>
       </div>

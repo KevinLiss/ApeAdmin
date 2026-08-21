@@ -210,7 +210,7 @@ const sharedFiles = ref([
   { id: 1, name: 'Q3 Report Draft.pdf', size: '2.4 MB', date: 'Aug 15', icon: Document, bg: '#fef0e6', color: '#E56809' },
   { id: 2, name: 'Design Specs.xlsx', size: '1.1 MB', date: 'Aug 12', icon: Files, bg: '#e8f5e9', color: '#67C100' },
   { id: 3, name: 'Meeting Notes.docx', size: '320 KB', date: 'Aug 10', icon: Document, bg: '#e3f2fd', color: '#3EBCB9' },
-  { id: 4, name: 'Project Archive.zip', size: '45 MB', date: 'Aug 05', icon: Files, bg: '#f3e8ff', color: '#534686' },
+  { id: 4, name: 'Project Archive.zip', size: '45 MB', date: 'Aug 05', icon: Files, bg: '#EAF1FF', color: '#5A67F5' },
 ])
 
 const onSelectConv = (conv: any) => {
@@ -244,7 +244,7 @@ const onDownload = (file: any) => ElMessage.success(`Downloading ${file.name}`)
   gap: 8px;
   font-size: 18px;
   font-weight: 500;
-  color: #534686;
+  color: #5A67F5;
   margin-bottom: 16px;
 }
 .card-title .el-icon { font-size: 20px; }
@@ -260,8 +260,8 @@ const onDownload = (file: any) => ElMessage.success(`Downloading ${file.name}`)
   cursor: pointer;
   transition: background 0.2s;
 }
-.conversation-item:hover { background: rgba(83, 70, 134, 0.06); }
-.conversation-item.active { background: rgba(83, 70, 134, 0.14); }
+.conversation-item:hover { background: rgba(90, 103, 245, 0.06); }
+.conversation-item.active { background: rgba(90, 103, 245, 0.14); }
 .conv-avatar-wrap { position: relative; flex-shrink: 0; }
 .status-dot {
   position: absolute;
@@ -344,7 +344,7 @@ const onDownload = (file: any) => ElMessage.success(`Downloading ${file.name}`)
   border-radius: 16px;
 }
 .bubble-me {
-  background: #534686;
+  background: #5A67F5;
   color: #fff;
   border-bottom-right-radius: 4px;
 }
@@ -399,7 +399,7 @@ const onDownload = (file: any) => ElMessage.success(`Downloading ${file.name}`)
   gap: 8px;
   font-size: 15px;
   font-weight: 500;
-  color: #534686;
+  color: #5A67F5;
   margin-bottom: 16px;
 }
 .shared-files { display: flex; flex-direction: column; gap: 12px; }
@@ -411,7 +411,7 @@ const onDownload = (file: any) => ElMessage.success(`Downloading ${file.name}`)
   border-radius: 10px;
   transition: background 0.2s;
 }
-.shared-file-item:hover { background: rgba(83, 70, 134, 0.06); }
+.shared-file-item:hover { background: rgba(90, 103, 245, 0.06); }
 .file-icon {
   width: 40px;
   height: 40px;
@@ -433,11 +433,11 @@ const onDownload = (file: any) => ElMessage.success(`Downloading ${file.name}`)
 .file-meta { font-size: 12px; color: #909399; }
 
 :deep(.el-button--primary) {
-  --el-color-primary: #534686;
-  --el-button-bg-color: #534686;
-  --el-button-border-color: #534686;
-  --el-button-hover-bg-color: #6b5c9e;
-  --el-button-hover-border-color: #6b5c9e;
+  --el-color-primary: #5A67F5;
+  --el-button-bg-color: #5A67F5;
+  --el-button-border-color: #5A67F5;
+  --el-button-hover-bg-color: #4F58E8;
+  --el-button-hover-border-color: #4F58E8;
 }
 :deep(.el-badge__content) {
   background-color: #DC0808;

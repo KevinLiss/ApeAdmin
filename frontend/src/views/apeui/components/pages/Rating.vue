@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div>
     <PageHeader title="Rating" :breadcrumb="['APEUI库', 'Components', 'Rating']" />
 
@@ -123,7 +123,7 @@ const customRatings = ref([
     value: 4,
     icons: [ChatLineRound, ChatLineRound, ChatLineRound],
     voidIcon: ChatRound,
-    colors: ['#534686', '#7b6fa8', '#534686'],
+    colors: ['#5A67F5', '#7F8AF8', '#5A67F5'],
   },
 ])
 </script>
@@ -146,7 +146,7 @@ const customRatings = ref([
   white-space: nowrap;
 }
 .rating-value {
-  color: #534686;
+  color: #5A67F5;
   font-size: 14px;
   font-weight: 600;
 }
@@ -156,7 +156,7 @@ const customRatings = ref([
   gap: 16px;
 }
 .rating-text-display {
-  color: #534686;
+  color: #5A67F5;
   font-weight: 600;
   font-size: 15px;
 }

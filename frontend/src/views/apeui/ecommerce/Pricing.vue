@@ -129,7 +129,7 @@ const plans = [
 }
 
 .pricing-card.popular {
-  border: 2px solid #534686;
+  border: 2px solid #5A67F5;
 }
 
 .plan-badge {
@@ -137,7 +137,7 @@ const plans = [
   top: -12px;
   left: 50%;
   transform: translateX(-50%);
-  background: #534686;
+  background: #5A67F5;
   color: #fff;
   font-size: 12px;
   font-weight: 600;
@@ -149,7 +149,7 @@ const plans = [
 .plan-name {
   font-size: 20px;
   font-weight: 700;
-  color: #534686;
+  color: #5A67F5;
   margin-top: 16px;
 }
 
@@ -211,8 +211,8 @@ const plans = [
 }
 
 .pricing-card.popular .plan-btn {
-  background: #534686;
-  border-color: #534686;
+  background: #5A67F5;
+  border-color: #5A67F5;
 }
 
 .pricing-card.popular .plan-btn:hover {

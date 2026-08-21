@@ -150,8 +150,8 @@ const files = ref([
   { id: 1, name: 'Annual Report 2025.pdf', size: '2.4 MB', date: '2025-08-15', type: 'PDF', icon: Document, iconBg: '#fef0e6', iconColor: '#E56809', tagType: 'warning' as const },
   { id: 2, name: 'Q3 Invoice.xlsx', size: '1.2 MB', date: '2025-08-12', type: 'Excel', icon: Files, iconBg: '#e8f5e9', iconColor: '#67C100', tagType: 'success' as const },
   { id: 3, name: 'Service Contract.docx', size: '856 KB', date: '2025-08-10', type: 'Word', icon: Document, iconBg: '#e3f2fd', iconColor: '#3EBCB9', tagType: 'info' as const },
-  { id: 4, name: 'Profile Photo.jpg', size: '3.8 MB', date: '2025-08-08', type: 'Image', icon: Picture, iconBg: '#f3e8ff', iconColor: '#534686', tagType: 'primary' as const },
-  { id: 5, name: 'Dashboard Screenshot.png', size: '1.6 MB', date: '2025-08-06', type: 'Image', icon: Picture, iconBg: '#f3e8ff', iconColor: '#534686', tagType: 'primary' as const },
+  { id: 4, name: 'Profile Photo.jpg', size: '3.8 MB', date: '2025-08-08', type: 'Image', icon: Picture, iconBg: '#EAF1FF', iconColor: '#5A67F5', tagType: 'primary' as const },
+  { id: 5, name: 'Dashboard Screenshot.png', size: '1.6 MB', date: '2025-08-06', type: 'Image', icon: Picture, iconBg: '#EAF1FF', iconColor: '#5A67F5', tagType: 'primary' as const },
   { id: 6, name: 'Product Demo.mp4', size: '124 MB', date: '2025-08-03', type: 'Video', icon: VideoPlay, iconBg: '#ffe0e0', iconColor: '#DC0808', tagType: 'danger' as const },
   { id: 7, name: 'Backup Archive.zip', size: '45 MB', date: '2025-07-28', type: 'Archive', icon: Files, iconBg: '#fff3e0', iconColor: '#E56809', tagType: 'warning' as const },
   { id: 8, name: 'Budget Plan.xlsx', size: '780 KB', date: '2025-07-25', type: 'Excel', icon: Files, iconBg: '#e8f5e9', iconColor: '#67C100', tagType: 'success' as const },
@@ -202,7 +202,7 @@ const onFileAction = (command: string, file: any) => {
   gap: 8px;
   font-size: 18px;
   font-weight: 500;
-  color: #534686;
+  color: #5A67F5;
   margin-bottom: 16px;
 }
 .card-title .el-icon { font-size: 20px; }
@@ -239,8 +239,8 @@ const onFileAction = (command: string, file: any) => {
   transition: all 0.25s;
 }
 .file-card:hover {
-  border-color: #534686;
-  box-shadow: 0 4px 16px rgba(83, 70, 134, 0.12);
+  border-color: #5A67F5;
+  box-shadow: 0 4px 16px rgba(90, 103, 245, 0.12);
 }
 .file-card .el-button {
   position: absolute;
@@ -277,24 +277,24 @@ const onFileAction = (command: string, file: any) => {
 }
 
 :deep(.el-button--primary) {
-  --el-color-primary: #534686;
-  --el-button-bg-color: #534686;
-  --el-button-border-color: #534686;
-  --el-button-hover-bg-color: #6b5c9e;
-  --el-button-hover-border-color: #6b5c9e;
+  --el-color-primary: #5A67F5;
+  --el-button-bg-color: #5A67F5;
+  --el-button-border-color: #5A67F5;
+  --el-button-hover-bg-color: #4F58E8;
+  --el-button-hover-border-color: #4F58E8;
 }
 :deep(.el-tree-node__content:hover) {
-  background-color: rgba(83, 70, 134, 0.08);
+  background-color: rgba(90, 103, 245, 0.08);
 }
 :deep(.el-tree-node.is-current > .el-tree-node__content) {
-  background-color: rgba(83, 70, 134, 0.14);
+  background-color: rgba(90, 103, 245, 0.14);
 }
 :deep(.el-tree-node.is-current > .el-tree-node__content .el-tree-node__label) {
-  color: #534686;
+  color: #5A67F5;
   font-weight: 500;
 }
 :deep(.el-breadcrumb__inner) {
-  color: #534686;
+  color: #5A67F5;
   font-weight: 500;
 }
 </style>

@@ -114,7 +114,7 @@
                   产品需求语音备忘 — 关于下一迭代功能优先级与排期的口头记录。
                 </p>
                 <div class="audio-player-placeholder">
-                  <el-icon :size="24" color="#534686" class="audio-play-btn">
+                  <el-icon :size="24" color="#5A67F5" class="audio-play-btn">
                     <VideoPlay />
                   </el-icon>
                   <div class="audio-wave">
@@ -239,7 +239,7 @@ const barHeights = [
 ]
 
 const compactEvents = [
-  { id: 1, timestamp: 'Feb 26', type: 'primary' as const, color: '#534686', icon: Document, title: '项目立项', desc: '完成需求评审与技术方案确定' },
+  { id: 1, timestamp: 'Feb 26', type: 'primary' as const, color: '#5A67F5', icon: Document, title: '项目立项', desc: '完成需求评审与技术方案确定' },
   { id: 2, timestamp: 'Feb 20', type: 'success' as const, color: '#67C100', icon: Check, title: '核心开发完成', desc: 'RBAC 权限引擎与 CRUD 体系交付' },
   { id: 3, timestamp: 'Feb 14', type: 'warning' as const, color: '#E56809', icon: Bell, title: '集成测试', desc: '插件系统与 MCP 网关联调进行中' },
   { id: 4, timestamp: 'Feb 8', type: 'info' as const, color: '#909399', icon: Upload, title: '部署预演', desc: '预生产环境部署验证通过' },
@@ -259,7 +259,7 @@ const compactEvents = [
 .card-title {
   font-weight: 700;
   font-size: 15px;
-  color: #534686;
+  color: #5A67F5;
 }
 
 /* ---- Custom dot styles ---- */
@@ -273,7 +273,7 @@ const compactEvents = [
 }
 
 .primary-dot {
-  background: linear-gradient(135deg, #6c5ce7, #534686);
+  background: linear-gradient(135deg, #4D9FFF, #5A67F5);
 }
 
 .success-dot {
@@ -301,7 +301,7 @@ const compactEvents = [
   margin: 0 0 8px;
   font-size: 16px;
   font-weight: 700;
-  color: #534686;
+  color: #5A67F5;
 }
 
 .section-text {
@@ -389,7 +389,7 @@ const compactEvents = [
 }
 
 .audio-play-btn:hover {
-  box-shadow: 0 2px 12px rgba(83, 70, 134, 0.2);
+  box-shadow: 0 2px 12px rgba(90, 103, 245, 0.2);
 }
 
 .audio-wave {
@@ -402,7 +402,7 @@ const compactEvents = [
 
 .wave-bar {
   width: 3px;
-  background: #534686;
+  background: #5A67F5;
   border-radius: 2px;
   opacity: 0.7;
 }
@@ -424,7 +424,7 @@ const compactEvents = [
 .compact-title {
   font-weight: 600;
   font-size: 14px;
-  color: #534686;
+  color: #5A67F5;
 }
 
 .compact-desc {

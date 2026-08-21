@@ -156,7 +156,7 @@ const typeCounts = { posts: 18, users: 6, images: 9, files: 5 }
 const totalResults = 38
 
 const breakdown = [
-  { label: 'Posts', count: 18, percent: 75, color: '#534686', icon: Document },
+  { label: 'Posts', count: 18, percent: 75, color: '#5A67F5', icon: Document },
   { label: 'Images', count: 9, percent: 38, color: '#3EBCB9', icon: Picture },
   { label: 'Users', count: 6, percent: 25, color: '#67C100', icon: User },
   { label: 'Files', count: 5, percent: 21, color: '#E56809', icon: Files },
@@ -253,7 +253,7 @@ const onResultClick = (result: any) => ElMessage.info(`Opening: ${result.title}`
   gap: 8px;
   font-size: 18px;
   font-weight: 500;
-  color: #534686;
+  color: #5A67F5;
   margin-bottom: 16px;
 }
 .card-title .el-icon { font-size: 20px; }
@@ -283,7 +283,7 @@ const onResultClick = (result: any) => ElMessage.info(`Opening: ${result.title}`
   color: #909399;
   margin-bottom: 16px;
 }
-.highlight { color: #534686; font-weight: 600; }
+.highlight { color: #5A67F5; font-weight: 600; }
 .result-item {
   padding: 20px 0;
   border-bottom: 1px solid #f0f0f0;
@@ -308,7 +308,7 @@ const onResultClick = (result: any) => ElMessage.info(`Opening: ${result.title}`
 .result-title {
   font-size: 18px;
   font-weight: 500;
-  color: #534686;
+  color: #5A67F5;
   margin: 0 0 8px 0;
   cursor: pointer;
 }
@@ -339,7 +339,7 @@ const onResultClick = (result: any) => ElMessage.info(`Opening: ${result.title}`
 .stat-number {
   font-size: 36px;
   font-weight: 700;
-  color: #534686;
+  color: #5A67F5;
 }
 .stat-label {
   font-size: 14px;
@@ -381,18 +381,18 @@ const onResultClick = (result: any) => ElMessage.info(`Opening: ${result.title}`
 }
 
 :deep(.el-button--primary) {
-  --el-color-primary: #534686;
-  --el-button-bg-color: #534686;
-  --el-button-border-color: #534686;
-  --el-button-hover-bg-color: #6b5c9e;
-  --el-button-hover-border-color: #6b5c9e;
+  --el-color-primary: #5A67F5;
+  --el-button-bg-color: #5A67F5;
+  --el-button-border-color: #5A67F5;
+  --el-button-hover-bg-color: #4F58E8;
+  --el-button-hover-border-color: #4F58E8;
 }
 :deep(.el-radio-button__inner) {
-  --el-color-primary: #534686;
+  --el-color-primary: #5A67F5;
 }
 :deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
-  background-color: #534686;
-  border-color: #534686;
-  box-shadow: -1px 0 0 0 #534686;
+  background-color: #5A67F5;
+  border-color: #5A67F5;
+  box-shadow: -1px 0 0 0 #5A67F5;
 }
 </style>

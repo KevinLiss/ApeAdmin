@@ -148,7 +148,7 @@
           <!-- 收货地址确认 -->
           <h4 class="section-title">收货地址</h4>
           <div class="confirm-address" v-if="selectedAddress">
-            <el-icon color="#534686"><Location /></el-icon>
+            <el-icon color="#5A67F5"><Location /></el-icon>
             <div>
               <span class="confirm-addr-name">{{ selectedAddress.name }} · {{ selectedAddress.phone }}</span>
               <p class="confirm-addr-detail">{{ selectedAddress.detail }}</p>
@@ -351,7 +351,7 @@ function placeOrder() {
 .card-title {
   font-size: 16px;
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
 }
 
 /* 地址卡片 */
@@ -369,9 +369,9 @@ function placeOrder() {
 }
 
 .address-card.selected {
-  border-color: #534686;
+  border-color: #5A67F5;
   background: #faf9fc;
-  box-shadow: 0 0 0 3px rgba(83, 70, 134, 0.08);
+  box-shadow: 0 0 0 3px rgba(90, 103, 245, 0.08);
 }
 
 .address-radio {
@@ -441,12 +441,12 @@ function placeOrder() {
 }
 
 .payment-option.active {
-  border-color: #534686;
+  border-color: #5A67F5;
   background: #faf9fc;
 }
 
 .credit-form {
-  border: 1px solid #f0ecf6 !important;
+  border: 1px solid #EDF2FF !important;
   margin-top: -4px;
 }
 
@@ -460,7 +460,7 @@ function placeOrder() {
   gap: 8px;
   font-size: 14px;
   color: #606266;
-  border: 1px solid #f0ecf6 !important;
+  border: 1px solid #EDF2FF !important;
   margin-top: -4px;
 }
 
@@ -471,20 +471,20 @@ function placeOrder() {
   gap: 12px;
   margin-top: 30px;
   padding-top: 20px;
-  border-top: 1px solid #f0ecf6;
+  border-top: 1px solid #EDF2FF;
 }
 
 /* 确认订单 */
 .section-title {
   font-size: 15px;
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
   margin: 0 0 12px;
 }
 
 .subtotal-text {
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
 }
 
 .confirm-address {
@@ -494,7 +494,7 @@ function placeOrder() {
   background: #faf9fc;
   padding: 14px 16px;
   border-radius: 8px;
-  border: 1px solid #f0ecf6;
+  border: 1px solid #EDF2FF;
   margin-bottom: 20px;
 }
 
@@ -517,7 +517,7 @@ function placeOrder() {
 
 .cost-summary {
   background: #faf9fc;
-  border: 1px solid #f0ecf6;
+  border: 1px solid #EDF2FF;
   border-radius: 8px;
   padding: 16px 20px;
   max-width: 320px;
@@ -536,7 +536,7 @@ function placeOrder() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 2px solid #534686;
+  border-top: 2px solid #5A67F5;
   padding-top: 12px;
   margin-top: 8px;
   font-size: 16px;
@@ -546,7 +546,7 @@ function placeOrder() {
 
 .total-amount {
   font-size: 22px;
-  color: #534686;
+  color: #5A67F5;
 }
 
 /* 成功弹窗 */
@@ -558,7 +558,7 @@ function placeOrder() {
 .success-title {
   font-size: 20px;
   font-weight: 700;
-  color: #534686;
+  color: #5A67F5;
   margin: 16px 0 8px;
 }
 

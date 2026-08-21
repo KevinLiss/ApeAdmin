@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div>
     <PageHeader title="Feather Icon" :breadcrumb="['APEUI库', 'Components', 'Feather Icon']" />
 
@@ -99,7 +99,7 @@ const icons: { name: string; component: Component }[] = [
   transition: all 0.2s;
 }
 .icon-item:hover {
-  background: #f3e8ff;
+  background: #EAF1FF;
   border-color: #c4b5fd;
   transform: translateY(-2px);
 }

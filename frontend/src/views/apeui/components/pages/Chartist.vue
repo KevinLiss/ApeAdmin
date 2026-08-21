@@ -52,7 +52,7 @@ import { GridComponent, TooltipComponent, RadarComponent, LegendComponent } from
 
 use([CanvasRenderer, RadarChart, BarChart, SunburstChart, FunnelChart, GridComponent, TooltipComponent, RadarComponent, LegendComponent])
 
-const PRIMARY = '#534686'
+const PRIMARY = '#5A67F5'
 const SECONDARY = '#FFA47A'
 const SUCCESS = '#67C100'
 const INFO = '#3EBCB9'
@@ -74,7 +74,7 @@ const radarOption = {
     ],
     splitArea: {
       areaStyle: {
-        color: ['rgba(83, 70, 134, 0.05)', 'rgba(83, 70, 134, 0.1)'],
+        color: ['rgba(90, 103, 245, 0.05)', 'rgba(90, 103, 245, 0.1)'],
       },
     },
   },
@@ -86,7 +86,7 @@ const radarOption = {
         name: 'Actual',
         lineStyle: { color: PRIMARY },
         itemStyle: { color: PRIMARY },
-        areaStyle: { color: 'rgba(83, 70, 134, 0.3)' },
+        areaStyle: { color: 'rgba(90, 103, 245, 0.3)' },
       },
       {
         value: [90, 90, 80, 95, 85, 90],
@@ -187,7 +187,7 @@ const sunburstOption = {
 <style scoped>
 .card-title {
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
 }
 .chart {
   height: 320px;

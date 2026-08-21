@@ -122,7 +122,7 @@ import { ArrowRight, HomeFilled } from '@element-plus/icons-vue'
 import PageHeader from '../PageHeader.vue'
 
 const coloredBreadcrumbs = [
-  { name: 'Primary', bg: '#534686', separator: '/', isLight: false },
+  { name: 'Primary', bg: '#5A67F5', separator: '/', isLight: false },
   { name: 'Secondary', bg: '#FFA47A', separator: '/', isLight: false },
   { name: 'Success', bg: '#67C100', separator: '/', isLight: false },
   { name: 'Info', bg: '#3EBCB9', separator: '/', isLight: false },
@@ -146,7 +146,7 @@ const coloredBreadcrumbs = [
 .card-title {
   font-weight: 600;
   font-size: 15px;
-  color: #534686;
+  color: #5A67F5;
 }
 
 .breadcrumb-sections {
@@ -183,7 +183,7 @@ const coloredBreadcrumbs = [
 
 .no-sep-item {
   font-size: 14px;
-  color: #534686;
+  color: #5A67F5;
   margin-right: 24px;
   position: relative;
 }
@@ -236,7 +236,7 @@ const coloredBreadcrumbs = [
 }
 
 .colored-breadcrumb--light :deep(.el-breadcrumb__inner a) {
-  color: #534686 !important;
+  color: #5A67F5 !important;
 }
 
 .colored-breadcrumb--light :deep(.el-breadcrumb__inner a:hover) {

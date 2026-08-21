@@ -141,7 +141,7 @@ const detailVisible = ref(false)
 const currentDetail = ref(null as any)
 
 const stats = [
-  { label: '总收入', value: '$48,520.00', change: '12.5%', trendUp: true, icon: Money, bg: '#f0ecf6', color: '#534686' },
+  { label: '总收入', value: '$48,520.00', change: '12.5%', trendUp: true, icon: Money, bg: '#EDF2FF', color: '#5A67F5' },
   { label: '本月收入', value: '$12,380.00', change: '8.2%', trendUp: true, icon: Wallet, bg: '#fff3ec', color: '#FFA47A' },
   { label: '待收款', value: '$3,240.00', change: '3.1%', trendUp: false, icon: Clock, bg: '#e8f7f6', color: '#3EBCB9' },
   { label: '退款', value: '$860.00', change: '2.4%', trendUp: false, icon: RefreshLeft, bg: '#fdeaea', color: '#DC0808' },
@@ -159,7 +159,7 @@ const transactions = ref([
 ])
 
 const methodDistribution = [
-  { name: 'Visa', percentage: 38, amount: 1700.00, color: '#534686' },
+  { name: 'Visa', percentage: 38, amount: 1700.00, color: '#5A67F5' },
   { name: 'Mastercard', percentage: 25, amount: 5460.50, color: '#FFA47A' },
   { name: 'PayPal', percentage: 17, amount: 1340.00, color: '#3EBCB9' },
   { name: '支付宝', percentage: 12, amount: 1670.00, color: '#67C100' },
@@ -268,7 +268,7 @@ function remind(row: any) {
 .card-title {
   font-size: 16px;
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
 }
 
 .header-tools {
@@ -279,7 +279,7 @@ function remind(row: any) {
 
 .amount-text {
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
 }
 
 .distribution-card {

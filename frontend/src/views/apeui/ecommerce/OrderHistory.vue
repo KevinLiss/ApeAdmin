@@ -370,7 +370,7 @@ function showDetail(row: any) {
 }
 
 .status-tab.active {
-  background: #534686;
+  background: #5A67F5;
   color: #fff;
 }
 
@@ -399,7 +399,7 @@ function showDetail(row: any) {
 .card-title {
   font-size: 16px;
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
 }
 
 .header-tools {
@@ -410,7 +410,7 @@ function showDetail(row: any) {
 
 .amount-text {
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
 }
 
 .pagination-wrap {
@@ -433,7 +433,7 @@ function showDetail(row: any) {
 .detail-order-no {
   font-size: 16px;
   font-weight: 700;
-  color: #534686;
+  color: #5A67F5;
 }
 
 .detail-date {
@@ -444,7 +444,7 @@ function showDetail(row: any) {
 .section-title {
   font-size: 15px;
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
   margin: 0 0 12px;
 }
 

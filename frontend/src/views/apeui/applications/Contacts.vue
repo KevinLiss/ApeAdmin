@@ -167,7 +167,7 @@ const selectContact = (id: number) => {
 .card-title {
   font-size: 16px;
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
 }
 
 .contact-groups {
@@ -178,7 +178,7 @@ const selectContact = (id: number) => {
 .group-letter {
   font-size: 14px;
   font-weight: 700;
-  color: #534686;
+  color: #5A67F5;
   padding: 10px 4px 6px;
 }
 
@@ -220,7 +220,7 @@ const selectContact = (id: number) => {
 .detail-name {
   font-size: 22px;
   font-weight: 700;
-  color: #534686;
+  color: #5A67F5;
   margin: 0 0 4px 0;
 }
 
@@ -243,7 +243,7 @@ const selectContact = (id: number) => {
 .section-label {
   font-size: 14px;
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
   margin: 0 0 12px 0;
 }
 
@@ -257,7 +257,7 @@ const selectContact = (id: number) => {
 }
 
 .info-row .el-icon {
-  color: #534686;
+  color: #5A67F5;
 }
 
 .tag-group {
@@ -268,7 +268,7 @@ const selectContact = (id: number) => {
 
 .tag-group .el-tag {
   border-color: #d8d2e8;
-  color: #534686;
+  color: #5A67F5;
 }
 
 .detail-actions {
@@ -277,11 +277,11 @@ const selectContact = (id: number) => {
 }
 
 :deep(.el-button--primary) {
-  --el-color-primary: #534686;
-  --el-button-bg-color: #534686;
-  --el-button-border-color: #534686;
-  --el-button-hover-bg-color: #6b5c9e;
-  --el-button-hover-border-color: #6b5c9e;
+  --el-color-primary: #5A67F5;
+  --el-button-bg-color: #5A67F5;
+  --el-button-border-color: #5A67F5;
+  --el-button-hover-bg-color: #4F58E8;
+  --el-button-hover-border-color: #4F58E8;
   --el-button-active-bg-color: #433a6b;
   --el-button-active-border-color: #433a6b;
 }

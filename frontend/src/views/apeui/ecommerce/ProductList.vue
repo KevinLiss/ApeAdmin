@@ -109,11 +109,11 @@ const currentPage = ref(1)
 const pageSize = ref(8)
 
 const products = ref<ProductItem[]>([
-  { id: 1, name: 'Wireless Bluetooth Headphones', sku: 'SKU-HP-001', category: 'Electronics', price: 79.99, stock: 245, status: 'published', sales: 1280, bgColor: 'linear-gradient(135deg, #534686, #8a7cb8)' },
+  { id: 1, name: 'Wireless Bluetooth Headphones', sku: 'SKU-HP-001', category: 'Electronics', price: 79.99, stock: 245, status: 'published', sales: 1280, bgColor: 'linear-gradient(135deg, #5A67F5, #8FA0FF)' },
   { id: 2, name: 'Smart Watch Pro Series 7', sku: 'SKU-SW-002', category: 'Electronics', price: 199.00, stock: 78, status: 'published', sales: 856, bgColor: 'linear-gradient(135deg, #3EBCB9, #6ee0dd)' },
   { id: 3, name: 'Premium Cotton Casual T-Shirt', sku: 'SKU-TS-003', category: 'Fashion', price: 29.99, stock: 560, status: 'published', sales: 2100, bgColor: 'linear-gradient(135deg, #FFA47A, #ffc4a3)' },
   { id: 4, name: 'Running Sneakers Air Max', sku: 'SKU-SN-004', category: 'Sports', price: 89.99, stock: 34, status: 'published', sales: 670, bgColor: 'linear-gradient(135deg, #67C100, #85d533)' },
-  { id: 5, name: 'Smartphone X Pro Max 256GB', sku: 'SKU-SP-005', category: 'Electronics', price: 999.00, stock: 0, status: 'out', sales: 430, bgColor: 'linear-gradient(135deg, #534686, #6b5c9e)' },
+  { id: 5, name: 'Smartphone X Pro Max 256GB', sku: 'SKU-SP-005', category: 'Electronics', price: 999.00, stock: 0, status: 'out', sales: 430, bgColor: 'linear-gradient(135deg, #5A67F5, #4F58E8)' },
   { id: 6, name: 'Ceramic Coffee Mug Set of 4', sku: 'SKU-MG-006', category: 'Home & Living', price: 34.99, stock: 320, status: 'published', sales: 450, bgColor: 'linear-gradient(135deg, #E56809, #ff8a3c)' },
   { id: 7, name: 'Organic Skincare Gift Set', sku: 'SKU-SK-007', category: 'Beauty', price: 59.99, stock: 120, status: 'draft', sales: 0, bgColor: 'linear-gradient(135deg, #FFA47A, #ffd0b8)' },
   { id: 8, name: 'Premium Yoga Mat Non-Slip', sku: 'SKU-YM-008', category: 'Sports', price: 49.99, stock: 180, status: 'published', sales: 920, bgColor: 'linear-gradient(135deg, #3EBCB9, #5dd4d1)' },
@@ -223,7 +223,7 @@ const onDelete = (row: ProductItem) => {
 }
 .price-text {
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
 }
 .stock-low {
   color: #DC0808;
@@ -235,16 +235,16 @@ const onDelete = (row: ProductItem) => {
 }
 
 :deep(.el-button--primary) {
-  --el-button-bg-color: #534686;
-  --el-button-border-color: #534686;
-  --el-button-hover-bg-color: #6b5c9e;
-  --el-button-hover-border-color: #6b5c9e;
+  --el-button-bg-color: #5A67F5;
+  --el-button-border-color: #5A67F5;
+  --el-button-hover-bg-color: #4F58E8;
+  --el-button-hover-border-color: #4F58E8;
   --el-button-active-bg-color: #433a6b;
   --el-button-active-border-color: #433a6b;
 }
 :deep(.el-button--primary.is-link) {
-  --el-button-text-color: #534686;
-  --el-button-hover-text-color: #6b5c9e;
+  --el-button-text-color: #5A67F5;
+  --el-button-hover-text-color: #4F58E8;
 }
 
 .pagination-wrap {

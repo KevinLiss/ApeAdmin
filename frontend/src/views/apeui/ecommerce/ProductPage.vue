@@ -87,7 +87,7 @@
                 <el-icon class="mr-4"><Lightning /></el-icon>Buy Now
               </el-button>
               <el-button size="large" circle @click="toggleWishlist">
-                <el-icon :color="wishlisted ? '#DC0808' : '#534686'">
+                <el-icon :color="wishlisted ? '#DC0808' : '#5A67F5'">
                   <StarFilled v-if="wishlisted" />
                   <Star v-else />
                 </el-icon>
@@ -124,7 +124,7 @@
               <div class="rating-breakdown">
                 <div class="rating-bar-item" v-for="bar in ratingBars" :key="bar.label">
                   <span class="bar-label">{{ bar.label }}</span>
-                  <div class="bar-track"><div class="bar-fill" :style="{ width: bar.value + '%', background: '#534686' }"></div></div>
+                  <div class="bar-track"><div class="bar-fill" :style="{ width: bar.value + '%', background: '#5A67F5' }"></div></div>
                   <span class="bar-value">{{ bar.value }}%</span>
                 </div>
               </div>
@@ -188,7 +188,7 @@ import { ElMessage } from 'element-plus'
 import { Goods, Check, ShoppingCart, Lightning, Star, StarFilled, Van, Box, Wallet } from '@element-plus/icons-vue'
 import PageHeader from '../components/PageHeader.vue'
 
-const mainImageBg = 'linear-gradient(135deg, #534686, #8a7cb8)'
+const mainImageBg = 'linear-gradient(135deg, #5A67F5, #8FA0FF)'
 const activeThumb = ref(0)
 const rating = ref(4.6)
 const selectedColor = ref('Purple')
@@ -198,14 +198,14 @@ const wishlisted = ref(false)
 const activeTab = ref('description')
 
 const thumbnails = [
-  { bg: 'linear-gradient(135deg, #534686, #8a7cb8)' },
+  { bg: 'linear-gradient(135deg, #5A67F5, #8FA0FF)' },
   { bg: 'linear-gradient(135deg, #FFA47A, #ffc4a3)' },
   { bg: 'linear-gradient(135deg, #3EBCB9, #6ee0dd)' },
   { bg: 'linear-gradient(135deg, #67C100, #85d533)' },
 ]
 
 const colors = [
-  { name: 'Purple', hex: '#534686' },
+  { name: 'Purple', hex: '#5A67F5' },
   { name: 'Coral', hex: '#FFA47A' },
   { name: 'Teal', hex: '#3EBCB9' },
   { name: 'Green', hex: '#67C100' },
@@ -229,7 +229,7 @@ const reviews = ref([
 ])
 
 const shippingInfo = [
-  { title: 'Free Shipping', desc: 'Free standard shipping on all orders over $50', icon: markRaw(Van), bg: '#534686' },
+  { title: 'Free Shipping', desc: 'Free standard shipping on all orders over $50', icon: markRaw(Van), bg: '#5A67F5' },
   { title: 'Fast Delivery', desc: 'Express delivery available (1-3 business days)', icon: markRaw(Box), bg: '#3EBCB9' },
   { title: 'Easy Returns', desc: '30-day money-back guarantee, no questions asked', icon: markRaw(Wallet), bg: '#FFA47A' },
 ]
@@ -288,7 +288,7 @@ const toggleWishlist = () => {
   transition: border-color 0.2s;
 }
 .thumb.active {
-  border-color: #534686;
+  border-color: #5A67F5;
 }
 
 /* Detail Info */
@@ -327,7 +327,7 @@ const toggleWishlist = () => {
 .detail-price {
   font-size: 32px;
   font-weight: 700;
-  color: #534686;
+  color: #5A67F5;
 }
 .detail-old-price {
   font-size: 18px;
@@ -370,7 +370,7 @@ const toggleWishlist = () => {
   transition: border-color 0.2s;
 }
 .color-dot.active {
-  border-color: #534686;
+  border-color: #5A67F5;
 }
 .size-options {
   display: flex;
@@ -387,12 +387,12 @@ const toggleWishlist = () => {
   transition: all 0.2s;
 }
 .size-btn.active {
-  background: #534686;
-  border-color: #534686;
+  background: #5A67F5;
+  border-color: #5A67F5;
   color: #fff;
 }
 .size-btn:hover {
-  border-color: #534686;
+  border-color: #5A67F5;
 }
 
 /* Actions */
@@ -415,10 +415,10 @@ const toggleWishlist = () => {
   flex-wrap: wrap;
 }
 :deep(.el-button--primary) {
-  --el-button-bg-color: #534686;
-  --el-button-border-color: #534686;
-  --el-button-hover-bg-color: #6b5c9e;
-  --el-button-hover-border-color: #6b5c9e;
+  --el-button-bg-color: #5A67F5;
+  --el-button-border-color: #5A67F5;
+  --el-button-hover-bg-color: #4F58E8;
+  --el-button-hover-border-color: #4F58E8;
   --el-button-active-bg-color: #433a6b;
   --el-button-active-border-color: #433a6b;
 }
@@ -435,13 +435,13 @@ const toggleWishlist = () => {
   border-radius: 12px;
 }
 :deep(.detail-tabs .el-tabs__item.is-active) {
-  color: #534686;
+  color: #5A67F5;
 }
 :deep(.detail-tabs .el-tabs__active-bar) {
-  background-color: #534686;
+  background-color: #5A67F5;
 }
 :deep(.detail-tabs .el-tabs__item:hover) {
-  color: #534686;
+  color: #5A67F5;
 }
 .tab-content {
   padding: 16px 0;
@@ -467,7 +467,7 @@ const toggleWishlist = () => {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #534686;
+  background: #5A67F5;
 }
 
 /* Reviews */
@@ -484,7 +484,7 @@ const toggleWishlist = () => {
 .rating-overview h2 {
   font-size: 42px;
   font-weight: 700;
-  color: #534686;
+  color: #5A67F5;
   margin: 0 0 8px;
 }
 .rating-overview p {
@@ -536,7 +536,7 @@ const toggleWishlist = () => {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: #534686;
+  background: #5A67F5;
   color: #fff;
   display: flex;
   align-items: center;
@@ -590,7 +590,7 @@ const toggleWishlist = () => {
 .shipping-info h5 {
   margin: 0 0 4px;
   font-size: 15px;
-  color: #534686;
+  color: #5A67F5;
 }
 .shipping-info p {
   margin: 0;
@@ -606,7 +606,7 @@ const toggleWishlist = () => {
 .section-title {
   font-size: 18px;
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
   margin: 0 0 20px;
 }
 .related-product-card {
@@ -632,7 +632,7 @@ const toggleWishlist = () => {
   display: block;
   font-size: 18px;
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
   margin-top: 6px;
 }
 .mr-4 {

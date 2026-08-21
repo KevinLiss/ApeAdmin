@@ -143,6 +143,6 @@ document.addEventListener('click', () => {
 
 .context-item:hover {
   background: var(--el-color-primary-light-9, #f5f7fa);
-  color: var(--el-color-primary, #534686);
+  color: var(--el-color-primary, #5A67F5);
 }
 </style>

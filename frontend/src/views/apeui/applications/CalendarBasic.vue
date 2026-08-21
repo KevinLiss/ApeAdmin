@@ -167,7 +167,7 @@ const goToday = () => {
 .card-title {
   font-size: 16px;
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
 }
 
 .cal-header {
@@ -213,18 +213,18 @@ const goToday = () => {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #534686;
+  background: #5A67F5;
   display: inline-block;
 }
 
 .event-count {
   font-size: 11px;
-  color: #534686;
+  color: #5A67F5;
   margin-top: 2px;
 }
 
 .cal-cell.today .cal-day {
-  color: #534686;
+  color: #5A67F5;
   font-weight: 700;
 }
 
@@ -247,7 +247,7 @@ const goToday = () => {
 .event-time {
   font-size: 14px;
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
   min-width: 50px;
   text-align: center;
   padding-top: 2px;
@@ -280,11 +280,11 @@ const goToday = () => {
 }
 
 :deep(.el-button--primary) {
-  --el-color-primary: #534686;
-  --el-button-bg-color: #534686;
-  --el-button-border-color: #534686;
-  --el-button-hover-bg-color: #6b5c9e;
-  --el-button-hover-border-color: #6b5c9e;
+  --el-color-primary: #5A67F5;
+  --el-button-bg-color: #5A67F5;
+  --el-button-border-color: #5A67F5;
+  --el-button-hover-bg-color: #4F58E8;
+  --el-button-hover-border-color: #4F58E8;
   --el-button-active-bg-color: #433a6b;
   --el-button-active-border-color: #433a6b;
 }

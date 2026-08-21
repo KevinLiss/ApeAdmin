@@ -110,7 +110,7 @@
                 inline-prompt
                 active-text="Yes"
                 inactive-text="No"
-                style="--el-switch-on-color: #534686"
+                style="--el-switch-on-color: #5A67F5"
               />
             </el-form-item>
             <el-form-item label="Allow Pre-order">
@@ -252,7 +252,7 @@ const onCancel = () => {
 .card-title {
   font-size: 16px;
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
   margin: 0 0 20px;
   padding-bottom: 14px;
   border-bottom: 1px solid #f0f2f5;
@@ -265,7 +265,7 @@ const onCancel = () => {
 }
 .upload-icon {
   font-size: 32px;
-  color: #534686;
+  color: #5A67F5;
   margin-bottom: 8px;
 }
 :deep(.el-upload__text) {
@@ -273,7 +273,7 @@ const onCancel = () => {
   color: #909399;
 }
 :deep(.el-upload__text em) {
-  color: #534686;
+  color: #5A67F5;
   font-style: normal;
 }
 .upload-tip {
@@ -299,10 +299,10 @@ const onCancel = () => {
 }
 
 :deep(.el-button--primary) {
-  --el-button-bg-color: #534686;
-  --el-button-border-color: #534686;
-  --el-button-hover-bg-color: #6b5c9e;
-  --el-button-hover-border-color: #6b5c9e;
+  --el-button-bg-color: #5A67F5;
+  --el-button-border-color: #5A67F5;
+  --el-button-hover-bg-color: #4F58E8;
+  --el-button-hover-border-color: #4F58E8;
   --el-button-active-bg-color: #433a6b;
   --el-button-active-border-color: #433a6b;
 }

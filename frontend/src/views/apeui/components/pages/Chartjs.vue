@@ -52,7 +52,7 @@ import { GridComponent, TooltipComponent, LegendComponent } from 'echarts/compon
 
 use([CanvasRenderer, BarChart, GridComponent, TooltipComponent, LegendComponent])
 
-const PRIMARY = '#534686'
+const PRIMARY = '#5A67F5'
 const SECONDARY = '#FFA47A'
 const SUCCESS = '#67C100'
 
@@ -116,7 +116,7 @@ const horizontalBarOption = {
 <style scoped>
 .card-title {
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
 }
 .chart {
   height: 320px;

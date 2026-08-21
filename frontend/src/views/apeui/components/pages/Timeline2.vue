@@ -37,7 +37,7 @@
                   <el-tag size="small" type="info" effect="plain">Async</el-tag>
                 </div>
                 <div class="content-footer">
-                  <el-avatar :size="24" style="background: #534686">李</el-avatar>
+                  <el-avatar :size="24" style="background: #5A67F5">李</el-avatar>
                   <span class="footer-author">李明 · 高级后端工程师</span>
                   <el-divider direction="vertical" />
                   <el-icon color="#909399"><View /></el-icon>
@@ -213,7 +213,7 @@
                 <div class="team-section">
                   <span class="team-label">团队成员：</span>
                   <div class="avatar-group">
-                    <el-avatar :size="32" style="background: #534686">李</el-avatar>
+                    <el-avatar :size="32" style="background: #5A67F5">李</el-avatar>
                     <el-avatar :size="32" style="background: #67C100">王</el-avatar>
                     <el-avatar :size="32" style="background: #E56809">陈</el-avatar>
                     <el-avatar :size="32" style="background: #909399">张</el-avatar>
@@ -247,17 +247,17 @@
                 </p>
                 <div class="file-list">
                   <div class="file-item">
-                    <el-icon color="#534686" :size="18"><Document /></el-icon>
+                    <el-icon color="#5A67F5" :size="18"><Document /></el-icon>
                     <span class="file-name">UI-Design-Master-v2.fig</span>
                     <span class="file-size">24.5 MB</span>
                   </div>
                   <div class="file-item">
-                    <el-icon color="#534686" :size="18"><Document /></el-icon>
+                    <el-icon color="#5A67F5" :size="18"><Document /></el-icon>
                     <span class="file-name">Prototype-Interactive.html</span>
                     <span class="file-size">8.2 MB</span>
                   </div>
                   <div class="file-item">
-                    <el-icon color="#534686" :size="18"><Picture /></el-icon>
+                    <el-icon color="#5A67F5" :size="18"><Picture /></el-icon>
                     <span class="file-name">Design-Tokens.json</span>
                     <span class="file-size">128 KB</span>
                   </div>
@@ -297,7 +297,7 @@
                     <span>前端进度</span>
                     <span class="progress-value">65%</span>
                   </div>
-                  <el-progress :percentage="65" color="#534686" :stroke-width="10" />
+                  <el-progress :percentage="65" color="#5A67F5" :stroke-width="10" />
                 </div>
               </div>
             </el-timeline-item>
@@ -376,19 +376,19 @@
                   </div>
                   <div class="download-stats">
                     <div class="download-item">
-                      <el-icon color="#534686"><Download /></el-icon>
+                      <el-icon color="#5A67F5"><Download /></el-icon>
                       <span class="download-value">12,486</span>
                       <span class="download-label">下载量</span>
                     </div>
                     <el-divider direction="vertical" />
                     <div class="download-item">
-                      <el-icon color="#534686"><Star /></el-icon>
+                      <el-icon color="#5A67F5"><Star /></el-icon>
                       <span class="download-value">1,024</span>
                       <span class="download-label">收藏</span>
                     </div>
                     <el-divider direction="vertical" />
                     <div class="download-item">
-                      <el-icon color="#534686"><ChatDotRound /></el-icon>
+                      <el-icon color="#5A67F5"><ChatDotRound /></el-icon>
                       <span class="download-value">186</span>
                       <span class="download-label">评论</span>
                     </div>
@@ -422,7 +422,7 @@ import {
 import PageHeader from '../PageHeader.vue'
 
 const progressColors = [
-  { color: '#534686', percentage: 50 },
+  { color: '#5A67F5', percentage: 50 },
   { color: '#67C100', percentage: 100 },
 ]
 </script>
@@ -439,7 +439,7 @@ const progressColors = [
 .card-title {
   font-weight: 700;
   font-size: 15px;
-  color: #534686;
+  color: #5A67F5;
 }
 
 /* ---- Custom dots ---- */
@@ -453,7 +453,7 @@ const progressColors = [
 }
 
 .primary-dot {
-  background: linear-gradient(135deg, #6c5ce7, #534686);
+  background: linear-gradient(135deg, #4D9FFF, #5A67F5);
 }
 
 .success-dot {
@@ -489,7 +489,7 @@ const progressColors = [
   margin: 0;
   font-size: 15px;
   font-weight: 700;
-  color: #534686;
+  color: #5A67F5;
 }
 
 .content-text {
@@ -544,7 +544,7 @@ const progressColors = [
 .comment-author {
   font-size: 13px;
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
 }
 
 .comment-task {
@@ -568,7 +568,7 @@ const progressColors = [
 
 .progress-value {
   font-weight: 700;
-  color: #534686;
+  color: #5A67F5;
 }
 
 /* ---- Stat row ---- */
@@ -595,7 +595,7 @@ const progressColors = [
 .stat-num {
   font-size: 18px;
   font-weight: 700;
-  color: #534686;
+  color: #5A67F5;
 }
 
 .stat-num-lg {
@@ -713,7 +713,7 @@ const progressColors = [
 .download-value {
   font-size: 16px;
   font-weight: 700;
-  color: #534686;
+  color: #5A67F5;
 }
 
 .download-label {

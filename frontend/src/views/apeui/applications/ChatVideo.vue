@@ -194,7 +194,7 @@ const onSendChat = () => {
   gap: 8px;
   font-size: 18px;
   font-weight: 500;
-  color: #534686;
+  color: #5A67F5;
   margin-bottom: 16px;
 }
 .card-title .el-icon { font-size: 20px; }
@@ -213,7 +213,7 @@ const onSendChat = () => {
   gap: 8px;
   font-size: 16px;
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
 }
 
 /* Video Stage */
@@ -292,8 +292,8 @@ const onSendChat = () => {
   background: #f8f8f8;
   transition: all 0.2s;
 }
-.participant-thumb:hover { background: rgba(83, 70, 134, 0.08); }
-.participant-thumb.active { border-color: #534686; background: rgba(83, 70, 134, 0.12); }
+.participant-thumb:hover { background: rgba(90, 103, 245, 0.08); }
+.participant-thumb.active { border-color: #5A67F5; background: rgba(90, 103, 245, 0.12); }
 .thumb-video { position: relative; text-align: center; }
 .thumb-mute-icon {
   position: absolute;
@@ -342,7 +342,7 @@ const onSendChat = () => {
   align-items: center;
   gap: 8px;
 }
-.chat-msg-author { font-size: 13px; font-weight: 500; color: #534686; }
+.chat-msg-author { font-size: 13px; font-weight: 500; color: #5A67F5; }
 .chat-msg-time { font-size: 11px; color: #909399; }
 .chat-msg-text {
   font-size: 14px;
@@ -360,11 +360,11 @@ const onSendChat = () => {
 }
 
 :deep(.el-button--primary) {
-  --el-color-primary: #534686;
-  --el-button-bg-color: #534686;
-  --el-button-border-color: #534686;
-  --el-button-hover-bg-color: #6b5c9e;
-  --el-button-hover-border-color: #6b5c9e;
+  --el-color-primary: #5A67F5;
+  --el-button-bg-color: #5A67F5;
+  --el-button-border-color: #5A67F5;
+  --el-button-hover-bg-color: #4F58E8;
+  --el-button-hover-border-color: #4F58E8;
 }
 :deep(.el-button--danger) {
   --el-color-primary: #DC0808;

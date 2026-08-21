@@ -229,7 +229,7 @@ const fontWeightList = [
 ]
 
 const textColorList = [
-  { name: 'Primary Text',   color: '#534686' },
+  { name: 'Primary Text',   color: '#5A67F5' },
   { name: 'Secondary Text', color: '#FFA47A' },
   { name: 'Success Text',   color: '#67C100' },
   { name: 'Info Text',      color: '#3EBCB9' },
@@ -243,7 +243,7 @@ const textColorList = [
 .card-title {
   font-size: 16px;
   font-weight: 700;
-  color: #534686;
+  color: #5A67F5;
 }
 
 .typo-col {
@@ -300,7 +300,7 @@ const textColorList = [
 }
 
 .display-text {
-  color: #534686;
+  color: #5A67F5;
   font-weight: 800;
   line-height: 1.1;
 }
@@ -344,7 +344,7 @@ const textColorList = [
 
 .weight-name {
   font-size: 13px;
-  color: #534686;
+  color: #5A67F5;
   font-weight: 600;
 }
 
@@ -417,7 +417,7 @@ const textColorList = [
 .list-section-title {
   font-size: 13px;
   font-weight: 700;
-  color: #534686;
+  color: #5A67F5;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin: 0 0 12px;
@@ -439,7 +439,7 @@ const textColorList = [
 
 .list-unstyled li::before {
   content: '•';
-  color: #534686;
+  color: #5A67F5;
   font-weight: 700;
   position: absolute;
   left: 0;
@@ -514,7 +514,7 @@ const textColorList = [
 }
 
 .blockquote--left {
-  border-left: 4px solid #534686;
+  border-left: 4px solid #5A67F5;
   padding-left: 16px;
 }
 
@@ -530,7 +530,7 @@ const textColorList = [
 }
 
 .blockquote--right {
-  border-right: 4px solid #534686;
+  border-right: 4px solid #5A67F5;
   padding-right: 16px;
   text-align: right;
 }

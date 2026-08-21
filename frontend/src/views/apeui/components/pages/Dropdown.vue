@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div>
     <PageHeader title="Dropdown" :breadcrumb="['APEUI库', 'Components', 'Dropdown']" />
 
@@ -159,7 +159,7 @@ const handleSplitMain = () => {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #534686;
+  color: #5A67F5;
   font-weight: 600;
   cursor: pointer;
   outline: none;

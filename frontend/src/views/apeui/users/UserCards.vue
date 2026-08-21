@@ -49,11 +49,11 @@ const onFollow = (name: string) => {
 
 <style scoped>
 :deep(.el-button--primary) {
-  --el-color-primary: #534686;
-  --el-button-bg-color: #534686;
-  --el-button-border-color: #534686;
-  --el-button-hover-bg-color: #6b5c9e;
-  --el-button-hover-border-color: #6b5c9e;
+  --el-color-primary: #5A67F5;
+  --el-button-bg-color: #5A67F5;
+  --el-button-border-color: #5A67F5;
+  --el-button-hover-bg-color: #4F58E8;
+  --el-button-hover-border-color: #4F58E8;
   --el-button-active-bg-color: #433a6b;
   --el-button-active-border-color: #433a6b;
 }
@@ -64,6 +64,6 @@ const onFollow = (name: string) => {
 }
 
 .social-link:hover .el-icon {
-  color: #534686;
+  color: #5A67F5;
 }
 </style>

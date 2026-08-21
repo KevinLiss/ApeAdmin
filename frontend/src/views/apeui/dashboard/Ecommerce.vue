@@ -218,7 +218,7 @@ import { GridComponent, TooltipComponent, RadarComponent } from 'echarts/compone
 
 use([CanvasRenderer, BarChart, LineChart, RadarChart, GridComponent, TooltipComponent, RadarComponent])
 
-const PRIMARY = '#534686'
+const PRIMARY = '#5A67F5'
 const SECONDARY = '#FFA47A'
 
 /* ---- Helper: stacked bar chart option for stat cards ---- */
@@ -237,9 +237,9 @@ function makeStatChartOption(color1: string, color2: string) {
 
 /* ---- Stat Cards ---- */
 const statCards = [
-  { title: 'Total Sales', value: '54,750', icon: markRaw(ShoppingBag), iconBg: '#534686', chartOption: makeStatChartOption(PRIMARY, '#dad8e0') },
+  { title: 'Total Sales', value: '54,750', icon: markRaw(ShoppingBag), iconBg: '#5A67F5', chartOption: makeStatChartOption(PRIMARY, '#dad8e0') },
   { title: 'Total Income', value: '$35,532', icon: markRaw(Money), iconBg: '#FFA47A', chartOption: makeStatChartOption(SECONDARY, '#faded1') },
-  { title: 'Orders Paid', value: '55,900', icon: markRaw(Document), iconBg: '#534686', chartOption: makeStatChartOption(PRIMARY, '#dad8e0') },
+  { title: 'Orders Paid', value: '55,900', icon: markRaw(Document), iconBg: '#5A67F5', chartOption: makeStatChartOption(PRIMARY, '#dad8e0') },
   { title: 'Total Visitor', value: '67,900', icon: markRaw(User), iconBg: '#FFA47A', chartOption: makeStatChartOption(SECONDARY, '#faded1') },
 ]
 
@@ -366,7 +366,7 @@ const countryChartOption = {
 .sale-content h3 {
   font-size: 18px;
   font-weight: 500;
-  color: #534686;
+  color: #5A67F5;
   margin: 0 0 5px;
 }
 .sale-content p {
@@ -445,7 +445,7 @@ const countryChartOption = {
   margin: 2px 0 0;
   font-size: 13px;
   font-weight: 500;
-  color: #534686;
+  color: #5A67F5;
 }
 .tp-flag {
   font-size: 22px;
@@ -554,7 +554,7 @@ const countryChartOption = {
   background-color: rgba(255, 164, 122, 0.1) !important;
 }
 .bg-primary-card {
-  background-color: rgba(83, 70, 134, 0.1) !important;
+  background-color: rgba(90, 103, 245, 0.1) !important;
 }
 .rated-product-body {
   padding: 25px;
@@ -574,7 +574,7 @@ const countryChartOption = {
   font-size: 9px;
   padding: 5px 10px;
   border-radius: 9px;
-  background-color: #534686;
+  background-color: #5A67F5;
   color: #fff;
 }
 .rated-detail {
@@ -583,7 +583,7 @@ const countryChartOption = {
 .rated-detail h4 {
   font-size: 16px;
   font-weight: 500;
-  color: #534686;
+  color: #5A67F5;
   margin: 0 0 8px;
 }
 .rated-detail h3 {
@@ -620,7 +620,7 @@ const countryChartOption = {
 .review-info h4 {
   font-size: 18px;
   font-weight: 500;
-  color: #534686;
+  color: #5A67F5;
   margin: 0 0 5px;
 }
 .review-text p {
@@ -649,7 +649,7 @@ const countryChartOption = {
 .weekend-inner-bg {
   position: absolute;
   inset: 15px;
-  border: 2px dashed rgba(83, 70, 134, 0.2);
+  border: 2px dashed rgba(90, 103, 245, 0.2);
   border-radius: 15px;
 }
 .weekend-img img {
@@ -659,7 +659,7 @@ const countryChartOption = {
 .weekend-detail h3 {
   font-size: 20px;
   font-weight: 500;
-  color: #534686;
+  color: #5A67F5;
   margin: 0 0 8px;
 }
 .weekend-detail h5 {
@@ -670,7 +670,7 @@ const countryChartOption = {
 }
 .weekend-btn {
   display: inline-block;
-  background-color: #534686;
+  background-color: #5A67F5;
   color: #fff;
   padding: 10px 25px;
   border-radius: 8px;
@@ -681,8 +681,8 @@ const countryChartOption = {
 }
 .weekend-btn:hover {
   background-color: #fff;
-  border: 1px solid #534686;
-  color: #534686;
+  border: 1px solid #5A67F5;
+  color: #5A67F5;
 }
 
 @media (max-width: 992px) {

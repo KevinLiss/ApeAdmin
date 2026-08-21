@@ -103,7 +103,7 @@ const cartDialogVisible = ref(false)
 const lastAdded = ref(null as any)
 
 const products = ref([
-  { id: 1, name: 'iPhone 15 Pro Max 256GB', category: '手机数码', price: 1199.00, originalPrice: 1299.00, rating: 5, reviews: 128, badge: '热销', icon: Iphone, bgColor: '#f0ecf6', iconColor: '#534686', checked: false },
+  { id: 1, name: 'iPhone 15 Pro Max 256GB', category: '手机数码', price: 1199.00, originalPrice: 1299.00, rating: 5, reviews: 128, badge: '热销', icon: Iphone, bgColor: '#EDF2FF', iconColor: '#5A67F5', checked: false },
   { id: 2, name: 'MacBook Air M3 13英寸', category: '笔记本电脑', price: 999.00, originalPrice: 1099.00, rating: 5, reviews: 86, badge: '新品', icon: Notebook, bgColor: '#fff3ec', iconColor: '#FFA47A', checked: false },
   { id: 3, name: 'Apple Watch Ultra 2', category: '智能穿戴', price: 799.00, originalPrice: null, rating: 4, reviews: 54, badge: '', icon: Watch, bgColor: '#e8f7f6', iconColor: '#3EBCB9', checked: false },
   { id: 4, name: 'AirPods Pro 2 (USB-C)', category: '音频设备', price: 249.00, originalPrice: 279.00, rating: 5, reviews: 210, badge: '推荐', icon: Headset, bgColor: '#eef7e8', iconColor: '#67C100', checked: false },
@@ -199,7 +199,7 @@ function addAllToCart() {
 }
 
 .wishlist-count strong {
-  color: #534686;
+  color: #5A67F5;
   font-size: 16px;
 }
 
@@ -219,8 +219,8 @@ function addAllToCart() {
 }
 
 .product-card.selected {
-  border-color: #534686;
-  box-shadow: 0 0 0 2px rgba(83, 70, 134, 0.15);
+  border-color: #5A67F5;
+  box-shadow: 0 0 0 2px rgba(90, 103, 245, 0.15);
 }
 
 .product-card :deep(.el-card__body) {
@@ -246,7 +246,7 @@ function addAllToCart() {
   position: absolute;
   top: 10px;
   right: 10px;
-  background: #534686;
+  background: #5A67F5;
   color: #fff;
   font-size: 11px;
   font-weight: 600;
@@ -284,7 +284,7 @@ function addAllToCart() {
 .product-price {
   font-size: 18px;
   font-weight: 700;
-  color: #534686;
+  color: #5A67F5;
 }
 
 .product-original {
@@ -338,6 +338,6 @@ function addAllToCart() {
 
 .cart-dialog-price {
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
 }
 </style>

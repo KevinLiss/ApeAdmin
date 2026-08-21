@@ -1,18 +1,18 @@
 /* ============================================================
-   ApeUI Purple Theme — Koho #534686 紫色系
+   ApeUI Purple Theme — Koho #5A67F5 紫色系
    覆盖 Element Plus CSS 变量，全局换肤
    ============================================================ */
 
 :root {
-  /* Koho 紫色主色 #534686 */
-  --el-color-primary: #534686;
-  --el-color-primary-light-3: #7b6fa8;
-  --el-color-primary-light-5: #a09cc3;
-  --el-color-primary-light-7: #c4c1dd;
-  --el-color-primary-light-8: #d5d3e8;
-  --el-color-primary-light-9: #e8e7f4;
-  --el-color-primary-dark-2: #42386b;
-  --el-color-primary-rgb: 83, 70, 134;
+  /* Koho 紫色主色 #5A67F5 */
+  --el-color-primary: #5A67F5;
+  --el-color-primary-light-3: #7F8AF8;
+  --el-color-primary-light-5: #A5ACFA;
+  --el-color-primary-light-7: #C9CDFC;
+  --el-color-primary-light-8: #DBDFFD;
+  --el-color-primary-light-9: #EDF0FE;
+  --el-color-primary-dark-2: #4755E6;
+  --el-color-primary-rgb: 90, 103, 245;
 
   /* Koho 语义色 */
   --el-color-success: #67c100;
@@ -74,6 +74,24 @@
   --el-bg-color-overlay: #ffffff;
   --el-fill-color-blank: #ffffff;
   --el-fill-color-light: #f5f7fa;
+
+  /* Logo 蓝紫渐变品牌色 */
+  --apeui-grad-1: #5A67F5;   /* 蓝紫主色 */
+  --apeui-grad-2: #47A8FF;   /* 青蓝 */
+  --apeui-grad-3: #7A5BFF;   /* 亮蓝紫 */
+  --apeui-grad-4: #47D8FF;   /* 亮青蓝 */
+}
+
+/* Logo 渐变背景工具类 */
+.apeui-gradient-bg {
+  background: linear-gradient(135deg, #5A67F5 0%, #47D8FF 100%);
+}
+.apeui-gradient-text {
+  background: linear-gradient(135deg, #5A67F5 0%, #47D8FF 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 /* ============================================================
@@ -133,7 +151,7 @@ body {
 }
 .stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(83, 70, 134, 0.12);
+  box-shadow: 0 8px 24px rgba(90, 103, 245, 0.12);
 }
 .stat-card .stat-icon {
   width: 52px;
@@ -175,16 +193,16 @@ body {
 .koho-card .card-header h3 {
   font-size: 20px;
   font-weight: 500;
-  color: #534686;
+  color: #5A67F5;
   margin: 0;
 }
 .koho-card .card-body {
   padding: 25px;
 }
 .koho-badge-soft {
-  background-color: rgba(83, 70, 134, 0.05);
+  background-color: rgba(90, 103, 245, 0.05);
   font-size: 12px;
-  color: #534686;
+  color: #5A67F5;
   padding: 8px 13px;
   border-radius: 9px;
   font-weight: 400;
@@ -212,7 +230,7 @@ body {
   background: transparent;
   font-size: 20px;
   font-weight: 500;
-  color: #534686;
+  color: #5A67F5;
 }
 /* el-card body — Koho 风格：25px 内边距 */
 .apeui-content .el-card__body {
@@ -221,7 +239,7 @@ body {
 /* shadow=never 时仍然无阴影但保持圆角 */
 .apeui-content .el-card.is-never-shadow {
   box-shadow: none;
-  border: 1px solid rgba(83, 70, 134, 0.10);
+  border: 1px solid rgba(90, 103, 245, 0.10);
 }
 /* shadow=always 时保持阴影 */
 .apeui-content .el-card.is-always-shadow {
@@ -249,10 +267,10 @@ body {
   background-color: transparent;
   color: #2b2b2b;
   font-weight: 500;
-  border-bottom: 1px solid rgba(83, 70, 134, 0.10);
+  border-bottom: 1px solid rgba(90, 103, 245, 0.10);
 }
 .apeui-content .el-table td.el-table__cell {
-  border-bottom: 1px solid rgba(83, 70, 134, 0.06);
+  border-bottom: 1px solid rgba(90, 103, 245, 0.06);
 }
 
 /* el-tag — Koho badge soft 风格 */
@@ -287,16 +305,16 @@ body {
   color: #5a6273;
 }
 .apeui-content .el-tabs__item.is-active {
-  color: #534686;
+  color: #5A67F5;
 }
 .apeui-content .el-tabs__active-bar {
-  background-color: #534686;
+  background-color: #5A67F5;
 }
 
 /* el-collapse — Koho 风格 */
 .apeui-content .el-collapse {
-  border-top: 1px solid rgba(83, 70, 134, 0.10);
-  border-bottom: 1px solid rgba(83, 70, 134, 0.10);
+  border-top: 1px solid rgba(90, 103, 245, 0.10);
+  border-bottom: 1px solid rgba(90, 103, 245, 0.10);
 }
 .apeui-content .el-collapse-item__header {
   font-size: 15px;
@@ -316,7 +334,7 @@ body {
 .apeui-content .apeui-page-header h3 {
   font-size: 20px;
   font-weight: 500;
-  color: #534686;
+  color: #5A67F5;
 }
 
 /* 响应式 */

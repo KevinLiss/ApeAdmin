@@ -52,7 +52,7 @@ import { GridComponent, TooltipComponent, LegendComponent } from 'echarts/compon
 
 use([CanvasRenderer, LineChart, GridComponent, TooltipComponent, LegendComponent])
 
-const PRIMARY = '#534686'
+const PRIMARY = '#5A67F5'
 const SECONDARY = '#FFA47A'
 const SUCCESS = '#67C100'
 
@@ -89,8 +89,8 @@ const areaOption = {
           type: 'linear' as const,
           x: 0, y: 0, x2: 0, y2: 1,
           colorStops: [
-            { offset: 0, color: 'rgba(83, 70, 134, 0.5)' },
-            { offset: 1, color: 'rgba(83, 70, 134, 0.02)' },
+            { offset: 0, color: 'rgba(90, 103, 245, 0.5)' },
+            { offset: 1, color: 'rgba(90, 103, 245, 0.02)' },
           ],
         },
       },
@@ -148,7 +148,7 @@ const steppedLineOption = {
 <style scoped>
 .card-title {
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
 }
 .chart {
   height: 320px;

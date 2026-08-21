@@ -282,7 +282,7 @@ import {
 use([CanvasRenderer, LineChart, BarChart, GaugeChart, GridComponent, TooltipComponent, LegendComponent])
 
 /* Koho color constants */
-const PRIMARY = '#534686'
+const PRIMARY = '#5A67F5'
 const SECONDARY = '#FFA47A'
 const SUCCESS = '#67C100'
 
@@ -323,8 +323,8 @@ const yearlyChartOption = {
         type: 'linear' as const,
         x: 0, y: 0, x2: 0, y2: 1,
         colorStops: [
-          { offset: 0, color: 'rgba(83, 70, 134, 0.5)' },
-          { offset: 1, color: 'rgba(83, 70, 134, 0.9)' },
+          { offset: 0, color: 'rgba(90, 103, 245, 0.5)' },
+          { offset: 1, color: 'rgba(90, 103, 245, 0.9)' },
         ],
       },
     },
@@ -469,7 +469,7 @@ const profitChartOption = {
 
 /* ==================== Profile Greeting ==================== */
 .profile-greeting {
-  background-color: #534686;
+  background: linear-gradient(135deg, #5A67F5 0%, #47D8FF 100%);
   height: 254px;
   position: relative;
 }
@@ -502,7 +502,7 @@ const profitChartOption = {
   align-items: center;
   gap: 5px;
   background-color: #fff;
-  color: #534686;
+  color: #5A67F5;
   padding: 10px 15px;
   border-radius: 8px;
   font-size: 14px;
@@ -534,7 +534,7 @@ const profitChartOption = {
 .yearly-view .card-header h3 {
   font-size: 20px;
   font-weight: 500;
-  color: #534686;
+  color: #5A67F5;
   margin: 0 0 5px;
 }
 .yearly-view .card-header h3 .koho-badge-soft {
@@ -575,7 +575,7 @@ const profitChartOption = {
   gap: 15px;
 }
 .activity-item:hover {
-  background-color: rgba(83, 70, 134, 0.1);
+  background-color: rgba(90, 103, 245, 0.1);
   border-radius: 8px;
   margin: 0 -10px;
   padding: 8px 10px;
@@ -603,14 +603,14 @@ const profitChartOption = {
   color: #909399;
 }
 .time-badge {
-  background: rgba(83, 70, 134, 0.05);
+  background: rgba(90, 103, 245, 0.05);
   padding: 2px 4px;
   border-radius: 5px;
   flex-shrink: 0;
 }
 .time-badge p {
   font-size: 10px;
-  color: #534686;
+  color: #5A67F5;
   margin: 0;
   white-space: nowrap;
 }
@@ -718,7 +718,7 @@ const profitChartOption = {
 
 /* ==================== Value Chart Sub-cards ==================== */
 .value-chart-sub1 {
-  background-color: rgba(83, 70, 134, 0.12) !important;
+  background-color: rgba(90, 103, 245, 0.12) !important;
   position: relative;
   margin-bottom: 30px;
 }
@@ -749,7 +749,7 @@ const profitChartOption = {
   margin: 0 0 5px;
 }
 .valuechart-detail h2 {
-  color: #534686;
+  color: #5A67F5;
   font-size: 22px;
   margin: 0;
 }
@@ -760,7 +760,7 @@ const profitChartOption = {
   font-size: 9px;
   padding: 5px 10px;
   border-radius: 9px;
-  background-color: #534686;
+  background-color: #5A67F5;
   color: #fff;
 }
 .stock-chart-section {
@@ -780,7 +780,7 @@ const profitChartOption = {
   box-shadow: 0 0 20px rgba(8, 21, 66, 0.05);
 }
 .beyo-header {
-  background-color: #534686;
+  background-color: #5A67F5;
   padding: 0 15px;
   overflow: hidden;
 }
@@ -796,7 +796,7 @@ const profitChartOption = {
 .beyo-detail h3 {
   font-size: 20px;
   font-weight: 500;
-  color: #534686;
+  color: #5A67F5;
   margin: 0 0 10px;
 }
 .beyo-detail > p {
@@ -828,7 +828,7 @@ const profitChartOption = {
   margin: 0;
   padding-left: 5px;
   font-size: 22px;
-  color: #534686;
+  color: #5A67F5;
 }
 .date-label {
   text-align: center;
@@ -842,7 +842,7 @@ const profitChartOption = {
   margin: 0 0 2px;
   font-weight: 700;
   font-size: 20px;
-  color: #534686;
+  color: #5A67F5;
 }
 .date-label p {
   margin: 0;
@@ -864,7 +864,7 @@ const profitChartOption = {
   text-align: center;
   font-weight: 500;
   font-size: 18px;
-  color: #534686;
+  color: #5A67F5;
   margin-bottom: 5px;
 }
 .invest-chart-sm {
@@ -883,7 +883,7 @@ const profitChartOption = {
 }
 .chart-detail h2 {
   font-size: 22px;
-  color: #534686;
+  color: #5A67F5;
   margin: 0;
 }
 
@@ -905,7 +905,7 @@ const profitChartOption = {
   gap: 12px;
 }
 .social-item:hover {
-  background-color: rgba(83, 70, 134, 0.14);
+  background-color: rgba(90, 103, 245, 0.14);
   border-radius: 8px;
   margin: 0 -10px;
   padding: 8px 10px;
@@ -968,7 +968,7 @@ const profitChartOption = {
 .upgrade-text h3 {
   font-size: 20px;
   font-weight: 500;
-  color: #534686;
+  color: #5A67F5;
   margin: 0 0 10px;
 }
 .upgrade-text p {
@@ -980,7 +980,7 @@ const profitChartOption = {
 }
 .upgrade-btn {
   display: inline-block;
-  background-color: #534686;
+  background-color: #5A67F5;
   color: #fff;
   padding: 10px 20px;
   border-radius: 8px;
@@ -991,8 +991,8 @@ const profitChartOption = {
 }
 .upgrade-btn:hover {
   background-color: #fff !important;
-  border: 1px solid #534686;
-  color: #534686;
+  border: 1px solid #5A67F5;
+  color: #5A67F5;
 }
 .upgrade-img {
   position: absolute;

@@ -133,7 +133,7 @@ const couponCode = ref('')
 const couponApplied = ref(false)
 
 const cartItems = ref<CartItem[]>([
-  { id: 1, name: 'Wireless Bluetooth Headphones', category: 'Electronics', price: 79.99, qty: 1, bgColor: 'linear-gradient(135deg, #534686, #8a7cb8)' },
+  { id: 1, name: 'Wireless Bluetooth Headphones', category: 'Electronics', price: 79.99, qty: 1, bgColor: 'linear-gradient(135deg, #5A67F5, #8FA0FF)' },
   { id: 2, name: 'Smart Watch Pro Series 7', category: 'Electronics', price: 199.00, qty: 2, bgColor: 'linear-gradient(135deg, #3EBCB9, #6ee0dd)' },
   { id: 3, name: 'Premium Cotton Casual T-Shirt', category: 'Fashion', price: 29.99, qty: 3, bgColor: 'linear-gradient(135deg, #FFA47A, #ffc4a3)' },
   { id: 4, name: 'Running Sneakers Air Max', category: 'Sports', price: 89.99, qty: 1, bgColor: 'linear-gradient(135deg, #67C100, #85d533)' },
@@ -182,7 +182,7 @@ const checkout = () => {
 .card-title {
   font-size: 16px;
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
   margin: 0 0 20px;
   padding-bottom: 14px;
   border-bottom: 1px solid #f0f2f5;
@@ -255,7 +255,7 @@ const checkout = () => {
 .subtotal-value {
   font-size: 16px;
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
 }
 
 .cart-footer {
@@ -315,14 +315,14 @@ const checkout = () => {
 .total-value {
   font-size: 28px;
   font-weight: 700;
-  color: #534686;
+  color: #5A67F5;
 }
 .checkout-btn {
   width: 100%;
-  --el-button-bg-color: #534686;
-  --el-button-border-color: #534686;
-  --el-button-hover-bg-color: #6b5c9e;
-  --el-button-hover-border-color: #6b5c9e;
+  --el-button-bg-color: #5A67F5;
+  --el-button-border-color: #5A67F5;
+  --el-button-hover-bg-color: #4F58E8;
+  --el-button-hover-border-color: #4F58E8;
   --el-button-active-bg-color: #433a6b;
   --el-button-active-border-color: #433a6b;
 }
@@ -352,10 +352,10 @@ const checkout = () => {
 .pay-icon.amex { background: #006FCF; }
 
 :deep(.el-button--primary) {
-  --el-button-bg-color: #534686;
-  --el-button-border-color: #534686;
-  --el-button-hover-bg-color: #6b5c9e;
-  --el-button-hover-border-color: #6b5c9e;
+  --el-button-bg-color: #5A67F5;
+  --el-button-border-color: #5A67F5;
+  --el-button-hover-bg-color: #4F58E8;
+  --el-button-hover-border-color: #4F58E8;
   --el-button-active-bg-color: #433a6b;
   --el-button-active-border-color: #433a6b;
 }

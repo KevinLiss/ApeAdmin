@@ -106,7 +106,7 @@ const bookmarks = ref<Bookmark[]>([
   { id: 5, title: 'Notion', url: 'https://notion.so', description: '一体化笔记与知识库管理工具', category: 'Personal', icon: 'No', color: '#000000', favorited: false },
   { id: 6, title: 'Twitter / X', url: 'https://twitter.com', description: '社交媒体平台，关注技术动态与社区', category: 'Social', icon: 'X', color: '#1d9bf0', favorited: false },
   { id: 7, title: 'MDN Web Docs', url: 'https://developer.mozilla.org', description: 'Web 开发权威文档，HTML/CSS/JS 参考', category: 'Work', icon: 'MD', color: '#005ca9', favorited: true },
-  { id: 8, title: 'Element Plus', url: 'https://element-plus.org', description: 'Vue3 UI 组件库，企业级后台组件', category: 'Tools', icon: 'EP', color: '#534686', favorited: true },
+  { id: 8, title: 'Element Plus', url: 'https://element-plus.org', description: 'Vue3 UI 组件库，企业级后台组件', category: 'Tools', icon: 'EP', color: '#5A67F5', favorited: true },
 ])
 
 const activeCategory = ref('All')
@@ -197,7 +197,7 @@ const saveBookmark = () => {
       description: editForm.description,
       category: editForm.category,
       icon: editForm.icon || editForm.title.substring(0, 2).toUpperCase(),
-      color: '#534686',
+      color: '#5A67F5',
       favorited: false,
     })
   }
@@ -279,7 +279,7 @@ const saveBookmark = () => {
 
 .bm-url {
   font-size: 13px;
-  color: #534686;
+  color: #5A67F5;
   margin-bottom: 8px;
   word-break: break-all;
 }
@@ -304,11 +304,11 @@ const saveBookmark = () => {
 }
 
 :deep(.el-button--primary) {
-  --el-color-primary: #534686;
-  --el-button-bg-color: #534686;
-  --el-button-border-color: #534686;
-  --el-button-hover-bg-color: #6b5c9e;
-  --el-button-hover-border-color: #6b5c9e;
+  --el-color-primary: #5A67F5;
+  --el-button-bg-color: #5A67F5;
+  --el-button-border-color: #5A67F5;
+  --el-button-hover-bg-color: #4F58E8;
+  --el-button-hover-border-color: #4F58E8;
   --el-button-active-bg-color: #433a6b;
   --el-button-active-border-color: #433a6b;
 }

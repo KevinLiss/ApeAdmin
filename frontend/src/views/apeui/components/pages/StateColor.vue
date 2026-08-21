@@ -28,7 +28,7 @@
 import PageHeader from '../PageHeader.vue'
 
 const colorList = [
-  { name: 'Primary',   hex: '#534686', desc: '主题主色 · 用于按钮、链接、强调',           light: false },
+  { name: 'Primary',   hex: '#5A67F5', desc: '主题主色 · 用于按钮、链接、强调',           light: false },
   { name: 'Secondary', hex: '#FFA47A', desc: '次要色 · 辅助强调与装饰元素',               light: false },
   { name: 'Success',   hex: '#67C100', desc: '成功状态 · 操作成功提示',                  light: false },
   { name: 'Info',      hex: '#3EBCB9', desc: '信息状态 · 一般信息提示',                  light: false },
@@ -43,7 +43,7 @@ const colorList = [
 .card-title {
   font-size: 16px;
   font-weight: 700;
-  color: #534686;
+  color: #5A67F5;
 }
 
 .color-col {
@@ -91,7 +91,7 @@ const colorList = [
   margin: 0 0 4px;
   font-size: 13px;
   font-family: 'Courier New', Consolas, monospace;
-  color: #534686;
+  color: #5A67F5;
   font-weight: 600;
 }
 

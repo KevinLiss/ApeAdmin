@@ -238,7 +238,7 @@ const onTopicClick = (topic: string) => ElMessage.info(`Browsing #${topic}`)
   gap: 8px;
   font-size: 18px;
   font-weight: 500;
-  color: #534686;
+  color: #5A67F5;
   margin-bottom: 16px;
 }
 .card-title .el-icon { font-size: 20px; }
@@ -254,7 +254,7 @@ const onTopicClick = (topic: string) => ElMessage.info(`Browsing #${topic}`)
   cursor: pointer;
   transition: background 0.2s;
 }
-.friend-item:hover { background: rgba(83, 70, 134, 0.08); }
+.friend-item:hover { background: rgba(90, 103, 245, 0.08); }
 .friend-avatar-wrap { position: relative; }
 .status-dot {
   position: absolute;
@@ -358,10 +358,10 @@ const onTopicClick = (topic: string) => ElMessage.info(`Browsing #${topic}`)
 .topic-tag { cursor: pointer; }
 
 :deep(.el-button--primary) {
-  --el-color-primary: #534686;
-  --el-button-bg-color: #534686;
-  --el-button-border-color: #534686;
-  --el-button-hover-bg-color: #6b5c9e;
-  --el-button-hover-border-color: #6b5c9e;
+  --el-color-primary: #5A67F5;
+  --el-button-bg-color: #5A67F5;
+  --el-button-border-color: #5A67F5;
+  --el-button-hover-bg-color: #4F58E8;
+  --el-button-hover-border-color: #4F58E8;
 }
 </style>

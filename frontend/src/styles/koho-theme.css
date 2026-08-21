@@ -4,22 +4,22 @@
    - 深色侧边栏 + 白色固定顶栏 + 浅灰内容区
    - widget 卡片层次（图标+数值+标题）
    - 页面标题面包屑区
-   配色已重映射为 ApeAdmin 蓝白灰现代 SaaS 风格
+   配色已重映射为 ApeAdmin 蓝紫渐变（Logo #5A67F5 → #47D8FF）现代 SaaS 风格
    ============================================================ */
 
 :root {
-  /* Koho 主色 #534686 → 蓝色系 */
-  --theme-default: #409eff;
-  --theme-secondary: #79bbff;
+  /* Logo 蓝紫渐变主色 #5A67F5 */
+  --theme-default: #5A67F5;
+  --theme-secondary: #47A8FF;
   --theme-sidebar-bg: #0f1c2e;       /* 深蓝黑侧栏（Koho #20263f 类） */
   --theme-sidebar-text: rgba(255, 255, 255, 0.68);
-  --theme-sidebar-active: #409eff;
+  --theme-sidebar-active: #5A67F5;
   --theme-header-bg: #ffffff;
   --theme-body-bg: #eff3f9;          /* Koho 内容区 #EFF3F9 */
   --theme-card-border: #f1f3ff;
   --theme-text-dark: #2b2b2b;
   --theme-text-muted: rgba(43, 43, 43, 0.7);
-  --theme-border-soft: rgba(64, 158, 255, 0.1);
+  --theme-border-soft: rgba(90, 103, 245, 0.1);
   --theme-shadow: 0 0 20px rgba(89, 102, 122, 0.1);
   --theme-radius: 8px;
 }
@@ -294,13 +294,13 @@ body,
 
 /* ---------- Element Plus 主题变量覆盖 ---------- */
 :root {
-  --el-color-primary: #409eff;
-  --el-color-primary-light-3: #79bbff;
-  --el-color-primary-light-5: #a0cfff;
-  --el-color-primary-light-7: #c6e2ff;
-  --el-color-primary-light-8: #d9ecff;
-  --el-color-primary-light-9: #ecf5ff;
-  --el-color-primary-dark-2: #337ecc;
+  --el-color-primary: #5A67F5;
+  --el-color-primary-light-3: #7F8AF8;
+  --el-color-primary-light-5: #A5ACFA;
+  --el-color-primary-light-7: #C9CDFC;
+  --el-color-primary-light-8: #DBDFFD;
+  --el-color-primary-light-9: #EDF0FE;
+  --el-color-primary-dark-2: #4755E6;
 }
 
 /* ---------- 表格：Koho datatable 质感 ---------- */

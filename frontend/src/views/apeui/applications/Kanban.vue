@@ -181,7 +181,7 @@ const priorityType = (p: string) => {
 }
 
 .col-todo {
-  border-top-color: #534686;
+  border-top-color: #5A67F5;
 }
 .col-progress {
   border-top-color: #e56809;
@@ -201,7 +201,7 @@ const priorityType = (p: string) => {
 .col-title {
   font-size: 16px;
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
 }
 
 .kanban-list {
@@ -230,11 +230,11 @@ const priorityType = (p: string) => {
 
 .kanban-ghost {
   opacity: 0.4;
-  border: 2px dashed #534686 !important;
+  border: 2px dashed #5A67F5 !important;
 }
 
 .kanban-chosen {
-  box-shadow: 0 4px 16px rgba(83, 70, 134, 0.2);
+  box-shadow: 0 4px 16px rgba(90, 103, 245, 0.2);
 }
 
 .kanban-dragging {
@@ -273,11 +273,11 @@ const priorityType = (p: string) => {
 }
 
 :deep(.el-button--primary) {
-  --el-color-primary: #534686;
-  --el-button-bg-color: #534686;
-  --el-button-border-color: #534686;
-  --el-button-hover-bg-color: #6b5c9e;
-  --el-button-hover-border-color: #6b5c9e;
+  --el-color-primary: #5A67F5;
+  --el-button-bg-color: #5A67F5;
+  --el-button-border-color: #5A67F5;
+  --el-button-hover-bg-color: #4F58E8;
+  --el-button-hover-border-color: #4F58E8;
   --el-button-active-bg-color: #433a6b;
   --el-button-active-border-color: #433a6b;
 }

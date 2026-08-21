@@ -258,7 +258,7 @@ const offlineUsers = [
 <style scoped>
 .card-title {
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
 }
 
 .koho-col {
@@ -284,13 +284,13 @@ const offlineUsers = [
 
 /* Color Tab — Primary (purple, card type) */
 .tab-primary :deep(.el-tabs__item.is-active) {
-  color: #534686;
-  background-color: rgba(83, 70, 134, 0.05);
-  box-shadow: inset 0 2px 0 #534686;
+  color: #5A67F5;
+  background-color: rgba(90, 103, 245, 0.05);
+  box-shadow: inset 0 2px 0 #5A67F5;
 }
 
 .tab-primary :deep(.el-tabs__item:hover) {
-  color: #534686;
+  color: #5A67F5;
 }
 
 /* Color Tab — Secondary (orange, card type) */

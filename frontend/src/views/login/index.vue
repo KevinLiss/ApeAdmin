@@ -124,7 +124,7 @@ async function handleLogin() {
   align-items: center;
   justify-content: center;
   margin: 0 auto;
-  background: rgba(83, 70, 134, 0.14);
+  background: rgba(90, 103, 245, 0.14);
   background-position: center;
   padding: 30px 12px;
 }
@@ -182,7 +182,7 @@ async function handleLogin() {
 .login-card .login-main .theme-form input.form-control:hover,
 .login-card .login-main .theme-form input.form-control:focus {
   box-shadow: none !important;
-  border-color: #534686;
+  border-color: #5A67F5;
   transition: all 0.3s ease;
 }
 .login-card .login-main .theme-form .form-input .show-hide {
@@ -194,7 +194,7 @@ async function handleLogin() {
 }
 .login-card .login-main .theme-form .checkbox label::before {
   background-color: #f9f9fa;
-  border: 1px solid rgba(83, 70, 134, 0.1);
+  border: 1px solid rgba(90, 103, 245, 0.1);
 }
 .login-card .login-main .theme-form .checkbox {
   display: inline-flex;
@@ -205,7 +205,7 @@ async function handleLogin() {
   position: absolute;
   top: 10px;
   right: 0;
-  color: #534686;
+  color: #5A67F5;
   text-decoration: none;
 }
 .login-card .login-main .theme-form .login-social-title {
@@ -231,7 +231,7 @@ async function handleLogin() {
   position: absolute;
   width: 100%;
   height: 2px;
-  background-color: rgba(83, 70, 134, 0.1);
+  background-color: rgba(90, 103, 245, 0.1);
   top: 10px;
   z-index: -1;
   right: 0;
@@ -248,22 +248,22 @@ async function handleLogin() {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 1px solid rgba(83, 70, 134, 0.1);
-  background-color: rgba(83, 70, 134, 0.05);
+  border: 1px solid rgba(90, 103, 245, 0.1);
+  background-color: rgba(90, 103, 245, 0.05);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .login-card .login-main .theme-form ul.login-social li a {
   width: auto;
-  color: #534686;
+  color: #5A67F5;
   font-size: 15px;
 }
 .login-card .login-main .theme-form ul.login-social li:nth-child(n + 2) {
   margin-left: 15px;
 }
 .login-card .login-main .theme-form ul.login-social li:hover {
-  background-color: #534686;
+  background-color: #5A67F5;
 }
 .login-card .login-main .theme-form ul.login-social li:hover a {
   color: #fff;
@@ -273,7 +273,7 @@ async function handleLogin() {
   height: 46px;
   border: none;
   border-radius: 4px;
-  background-color: #534686;
+  background-color: #5A67F5;
   color: #fff;
   font-size: 15px;
   font-weight: 500;
@@ -281,7 +281,7 @@ async function handleLogin() {
   transition: all 0.3s ease;
 }
 .login-card .login-main .theme-form .btn-primary:hover {
-  background-color: #42376c;
+  background-color: #4755E6;
 }
 .login-card .login-main .theme-form .btn-primary:disabled {
   opacity: 0.7;

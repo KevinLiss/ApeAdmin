@@ -67,8 +67,8 @@ import PageHeader from '../components/PageHeader.vue'
 
 <style scoped>
 :deep(.el-tag--primary) {
-  --el-tag-bg-color: rgba(83, 70, 134, 0.1);
-  --el-tag-border-color: rgba(83, 70, 134, 0.2);
-  --el-tag-text-color: #534686;
+  --el-tag-bg-color: rgba(90, 103, 245, 0.1);
+  --el-tag-border-color: rgba(90, 103, 245, 0.2);
+  --el-tag-text-color: #5A67F5;
 }
 </style>

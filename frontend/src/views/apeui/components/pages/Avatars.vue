@@ -165,11 +165,11 @@ const ratios = [
 .card-title {
   font-size: 16px;
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
 }
 
 .purple-avatar {
-  background-color: #534686;
+  background-color: #5A67F5;
   color: #fff;
   font-weight: 600;
   flex-shrink: 0;

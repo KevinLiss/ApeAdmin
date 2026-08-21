@@ -102,11 +102,11 @@ const currentPage = ref(1)
 const pageSize = ref(8)
 
 const products = ref<Product[]>([
-  { id: 1, name: 'Wireless Bluetooth Headphones', category: 'Electronics', price: 79.99, oldPrice: 129.99, rating: 4.5, reviews: 128, bgColor: 'linear-gradient(135deg, #534686, #8a7cb8)', badge: 'Sale', badgeColor: '#DC0808', wishlisted: false },
+  { id: 1, name: 'Wireless Bluetooth Headphones', category: 'Electronics', price: 79.99, oldPrice: 129.99, rating: 4.5, reviews: 128, bgColor: 'linear-gradient(135deg, #5A67F5, #8FA0FF)', badge: 'Sale', badgeColor: '#DC0808', wishlisted: false },
   { id: 2, name: 'Smart Watch Pro Series 7', category: 'Electronics', price: 199.00, oldPrice: 299.00, rating: 5, reviews: 342, bgColor: 'linear-gradient(135deg, #3EBCB9, #6ee0dd)', badge: 'Hot', badgeColor: '#E56809', wishlisted: false },
   { id: 3, name: 'Premium Cotton Casual T-Shirt', category: 'Fashion', price: 29.99, rating: 4, reviews: 89, bgColor: 'linear-gradient(135deg, #FFA47A, #ffc4a3)', wishlisted: true },
-  { id: 4, name: 'Running Sneakers Air Max', category: 'Sports', price: 89.99, oldPrice: 119.99, rating: 4.5, reviews: 215, bgColor: 'linear-gradient(135deg, #67C100, #85d533)', badge: 'New', badgeColor: '#534686', wishlisted: false },
-  { id: 5, name: 'Smartphone X Pro Max 256GB', category: 'Electronics', price: 999.00, oldPrice: 1099.00, rating: 5, reviews: 521, bgColor: 'linear-gradient(135deg, #534686, #6b5c9e)', badge: 'Hot', badgeColor: '#E56809', wishlisted: false },
+  { id: 4, name: 'Running Sneakers Air Max', category: 'Sports', price: 89.99, oldPrice: 119.99, rating: 4.5, reviews: 215, bgColor: 'linear-gradient(135deg, #67C100, #85d533)', badge: 'New', badgeColor: '#5A67F5', wishlisted: false },
+  { id: 5, name: 'Smartphone X Pro Max 256GB', category: 'Electronics', price: 999.00, oldPrice: 1099.00, rating: 5, reviews: 521, bgColor: 'linear-gradient(135deg, #5A67F5, #4F58E8)', badge: 'Hot', badgeColor: '#E56809', wishlisted: false },
   { id: 6, name: 'Ceramic Coffee Mug Set of 4', category: 'Home & Living', price: 34.99, rating: 4, reviews: 67, bgColor: 'linear-gradient(135deg, #E56809, #ff8a3c)', wishlisted: false },
   { id: 7, name: 'Organic Skincare Gift Set', category: 'Beauty', price: 59.99, oldPrice: 89.99, rating: 4.5, reviews: 156, bgColor: 'linear-gradient(135deg, #FFA47A, #ffd0b8)', badge: 'Sale', badgeColor: '#DC0808', wishlisted: true },
   { id: 8, name: 'Premium Yoga Mat Non-Slip', category: 'Sports', price: 49.99, rating: 4, reviews: 98, bgColor: 'linear-gradient(135deg, #3EBCB9, #5dd4d1)', wishlisted: false },
@@ -247,7 +247,7 @@ const toggleWishlist = (product: Product) => {
 .product-price {
   font-size: 22px;
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
 }
 .product-old-price {
   font-size: 14px;
@@ -256,10 +256,10 @@ const toggleWishlist = (product: Product) => {
 }
 .add-cart-btn {
   width: 100%;
-  --el-button-bg-color: #534686;
-  --el-button-border-color: #534686;
-  --el-button-hover-bg-color: #6b5c9e;
-  --el-button-hover-border-color: #6b5c9e;
+  --el-button-bg-color: #5A67F5;
+  --el-button-border-color: #5A67F5;
+  --el-button-hover-bg-color: #4F58E8;
+  --el-button-hover-border-color: #4F58E8;
   --el-button-active-bg-color: #433a6b;
   --el-button-active-border-color: #433a6b;
 }

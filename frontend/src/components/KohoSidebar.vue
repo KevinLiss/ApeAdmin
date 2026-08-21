@@ -3,7 +3,7 @@
     <!-- Logo + toggle -->
     <div class="logo-wrapper" :class="{ 'logo-collapsed': collapsed }" @click="collapsed && $emit('toggle')">
       <div class="logo-inner">
-        <el-icon :size="28" color="#409EFF"><Platform /></el-icon>
+        <el-icon :size="28" color="#5A67F5"><Platform /></el-icon>
         <span class="brand-text">ApeAdmin</span>
       </div>
       <div class="toggle-sidebar" @click.stop="$emit('toggle')">
@@ -339,7 +339,7 @@ const apeuiMenus = [
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.4px;
-  color: var(--theme-default, #409eff);
+  color: var(--theme-default, #5A67F5);
 }
 
 /* Menu item */
@@ -369,15 +369,15 @@ const apeuiMenus = [
 }
 .sidebar-link:hover {
   background: #eff3f9;
-  color: var(--theme-default, #409eff);
+  color: var(--theme-default, #5A67F5);
 }
 .sidebar-link:hover .menu-icon {
-  color: var(--theme-default, #409eff);
+  color: var(--theme-default, #5A67F5);
 }
 .sidebar-link.active {
-  background: var(--theme-default, #409eff);
+  background: var(--theme-default, #5A67F5);
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(90, 103, 245, 0.3);
 }
 .sidebar-link.active .menu-icon {
   color: #ffffff;
@@ -391,7 +391,7 @@ const apeuiMenus = [
   width: 3px;
   height: 20px;
   border-radius: 3px;
-  background: var(--theme-default, #409eff);
+  background: var(--theme-default, #5A67F5);
 }
 
 /* Footer upgrade card (Koho sidebar-img-content 1:1) */
@@ -427,7 +427,7 @@ const apeuiMenus = [
 }
 .upgrade-btn {
   border: none;
-  background: var(--theme-default, #409eff);
+  background: var(--theme-default, #5A67F5);
   color: #fff;
   font-size: 13px;
   font-weight: 500;
@@ -471,12 +471,12 @@ const apeuiMenus = [
 }
 .sidebar-submenu li a:hover {
   background: #eff3f9;
-  color: var(--el-color-primary, #534686);
+  color: var(--el-color-primary, #5A67F5);
 }
 .sidebar-submenu li a.active {
-  color: var(--el-color-primary, #534686);
+  color: var(--el-color-primary, #5A67F5);
   font-weight: 600;
-  background: rgba(83, 70, 134, 0.08);
+  background: rgba(90, 103, 245, 0.08);
 }
 
 /* Collapsed: hide submenus */
@@ -488,6 +488,6 @@ const apeuiMenus = [
 .upgrade-btn:hover {
   opacity: 0.9;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(90, 103, 245, 0.3);
 }
 </style>

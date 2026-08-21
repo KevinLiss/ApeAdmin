@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div>
     <PageHeader title="Popover" :breadcrumb="['APEUI库', 'Components', 'Popover']" />
 
@@ -46,7 +46,7 @@
         <template #default>
           <div class="popover-rich">
             <div class="rich-head">
-              <el-avatar :size="40" style="background: #534686; flex-shrink: 0">
+              <el-avatar :size="40" style="background: #5A67F5; flex-shrink: 0">
                 <el-icon :size="20"><UserFilled /></el-icon>
               </el-avatar>
               <div style="margin-left: 12px">

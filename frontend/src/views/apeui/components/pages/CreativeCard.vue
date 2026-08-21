@@ -199,7 +199,7 @@ import PageHeader from '../PageHeader.vue'
 .card-title {
   font-weight: 600;
   font-size: 15px;
-  color: #534686;
+  color: #5A67F5;
 }
 
 .card-body {
@@ -218,7 +218,7 @@ import PageHeader from '../PageHeader.vue'
 
 /* Border装饰变体 */
 .border-left-primary {
-  border-left: 4px solid #534686;
+  border-left: 4px solid #5A67F5;
 }
 
 .border-right-secondary {
@@ -246,11 +246,11 @@ import PageHeader from '../PageHeader.vue'
 }
 
 .border-left-2px {
-  border-left: 2px solid #534686;
+  border-left: 2px solid #5A67F5;
 }
 
 .border-left-3px {
-  border-left: 3px solid #534686;
+  border-left: 3px solid #5A67F5;
 }
 
 /* Absolute Header 变体 */
@@ -265,7 +265,7 @@ import PageHeader from '../PageHeader.vue'
 }
 
 .absolute-header-primary {
-  background: #534686;
+  background: #5A67F5;
 }
 
 .absolute-header-secondary {

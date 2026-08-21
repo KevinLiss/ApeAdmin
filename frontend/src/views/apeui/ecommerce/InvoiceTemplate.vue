@@ -10,7 +10,7 @@
           <div class="invoice-top">
             <div class="company-info">
               <div class="company-logo">
-                <el-icon :size="36" color="#534686"><Shop /></el-icon>
+                <el-icon :size="36" color="#5A67F5"><Shop /></el-icon>
               </div>
               <div>
                 <h2 class="company-name">ApeAdmin Store</h2>
@@ -121,7 +121,7 @@
           </el-row>
 
           <div class="invoice-thanks">
-            <el-icon color="#534686"><Star /></el-icon>
+            <el-icon color="#5A67F5"><Star /></el-icon>
             感谢您的惠顾，期待再次合作！
           </div>
         </div>
@@ -223,7 +223,7 @@ function shareLink() {
   width: 56px;
   height: 56px;
   border-radius: 12px;
-  background: #f0ecf6;
+  background: #EDF2FF;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -233,7 +233,7 @@ function shareLink() {
 .company-name {
   font-size: 20px;
   font-weight: 700;
-  color: #534686;
+  color: #5A67F5;
   margin: 0 0 4px;
 }
 
@@ -250,7 +250,7 @@ function shareLink() {
 .invoice-title {
   font-size: 36px;
   font-weight: 800;
-  color: #534686;
+  color: #5A67F5;
   letter-spacing: 4px;
   margin: 0 0 12px;
 }
@@ -271,7 +271,7 @@ function shareLink() {
 
 .invoice-divider {
   height: 2px;
-  background: linear-gradient(90deg, #534686, #f0ecf6);
+  background: linear-gradient(90deg, #5A67F5, #EDF2FF);
   margin: 24px 0;
   border-radius: 1px;
 }
@@ -291,11 +291,11 @@ function shareLink() {
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  color: #534686;
+  color: #5A67F5;
   letter-spacing: 1px;
   margin-bottom: 8px;
   padding-bottom: 4px;
-  border-bottom: 1px solid #f0ecf6;
+  border-bottom: 1px solid #EDF2FF;
 }
 
 .customer-name {
@@ -319,7 +319,7 @@ function shareLink() {
 }
 
 .invoice-table thead th {
-  background: #534686;
+  background: #5A67F5;
   color: #fff;
   font-size: 13px;
   font-weight: 600;
@@ -335,7 +335,7 @@ function shareLink() {
 
 .invoice-table tbody td {
   padding: 12px 14px;
-  border-bottom: 1px solid #f0ecf6;
+  border-bottom: 1px solid #EDF2FF;
   font-size: 13px;
   color: #606266;
 }
@@ -363,7 +363,7 @@ function shareLink() {
 
 .col-amount {
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
 }
 
 /* 费用汇总 */
@@ -389,7 +389,7 @@ function shareLink() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 2px solid #534686;
+  border-top: 2px solid #5A67F5;
   padding-top: 12px;
   margin-top: 8px;
   font-size: 16px;
@@ -399,7 +399,7 @@ function shareLink() {
 
 .total-amount {
   font-size: 22px;
-  color: #534686;
+  color: #5A67F5;
 }
 
 /* 底部 */
@@ -432,9 +432,9 @@ function shareLink() {
 .invoice-thanks {
   text-align: center;
   font-size: 13px;
-  color: #534686;
+  color: #5A67F5;
   padding-top: 16px;
-  border-top: 1px solid #f0ecf6;
+  border-top: 1px solid #EDF2FF;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -450,7 +450,7 @@ function shareLink() {
 .card-title {
   font-size: 16px;
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
 }
 
 .action-list {

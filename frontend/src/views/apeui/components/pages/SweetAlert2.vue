@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div>
     <PageHeader title="SweetAlert2" :breadcrumb="['APEUI库', 'Components', 'SweetAlert2']" />
 
@@ -199,7 +199,7 @@ const dangerConfirm = () => {
 const customHtml = () => {
   ElMessageBox.alert(
     '<div style="text-align:center;padding:8px 0">' +
-      '<div style="font-size:48px;color:#534686;font-weight:bold;margin-bottom:8px">ApeAdmin</div>' +
+      '<div style="font-size:48px;color:#5A67F5;font-weight:bold;margin-bottom:8px">ApeAdmin</div>' +
       '<p style="color:#5a6273;margin:0">自定义 HTML 内容弹窗示例</p>' +
       '<p style="color:#909399;font-size:13px;margin-top:8px">支持 HTML 标签渲染</p>' +
       '</div>',

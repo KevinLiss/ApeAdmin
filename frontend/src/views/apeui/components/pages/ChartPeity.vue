@@ -108,7 +108,7 @@ import { GridComponent, TooltipComponent } from 'echarts/components'
 
 use([CanvasRenderer, LineChart, BarChart, PieChart, GridComponent, TooltipComponent])
 
-const PRIMARY = '#534686'
+const PRIMARY = '#5A67F5'
 const SECONDARY = '#FFA47A'
 const SUCCESS = '#67C100'
 const INFO = '#3EBCB9'
@@ -217,7 +217,7 @@ const miniArea3 = makeArea([30, 20, 40, 25, 50, 30, 55, 40, 60], SUCCESS)
 <style scoped>
 .card-title {
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
 }
 .mini-grid {
   display: flex;

@@ -102,7 +102,7 @@ const msgVisible = ref(false)
 const profileVisible = ref(false)
 
 const notifications = [
-  { text: '系统健康检查完成', time: '10 分钟', color: '#409EFF' },
+  { text: '系统健康检查完成', time: '10 分钟', color: '#5A67F5' },
   { text: 'MCP 插件加载成功', time: '1 小时', color: '#67C23A' },
   { text: '新用户注册', time: '3 小时', color: '#E6A23C' },
   { text: '数据库备份完成', time: '6 小时', color: '#F56C6C' },
@@ -185,9 +185,9 @@ async function handleLogout() {
   color: #9aa3b2;
 }
 .search-input:focus {
-  border-color: var(--theme-default, #409eff);
+  border-color: var(--theme-default, #5A67F5);
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.12);
+  box-shadow: 0 0 0 3px rgba(90, 103, 245, 0.12);
 }
 .search-icon {
   position: absolute;
@@ -224,7 +224,7 @@ async function handleLogout() {
 }
 .icon-item:hover {
   background: #eff3f9;
-  color: var(--theme-default, #409eff);
+  color: var(--theme-default, #5A67F5);
 }
 
 /* Language */
@@ -257,7 +257,7 @@ async function handleLogout() {
   min-width: 17px;
   height: 17px;
   border-radius: 50%;
-  background: var(--theme-default, #409eff);
+  background: var(--theme-default, #5A67F5);
   color: #fff;
   font-size: 11px;
   font-weight: 600;
@@ -284,7 +284,7 @@ async function handleLogout() {
   align-items: center;
   gap: 8px;
   padding: 16px;
-  background: linear-gradient(135deg, rgba(64, 158, 255, 0.08), rgba(64, 158, 255, 0.02));
+  background: linear-gradient(135deg, rgba(90, 103, 245, 0.08), rgba(90, 103, 245, 0.02));
   border-bottom: 1px solid #f0f2f5;
 }
 .dropdown-head h3 {
@@ -326,7 +326,7 @@ async function handleLogout() {
   text-align: center;
   padding: 12px;
   font-size: 13px;
-  color: var(--theme-default, #409eff);
+  color: var(--theme-default, #5A67F5);
   border-top: 1px solid #f0f2f5;
   cursor: pointer;
 }
@@ -352,7 +352,7 @@ async function handleLogout() {
   background: #f5f8ff;
 }
 .profile-avatar {
-  background: linear-gradient(135deg, #409eff, #79bbff);
+  background: linear-gradient(135deg, #5A67F5, #47A8FF);
   color: #fff;
   font-weight: 600;
 }
@@ -401,7 +401,7 @@ async function handleLogout() {
 }
 .profile-dropdown li a:hover {
   background: #f5f8ff;
-  color: var(--theme-default, #409eff);
+  color: var(--theme-default, #5A67F5);
 }
 .profile-dropdown li a span {
   flex: 1;

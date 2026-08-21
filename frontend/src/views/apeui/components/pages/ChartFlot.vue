@@ -52,7 +52,7 @@ import { TooltipComponent, LegendComponent } from 'echarts/components'
 
 use([CanvasRenderer, PieChart, TooltipComponent, LegendComponent])
 
-const PRIMARY = '#534686'
+const PRIMARY = '#5A67F5'
 const SECONDARY = '#FFA47A'
 const SUCCESS = '#67C100'
 const INFO = '#3EBCB9'
@@ -144,7 +144,7 @@ const roseOption = {
 <style scoped>
 .card-title {
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
 }
 .chart {
   height: 320px;

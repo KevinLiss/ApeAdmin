@@ -177,7 +177,7 @@ const listItems = [
 }
 .card-title {
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
   font-size: 15px;
 }
 .card-title-light {
@@ -228,7 +228,7 @@ const listItems = [
   gap: 8px;
 }
 .header-icon {
-  color: #534686;
+  color: #5A67F5;
   font-size: 18px;
 }
 
@@ -248,11 +248,11 @@ const listItems = [
 
 /* 7. Primary Color Card */
 .card-primary-full {
-  background: #534686 !important;
-  border-color: #534686 !important;
+  background: #5A67F5 !important;
+  border-color: #5A67F5 !important;
 }
 .card-primary-full :deep(.el-card__header) {
-  background: #534686;
+  background: #5A67F5;
   border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
@@ -268,13 +268,13 @@ const listItems = [
 
 /* 9. Primary Color Header */
 .card-primary-header :deep(.el-card__header) {
-  background: #534686;
+  background: #5A67F5;
   border-bottom: none;
 }
 
 /* 10. Primary Color Body */
 .card-primary-body :deep(.el-card__body) {
-  background: #534686;
+  background: #5A67F5;
 }
 
 /* 11. With Action Buttons */
@@ -288,11 +288,11 @@ const listItems = [
   gap: 4px;
 }
 .action-btn {
-  color: #534686 !important;
+  color: #5A67F5 !important;
   padding: 4px 6px !important;
 }
 .action-btn:hover {
-  color: #409eff !important;
+  color: #4755E6 !important;
 }
 
 /* 12. With List */
@@ -314,7 +314,7 @@ const listItems = [
   border-bottom: none;
 }
 .card-list-item:hover .list-text {
-  color: #534686;
+  color: #5A67F5;
 }
 .list-text {
   font-size: 13px;

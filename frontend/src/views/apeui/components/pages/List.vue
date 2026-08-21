@@ -142,7 +142,7 @@
           </template>
           <div>
             <div class="koho-list-item icon-list-item" v-for="(item, idx) in iconList" :key="idx">
-              <el-icon :size="18" color="#534686"><component :is="item.icon" /></el-icon>
+              <el-icon :size="18" color="#5A67F5"><component :is="item.icon" /></el-icon>
               <span class="icon-list-text">{{ item.text }}</span>
             </div>
           </div>
@@ -286,7 +286,7 @@ const iconList: { text: string; icon: Component }[] = [
 
 // 9. With Images (square rounded)
 const imageList = [
-  { name: 'Alice Anderson', desc: 'Project Manager', initials: 'AA', color: '#534686' },
+  { name: 'Alice Anderson', desc: 'Project Manager', initials: 'AA', color: '#5A67F5' },
   { name: 'Bob Brown', desc: 'Lead Developer', initials: 'BB', color: '#67C100' },
   { name: 'Charlie Clark', desc: 'UI Designer', initials: 'CC', color: '#E56809' },
   { name: 'Diana Davis', desc: 'QA Engineer', initials: 'DD', color: '#3EBCB9' },
@@ -294,17 +294,17 @@ const imageList = [
 
 // 10. With Image Rounded
 const roundedImageList = [
-  { name: 'Evan Evans', desc: 'DevOps Engineer', initials: 'EE', color: '#7b6fa8' },
+  { name: 'Evan Evans', desc: 'DevOps Engineer', initials: 'EE', color: '#7F8AF8' },
   { name: 'Fiona Foster', desc: 'Product Owner', initials: 'FF', color: '#DC0808' },
   { name: 'George Green', desc: 'Backend Developer', initials: 'GG', color: '#E56809' },
-  { name: 'Hannah Hill', desc: 'Data Analyst', initials: 'HH', color: '#534686' },
+  { name: 'Hannah Hill', desc: 'Data Analyst', initials: 'HH', color: '#5A67F5' },
 ]
 </script>
 
 <style scoped>
 .card-title {
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
 }
 
 .koho-col {
@@ -314,7 +314,7 @@ const roundedImageList = [
 /* Base list item */
 .koho-list-item {
   padding: 12px 16px;
-  border-bottom: 1px solid rgba(83, 70, 134, 0.08);
+  border-bottom: 1px solid rgba(90, 103, 245, 0.08);
   color: #5a6273;
   font-size: 14px;
   transition: background-color 0.2s ease;
@@ -326,8 +326,8 @@ const roundedImageList = [
 
 /* Active state */
 .koho-list-item.active {
-  background-color: rgba(83, 70, 134, 0.08);
-  color: #534686;
+  background-color: rgba(90, 103, 245, 0.08);
+  color: #5A67F5;
   font-weight: 500;
   cursor: pointer;
 }
@@ -346,14 +346,14 @@ const roundedImageList = [
 }
 
 .link-item:not(.active):not(.disabled):hover {
-  background-color: rgba(83, 70, 134, 0.04);
-  color: #534686;
+  background-color: rgba(90, 103, 245, 0.04);
+  color: #5A67F5;
 }
 
 /* Contextual Classes */
 .ctx-primary {
-  background-color: rgba(83, 70, 134, 0.1);
-  color: #534686;
+  background-color: rgba(90, 103, 245, 0.1);
+  color: #5A67F5;
 }
 
 .ctx-secondary {
@@ -395,7 +395,7 @@ const roundedImageList = [
 
 .ctx-brand {
   background-color: rgba(123, 111, 168, 0.1);
-  color: #7b6fa8;
+  color: #7F8AF8;
 }
 
 /* With Badges */
@@ -464,7 +464,7 @@ const roundedImageList = [
   margin: 0 0 10px;
   font-size: 16px;
   font-weight: 600;
-  color: #534686;
+  color: #5A67F5;
 }
 
 .lorem {

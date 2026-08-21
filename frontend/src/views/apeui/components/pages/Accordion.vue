@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div>
     <PageHeader title="Accordion / Collapse" :breadcrumb="['APEUI库', 'Components', 'Accordion']" />
 
@@ -23,7 +23,7 @@
             <el-collapse-item name="1">
               <template #title>
                 <div class="custom-title">
-                  <el-icon color="#534686" :size="18"><InfoFilled /></el-icon>
+                  <el-icon color="#5A67F5" :size="18"><InfoFilled /></el-icon>
                   <span style="margin-left: 8px">General Settings</span>
                   <el-tag size="small" type="primary" style="margin-left: 8px">New</el-tag>
                 </div>

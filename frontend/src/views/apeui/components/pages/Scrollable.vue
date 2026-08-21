@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div>
     <PageHeader title="Scrollable" :breadcrumb="['APEUI库', 'Components', 'Scrollable']" />
 
@@ -30,7 +30,7 @@
         <el-scrollbar>
           <div class="horizontal-content">
             <div class="horizontal-card" v-for="i in 12" :key="i">
-              <el-icon :size="24" color="#534686"><component :is="horizontalIcons[(i - 1) % horizontalIcons.length]" /></el-icon>
+              <el-icon :size="24" color="#5A67F5"><component :is="horizontalIcons[(i - 1) % horizontalIcons.length]" /></el-icon>
               <span style="margin-top: 8px; font-size: 13px; color: #5a6273">卡片 {{ i }}</span>
             </div>
           </div>
@@ -44,9 +44,9 @@
           <el-scrollbar height="200px" class="purple-scrollbar">
             <div class="custom-scroll-content">
               <div class="custom-scroll-item" v-for="i in 10" :key="i">
-                <el-avatar :size="36" style="background: linear-gradient(135deg, #534686, #7b6fa8)">{{ i }}</el-avatar>
+                <el-avatar :size="36" style="background: linear-gradient(135deg, #5A67F5, #7F8AF8)">{{ i }}</el-avatar>
                 <div>
-                  <div style="font-weight: 500; color: #534686">自定义滚动项 {{ i }}</div>
+                  <div style="font-weight: 500; color: #5A67F5">自定义滚动项 {{ i }}</div>
                   <div style="font-size: 13px; color: #909399">紫色主题滚动条样式</div>
                 </div>
               </div>
@@ -70,13 +70,13 @@
         <el-col :span="12">
           <div class="chat-wrapper">
             <div class="chat-header">
-              <span style="font-weight: 600; color: #534686">实时消息</span>
+              <span style="font-weight: 600; color: #5A67F5">实时消息</span>
               <el-tag size="small" type="success">在线</el-tag>
             </div>
             <el-scrollbar height="240px" class="chat-scrollbar">
               <div class="chat-list">
                 <div class="chat-item" v-for="msg in chatMessages" :key="msg.id" :class="msg.self ? 'chat-self' : ''">
-                  <el-avatar :size="28" :style="{ background: msg.self ? '#534686' : '#7b6fa8' }">{{ msg.user[0] }}</el-avatar>
+                  <el-avatar :size="28" :style="{ background: msg.self ? '#5A67F5' : '#7F8AF8' }">{{ msg.user[0] }}</el-avatar>
                   <div class="chat-bubble" :class="msg.self ? 'chat-bubble-self' : 'chat-bubble-other'">
                     {{ msg.text }}
                   </div>
@@ -164,10 +164,10 @@ const terminalLines = [
   border: 1px solid #ece9f5;
 }
 .purple-scrollbar :deep(.el-scrollbar__thumb) {
-  background-color: #534686;
+  background-color: #5A67F5;
 }
 .purple-scrollbar :deep(.el-scrollbar__thumb:hover) {
-  background-color: #3d3270;
+  background-color: #3B46C8;
 }
 .custom-scroll-content {
   display: flex;
@@ -219,7 +219,7 @@ const terminalLines = [
   color: #5a6273;
 }
 .chat-bubble-self {
-  background: #534686;
+  background: #5A67F5;
   color: #fff;
 }
 .chat-input {
@@ -248,7 +248,7 @@ const terminalLines = [
   border-radius: 50%;
 }
 .terminal-scrollbar :deep(.el-scrollbar__thumb) {
-  background-color: #534686;
+  background-color: #5A67F5;
 }
 .terminal-body {
   padding: 14px 16px;
@@ -260,7 +260,7 @@ const terminalLines = [
   color: #c0b8d8;
 }
 .terminal-prompt {
-  color: #9b8fc4;
+  color: #A5ACFA;
   font-weight: bold;
   margin-right: 6px;
 }
