@@ -7,7 +7,7 @@
       <!-- Left: Gallery -->
       <el-col :xs="24" :sm="24" :md="12" :lg="10">
         <div class="gallery-main-img" :style="{ background: mainImageBg }">
-          <el-icon :size="80" color="rgba(255,255,255,0.6)"><Goods /></el-icon>
+          <img :src="activeThumbImg" class="gallery-img" alt="无线蓝牙降噪耳机" />
           <span class="discount-tag" :style="{ background: '#DC0808' }">-20%</span>
         </div>
         <el-row :gutter="12" class="thumbs-row">
@@ -18,7 +18,7 @@
               :class="{ active: activeThumb === i }"
               @click="activeThumb = i"
             >
-              <el-icon :size="24" color="rgba(255,255,255,0.7)"><Goods /></el-icon>
+              <img :src="thumb.img" class="thumb-img" alt="" />
             </div>
           </el-col>
         </el-row>
@@ -39,7 +39,7 @@
             <el-tag type="danger" effect="dark" round>20% 折扣</el-tag>
           </div>
           <p class="detail-short-desc">
-            Experience premium sound quality with active noise cancellation. Up to 40 hours of battery life and ultra-fast USB-C charging.
+            体验优质音质与主动降噪。长达 40 小时续航，支持 USB-C 快速充电。
           </p>
 
           <!-- Color Selection -->
@@ -101,9 +101,9 @@
     <!-- Tabs -->
     <el-card class="koho-card detail-tabs-card" shadow="never">
       <el-tabs v-model="activeTab" class="detail-tabs">
-        <el-tab-pane label="Description" name="description">
+        <el-tab-pane label="商品描述" name="description">
           <div class="tab-content">
-            <p>The 无线蓝牙降噪耳机 deliver an immersive audio experience with cutting-edge technology. Featuring advanced ANC that blocks up to 90% of ambient noise, these headphones are perfect for travel, work, or relaxation.</p>
+            <p>无线蓝牙降噪耳机采用前沿技术，带来沉浸式音频体验。先进的主动降噪功能可屏蔽高达 90% 的环境噪音，非常适合旅行、办公或休闲场景。</p>
             <ul class="feature-list">
               <li><strong>主动降噪：</strong> 一键屏蔽外界干扰</li>
               <li><strong>40 小时续航：</strong> 单次充电，全天畅听</li>
@@ -113,7 +113,7 @@
             </ul>
           </div>
         </el-tab-pane>
-        <el-tab-pane label="Reviews" name="reviews">
+        <el-tab-pane label="用户评价" name="reviews">
           <div class="tab-content reviews-content">
             <div class="review-summary">
               <div class="rating-overview">
@@ -145,7 +145,7 @@
             </div>
           </div>
         </el-tab-pane>
-        <el-tab-pane label="Shipping" name="shipping">
+        <el-tab-pane label="物流信息" name="shipping">
           <div class="tab-content">
             <div class="shipping-info" v-for="info in shippingInfo" :key="info.title">
               <div class="shipping-icon" :style="{ background: info.bg }">
@@ -168,7 +168,7 @@
         <el-col :xs="12" :sm="12" :md="6" v-for="rp in relatedProducts" :key="rp.id">
           <div class="related-product-card">
             <div class="related-img" :style="{ background: rp.bgColor }">
-              <el-icon :size="36" color="rgba(255,255,255,0.7)"><Goods /></el-icon>
+              <img :src="rp.img" class="related-img-el" alt="" />
             </div>
             <div class="related-info">
               <h5>{{ rp.name }}</h5>
@@ -183,11 +183,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, markRaw } from 'vue'
+import { ref, computed, markRaw } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Goods, Check, ShoppingCart, Lightning, Star, StarFilled, Van, Box, Wallet } from '@element-plus/icons-vue'
+import { Check, ShoppingCart, Lightning, Star, StarFilled, Van, Box, Wallet } from '@element-plus/icons-vue'
 import PageHeader from '../components/PageHeader.vue'
 
+const BASE = '/assets/images/ecommerce/related'
 const mainImageBg = 'linear-gradient(135deg, #5A67F5, #8FA0FF)'
 const activeThumb = ref(0)
 const rating = ref(4.6)
@@ -197,11 +198,13 @@ const quantity = ref(1)
 const wishlisted = ref(false)
 const activeTab = ref('description')
 
+const activeThumbImg = computed(() => thumbnails[activeThumb.value].img)
+
 const thumbnails = [
-  { bg: 'linear-gradient(135deg, #5A67F5, #8FA0FF)' },
-  { bg: 'linear-gradient(135deg, #FFA47A, #ffc4a3)' },
-  { bg: 'linear-gradient(135deg, #3EBCB9, #6ee0dd)' },
-  { bg: 'linear-gradient(135deg, #67C100, #85d533)' },
+  { img: `${BASE}/headphone-anc.jpg`, bg: '#F5F6FA' },
+  { img: `${BASE}/headphone-anc.jpg`, bg: '#F5F6FA' },
+  { img: `${BASE}/headphone-anc.jpg`, bg: '#F5F6FA' },
+  { img: `${BASE}/headphone-anc.jpg`, bg: '#F5F6FA' },
 ]
 
 const colors = [
@@ -215,30 +218,30 @@ const colors = [
 const sizes = ['小号', '标准', '大号', '加大号']
 
 const ratingBars = [
-  { label: '5 Star', value: 72 },
-  { label: '4 Star', value: 18 },
-  { label: '3 Star', value: 7 },
-  { label: '2 Star', value: 2 },
-  { label: '1 Star', value: 1 },
+  { label: '5 星', value: 72 },
+  { label: '4 星', value: 18 },
+  { label: '3 星', value: 7 },
+  { label: '2 星', value: 2 },
+  { label: '1 星', value: 1 },
 ]
 
 const reviews = ref([
-  { id: 1, user: 'Sarah Johnson', stars: 5, date: 'Aug 15, 2026', text: 'Best headphones I have ever owned! The noise cancellation is incredible and the sound quality is top-notch. Battery lasts for days.' },
-  { id: 2, user: 'Mike Chen', stars: 5, date: 'Aug 10, 2026', text: '长时间佩戴也很舒适。降噪功能在飞行中表现出色。强烈推荐！' },
-  { id: 3, user: 'Emily Davis', stars: 4, date: 'Aug 2, 2026', text: 'Sound is amazing but wish the case was a bit smaller. Overall very satisfied with the purchase.' },
+  { id: 1, user: 'Sarah Johnson', stars: 5, date: '2026年8月15日', text: '这是我用过最好的耳机！降噪效果惊人，音质一流，电池续航可以用好几天。' },
+  { id: 2, user: 'Mike Chen', stars: 5, date: '2026年8月10日', text: '长时间佩戴也很舒适。降噪功能在飞行中表现出色。强烈推荐！' },
+  { id: 3, user: 'Emily Davis', stars: 4, date: '2026年8月2日', text: '音质非常棒，就是希望收纳盒能再小一点。总体来说非常满意。' },
 ])
 
 const shippingInfo = [
-  { title: 'Free Shipping', desc: 'Free standard shipping on all orders over $50', icon: markRaw(Van), bg: '#5A67F5' },
-  { title: '快速配送', desc: 'Express delivery available (1-3 business days)', icon: markRaw(Box), bg: '#3EBCB9' },
-  { title: '轻松退货', desc: '30-day money-back guarantee, no questions asked', icon: markRaw(Wallet), bg: '#FFA47A' },
+  { title: '免费配送', desc: '所有满 $50 的订单享免费标准配送', icon: markRaw(Van), bg: '#5A67F5' },
+  { title: '快速配送', desc: '支持加急配送（1-3 个工作日送达）', icon: markRaw(Box), bg: '#3EBCB9' },
+  { title: '轻松退货', desc: '30 天无理由退货保障', icon: markRaw(Wallet), bg: '#FFA47A' },
 ]
 
 const relatedProducts = ref([
-  { id: 1, name: '智能手表 Pro', price: 199.00, rating: 5, bg: 'linear-gradient(135deg, #3EBCB9, #6ee0dd)' },
-  { id: 2, name: 'Wireless Earbuds', price: 59.99, rating: 4.5, bg: 'linear-gradient(135deg, #FFA47A, #ffc4a3)' },
-  { id: 3, name: 'Bluetooth Speaker', price: 39.99, rating: 4, bg: 'linear-gradient(135deg, #67C100, #85d533)' },
-  { id: 4, name: 'USB-C Charger', price: 24.99, rating: 4.5, bg: 'linear-gradient(135deg, #E56809, #ff8a3c)' },
+  { id: 1, name: '智能手表 Pro', price: 199.00, rating: 5, img: `${BASE}/smartwatch-pro.jpg`, bgColor: '#F5F6FA' },
+  { id: 2, name: '无线耳塞', price: 59.99, rating: 4.5, img: `${BASE}/wireless-earbuds.jpg`, bgColor: '#F5F6FA' },
+  { id: 3, name: '蓝牙音箱', price: 39.99, rating: 4, img: `${BASE}/bluetooth-speaker.jpg`, bgColor: '#F5F6FA' },
+  { id: 4, name: 'USB-C 充电器', price: 24.99, rating: 4.5, img: `${BASE}/usbc-charger.jpg`, bgColor: '#F5F6FA' },
 ])
 
 const addToCart = () => {
@@ -263,6 +266,13 @@ const toggleWishlist = () => {
   justify-content: center;
   position: relative;
   margin-bottom: 12px;
+  background: #F5F6FA !important;
+  overflow: hidden;
+}
+.gallery-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
 }
 .discount-tag {
   position: absolute;
@@ -286,6 +296,12 @@ const toggleWishlist = () => {
   cursor: pointer;
   border: 2px solid transparent;
   transition: border-color 0.2s;
+  overflow: hidden;
+}
+.thumb-img {
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
 }
 .thumb.active {
   border-color: #5A67F5;
@@ -615,12 +631,22 @@ const toggleWishlist = () => {
   margin-bottom: 20px;
 }
 .related-img {
-  height: 120px;
+  height: 150px;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 12px;
+  overflow: hidden;
+}
+.related-img-el {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+.related-product-card:hover .related-img-el {
+  transform: scale(1.05);
 }
 .related-info h5 {
   font-size: 14px;
