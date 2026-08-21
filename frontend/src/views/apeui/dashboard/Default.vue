@@ -472,6 +472,8 @@ const profitChartOption = {
   background: linear-gradient(135deg, #5A67F5 0%, #47D8FF 100%);
   height: 254px;
   position: relative;
+  /* Koho 原版：插画从卡片顶部自然探出，不做裁切 */
+  overflow: visible;
 }
 .profile-greeting .greeting-body {
   padding: 25px;
@@ -524,7 +526,8 @@ const profitChartOption = {
   right: 0;
 }
 .greeting-img img {
-  height: 265px;
+  /* Koho 1:1：探出卡片顶部约 9px */
+  height: 261px;
 }
 
 /* ==================== Yearly Overview ==================== */
@@ -955,7 +958,8 @@ const profitChartOption = {
 .upgrade-history {
   position: relative;
   height: 250px;
-  overflow: hidden;
+  /* Koho 原版：插画从顶部探出，不被裁切 */
+  overflow: visible;
 }
 .upgrade-body {
   display: flex;
@@ -1001,7 +1005,8 @@ const profitChartOption = {
   z-index: 1;
 }
 .upgrade-img img {
-  height: 230px;
+  /* Koho 1:1：高度补齐至卡片底部贴齐（250 - 10 + 20 = 260） */
+  height: 260px;
 }
 
 /* Responsive */

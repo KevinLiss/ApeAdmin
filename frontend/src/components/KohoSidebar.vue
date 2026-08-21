@@ -403,15 +403,17 @@ const apeuiMenus = [
   background-color: #eff3f9;
   border-radius: 20px;
   text-align: center;
+  padding-top: 20px;
   padding-bottom: 20px;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .upgrade-img {
-  margin-top: -18px;
-  height: 92px;
+  height: 80px;
   display: block;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 0 auto 4px;
 }
 .upgrade-card h5 {
   margin: 6px 0 6px;
