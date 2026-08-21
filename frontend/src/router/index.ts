@@ -51,6 +51,25 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/system/dept/index.vue'),
         meta: { title: '部门管理', icon: 'OfficeBuilding', permission: 'system:dept:list' },
       },
+      {
+        path: 'system/plugin',
+        name: 'SystemPlugin',
+        component: () => import('@/views/system/plugin/index.vue'),
+        meta: { title: '插件管理', icon: 'Box', permission: 'system:plugin:list' },
+      },
+      // ===== AI 助手 =====
+      {
+        path: 'ai/chat',
+        name: 'AiChat',
+        component: () => import('@/views/ai/chat/index.vue'),
+        meta: { title: 'AI 对话', icon: 'ChatDotRound', permission: 'ai:chat' },
+      },
+      {
+        path: 'ai/providers',
+        name: 'AiProviders',
+        component: () => import('@/views/ai/providers/index.vue'),
+        meta: { title: '模型密钥管理', icon: 'Key', permission: 'ai:provider:list' },
+      },
       // ===== MCP =====
       {
         path: 'mcp/tools',

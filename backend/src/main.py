@@ -42,6 +42,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         from src.plugins import plugin_manager
         logger.info("Discovering plugins...")
         plugin_manager.discover()
+        await plugin_manager.discover_async()
         await plugin_manager.install_all()
         plugin_manager.register_all(app)
         logger.info(f"Loaded {len(plugin_manager.list_plugins())} plugins")

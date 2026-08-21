@@ -7,6 +7,9 @@ from src.api.dept import router as dept_router
 from src.api.menu import router as menu_router
 from src.api.role import router as role_router
 from src.api.user import router as user_router
+from src.api.ai_provider import router as ai_provider_router
+from src.api.chat import router as chat_router
+from src.api.plugin import router as plugin_router
 
 api_router = APIRouter()
 api_router.include_router(auth_router)
@@ -14,5 +17,8 @@ api_router.include_router(user_router)
 api_router.include_router(role_router)
 api_router.include_router(menu_router)
 api_router.include_router(dept_router)
+api_router.include_router(ai_provider_router)
+api_router.include_router(chat_router)
+api_router.include_router(plugin_router)
 
 __all__ = ["api_router"]

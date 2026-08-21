@@ -2,6 +2,8 @@
 
 from src.models.mixins import IDMixin, SoftDeleteMixin, TimestampMixin
 from src.models.rbac import Dept, Menu, Role, User, role_menu, user_role
+from src.models.ai import AiProvider
+from src.models.plugin import Plugin
 
 __all__ = [
     "IDMixin",
@@ -13,4 +15,6 @@ __all__ = [
     "Dept",
     "user_role",
     "role_menu",
+    "AiProvider",
+    "Plugin",
 ]

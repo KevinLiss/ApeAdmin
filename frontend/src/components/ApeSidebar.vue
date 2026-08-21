@@ -51,6 +51,17 @@
           </router-link>
         </li>
 
+        <!-- Group: AI 助手 -->
+        <li class="sidebar-main-title">
+          <div><h4>AI 助手</h4></div>
+        </li>
+        <li class="sidebar-list" v-for="item in aiMenus" :key="item.path">
+          <router-link :to="item.path" class="sidebar-link" :class="{ active: activeMenu === item.path }">
+            <el-icon class="menu-icon"><component :is="item.icon" /></el-icon>
+            <span>{{ item.title }}</span>
+          </router-link>
+        </li>
+
         <!-- Group: MCP -->
         <li class="sidebar-main-title">
           <div><h4>MCP 体系</h4></div>
@@ -147,11 +158,17 @@ const systemMenus = [
   { title: '角色管理', path: '/system/role', icon: 'UserFilled' },
   { title: '菜单管理', path: '/system/menu', icon: 'Menu' },
   { title: '部门管理', path: '/system/dept', icon: 'OfficeBuilding' },
+  { title: '插件管理', path: '/system/plugin', icon: 'Box' },
 ]
 
 const mcpMenus = [
   { title: '工具列表', path: '/mcp/tools', icon: 'Tools' },
   { title: '资源列表', path: '/mcp/resources', icon: 'FolderOpened' },
+]
+
+const aiMenus = [
+  { title: 'AI 对话', path: '/ai/chat', icon: 'ChatDotRound' },
+  { title: '模型密钥管理', path: '/ai/providers', icon: 'Key' },
 ]
 
   // APEUI库 - 四大模块 (数据看板已提升为顶级仪表盘1/2)

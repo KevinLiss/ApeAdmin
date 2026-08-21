@@ -35,6 +35,14 @@ export const createDept = (data: any) => request.post('/depts', data)
 export const updateDept = (id: number, data: any) => request.put(`/depts/${id}`, data)
 export const deleteDept = (id: number) => request.delete(`/depts/${id}`)
 
+// ---- Plugins ----
+export const getPlugins = (params: any = {}) => request.get('/plugins', { params })
+export const togglePlugin = (id: number, enabled: boolean) =>
+  request.put(`/plugins/${id}/toggle`, { enabled })
+export const getPluginConfig = (id: number) => request.get(`/plugins/${id}/config`)
+export const updatePluginConfig = (id: number, config: any) =>
+  request.put(`/plugins/${id}/config`, { config })
+
 // ---- MCP ----
 export const getMcpTools = () => request.get('/mcp/tools')
 export const callMcpTool = (name: string, arguments_: any) =>
@@ -43,3 +51,69 @@ export const getMcpResources = () => request.get('/mcp/resources')
 export const getMcpResourcesRead = (params: any) =>
   request.get('/mcp/resources/read', { params })
 export const getMcpPrompts = () => request.get('/mcp/prompts')
+
+// ---- AI 模型密钥管理 ----
+export const getProviders = (params: any = {}) => request.get('/ai/providers', { params })
+export const getAllProviders = () => request.get('/ai/providers/all')
+export const createProvider = (data: any) => request.post('/ai/providers', data)
+export const updateProvider = (id: number, data: any) => request.put(`/ai/providers/${id}`, data)
+export const deleteProvider = (id: number) => request.delete(`/ai/providers/${id}`)
+export const testProvider = (id: number) => request.post(`/ai/providers/${id}/test`)
+
+// ---- AI 对话 ----
+export const chat = (data: any) => request.post('/ai/chat', data)
+
+/**
+ * SSE 流式对话 —— 使用 fetch + ReadableStream 解析 SSE
+ * @param data  ChatStreamRequest body
+ * @param onChunk  每收到一个 SSE event JSON 调用
+ * @returns AbortController（可用于中止请求）
+ */
+export function chatStream(
+  data: any,
+  onChunk: (event: any) => void
+): AbortController {
+  const controller = new AbortController()
+  const token = localStorage.getItem('apeadmin_token')
+
+  fetch('/api/v1/ai/chat/stream', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: token ? `Bearer ${token}` : '',
+    },
+    body: JSON.stringify(data),
+    signal: controller.signal,
+  })
+    .then(async (resp) => {
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+      const reader = resp.body!.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const chunk = line.slice(6).trim()
+            if (!chunk) continue
+            try {
+              onChunk(JSON.parse(chunk))
+            } catch {
+              // skip invalid JSON
+            }
+          }
+        }
+      }
+    })
+    .catch((err) => {
+      if (err.name !== 'AbortError') {
+        onChunk({ type: 'error', message: err.message || '请求失败' })
+      }
+    })
+
+  return controller
+}

@@ -32,7 +32,14 @@ class PluginManager:
         return self._plugins
 
     def discover(self) -> None:
-        """Discover all available plugins in the builtin directory."""
+        """Discover all available plugins in the builtin directory.
+
+        After scanning, sync plugin metadata to the ``sys_plugin`` DB table
+        via :meth:`discover_async` (which must be called separately because
+        the DB session is async).  This method only loads plugin classes
+        into memory; the ``enabled`` flag is read from DB in
+        :meth:`discover_async`.
+        """
         if not settings.PLUGINS_ENABLED:
             logger.info("Plugins are disabled, skipping discovery")
             return
@@ -66,7 +73,7 @@ class PluginManager:
                     version=instance.version,
                     author=instance.author,
                     module_path=f"src.plugins.builtin.{modname}",
-                    enabled=True,  # Default: enabled (can be overridden by config)
+                    enabled=True,  # Default: enabled, overridden by DB in discover_async
                     instance=instance,
                 )
                 self._plugins[info.name] = info
@@ -74,6 +81,31 @@ class PluginManager:
 
             except Exception as exc:
                 logger.error(f"Failed to load plugin '{modname}': {exc}")
+
+    async def discover_async(self) -> None:
+        """Sync discovered plugins to DB and read enabled state.
+
+        Call this after :meth:`discover` and after the DB is ready.
+        - For each in-memory plugin, upsert its metadata into sys_plugin.
+        - Override ``enabled`` from the DB value (so admin toggles persist).
+        """
+        if not self._plugins:
+            return
+
+        from src.crud.plugin import crud_plugin
+        from src.db import SessionLocal
+
+        async with SessionLocal() as db:
+            for name, info in self._plugins.items():
+                record = await crud_plugin.upsert(db, name, {
+                    "display_name": info.display_name,
+                    "description": info.description,
+                    "version": info.version,
+                    "author": info.author,
+                    "module_path": info.module_path,
+                })
+                # Read enabled state from DB
+                info.enabled = record.enabled
 
     def _find_plugin_class(self, module: Any) -> type[PluginInterface] | None:
         """Find the first PluginInterface subclass in a module."""

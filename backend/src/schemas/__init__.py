@@ -21,6 +21,16 @@ from src.schemas.rbac import (
     UserOut,
     UserUpdate,
 )
+from src.schemas.ai import (
+    ProviderBase,
+    ProviderCreate,
+    ProviderUpdate,
+    ProviderOut,
+    ChatMessage,
+    ChatRequest,
+    ChatStreamRequest,
+)
+from src.schemas.plugin import PluginOut, PluginToggle, PluginConfigUpdate
 
 __all__ = [
     "LoginSchema",
@@ -42,4 +52,14 @@ __all__ = [
     "DeptCreate",
     "DeptUpdate",
     "DeptOut",
+    "ProviderBase",
+    "ProviderCreate",
+    "ProviderUpdate",
+    "ProviderOut",
+    "ChatMessage",
+    "ChatRequest",
+    "ChatStreamRequest",
+    "PluginOut",
+    "PluginToggle",
+    "PluginConfigUpdate",
 ]

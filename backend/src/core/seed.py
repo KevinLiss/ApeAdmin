@@ -72,10 +72,20 @@ async def _seed_menus(db: AsyncSession) -> None:
         ("新增部门", "部门管理", "F", None, None, "system:dept:add", None, 1),
         ("编辑部门", "部门管理", "F", None, None, "system:dept:edit", None, 2),
         ("删除部门", "部门管理", "F", None, None, "system:dept:delete", None, 3),
+        ("插件管理", "系统管理", "C", "plugin", "system/plugin/index", "system:plugin:list", "Box", 5),
+        ("启用/禁用插件", "插件管理", "F", None, None, "system:plugin:toggle", None, 1),
+        ("插件配置", "插件管理", "F", None, None, "system:plugin:config", None, 2),
         # MCP menu
         ("MCP 管理", None, "M", "/mcp", None, None, "Connection", 20),
         ("工具列表", "MCP 管理", "C", "tools", "mcp/tools/index", "mcp:tools:list", "Tools", 1),
         ("资源列表", "MCP 管理", "C", "resources", "mcp/resources/index", "mcp:resources:list", "FolderOpened", 2),
+        # AI module menu
+        ("AI 助手", None, "M", "/ai", None, None, "ChatDotRound", 30),
+        ("AI 对话", "AI 助手", "C", "chat", "ai/chat/index", "ai:chat", "ChatLineRound", 1),
+        ("模型密钥管理", "AI 助手", "C", "providers", "ai/providers/index", "ai:provider:list", "Key", 2),
+        ("新增模型密钥", "模型密钥管理", "F", None, None, "ai:provider:add", None, 1),
+        ("编辑模型密钥", "模型密钥管理", "F", None, None, "ai:provider:edit", None, 2),
+        ("删除模型密钥", "模型密钥管理", "F", None, None, "ai:provider:delete", None, 3),
     ]
 
     # Track created menus by name for parent linking
