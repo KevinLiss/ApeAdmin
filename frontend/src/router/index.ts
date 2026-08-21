@@ -12,14 +12,20 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     component: () => import('@/layout/index.vue'),
-    redirect: '/dashboard',
+    redirect: '/dashboard-1',
     children: [
-      // ===== 系统管理 =====
+      // ===== 仪表盘 =====
       {
-        path: 'dashboard',
-        name: 'Dashboard',
-        component: () => import('@/views/dashboard/index.vue'),
-        meta: { title: '仪表盘', icon: 'Odometer' },
+        path: 'dashboard-1',
+        name: 'Dashboard1',
+        component: () => import('@/views/apeui/dashboard/Default.vue'),
+        meta: { title: '仪表盘1', icon: 'Odometer' },
+      },
+      {
+        path: 'dashboard-2',
+        name: 'Dashboard2',
+        component: () => import('@/views/apeui/dashboard/Ecommerce.vue'),
+        meta: { title: '仪表盘2', icon: 'DataAnalysis' },
       },
       {
         path: 'system/user',
@@ -57,20 +63,6 @@ const routes: RouteRecordRaw[] = [
         name: 'McpResources',
         component: () => import('@/views/mcp/resources.vue'),
         meta: { title: 'MCP 资源', icon: 'FolderOpened' },
-      },
-
-      // ===== APEUI库 - Dashboards =====
-      {
-        path: 'apeui/dashboard/default',
-        name: 'ApeUIDashboardDefault',
-        component: () => import('@/views/apeui/dashboard/Default.vue'),
-        meta: { title: '默认看板' },
-      },
-      {
-        path: 'apeui/dashboard/ecommerce',
-        name: 'ApeUIDashboardEcommerce',
-        component: () => import('@/views/apeui/dashboard/Ecommerce.vue'),
-        meta: { title: '电商看板' },
       },
 
       // ===== APEUI库 - Applications =====
@@ -516,7 +508,7 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/:pathMatch(.*)*',
-    redirect: '/dashboard',
+    redirect: '/dashboard-1',
   },
 ]
 
@@ -529,7 +521,7 @@ const router = createRouter({
 router.beforeEach((to, _from, next) => {
   const token = localStorage.getItem('apeadmin_token')
   if (to.path === '/login') {
-    if (token) next('/dashboard')
+    if (token) next('/dashboard-1')
     else next()
   } else {
     if (!token) next('/login')

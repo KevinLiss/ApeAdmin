@@ -26,11 +26,17 @@
     <!-- Menu -->
     <nav class="sidebar-main">
       <ul class="sidebar-links">
-        <!-- Dashboard -->
+        <!-- 仪表盘 -->
         <li class="sidebar-list">
-          <router-link to="/dashboard" class="sidebar-link" :class="{ active: activeMenu === '/dashboard' }">
+          <router-link to="/dashboard-1" class="sidebar-link" :class="{ active: activeMenu === '/dashboard-1' }">
             <el-icon class="menu-icon"><Odometer /></el-icon>
-            <span>仪表盘</span>
+            <span>仪表盘1</span>
+          </router-link>
+        </li>
+        <li class="sidebar-list">
+          <router-link to="/dashboard-2" class="sidebar-link" :class="{ active: activeMenu === '/dashboard-2' }">
+            <el-icon class="menu-icon"><DataAnalysis /></el-icon>
+            <span>仪表盘2</span>
           </router-link>
         </li>
 
@@ -103,7 +109,7 @@
     <!-- Bottom upgrade card (Koho sidebar-img-content) -->
     <div class="sidebar-footer">
       <div class="upgrade-card">
-        <img class="upgrade-img" src="/koho/images/2.png" alt="" />
+        <img class="upgrade-img" src="/assets/images/sidebar/2.png" alt="" />
         <h5>体验更多功能</h5>
         <p>升级插件体系，解锁 AI 能力</p>
         <button class="upgrade-btn" @click="$emit('upgrade')">现在查看</button>
@@ -148,16 +154,8 @@ const mcpMenus = [
   { title: '资源列表', path: '/mcp/resources', icon: 'FolderOpened' },
 ]
 
-  // APEUI库 - 五大模块 (逐页独立路由)
+  // APEUI库 - 四大模块 (数据看板已提升为顶级仪表盘1/2)
 const apeuiMenus = [
-  {
-    title: '数据看板',
-    icon: 'Odometer',
-    items: [
-      { title: '默认看板', path: '/apeui/dashboard/default' },
-      { title: '电商看板', path: '/apeui/dashboard/ecommerce' },
-    ],
-  },
   {
     title: '应用中心',
     icon: 'Grid',

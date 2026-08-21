@@ -4,7 +4,7 @@
     <div>
       <div>
         <a class="logo" href="javascript:void(0)">
-          <img class="img-fluid for-light" src="/koho/assets/images/logo/logo.png" alt="logo image" />
+          <img class="img-fluid for-light" src="/assets/images/logo/logo.png" alt="logo image" />
         </a>
       </div>
       <div class="login-main">
@@ -107,7 +107,7 @@ async function handleLogin() {
   try {
     await userStore.login(form.username, form.password)
     ElMessage.success('登录成功')
-    router.push('/dashboard')
+    router.push('/dashboard-1')
   } catch (e: any) {
     // Error message already shown by interceptor
   } finally {

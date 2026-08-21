@@ -18,7 +18,7 @@
                 </a>
               </div>
               <div class="greeting-img">
-                <img src="/koho/assets/images/dashboard/profile-greeting/bg.png" alt="" />
+                <img src="/assets/images/dashboard/profile-greeting/bg.png" alt="" />
               </div>
             </div>
           </div>
@@ -159,10 +159,10 @@
               <p>全球最耀眼的年轻冲浪新星之一，伊凯诺亚·加萨拉什。</p>
               <div class="date-history">
                 <ul class="beyo-avatars">
-                  <li><img src="/koho/assets/images/dashboard/beyo-line/1.png" alt="" /></li>
-                  <li><img src="/koho/assets/images/dashboard/beyo-line/2.png" alt="" /></li>
-                  <li><img src="/koho/assets/images/dashboard/beyo-line/3.png" alt="" /></li>
-                  <li><img src="/koho/assets/images/dashboard/beyo-line/4.png" alt="" /></li>
+                  <li><img src="/assets/images/dashboard/beyo-line/1.png" alt="" /></li>
+                  <li><img src="/assets/images/dashboard/beyo-line/2.png" alt="" /></li>
+                  <li><img src="/assets/images/dashboard/beyo-line/3.png" alt="" /></li>
+                  <li><img src="/assets/images/dashboard/beyo-line/4.png" alt="" /></li>
                   <li><h2>+ 350</h2></li>
                 </ul>
                 <div class="date-label">
@@ -257,7 +257,7 @@
               </div>
             </div>
             <div class="upgrade-img">
-              <img src="/koho/assets/images/dashboard/upgrade/1.png" alt="" />
+              <img src="/assets/images/dashboard/upgrade/1.png" alt="" />
             </div>
           </div>
         </el-col>
@@ -288,24 +288,24 @@ const SUCCESS = '#67C100'
 
 /* ---- Activity Review data ---- */
 const activities = [
-  { id: 1, avatar: '/koho/assets/images/dashboard/activity/1.jpg', title: 'Jim Smith 的审核请求', subtitle: '2019年1月3日 12:25 于塔梅库拉', time: '14分钟前' },
-  { id: 2, avatar: '/koho/assets/images/dashboard/activity/2.jpg', title: '新增联系人', subtitle: '2019年1月2日 15:10 于弗雷斯诺', time: '22分钟前' },
-  { id: 3, avatar: '/koho/assets/images/dashboard/activity/3.jpg', title: '已发送审核 (504)236-7302', subtitle: '2019年1月2日 19:35 于艾里斯', time: '30分钟前' },
+  { id: 1, avatar: '/assets/images/dashboard/activity/1.jpg', title: 'Jim Smith 的审核请求', subtitle: '2019年1月3日 12:25 于塔梅库拉', time: '14分钟前' },
+  { id: 2, avatar: '/assets/images/dashboard/activity/2.jpg', title: '新增联系人', subtitle: '2019年1月2日 15:10 于弗雷斯诺', time: '22分钟前' },
+  { id: 3, avatar: '/assets/images/dashboard/activity/3.jpg', title: '已发送审核 (504)236-7302', subtitle: '2019年1月2日 19:35 于艾里斯', time: '30分钟前' },
 ]
 
 /* ---- Transaction History data ---- */
 const transactions = [
-  { id: 1, icon: '/koho/assets/images/dashboard/transaction/1.png', name: '耐克运动鞋 NK', delivery: '免运费', date: '2022年5月12日', days: '6天内', income: 456, progress: 65, progressClass: 'progress-success', payment: 'PayPal' },
-  { id: 2, icon: '/koho/assets/images/dashboard/transaction/2.png', name: '女士手提包', delivery: '运费¥83.65', date: '2022年5月6日', days: '5天内', income: -80, progress: 45, progressClass: 'progress-warning', payment: '信用卡' },
-  { id: 3, icon: '/koho/assets/images/dashboard/transaction/3.png', name: '太阳镜', delivery: '免运费', date: '2022年9月28日', days: '4个月内', income: -4232, progress: 85, progressClass: 'progress-danger', payment: 'PayPal' },
-  { id: 4, icon: '/koho/assets/images/dashboard/transaction/4.png', name: '棉质T恤', delivery: '运费¥283.65', date: '2022年3月22日', days: '8天内', income: -645, progress: 75, progressClass: 'progress-info', payment: '信用卡' },
+  { id: 1, icon: '/assets/images/dashboard/transaction/1.png', name: '耐克运动鞋 NK', delivery: '免运费', date: '2022年5月12日', days: '6天内', income: 456, progress: 65, progressClass: 'progress-success', payment: 'PayPal' },
+  { id: 2, icon: '/assets/images/dashboard/transaction/2.png', name: '女士手提包', delivery: '运费¥83.65', date: '2022年5月6日', days: '5天内', income: -80, progress: 45, progressClass: 'progress-warning', payment: '信用卡' },
+  { id: 3, icon: '/assets/images/dashboard/transaction/3.png', name: '太阳镜', delivery: '免运费', date: '2022年9月28日', days: '4个月内', income: -4232, progress: 85, progressClass: 'progress-danger', payment: 'PayPal' },
+  { id: 4, icon: '/assets/images/dashboard/transaction/4.png', name: '棉质T恤', delivery: '运费¥283.65', date: '2022年3月22日', days: '8天内', income: -645, progress: 75, progressClass: 'progress-info', payment: '信用卡' },
 ]
 
 /* ---- 社交媒体 data ---- */
 const socialMedia = [
-  { name: 'Facebook', icon: '/koho/assets/images/dashboard/social-media/fb.png', trend: '3.7%', value: '$24,000' },
-  { name: 'Instagram', icon: '/koho/assets/images/dashboard/social-media/insta.png', trend: '3.7%', value: '$33,000' },
-  { name: 'Twitter', icon: '/koho/assets/images/dashboard/social-media/twit.png', trend: '7.6%', value: '$72,000' },
+  { name: 'Facebook', icon: '/assets/images/dashboard/social-media/fb.png', trend: '3.7%', value: '$24,000' },
+  { name: 'Instagram', icon: '/assets/images/dashboard/social-media/insta.png', trend: '3.7%', value: '$33,000' },
+  { name: 'Twitter', icon: '/assets/images/dashboard/social-media/twit.png', trend: '7.6%', value: '$72,000' },
 ]
 
 /* ===== ECharts Options ===== */

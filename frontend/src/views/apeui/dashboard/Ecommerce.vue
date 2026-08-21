@@ -163,7 +163,7 @@
             <div class="review-body">
               <div class="review-header">
                 <div class="review-avatar">
-                  <img src="/koho/assets/images/dashboard-2/person1.png" alt="" />
+                  <img src="/assets/images/dashboard-2/person1.png" alt="" />
                 </div>
                 <div class="review-info">
                   <h4>乔安娜·帕尔韦兹</h4>
@@ -186,7 +186,7 @@
             <div class="weekend-body">
               <div class="weekend-inner-bg"></div>
               <div class="weekend-img">
-                <img src="/koho/assets/images/dashboard-2/headphone.png" alt="headphone" />
+                <img src="/assets/images/dashboard-2/headphone.png" alt="headphone" />
               </div>
               <div class="weekend-detail">
                 <h3>周末特惠</h3>
@@ -246,26 +246,26 @@ const statCards = [
 
 /* ---- 热销商品 ---- */
 const topProducts = [
-  { icon: '/koho/assets/images/dashboard-2/chair.png', name: '深色木椅', items: 100, code: 'PIX001', flag: '🇬🇧', discount: '-51%', price: '$99.00' },
-  { icon: '/koho/assets/images/dashboard-2/shoes.png', name: '男士运动鞋', items: 150, code: 'PIX002', flag: '🇺🇸', discount: '-78%', price: '$66.00' },
-  { icon: '/koho/assets/images/dashboard-2/pot.png', name: "时尚花盆", items: 105, code: 'PIX003', flag: '🇿🇦', discount: '-04%', price: '$116.00' },
-  { icon: '/koho/assets/images/dashboard-2/purse.png', name: '旅行手提袋', items: 600, code: 'PIX004', flag: '🇦🇹', discount: '-60%', price: '$99.00' },
-  { icon: '/koho/assets/images/dashboard-2/watch.png', name: '小米手表 Revolve', items: 541, code: 'PIX005', flag: '🇧🇷', discount: '-50%', price: '$58.00' },
+  { icon: '/assets/images/dashboard-2/chair.png', name: '深色木椅', items: 100, code: 'PIX001', flag: '🇬🇧', discount: '-51%', price: '$99.00' },
+  { icon: '/assets/images/dashboard-2/shoes.png', name: '男士运动鞋', items: 150, code: 'PIX002', flag: '🇺🇸', discount: '-78%', price: '$66.00' },
+  { icon: '/assets/images/dashboard-2/pot.png', name: "时尚花盆", items: 105, code: 'PIX003', flag: '🇿🇦', discount: '-04%', price: '$116.00' },
+  { icon: '/assets/images/dashboard-2/purse.png', name: '旅行手提袋', items: 600, code: 'PIX004', flag: '🇦🇹', discount: '-60%', price: '$99.00' },
+  { icon: '/assets/images/dashboard-2/watch.png', name: '小米手表 Revolve', items: 541, code: 'PIX005', flag: '🇧🇷', discount: '-50%', price: '$58.00' },
 ]
 
 /* ---- 畅销榜单 ---- */
 const bestSellers = [
-  { id: 1, avatar: '/koho/assets/images/dashboard-2/person1.png', name: '约翰·凯特', year: '2019', date: '8月6日', product: '品牌鞋', total: '$37,618', progress: 65, progressClass: 'progress-success' },
-  { id: 2, avatar: '/koho/assets/images/dashboard-2/person2.png', name: '哈里·文特', year: '2020', date: '3月21日', product: '耳机', total: '$59,105', progress: 45, progressClass: 'progress-warning' },
-  { id: 3, avatar: '/koho/assets/images/dashboard-2/person3.png', name: '洛丁·迪奥', year: '2020', date: '3月9日', product: '手机', total: '$10,155', progress: 85, progressClass: 'progress-danger' },
-  { id: 4, avatar: '/koho/assets/images/dashboard-2/person4.png', name: '霍伦·霍斯', year: '2020', date: '2月14日', product: '时尚服饰', total: '$90,568', progress: 75, progressClass: 'progress-info' },
-  { id: 5, avatar: '/koho/assets/images/dashboard-2/person5.png', name: '芬特·杰西', year: '2020', date: '1月21日', product: '书店', total: '$10,652', progress: 45, progressClass: 'progress-warning' },
+  { id: 1, avatar: '/assets/images/dashboard-2/person1.png', name: '约翰·凯特', year: '2019', date: '8月6日', product: '品牌鞋', total: '$37,618', progress: 65, progressClass: 'progress-success' },
+  { id: 2, avatar: '/assets/images/dashboard-2/person2.png', name: '哈里·文特', year: '2020', date: '3月21日', product: '耳机', total: '$59,105', progress: 45, progressClass: 'progress-warning' },
+  { id: 3, avatar: '/assets/images/dashboard-2/person3.png', name: '洛丁·迪奥', year: '2020', date: '3月9日', product: '手机', total: '$10,155', progress: 85, progressClass: 'progress-danger' },
+  { id: 4, avatar: '/assets/images/dashboard-2/person4.png', name: '霍伦·霍斯', year: '2020', date: '2月14日', product: '时尚服饰', total: '$90,568', progress: 75, progressClass: 'progress-info' },
+  { id: 5, avatar: '/assets/images/dashboard-2/person5.png', name: '芬特·杰西', year: '2020', date: '1月21日', product: '书店', total: '$10,652', progress: 45, progressClass: 'progress-warning' },
 ]
 
 /* ---- Product Cards ---- */
 const productCards = [
-  { id: 1, img: '/koho/assets/images/dashboard-2/wellington-shoes.png', name: '威灵顿鞋', price: '$325.25', badge: '新品', bgClass: 'bg-secondary-card' },
-  { id: 2, img: '/koho/assets/images/dashboard-2/apple-watch.png', name: '苹果智能手表', price: '$1185.99', badge: '热门', bgClass: 'bg-primary-card' },
+  { id: 1, img: '/assets/images/dashboard-2/wellington-shoes.png', name: '威灵顿鞋', price: '$325.25', badge: '新品', bgClass: 'bg-secondary-card' },
+  { id: 2, img: '/assets/images/dashboard-2/apple-watch.png', name: '苹果智能手表', price: '$1185.99', badge: '热门', bgClass: 'bg-primary-card' },
 ]
 
 /* ===== ECharts ===== */
@@ -647,7 +647,7 @@ const countryChartOption = {
   position: relative;
   overflow-x: hidden;
   /* Koho 原版：深紫底色 + offer-banner.svg 背景图 */
-  background-image: url("/koho/assets/images/dashboard-2/offer-banner.svg");
+  background-image: url("/assets/images/dashboard-2/offer-banner.svg");
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
@@ -667,7 +667,7 @@ const countryChartOption = {
 }
 /* Koho 原版 inner-bg：bg-ribbons.png 重复纹理 + 缓慢滚动动画 */
 .weekend-inner-bg {
-  background: url(/koho/assets/images/dashboard-2/bg-ribbons.png) repeat;
+  background: url(/assets/images/dashboard-2/bg-ribbons.png) repeat;
   position: absolute;
   top: 0;
   bottom: 0;

@@ -44,48 +44,48 @@ import { Check } from '@element-plus/icons-vue'
 
 const plans = [
   {
-    name: 'Basic',
+    name: '基础版',
     price: 19,
     description: '适合刚起步的小型企业',
     popular: false,
     features: [
-      '1,000 products',
+      '1,000 个商品额度',
       '基础分析',
       '邮件支持',
-      '2 team members',
-      '5 GB storage',
+      '2 个团队成员',
+      '5GB 存储空间',
     ],
   },
   {
-    name: 'Pro',
+    name: '专业版',
     price: 49,
     description: '适合有更多需求的成长型企业',
     popular: true,
     features: [
-      '10,000 products',
+      '10,000 个商品额度',
       '高级分析',
       '优先支持',
-      '10 team members',
-      '50 GB storage',
+      '10 个团队成员',
+      '50GB 存储空间',
       '自定义品牌',
       'API 访问',
     ],
   },
   {
-    name: 'Enterprise',
+    name: '企业版',
     price: 99,
     description: '适合需要完全控制的大规模业务',
     popular: false,
     features: [
       '无限商品',
       '实时分析',
-      '24/7 phone support',
+      '7×24 电话支持',
       '无限团队成员',
-      '500 GB storage',
+      '500GB 存储空间',
       '自定义品牌',
       'API 访问',
       '专属经理',
-      'SLA guarantee',
+      'SLA 保障',
     ],
   },
 ]
@@ -118,32 +118,54 @@ const plans = [
   margin-bottom: 24px;
 }
 
-.pricing-card {
-  text-align: center;
-  padding: 8px 8px 24px;
-  position: relative;
-  min-height: 480px;
+.pricing-cards :deep(.el-col) {
+  display: flex;
+}
+
+.pricing-cards :deep(.el-card) {
+  width: 100%;
+  height: 100%;
+}
+
+.pricing-cards :deep(.el-card__body) {
   display: flex;
   flex-direction: column;
   align-items: center;
+  height: 100%;
+}
+
+.pricing-card {
+  text-align: center;
+  padding: 28px 8px 24px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 100%;
 }
 
 .pricing-card.popular {
   border: 2px solid #5A67F5;
+  overflow: visible !important;
 }
+
+
 
 .plan-badge {
   position: absolute;
-  top: -12px;
+  top: -14px;
   left: 50%;
   transform: translateX(-50%);
   background: #5A67F5;
   color: #fff;
   font-size: 12px;
   font-weight: 600;
-  padding: 4px 16px;
+  padding: 5px 18px;
   border-radius: 20px;
   white-space: nowrap;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(90, 103, 245, 0.35);
 }
 
 .plan-name {
@@ -216,7 +238,7 @@ const plans = [
 }
 
 .pricing-card.popular .plan-btn:hover {
-  background: #463b72;
-  border-color: #463b72;
+  background: #4F58E8;
+  border-color: #4F58E8;
 }
 </style>
