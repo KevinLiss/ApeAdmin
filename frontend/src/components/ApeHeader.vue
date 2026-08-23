@@ -10,15 +10,35 @@
       <div class="left-header">
         <!-- Desktop: inline search -->
         <div v-if="!isMobile" class="search-box">
-          <input class="search-input" type="text" placeholder="点击这里搜索........" v-model="keyword" @keyup.enter="onSearch" />
-          <span class="search-icon"><el-icon :size="16"><Search /></el-icon></span>
+          <input class="search-input" type="text" placeholder="搜索页面，如：用户、角色、菜单..." v-model="keyword" @input="onSearchInput" @keyup.enter="onSearch" @focus="onSearchInput" @keydown.down.prevent="moveHighlight(1)" @keydown.up.prevent="moveHighlight(-1)" />
+          <span class="search-icon" @click="onSearch"><el-icon :size="16"><Search /></el-icon></span>
+          <!-- 搜索结果下拉面板 -->
+          <div v-if="keyword.trim() && searchResults.length" class="search-dropdown">
+            <div class="search-dropdown-head">搜索结果（{{ searchResults.length }}）</div>
+            <ul class="search-dropdown-list">
+              <li v-for="(item, i) in searchResults" :key="item.path" :class="{ active: i === highlightIndex }" @click="goToPage(item)" @mouseenter="highlightIndex = i">
+                <el-icon class="search-item-icon" :size="16"><component :is="item.icon || 'Document'" /></el-icon>
+                <span class="search-item-title" v-html="item.titleHighlighted"></span>
+                <span class="search-item-path">{{ item.path }}</span>
+              </li>
+            </ul>
+          </div>
         </div>
         <!-- Mobile: icon search -->
         <div v-else class="mobile-search" @click="mobileSearchOpen = !mobileSearchOpen">
           <el-icon :size="20"><Search /></el-icon>
           <Transition name="search-slide">
-            <input v-if="mobileSearchOpen" class="mobile-search-input" type="text" placeholder="搜索..." v-model="keyword" @keyup.enter="onSearch" ref="mobileSearchRef" />
+            <input v-if="mobileSearchOpen" class="mobile-search-input" type="text" placeholder="搜索..." v-model="keyword" @input="onSearchInput" @keyup.enter="onSearch" ref="mobileSearchRef" />
           </Transition>
+          <!-- 移动端搜索结果 -->
+          <div v-if="keyword.trim() && searchResults.length" class="search-dropdown mobile-search-dropdown">
+            <ul class="search-dropdown-list">
+              <li v-for="(item, i) in searchResults" :key="item.path" @click="goToPage(item); mobileSearchOpen = false">
+                <span class="search-item-title" v-html="item.titleHighlighted"></span>
+                <span class="search-item-path">{{ item.path }}</span>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
 
@@ -148,9 +168,65 @@ const profileText = computed(() => userStore.roles?.[0] || 'Admin')
 const roleText = computed(() => (profileText.value === 'admin' ? '超级管理员' : profileText.value))
 
 function onSearch() {
-  if (keyword.value.trim()) {
-    ElMessage.info(`搜索：${keyword.value}`)
+  if (keyword.value.trim() && searchResults.value.length) {
+    goToPage(searchResults.value[0])
   }
+}
+
+// ===== 搜索功能 =====
+const searchResults = ref<any[]>([])
+const highlightIndex = ref(-1)
+
+// 获取所有可搜索的路由
+function getSearchableRoutes(): any[] {
+  const routes = router.getRoutes()
+  const results: any[] = []
+  for (const route of routes) {
+    const title = route.meta?.title as string
+    const path = route.path
+    // 只搜索 Layout 的子路由（有 title 的实际页面），排除 404 / 登录等
+    if (title && !path.startsWith('/login') && !path.startsWith('/404') && path !== '/' && !path.includes(':pathMatch')) {
+      results.push({
+        title,
+        path,
+        icon: route.meta?.icon || 'Document',
+      })
+    }
+  }
+  return results
+}
+
+function onSearchInput() {
+  highlightIndex.value = -1
+  const kw = keyword.value.trim().toLowerCase()
+  if (!kw) {
+    searchResults.value = []
+    return
+  }
+  const allRoutes = getSearchableRoutes()
+  const matched = allRoutes
+    .filter(r => r.title.toLowerCase().includes(kw) || r.path.toLowerCase().includes(kw))
+    .slice(0, 8)
+  // 高亮关键词
+  searchResults.value = matched.map(r => ({
+    ...r,
+    titleHighlighted: r.title.replace(
+      new RegExp(`(${kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'),
+      '<mark>$1</mark>'
+    ),
+  }))
+}
+
+function moveHighlight(direction: number) {
+  if (!searchResults.value.length) return
+  highlightIndex.value = Math.max(-1, Math.min(searchResults.value.length - 1, highlightIndex.value + direction))
+}
+
+function goToPage(item: any) {
+  keyword.value = ''
+  searchResults.value = []
+  highlightIndex.value = -1
+  router.push(item.path)
 }
 
 function toggleFullscreen() {
@@ -229,6 +305,70 @@ async function handleLogout() {
   right: 14px;
   color: #909399;
   cursor: pointer;
+}
+
+/* Search dropdown */
+.search-dropdown {
+  position: absolute;
+  top: 48px;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 10px 40px rgba(89, 102, 122, 0.18);
+  overflow: hidden;
+  z-index: 100;
+  animation: slideDown 0.2s ease;
+}
+.search-dropdown-head {
+  padding: 10px 16px;
+  font-size: 12px;
+  color: #909399;
+  border-bottom: 1px solid #f0f2f5;
+}
+.search-dropdown-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.search-dropdown-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.search-dropdown-list li:hover,
+.search-dropdown-list li.active {
+  background: #f5f8ff;
+}
+.search-item-icon {
+  color: #5A67F5;
+  flex-shrink: 0;
+}
+.search-item-title {
+  font-size: 14px;
+  color: #2b2b2b;
+  flex: 1;
+}
+.search-item-title mark {
+  background: rgba(90, 103, 245, 0.15);
+  color: #5A67F5;
+  border-radius: 2px;
+  padding: 0 2px;
+}
+.search-item-path {
+  font-size: 11px;
+  color: #c0c4cc;
+  white-space: nowrap;
+}
+.mobile-search-dropdown {
+  top: 38px;
+  width: 100%;
+  min-width: 260px;
 }
 
 /* Right */
@@ -660,5 +800,30 @@ html.dark .hamburger-btn {
 html.dark .hamburger-btn:hover {
   background: rgba(127, 138, 248, 0.15);
   color: #7F8AF8;
+}
+html.dark .search-dropdown {
+  background: #262b3d;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+}
+html.dark .search-dropdown-head {
+  color: #8a90a8;
+  border-bottom-color: #36394a;
+}
+html.dark .search-dropdown-list li:hover,
+html.dark .search-dropdown-list li.active {
+  background: #2e3344;
+}
+html.dark .search-item-icon {
+  color: #7F8AF8;
+}
+html.dark .search-item-title {
+  color: #e6e8f0;
+}
+html.dark .search-item-title mark {
+  background: rgba(127, 138, 248, 0.2);
+  color: #7F8AF8;
+}
+html.dark .search-item-path {
+  color: #6b7089;
 }
 </style>

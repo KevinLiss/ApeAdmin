@@ -214,7 +214,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="p in (sysData.plugins || [])" :key="p.id">
+                  <tr v-for="p in pagedPlugins" :key="p.id">
                     <td>
                       <div class="table-primary">
                         <el-icon class="table-icon"><Box /></el-icon>
@@ -234,6 +234,16 @@
                   </tr>
                 </tbody>
               </table>
+              <div v-if="(sysData.plugins?.length || 0) > pluginPageSize" class="table-pagination">
+                <el-pagination
+                  v-model:current-page="pluginPage"
+                  :page-size="pluginPageSize"
+                  :total="sysData.plugins?.length || 0"
+                  layout="prev, pager, next"
+                  :small="true"
+                  :pager-count="5"
+                />
+              </div>
             </div>
           </div>
         </el-col>
@@ -254,7 +264,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="t in (sysData.mcp_tools || [])" :key="t.name">
+                  <tr v-for="t in pagedMcpTools" :key="t.name">
                     <td>
                       <div class="table-primary">
                         <el-icon class="table-icon"><Connection /></el-icon>
@@ -274,6 +284,16 @@
                   </tr>
                 </tbody>
               </table>
+              <div v-if="(sysData.mcp_tools?.length || 0) > mcpPageSize" class="table-pagination">
+                <el-pagination
+                  v-model:current-page="mcpPage"
+                  :page-size="mcpPageSize"
+                  :total="sysData.mcp_tools?.length || 0"
+                  layout="prev, pager, next"
+                  :small="true"
+                  :pager-count="5"
+                />
+              </div>
             </div>
           </div>
         </el-col>
@@ -369,6 +389,24 @@ const displayName = computed(() => userStore.username || '管理员')
 
 // 系统数据（响应式）
 const sysData = reactive<any>({})
+
+// ===== 分页（已安装插件 / MCP 列表） =====
+const pluginPage = ref(1)
+const pluginPageSize = 5
+const mcpPage = ref(1)
+const mcpPageSize = 5
+
+const pagedPlugins = computed(() => {
+  const list = sysData.plugins || []
+  const start = (pluginPage.value - 1) * pluginPageSize
+  return list.slice(start, start + pluginPageSize)
+})
+
+const pagedMcpTools = computed(() => {
+  const list = sysData.mcp_tools || []
+  const start = (mcpPage.value - 1) * mcpPageSize
+  return list.slice(start, start + mcpPageSize)
+})
 
 // CPU 历史记录（用于趋势图）
 const cpuHistory = ref<number[]>(Array(30).fill(0))
@@ -881,6 +919,11 @@ onUnmounted(() => {
   color: #909399 !important;
   padding: 30px 0 !important;
 }
+.table-pagination {
+  display: flex;
+  justify-content: center;
+  padding: 10px 0 16px;
+}
 
 /* ==================== Responsive ==================== */
 @media (max-width: 1400px) {
@@ -959,5 +1002,12 @@ html.dark .dashboard-monitor .status-off {
 }
 html.dark .dashboard-monitor .perm-free {
   color: #8a90a8;
+}
+html.dark .dashboard-monitor .table-pagination .el-pagination {
+  --el-pagination-bg-color: #2e3344;
+  --el-pagination-text-color: #8a90a8;
+  --el-pagination-button-color: #8a90a8;
+  --el-pagination-button-bg-color: #2e3344;
+  --el-pagination-hover-color: #7F8AF8;
 }
 </style>
