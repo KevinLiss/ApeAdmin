@@ -7,7 +7,7 @@
       <template #header>
         <span class="card-title">栅格选项</span>
       </template>
-      <p class="card-desc">Bootstrap 5 栅格系统支持六个响应式断点，每个断点对应不同的最小宽度和类前缀。下方表格展示了完整的断点参数。</p>
+      <p class="card-desc">ApeAdmin 栅格系统支持六个响应式断点，每个断点对应不同的最小宽度和类前缀。下方表格展示了完整的断点参数。</p>
       <el-table :data="gridOptions" border style="width: 100%" :header-cell-style="{ background: '#f5f4fa', color: '#5A67F5', fontWeight: 600 }">
         <el-table-column prop="name" label="名称" width="180" />
         <el-table-column prop="minWidth" label="最小宽度" width="140" />

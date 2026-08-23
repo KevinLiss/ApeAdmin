@@ -1,6 +1,6 @@
 <template>
   <div>
-    <PageHeader title="Bootstrap 标签页" :breadcrumb="['APEUI库', '组件示例', 'Bootstrap 标签页']" />
+    <PageHeader title="ApeAdmin 标签页" :breadcrumb="['APEUI库', '组件示例', 'ApeAdmin 标签页']" />
 
     <el-card shadow="hover" header="基础标签页（默认样式）" style="margin-bottom: 16px">
       <el-tabs v-model="activeName1">

@@ -379,7 +379,7 @@ const staticRoutes: RouteRecordRaw[] = [
         path: 'apeui/components/tabs-bootstrap',
         name: 'ApeUITabsBootstrap',
         component: () => import('@/views/apeui/components/pages/TabsBootstrap.vue'),
-        meta: { title: 'Bootstrap 标签页' },
+        meta: { title: 'ApeAdmin 标签页' },
       },
       {
         path: 'apeui/components/tabs-line',

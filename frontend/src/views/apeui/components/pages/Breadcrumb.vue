@@ -62,7 +62,7 @@
               <el-breadcrumb :separator-icon="ArrowRight">
                 <el-breadcrumb-item :to="{ path: '/' }">Home</el-breadcrumb-item>
                 <el-breadcrumb-item :to="{ path: '/' }">Library</el-breadcrumb-item>
-                <el-breadcrumb-item>Bootstrap</el-breadcrumb-item>
+                <el-breadcrumb-item>ApeAdmin</el-breadcrumb-item>
               </el-breadcrumb>
             </div>
             <div class="breadcrumb-section">
@@ -70,7 +70,7 @@
               <el-breadcrumb :separator-icon="ArrowRight">
                 <el-breadcrumb-item :to="{ path: '/' }">Home</el-breadcrumb-item>
                 <el-breadcrumb-item :to="{ path: '/' }">Library</el-breadcrumb-item>
-                <el-breadcrumb-item>Bootstrap</el-breadcrumb-item>
+                <el-breadcrumb-item>ApeAdmin</el-breadcrumb-item>
               </el-breadcrumb>
             </div>
             <div class="breadcrumb-section">
@@ -78,7 +78,7 @@
               <div class="no-separator-breadcrumb">
                 <span class="no-sep-item">Home</span>
                 <span class="no-sep-item">Library</span>
-                <span class="no-sep-item">Bootstrap</span>
+                <span class="no-sep-item">ApeAdmin</span>
               </div>
             </div>
           </div>

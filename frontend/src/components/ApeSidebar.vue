@@ -260,7 +260,7 @@ const apeuiMenuGroups = [
           { path: '/apeui/components/tooltip', title: '文字提示' },
           { path: '/apeui/components/dropdown', title: '下拉菜单' },
           { path: '/apeui/components/accordion', title: '折叠面板' },
-          { path: '/apeui/components/tabs-bootstrap', title: 'Bootstrap 标签页' },
+          { path: '/apeui/components/tabs-bootstrap', title: 'ApeAdmin 标签页' },
           { path: '/apeui/components/tabs-line', title: '线型标签页' },
           { path: '/apeui/components/list', title: '列表' },
           { path: '/apeui/components/scrollable', title: '滚动区域' },
