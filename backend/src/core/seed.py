@@ -50,6 +50,8 @@ async def _seed_menus(db: AsyncSession) -> None:
     # Check if any menus exist
     result = await db.execute(select(Menu).limit(1))
     if result.scalars().first():
+        # Incremental seeding: add any missing MCP/AI sub-menus on existing installs
+        await _seed_missing_menus(db)
         return
 
     menus_data = [
@@ -110,6 +112,76 @@ async def _seed_menus(db: AsyncSession) -> None:
         name_to_menu[name] = menu
 
     logger.info(f"Created {len(menus_data)} menu items")
+
+
+async def _seed_missing_menus(db: AsyncSession) -> None:
+    """Idempotently add menus that were introduced after the initial seed.
+
+    Handles upgrades of existing installs: checks by name + parent, only inserts missing rows.
+    """
+    existing = await db.execute(select(Menu))
+    existing_menus = list(existing.scalars().all())
+
+    def find(name: str, parent_name: str | None = None) -> Menu | None:
+        """Find a menu by name (optionally scoped to a parent's name).
+
+        Parent lookup is name-based across any tree level (not restricted to
+        top-level menus), so sub-menus like '工具列表' or 'AI 对话' can be
+        used as parents for button-level (F) permission entries.
+        """
+        if parent_name is None:
+            return next((m for m in existing_menus if m.name == name and m.parent_id == 0), None)
+        parent = next((m for m in existing_menus if m.name == parent_name), None)
+        if not parent:
+            return None
+        return next((m for m in existing_menus if m.name == name and m.parent_id == parent.id), None)
+
+    # (name, parent_name, type, path, component, permission, icon, sort)
+    missing_menus = [
+        # MCP management additions
+        ("提示词列表", "MCP 管理", "C", "prompts", "mcp/prompts", "mcp:prompts:list", "ChatLineSquare", 3),
+        ("调用工具", "工具列表", "F", None, None, "mcp:tools:call", None, 1),
+        ("调用日志", "MCP 管理", "C", "audit-logs", "mcp/audit-logs", "mcp:audit:list", "List", 4),
+        # AI module button-level permissions
+        ("调用AI对话", "AI 对话", "F", None, None, "ai:chat:call", None, 1),
+    ]
+
+    added = 0
+    for name, parent_name, mtype, path, component, permission, icon, sort in missing_menus:
+        # Determine parent (any level, not just top-level menus)
+        parent_menu: Menu | None = None
+        if parent_name:
+            parent_menu = next((m for m in existing_menus if m.name == parent_name), None)
+            if parent_menu is None:
+                logger.warning(f"Skip menu '{name}': parent '{parent_name}' not found")
+                continue
+
+        pid = parent_menu.id if parent_menu else 0
+
+        # Skip if already exists (by parent id)
+        dup = any(m.name == name and m.parent_id == pid for m in existing_menus)
+        if dup:
+            continue
+
+        menu = Menu(
+            name=name,
+            parent_id=pid,
+            type=mtype,
+            path=path,
+            component=component,
+            permission=permission,
+            icon=icon,
+            sort=sort,
+            visible=1,
+            status=1,
+        )
+        db.add(menu)
+        await db.flush()
+        existing_menus.append(menu)
+        added += 1
+
+    if added:
+        logger.info(f"Added {added} missing menu items")
 
 
 async def _seed_role(db: AsyncSession) -> None:

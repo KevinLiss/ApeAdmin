@@ -51,6 +51,9 @@ export const getMcpResources = () => request.get('/mcp/resources')
 export const getMcpResourcesRead = (params: any) =>
   request.get('/mcp/resources/read', { params })
 export const getMcpPrompts = () => request.get('/mcp/prompts')
+export const renderMcpPrompt = (name: string, arguments_: any) =>
+  request.post('/mcp/prompts/render', { name, arguments: arguments_ })
+export const getMcpAuditLogs = (params: any = {}) => request.get('/mcp/audit-logs', { params })
 
 // ---- AI 模型密钥管理 ----
 export const getProviders = (params: any = {}) => request.get('/ai/providers', { params })

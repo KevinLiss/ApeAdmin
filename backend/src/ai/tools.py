@@ -157,6 +157,42 @@ TOOL_PERMISSIONS: dict[str, list[str]] = {
 }
 
 
+# ---------------------------------------------------------------------------
+# MCP tools integration
+# ---------------------------------------------------------------------------
+
+def build_tools_for_llm(enable_tools: bool) -> list[dict[str, Any]]:
+    """Return the tools list for LLM function calling.
+
+    Merges the hard-coded SYSTEM_TOOLS with all currently registered MCP tools,
+    so the AI agent can invoke MCP tools (health check, plugin list, etc.).
+    """
+    if not enable_tools:
+        return []
+
+    tools = list(SYSTEM_TOOLS)
+
+    # Merge registered MCP tools as function-calling definitions
+    try:
+        from src.mcp.manager import mcp_manager
+
+        for t in mcp_manager.list_tools():
+            tools.append(
+                {
+                    "type": "function",
+                    "function": {
+                        "name": t.name,
+                        "description": t.description or f"MCP 工具: {t.name}",
+                        "parameters": t.input_schema or {"type": "object", "properties": {}},
+                    },
+                }
+            )
+    except Exception as exc:  # MCP not enabled / import error — degrade gracefully
+        logger.warning(f"Failed to merge MCP tools for LLM: {exc}")
+
+    return tools
+
+
 def check_tool_permission(tool_name: str, user_permissions: set[str]) -> bool:
     """Check if the user has permission to call a tool."""
     required = TOOL_PERMISSIONS.get(tool_name, [])
@@ -190,14 +226,29 @@ async def execute_tool(
     }
 
     handler = handlers.get(tool_name)
-    if not handler:
-        return json.dumps({"error": f"未知工具: {tool_name}"}, ensure_ascii=False)
+    if handler:
+        try:
+            result = await handler(db, arguments)
+            return json.dumps(result, ensure_ascii=False, default=str)
+        except Exception as e:
+            return json.dumps({"error": f"工具执行失败: {e}"}, ensure_ascii=False)
 
+    # MCP tools: try registered MCP tools as fallback
     try:
-        result = await handler(db, arguments)
+        from src.mcp.manager import mcp_manager
+
+        # Permission check: MCP tool call requires mcp:tools:call (super admin has "*")
+        if "mcp:tools:call" not in user_permissions and "*" not in user_permissions:
+            return json.dumps({"error": f"权限不足，无法调用 MCP 工具: {tool_name}"}, ensure_ascii=False)
+
+        available = mcp_manager.list_tools(user_permissions)
+        if tool_name not in {t.name for t in available}:
+            return json.dumps({"error": f"未知工具: {tool_name}"}, ensure_ascii=False)
+
+        result = await mcp_manager.call_tool(tool_name, arguments)
         return json.dumps(result, ensure_ascii=False, default=str)
     except Exception as e:
-        return json.dumps({"error": f"工具执行失败: {e}"}, ensure_ascii=False)
+        return json.dumps({"error": f"MCP 工具执行失败: {e}"}, ensure_ascii=False)
 
 
 # ---------------------------------------------------------------------------

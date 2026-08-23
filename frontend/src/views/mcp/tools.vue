@@ -19,7 +19,7 @@
       </el-table-column>
       <el-table-column label="操作" width="120" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="openCall(row)">调用</el-button>
+          <el-button link type="primary" v-permission="'mcp:tools:call'" @click="openCall(row)">调用</el-button>
         </template>
       </el-table-column>
     </el-table>

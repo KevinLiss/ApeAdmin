@@ -13,7 +13,7 @@ from typing import Any, AsyncGenerator
 import httpx
 from loguru import logger
 
-from src.ai.tools import SYSTEM_TOOLS, execute_tool
+from src.ai.tools import build_tools_for_llm, execute_tool
 from src.core.crypto import decrypt_api_key
 from src.core.deps import get_user_permissions
 from src.db import SessionLocal
@@ -53,9 +53,7 @@ def _get_provider_config(provider: AiProvider) -> dict[str, str]:
 
 def _build_tools_for_llm(tools_enabled: bool) -> list[dict[str, Any]]:
     """Return the tools list for LLM function calling."""
-    if not tools_enabled:
-        return []
-    return SYSTEM_TOOLS
+    return build_tools_for_llm(tools_enabled)
 
 
 async def _call_llm(
