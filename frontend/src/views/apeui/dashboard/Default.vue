@@ -488,6 +488,7 @@ const profitChartOption = {
 .profile-greeting .greeting-text {
   position: relative;
   z-index: 2;
+  max-width: 55%;
 }
 .profile-greeting .greeting-text h1 {
   color: #fff;
@@ -527,10 +528,14 @@ const profitChartOption = {
   position: absolute;
   bottom: -2px;
   right: 0;
+  max-width: 42%;
 }
 .greeting-img img {
-  /* ApeAdmin 1:1：探出卡片顶部约 9px */
-  height: 261px;
+  /* ApeAdmin 1:1：探出卡片顶部约 9px；保持比例、不超容器 */
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 261px;
 }
 
 /* ==================== 年度概览 ==================== */
@@ -602,6 +607,9 @@ const profitChartOption = {
   font-size: 14px;
   font-weight: 500;
   color: #2B2B2B;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .activity-info p {
   margin: 0;
@@ -640,6 +648,10 @@ const profitChartOption = {
   padding: 15px 12px 15px 25px;
   text-align: left;
   border-bottom: none;
+  white-space: nowrap;
+}
+.transaction-table tbody td {
+  white-space: nowrap;
 }
 .transaction-table thead th:first-child {
   padding-left: 25px;
@@ -1013,17 +1025,27 @@ const profitChartOption = {
 }
 
 /* Responsive */
-@media (max-width: 1400px) {
+@media (max-width: 1600px) {
   .yearly-chart { height: 210px; }
   .profile-greeting .greeting-text h1 { font-size: 26px; }
-  .greeting-img img { height: 220px; }
+  .greeting-img img { max-height: 220px; }
+  .transaction-body { overflow-x: auto; }
+  .transaction-table thead th {
+    padding: 12px 8px 12px 16px;
+    font-size: 14px;
+  }
+  .transaction-table thead th:first-child { padding-left: 16px; }
+  .transaction-table thead th:last-child { padding-right: 16px; }
+  .transaction-table tbody td { padding: 10px 8px; }
+  .transaction-table tbody td:first-child { padding-left: 16px; border-left: 16px solid #EFF3F9; }
+  .transaction-table tbody td:last-child { padding-right: 16px; border-right: 16px solid #EFF3F9; }
 }
 @media (max-width: 1200px) {
   .profile-greeting { height: auto; min-height: 200px; }
   .profile-greeting .greeting-text p { width: 80%; }
   .yearly-chart { height: 200px; }
   .beyo-chart { height: 220px; }
-  .greeting-img img { height: 200px; }
+  .greeting-img img { max-height: 200px; }
 }
 @media (max-width: 992px) {
   .yearly-chart { height: 200px; }
@@ -1031,13 +1053,14 @@ const profitChartOption = {
   .profile-greeting .greeting-text h1 { font-size: 22px; }
   .beyo-detail > p { width: 100%; }
   .upgrade-text p { width: 100%; }
-  .greeting-img img { height: 180px; }
+  .greeting-img img { max-height: 180px; }
   .beyo-chart { height: 200px; }
   .transaction-body { overflow-x: auto; }
+  .transaction-table thead th { font-size: 14px; }
 }
 @media (max-width: 768px) {
   .greeting-img { display: none; }
-  .profile-greeting .greeting-text { width: 100%; }
+  .profile-greeting .greeting-text { width: 100%; max-width: 100%; }
   .profile-greeting .greeting-text p { font-size: 14px; width: 100%; }
   .profile-greeting .greeting-text h1 { font-size: 20px; }
   .transaction-table { min-width: 500px; }
