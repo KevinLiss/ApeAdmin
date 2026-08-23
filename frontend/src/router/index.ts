@@ -80,20 +80,26 @@ const staticRoutes: RouteRecordRaw[] = [
     path: '/',
     name: 'Layout',
     component: () => import('@/layout/index.vue'),
-    redirect: '/dashboard-1',
+    redirect: '/dashboard-monitor',
     children: [
       // ===== 仪表盘 =====
+      {
+        path: 'dashboard-monitor',
+        name: 'DashboardMonitor',
+        component: () => import('@/views/apeui/dashboard/Monitor.vue'),
+        meta: { title: '系统监控', icon: 'Monitor' },
+      },
       {
         path: 'dashboard-1',
         name: 'Dashboard1',
         component: () => import('@/views/apeui/dashboard/Default.vue'),
-        meta: { title: '仪表盘', icon: 'Odometer' },
+        meta: { title: '仪表盘样式1', icon: 'Odometer' },
       },
       {
         path: 'dashboard-2',
         name: 'Dashboard2',
         component: () => import('@/views/apeui/dashboard/Ecommerce.vue'),
-        meta: { title: '电商仪表盘', icon: 'DataAnalysis' },
+        meta: { title: '仪表盘样式2', icon: 'DataAnalysis' },
       },
 
       // ===== APEUI库 - Applications =====
@@ -616,7 +622,7 @@ router.beforeEach(async (to, _from, next) => {
 export function resetRouter() {
   dynamicRoutesLoaded = false
   // 移除所有动态路由（保留静态路由）
-  const staticNames = ['Login', 'NotFound', 'CatchAll', 'Layout', 'Dashboard1', 'Dashboard2',
+  const staticNames = ['Login', 'NotFound', 'CatchAll', 'Layout', 'DashboardMonitor', 'Dashboard1', 'Dashboard2',
     'ApeUIProjects', 'ApeUIProjectCreate', 'ApeUIFileManager', 'ApeUIKanban',
     'ApeUIBookmark', 'ApeUIContacts', 'ApeUITasks', 'ApeUICalendar',
     'ApeUISocial', 'ApeUITodo', 'ApeUISearch', 'ApeUIChat', 'ApeUIChatVideo',

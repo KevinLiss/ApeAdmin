@@ -25,22 +25,6 @@
 
     <!-- Menu -->
     <nav class="sidebar-main">
-      <!-- Dashboard 顶部固定项 -->
-      <ul class="sidebar-links">
-        <li class="sidebar-list">
-          <router-link to="/dashboard-1" class="sidebar-link" :class="{ active: activeMenu === '/dashboard-1' }">
-            <el-icon class="menu-icon"><Odometer /></el-icon>
-            <span>仪表盘</span>
-          </router-link>
-        </li>
-        <li class="sidebar-list">
-          <router-link to="/dashboard-2" class="sidebar-link" :class="{ active: activeMenu === '/dashboard-2' }">
-            <el-icon class="menu-icon"><DataAnalysis /></el-icon>
-            <span>电商仪表盘</span>
-          </router-link>
-        </li>
-      </ul>
-
       <!-- APEUI 组件库（静态菜单，分组作为可折叠二级菜单，不走后端） -->
       <template v-for="group in apeuiMenuGroups" :key="group.title">
         <ul class="sidebar-links">
@@ -192,6 +176,14 @@ const apeuiMenuGroups = [
     title: 'UI 组件',
     icon: 'Grid',
     subgroups: [
+      {
+        title: '仪表盘',
+        items: [
+          { path: '/dashboard-monitor', title: '系统监控' },
+          { path: '/dashboard-1', title: '仪表盘样式1' },
+          { path: '/dashboard-2', title: '仪表盘样式2' },
+        ],
+      },
       {
         title: '应用',
         items: [
