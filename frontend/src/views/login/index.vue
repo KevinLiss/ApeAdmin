@@ -2,10 +2,9 @@
   <!-- ApeAdmin 1:1 登录页 -->
   <div class="login-card">
     <div>
-      <div>
-        <a class="logo" href="javascript:void(0)">
-          <img class="img-fluid for-light" src="/assets/images/logo/logo.png" alt="logo image" />
-        </a>
+      <div class="login-logo">
+        <img src="/assets/images/logo-icon.png" alt="Logo" class="login-logo-icon" />
+        <span class="login-logo-text">ApeAdmin</span>
       </div>
       <div class="login-main">
         <form class="theme-form" @submit.prevent="handleLogin">
@@ -128,13 +127,23 @@ async function handleLogin() {
   background-position: center;
   padding: 30px 12px;
 }
-.login-card .logo {
-  display: block;
+.login-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   margin-bottom: 30px;
-  text-align: center;
 }
-.login-card .logo img {
-  max-height: 40px;
+.login-logo-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+}
+.login-logo-text {
+  font-size: 28px;
+  font-weight: 700;
+  color: #2b2b2b;
+  letter-spacing: 0.5px;
 }
 .login-card .login-main {
   width: 450px;

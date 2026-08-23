@@ -615,3 +615,90 @@ onMounted(() => {
   margin-top: 8px;
 }
 </style>
+
+<style>
+/* ===== 深色模式适配 ===== */
+html.dark .chat-page {
+  background: #1a1e2e;
+}
+html.dark .chat-header {
+  background: #232838;
+  border-bottom-color: #36394a;
+}
+html.dark .chat-title {
+  color: #e6e8f0;
+}
+html.dark .chat-messages {
+  background: #1a1e2e;
+}
+html.dark .chat-messages::-webkit-scrollbar-thumb {
+  background: #4a5066;
+}
+html.dark .chat-welcome h3 {
+  color: #e6e8f0;
+}
+html.dark .chat-welcome p {
+  color: #8a90a8;
+}
+html.dark .suggestion-item {
+  background: #232838;
+  border-color: #36394a;
+  color: #b8bdd0;
+}
+html.dark .suggestion-item:hover {
+  border-color: #7F8AF8;
+  color: #7F8AF8;
+  background: rgba(127, 138, 248, 0.1);
+}
+html.dark .message-role {
+  color: #8a90a8;
+}
+html.dark .message-row.assistant .message-content {
+  background: #232838;
+  color: #e6e8f0;
+  border-color: #36394a;
+}
+html.dark .message-row.assistant .markdown-body code {
+  background: #2e3344;
+}
+html.dark .message-row.assistant .markdown-body th {
+  background: #2e3344;
+}
+html.dark .message-row.assistant .markdown-body th,
+html.dark .message-row.assistant .markdown-body td {
+  border-color: #36394a;
+}
+html.dark .tool-event {
+  background: rgba(127, 138, 248, 0.1);
+  color: #b8bdd0;
+}
+html.dark .tool-name {
+  color: #7F8AF8;
+}
+html.dark .tool-args {
+  color: #6b7089;
+}
+html.dark .message-error {
+  background: rgba(245, 108, 108, 0.1);
+  color: #f87171;
+}
+html.dark .typing-indicator {
+  background: #232838;
+  border-color: #36394a;
+}
+html.dark .typing-indicator span {
+  background: #6b7089;
+}
+html.dark .chat-input-area {
+  background: #232838;
+  border-top-color: #36394a;
+}
+html.dark .chat-input-area .el-textarea__inner {
+  background: #2e3344;
+  border-color: #3a3f52;
+  color: #e6e8f0;
+}
+html.dark .chat-input-area .el-textarea__inner::placeholder {
+  color: #6b7089;
+}
+</style>

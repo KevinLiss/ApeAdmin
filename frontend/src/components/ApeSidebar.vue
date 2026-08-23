@@ -10,7 +10,7 @@
     <!-- Logo + toggle -->
     <div class="logo-wrapper" :class="{ 'logo-collapsed': collapsed && !isMobile }" @click="(collapsed && !isMobile) && $emit('toggle')">
       <div class="logo-inner">
-        <img src="/assets/images/logo.png" alt="Logo" class="brand-logo" />
+        <img src="/assets/images/logo-icon.png" alt="Logo" class="brand-logo" />
         <span class="brand-text">ApeAdmin</span>
       </div>
       <!-- Desktop: toggle button -->
@@ -703,19 +703,22 @@ function resolvePath(parentPath: string, ...childPaths: string[]): string {
   background: rgba(90, 103, 245, 0.2);
 }
 
-/* ===== 深色模式适配 ===== */
-:global(html.dark) .ape-sidebar {
+</style>
+
+<style>
+/* ===== 深色模式适配（非 scoped，避免 Vite 压缩拆分选择器） ===== */
+html.dark .ape-sidebar {
   background: #232838;
   box-shadow: 0 0 21px 0 rgba(0, 0, 0, 0.35);
 }
-:global(html.dark) .flyout-submenu {
+html.dark .flyout-submenu {
   background: #262b3d;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
 }
-:global(html.dark) .flyout-submenu ul li a:hover {
+html.dark .flyout-submenu ul li a:hover {
   background: #2e3344;
 }
-:global(html.dark) .flyout-submenu::-webkit-scrollbar-thumb {
+html.dark .flyout-submenu::-webkit-scrollbar-thumb {
   background: #4a5066;
 }
 </style>

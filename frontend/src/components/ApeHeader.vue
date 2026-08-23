@@ -585,76 +585,79 @@ async function handleLogout() {
   }
 }
 
-/* ===== 深色模式适配 ===== */
-:global(html.dark) .ape-header {
+</style>
+
+<style>
+/* ===== 深色模式适配（非 scoped，避免 Vite 压缩拆分选择器） ===== */
+html.dark .ape-header {
   background: #232838;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.35);
 }
-:global(html.dark) .search-input {
+html.dark .search-input {
   background: #2e3344;
   border-color: #3a3f52;
   color: #e6e8f0;
 }
-:global(html.dark) .search-input:focus {
+html.dark .search-input:focus {
   background: #2e3344;
   border-color: #7F8AF8;
   box-shadow: 0 0 0 3px rgba(127, 138, 248, 0.15);
 }
-:global(html.dark) .icon-item {
+html.dark .icon-item {
   color: #b8bdd0;
 }
-:global(html.dark) .icon-item:hover {
+html.dark .icon-item:hover {
   background: #2e3344;
   color: #7F8AF8;
 }
-:global(html.dark) .profile-name {
+html.dark .profile-name {
   color: #e6e8f0;
 }
-:global(html.dark) .profile-role {
+html.dark .profile-role {
   color: #8a90a8;
 }
-:global(html.dark) .dropdown-panel,
-:global(html.dark) .profile-dropdown {
+html.dark .dropdown-panel,
+html.dark .profile-dropdown {
   background: #262b3d;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
 }
-:global(html.dark) .dropdown-head {
+html.dark .dropdown-head {
   background: linear-gradient(135deg, rgba(127, 138, 248, 0.12), rgba(127, 138, 248, 0.03));
   border-bottom-color: #36394a;
 }
-:global(html.dark) .dropdown-head h3 {
+html.dark .dropdown-head h3 {
   color: #e6e8f0;
 }
-:global(html.dark) .dropdown-panel ul li {
+html.dark .dropdown-panel ul li {
   color: #b8bdd0;
 }
-:global(html.dark) .dropdown-panel ul li:hover {
+html.dark .dropdown-panel ul li:hover {
   background: #2e3344;
 }
-:global(html.dark) .dropdown-panel ul li em {
+html.dark .dropdown-panel ul li em {
   color: #6b7089;
 }
-:global(html.dark) .check-all {
+html.dark .check-all {
   border-top-color: #36394a;
 }
-:global(html.dark) .check-all:hover {
+html.dark .check-all:hover {
   background: #2e3344;
 }
-:global(html.dark) .profile-media:hover {
+html.dark .profile-media:hover {
   background: #2e3344;
 }
-:global(html.dark) .profile-dropdown li a {
+html.dark .profile-dropdown li a {
   color: #b8bdd0;
 }
-:global(html.dark) .profile-dropdown li a:hover {
+html.dark .profile-dropdown li a:hover {
   background: #2e3344;
   color: #7F8AF8;
 }
-:global(html.dark) .hamburger-btn {
+html.dark .hamburger-btn {
   background: #2e3344;
   color: #b8bdd0;
 }
-:global(html.dark) .hamburger-btn:hover {
+html.dark .hamburger-btn:hover {
   background: rgba(127, 138, 248, 0.15);
   color: #7F8AF8;
 }
