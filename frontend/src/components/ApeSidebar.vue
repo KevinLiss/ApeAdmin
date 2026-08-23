@@ -10,7 +10,7 @@
     <!-- Logo + toggle -->
     <div class="logo-wrapper" :class="{ 'logo-collapsed': collapsed && !isMobile }" @click="(collapsed && !isMobile) && $emit('toggle')">
       <div class="logo-inner">
-        <el-icon :size="28" color="#5A67F5"><Platform /></el-icon>
+        <img src="/assets/images/logo.png" alt="Logo" class="brand-logo" />
         <span class="brand-text">ApeAdmin</span>
       </div>
       <!-- Desktop: toggle button -->
@@ -378,6 +378,12 @@ function resolvePath(parentPath: string, ...childPaths: string[]): string {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+.brand-logo {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 6px;
 }
 .brand-text {
   font-size: 19px;
