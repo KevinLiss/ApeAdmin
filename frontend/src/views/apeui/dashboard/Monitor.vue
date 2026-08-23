@@ -24,8 +24,8 @@
                   </div>
                 </div>
               </div>
-              <div class="greeting-icon">
-                <el-icon :size="80" color="rgba(255,255,255,0.3)"><Monitor /></el-icon>
+              <div class="greeting-img">
+                <img src="/assets/images/dashboard/profile-greeting/bg.png" alt="" />
               </div>
             </div>
           </div>
@@ -581,7 +581,7 @@ onUnmounted(() => {
   background: linear-gradient(135deg, #5A67F5 0%, #47D8FF 100%);
   height: 254px;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 .greeting-body {
   padding: 30px;
@@ -631,11 +631,14 @@ onUnmounted(() => {
   height: 30px;
   background: rgba(255,255,255,0.3);
 }
-.greeting-icon {
+.greeting-img {
   position: absolute;
-  right: 20px;
-  bottom: 20px;
+  bottom: -2px;
+  right: 0;
   z-index: 1;
+}
+.greeting-img img {
+  height: 261px;
 }
 
 /* ==================== Metric Cards (CPU / Memory / Disk / Network) ==================== */
@@ -854,13 +857,14 @@ onUnmounted(() => {
 /* ==================== Responsive ==================== */
 @media (max-width: 1400px) {
   .profile-greeting .greeting-text h1 { font-size: 24px; }
-  .greeting-icon { display: none; }
+  .greeting-img img { height: 220px; }
 }
 @media (max-width: 1200px) {
   .profile-greeting { height: auto; min-height: 200px; }
   .profile-greeting .greeting-text h1 { font-size: 22px; }
   .greeting-stats { flex-wrap: wrap; gap: 10px; }
   .gs-divider { display: none; }
+  .greeting-img img { height: 200px; }
 }
 @media (max-width: 992px) {
   .metric-chart { height: 120px; }
@@ -868,6 +872,8 @@ onUnmounted(() => {
 @media (max-width: 768px) {
   .profile-greeting { min-height: 160px; }
   .profile-greeting .greeting-body { padding: 20px; }
+  .greeting-img { display: none; }
+  .profile-greeting .greeting-text { width: 100%; }
   .profile-greeting .greeting-text h1 { font-size: 20px; }
   .metric-info { grid-template-columns: 1fr; }
   .info-table { min-width: 500px; }
