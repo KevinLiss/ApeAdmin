@@ -711,6 +711,9 @@ html.dark .ape-sidebar {
   background: #232838;
   box-shadow: 0 0 21px 0 rgba(0, 0, 0, 0.35);
 }
+html.dark .ape-sidebar .brand-text {
+  color: #e6e8f0;
+}
 html.dark .flyout-submenu {
   background: #262b3d;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
