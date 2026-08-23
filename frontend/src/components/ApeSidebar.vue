@@ -145,9 +145,9 @@
     <div class="sidebar-footer">
       <div class="upgrade-card">
         <img class="upgrade-img" src="/assets/images/sidebar/2.png" alt="" />
-        <h5>体验更多功能</h5>
-        <p>升级插件体系，解锁 AI 能力</p>
-        <button class="upgrade-btn" @click="$emit('upgrade')">现在查看</button>
+        <h5>全能助手</h5>
+        <p>告别传统，AI全面管理系统</p>
+        <button class="upgrade-btn" @click="goAiChat">前往体验</button>
       </div>
     </div>
   </aside>
@@ -155,7 +155,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { Monitor } from '@element-plus/icons-vue'
 
@@ -171,10 +171,16 @@ defineEmits<{
 }>()
 
 const route = useRoute()
+const router = useRouter()
 const userStore = useUserStore()
 const activeMenu = computed(() => route.path)
 const openedSub = ref<string | number | null>(null)
 const hoverSub = ref<string | number | null>(null)
+
+// 点击推广卡片按钮：跳转到 AI 全能助手
+function goAiChat() {
+  router.push('/ai/chat')
+}
 
 // 过滤掉 F 类型（按钮），只保留 M/C 用于侧边栏渲染
 const menuTree = computed(() => {
@@ -501,47 +507,48 @@ function resolvePath(parentPath: string, ...childPaths: string[]): string {
   background: var(--theme-default, #5A67F5);
 }
 
-/* Footer upgrade card */
+/* Footer upgrade card — 紧凑样式，避免挤占菜单空间 */
 .sidebar-footer {
-  padding: 0 22px;
-  margin-bottom: 24px;
+  padding: 0 16px;
+  margin-bottom: 16px;
+  flex-shrink: 0;
 }
 .upgrade-card {
   background-color: #eff3f9;
-  border-radius: 20px;
+  border-radius: 16px;
   text-align: center;
-  padding-top: 20px;
-  padding-bottom: 20px;
+  padding: 14px 12px 14px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 .upgrade-img {
-  height: 80px;
+  height: 56px;
   display: block;
-  margin: 0 auto 4px;
+  margin: 0 auto 2px;
 }
 .upgrade-card h5 {
-  margin: 6px 0 6px;
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 1.4;
+  margin: 4px 0 2px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
   color: #2b2b2b;
 }
 .upgrade-card p {
-  margin: 0 0 14px;
-  font-size: 12px;
+  margin: 0 0 8px;
+  font-size: 11px;
   color: #909399;
+  line-height: 1.3;
 }
 .upgrade-btn {
   border: none;
   background: var(--theme-default, #5A67F5);
   color: #fff;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
-  padding: 8px 20px;
-  border-radius: 8px;
+  padding: 6px 18px;
+  border-radius: 7px;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -723,5 +730,14 @@ html.dark .flyout-submenu ul li a:hover {
 }
 html.dark .flyout-submenu::-webkit-scrollbar-thumb {
   background: #4a5066;
+}
+html.dark .upgrade-card {
+  background-color: #2e3344;
+}
+html.dark .upgrade-card h5 {
+  color: #e6e8f0;
+}
+html.dark .upgrade-card p {
+  color: #8a90a8;
 }
 </style>
