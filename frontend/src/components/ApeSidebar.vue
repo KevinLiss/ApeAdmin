@@ -25,6 +25,16 @@
 
     <!-- Menu -->
     <nav class="sidebar-main">
+      <!-- 系统监控（独立一级菜单，置顶） -->
+      <ul class="sidebar-links">
+        <li class="sidebar-list">
+          <router-link to="/dashboard-monitor" class="sidebar-link" :class="{ active: activeMenu === '/dashboard-monitor' }">
+            <el-icon class="menu-icon"><Monitor /></el-icon>
+            <span>系统监控</span>
+          </router-link>
+        </li>
+      </ul>
+
       <!-- APEUI 组件库（静态菜单，分组作为可折叠二级菜单，不走后端） -->
       <template v-for="group in apeuiMenuGroups" :key="group.title">
         <ul class="sidebar-links">
@@ -147,6 +157,7 @@
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { Monitor } from '@element-plus/icons-vue'
 
 const props = defineProps<{
   collapsed: boolean
@@ -179,7 +190,6 @@ const apeuiMenuGroups = [
       {
         title: '仪表盘',
         items: [
-          { path: '/dashboard-monitor', title: '系统监控' },
           { path: '/dashboard-1', title: '仪表盘样式1' },
           { path: '/dashboard-2', title: '仪表盘样式2' },
         ],
