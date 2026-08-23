@@ -199,7 +199,7 @@ async function handleLogout() {
   flex: 1;
   max-width: 480px;
 }
-.input-group {
+.search-box {
   position: relative;
   display: flex;
   align-items: center;
