@@ -146,7 +146,7 @@
       <div class="upgrade-card">
         <img class="upgrade-img" src="/assets/images/sidebar/2.png" alt="" />
         <h5>全能助手</h5>
-        <p>告别传统，AI全面管理系统</p>
+        <p>告别传统，AI全面接管系统</p>
         <button class="upgrade-btn" @click="goAiChat">前往体验</button>
       </div>
     </div>
