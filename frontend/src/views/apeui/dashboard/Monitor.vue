@@ -329,7 +329,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, reactive, computed } from 'vue'
+import { onMounted, onUnmounted, reactive, computed, ref } from 'vue'
 import PageHeader from '../components/PageHeader.vue'
 import VChart from 'vue-echarts'
 import { use } from 'echarts/core'
@@ -339,10 +339,25 @@ import { TooltipComponent, LegendComponent, GridComponent } from 'echarts/compon
 import { Monitor, Cpu, Timer, Operation, Coin, Box, Connection, User } from '@element-plus/icons-vue'
 import { getDashboardSystem } from '@/api'
 import { useUserStore } from '@/stores/user'
+import { useTheme } from '@/composables/useTheme'
 
 use([CanvasRenderer, GaugeChart, BarChart, LineChart, TooltipComponent, LegendComponent, GridComponent])
 
-const PRIMARY = '#5A67F5'
+const { isDark } = useTheme()
+
+// 深色模式下的配色
+const CHART_COLORS = computed(() => ({
+  primary: isDark.value ? '#7F8AF8' : '#5A67F5',
+  secondary: isDark.value ? '#FFA47A' : '#FFA47A',
+  success: isDark.value ? '#67C100' : '#67C100',
+  trackBg: isDark.value ? '#3a3f52' : '#E8E8F5',
+  legendText: isDark.value ? '#b8bdd0' : '#9993B4',
+  tooltipBg: isDark.value ? '#262b3d' : '#fff',
+  tooltipText: isDark.value ? '#e6e8f0' : '#2b2b2b',
+  axisLabel: isDark.value ? '#8a90a8' : '#909399',
+}))
+
+const PRIMARY = computed(() => CHART_COLORS.value.primary)
 const SECONDARY = '#FFA47A'
 const SUCCESS = '#67C100'
 const WARNING = '#E56809'
@@ -360,8 +375,6 @@ const cpuHistory = ref<number[]>(Array(30).fill(0))
 const memHistory = ref<number[]>(Array(30).fill(0))
 const netSentHistory = ref<number[]>(Array(30).fill(0))
 const netRecvHistory = ref<number[]>(Array(30).fill(0))
-
-import { ref } from 'vue'
 
 // 格式化字节
 function formatBytes(n: number): string {
@@ -406,9 +419,9 @@ const cpuChartOption = computed(() => ({
       overlap: false,
       roundCap: true,
       clip: false,
-      itemStyle: { color: PRIMARY },
+      itemStyle: { color: CHART_COLORS.value.primary },
     },
-    axisLine: { lineStyle: { width: 10, color: [[(sysData.cpu?.percent || 0) / 100, PRIMARY], [1, '#E8E8F5']] } },
+    axisLine: { lineStyle: { width: 10, color: [[(sysData.cpu?.percent || 0) / 100, CHART_COLORS.value.primary], [1, CHART_COLORS.value.trackBg]] } },
     splitLine: { show: false },
     axisTick: { show: false },
     axisLabel: { show: false },
@@ -418,7 +431,7 @@ const cpuChartOption = computed(() => ({
       valueAnimation: true,
       fontSize: 22,
       fontWeight: 'bold',
-      color: PRIMARY,
+      color: CHART_COLORS.value.primary,
       offsetCenter: ['0%', '0%'],
       formatter: '{value}%',
     },
@@ -438,7 +451,7 @@ const memChartOption = computed(() => ({
       clip: false,
       itemStyle: { color: SECONDARY },
     },
-    axisLine: { lineStyle: { width: 10, color: [[(sysData.memory?.percent || 0) / 100, SECONDARY], [1, '#E8E8F5']] } },
+    axisLine: { lineStyle: { width: 10, color: [[(sysData.memory?.percent || 0) / 100, SECONDARY], [1, CHART_COLORS.value.trackBg]] } },
     splitLine: { show: false },
     axisTick: { show: false },
     axisLabel: { show: false },
@@ -468,7 +481,7 @@ const diskChartOption = computed(() => ({
       clip: false,
       itemStyle: { color: SUCCESS },
     },
-    axisLine: { lineStyle: { width: 10, color: [[(sysData.disk?.percent || 0) / 100, SUCCESS], [1, '#E8E8F5']] } },
+    axisLine: { lineStyle: { width: 10, color: [[(sysData.disk?.percent || 0) / 100, SUCCESS], [1, CHART_COLORS.value.trackBg]] } },
     splitLine: { show: false },
     axisTick: { show: false },
     axisLabel: { show: false },
@@ -493,7 +506,7 @@ const netChartOption = computed(() => ({
       data: netSentHistory.value,
       smooth: true,
       symbol: 'none',
-      lineStyle: { width: 2, color: PRIMARY },
+      lineStyle: { width: 2, color: CHART_COLORS.value.primary },
       areaStyle: {
         color: {
           type: 'linear' as const,
@@ -533,7 +546,7 @@ const netChartOption = computed(() => ({
     bottom: 0,
     itemWidth: 12,
     itemHeight: 12,
-    textStyle: { fontSize: 11, color: '#9993B4' },
+    textStyle: { fontSize: 11, color: CHART_COLORS.value.legendText },
   },
 }))
 
@@ -895,5 +908,56 @@ onUnmounted(() => {
   .metric-info { grid-template-columns: 1fr; }
   .info-table { min-width: 500px; }
   .list-card .card-body { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+</style>
+
+<!-- ==================== 深色模式覆盖（非 scoped，通过 .dashboard-monitor 限定范围） ==================== -->
+<style>
+html.dark .dashboard-monitor .mi-item {
+  background: #2e3344;
+}
+html.dark .dashboard-monitor .mi-label {
+  color: #8a90a8;
+}
+html.dark .dashboard-monitor .mi-value {
+  color: #e6e8f0;
+}
+html.dark .dashboard-monitor .info-item {
+  border-bottom-color: #363b4f;
+}
+html.dark .dashboard-monitor .info-label {
+  color: #8a90a8;
+}
+html.dark .dashboard-monitor .info-value {
+  color: #e6e8f0;
+}
+html.dark .dashboard-monitor .info-table thead th {
+  color: #e6e8f0;
+  border-bottom-color: rgba(127, 138, 248, 0.2);
+}
+html.dark .dashboard-monitor .info-table tbody tr {
+  border-bottom-color: rgba(127, 138, 248, 0.1);
+}
+html.dark .dashboard-monitor .info-table tbody tr:hover {
+  background: #2e3344;
+}
+html.dark .dashboard-monitor .info-table tbody td {
+  color: #e6e8f0;
+}
+html.dark .dashboard-monitor .desc-cell {
+  color: #8a90a8;
+}
+html.dark .dashboard-monitor .list-count {
+  color: #8a90a8;
+}
+html.dark .dashboard-monitor .empty-row {
+  color: #8a90a8 !important;
+}
+html.dark .dashboard-monitor .status-off {
+  background: rgba(138, 144, 168, 0.1);
+  color: #8a90a8;
+}
+html.dark .dashboard-monitor .perm-free {
+  color: #8a90a8;
 }
 </style>
