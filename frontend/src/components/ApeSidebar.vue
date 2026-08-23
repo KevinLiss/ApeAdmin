@@ -25,12 +25,12 @@
 
     <!-- Menu -->
     <nav class="sidebar-main">
-      <!-- 系统监控（独立一级菜单，置顶） -->
+      <!-- 系统仪表盘（独立一级菜单，置顶） -->
       <ul class="sidebar-links">
         <li class="sidebar-list">
           <router-link to="/dashboard-monitor" class="sidebar-link" :class="{ active: activeMenu === '/dashboard-monitor' }">
             <el-icon class="menu-icon"><Monitor /></el-icon>
-            <span>系统监控</span>
+            <span>系统仪表盘</span>
           </router-link>
         </li>
       </ul>

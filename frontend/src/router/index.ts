@@ -87,7 +87,7 @@ const staticRoutes: RouteRecordRaw[] = [
         path: 'dashboard-monitor',
         name: 'DashboardMonitor',
         component: () => import('@/views/apeui/dashboard/Monitor.vue'),
-        meta: { title: '系统监控', icon: 'Monitor' },
+        meta: { title: '系统仪表盘', icon: 'Monitor' },
       },
       {
         path: 'dashboard-1',

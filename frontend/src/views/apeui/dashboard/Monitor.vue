@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard-monitor">
-    <PageHeader title="系统监控" :breadcrumb="['仪表盘', '系统监控']" />
+    <PageHeader title="系统仪表盘" :breadcrumb="['系统仪表盘']" />
 
     <div class="dash-container">
       <!-- Row 1: 欢迎回来 (10/24) + CPU 使用 (7/24) + 内存使用 (7/24) -->
