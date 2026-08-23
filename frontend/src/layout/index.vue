@@ -42,15 +42,18 @@ import { ElMessage } from 'element-plus'
 import ApeSidebar from '@/components/ApeSidebar.vue'
 import ApeHeader from '@/components/ApeHeader.vue'
 import { useUserStore } from '@/stores/user'
+import { useTheme } from '@/composables/useTheme'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 
 const collapsed = ref(false)
-const isDark = ref(false)
 const isMobile = ref(false)
 const mobileSidebarOpen = ref(false)
+
+// 主题（暗色模式）——使用 composable 管理，支持持久化
+const { isDark, toggleDark } = useTheme()
 
 // 检测当前是否在 APEUI 库路由下
 const isApeui = computed(() => route.path.startsWith('/apeui'))
@@ -98,8 +101,8 @@ onUnmounted(() => {
 })
 
 function toggleTheme() {
-  isDark.value = !isDark.value
-  ElMessage.info(isDark.value ? '已切换深色模式（占位）' : '已切换浅色模式')
+  const dark = toggleDark()
+  ElMessage.info(dark ? '已切换深色模式' : '已切换浅色模式')
 }
 
 function onUpgrade() {

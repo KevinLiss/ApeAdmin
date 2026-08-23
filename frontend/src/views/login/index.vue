@@ -107,7 +107,7 @@ async function handleLogin() {
   try {
     await userStore.login(form.username, form.password)
     ElMessage.success('登录成功')
-    router.push('/dashboard-1')
+    router.push('/dashboard-monitor')
   } catch (e: any) {
     // Error message already shown by interceptor
   } finally {

@@ -10,7 +10,7 @@
           <div class="ape-card profile-greeting">
             <div class="greeting-body">
               <div class="greeting-text">
-                <h1>欢迎回来，{{ sysData.user?.nickname || sysData.user?.username || '管理员' }}</h1>
+                <h1>欢迎回来，{{ displayName }}</h1>
                 <p>{{ sysData.system?.hostname || 'ApeAdmin' }} · 运行 {{ formatUptime(sysData.system?.uptime_seconds || 0) }}</p>
                 <div class="greeting-stats">
                   <div class="gs-item">
@@ -338,6 +338,7 @@ import { GaugeChart, BarChart, LineChart } from 'echarts/charts'
 import { TooltipComponent, LegendComponent, GridComponent } from 'echarts/components'
 import { Monitor, Cpu, Timer, Operation, Coin, Box, Connection, User } from '@element-plus/icons-vue'
 import { getDashboardSystem } from '@/api'
+import { useUserStore } from '@/stores/user'
 
 use([CanvasRenderer, GaugeChart, BarChart, LineChart, TooltipComponent, LegendComponent, GridComponent])
 
@@ -346,6 +347,10 @@ const SECONDARY = '#FFA47A'
 const SUCCESS = '#67C100'
 const WARNING = '#E56809'
 const DANGER = '#DC0808'
+
+// 当前登录用户（显示登录用户名）
+const userStore = useUserStore()
+const displayName = computed(() => userStore.username || '管理员')
 
 // 系统数据（响应式）
 const sysData = reactive<any>({})
@@ -581,7 +586,7 @@ onUnmounted(() => {
   background: linear-gradient(135deg, #5A67F5 0%, #47D8FF 100%);
   height: 254px;
   position: relative;
-  overflow: visible;
+  overflow: hidden;
 }
 .greeting-body {
   padding: 30px;
@@ -594,18 +599,23 @@ onUnmounted(() => {
 .greeting-text {
   position: relative;
   z-index: 2;
+  max-width: 65%;
 }
 .greeting-text h1 {
   color: #fff;
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 600;
   margin: 0 0 8px;
+  white-space: nowrap;
 }
 .greeting-text p {
   color: rgba(255,255,255,0.85);
-  font-size: 14px;
+  font-size: 13px;
   margin: 0 0 20px;
   line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .greeting-stats {
   display: flex;
@@ -634,11 +644,16 @@ onUnmounted(() => {
 .greeting-img {
   position: absolute;
   bottom: -2px;
-  right: 0;
+  right: -20px;
   z-index: 1;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  pointer-events: none;
 }
 .greeting-img img {
-  height: 261px;
+  height: 230px;
+  object-fit: contain;
 }
 
 /* ==================== Metric Cards (CPU / Memory / Disk / Network) ==================== */
@@ -856,15 +871,17 @@ onUnmounted(() => {
 
 /* ==================== Responsive ==================== */
 @media (max-width: 1400px) {
-  .profile-greeting .greeting-text h1 { font-size: 24px; }
-  .greeting-img img { height: 220px; }
+  .profile-greeting .greeting-text h1 { font-size: 20px; }
+  .greeting-img img { height: 190px; }
+  .greeting-img { right: -10px; }
 }
 @media (max-width: 1200px) {
   .profile-greeting { height: auto; min-height: 200px; }
-  .profile-greeting .greeting-text h1 { font-size: 22px; }
+  .profile-greeting .greeting-text h1 { font-size: 20px; }
+  .greeting-text { max-width: 100%; }
   .greeting-stats { flex-wrap: wrap; gap: 10px; }
   .gs-divider { display: none; }
-  .greeting-img img { height: 200px; }
+  .greeting-img { display: none; }
 }
 @media (max-width: 992px) {
   .metric-chart { height: 120px; }

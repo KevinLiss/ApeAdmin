@@ -15,7 +15,7 @@ from src.db import get_db
 from src.models import User
 from src.schemas.ai import ChatRequest, ChatStreamRequest
 
-router = APIRouter(prefix="/ai/chat", tags=["AI 对话"])
+router = APIRouter(prefix="/ai/chat", tags=["AI 全能助手"])
 
 
 async def _get_provider(db: AsyncSession, provider_id: int | None):

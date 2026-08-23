@@ -4,7 +4,7 @@
     <div class="chat-header">
       <div class="chat-header-left">
         <el-icon :size="22" color="#5A67F5"><ChatDotRound /></el-icon>
-        <span class="chat-title">AI 智能助手</span>
+        <span class="chat-title">AI 全能助手</span>
         <el-tag v-if="currentProvider" size="small" type="primary" class="provider-tag">
           {{ currentProvider.name }}
         </el-tag>
@@ -36,7 +36,7 @@
       <!-- 欢迎提示 -->
       <div v-if="messages.length === 0" class="chat-welcome">
         <el-icon :size="48" color="#5A67F5"><ChatDotRound /></el-icon>
-        <h3>欢迎使用 ApeAdmin AI 助手</h3>
+        <h3>欢迎使用 ApeAdmin AI 全能助手</h3>
         <p>我可以帮您查询系统数据、管理用户、分析信息</p>
         <div class="welcome-suggestions">
           <div

@@ -83,7 +83,7 @@ async def _seed_menus(db: AsyncSession) -> None:
         ("资源列表", "MCP 管理", "C", "resources", "mcp/resources", "mcp:resources:list", "FolderOpened", 2),
         # AI module menu
         ("AI 助手", None, "M", "/ai", None, None, "ChatDotRound", 30),
-        ("AI 对话", "AI 助手", "C", "chat", "ai/chat/index", "ai:chat", "ChatLineRound", 1),
+        ("AI 全能助手", "AI 助手", "C", "chat", "ai/chat/index", "ai:chat", "ChatLineRound", 1),
         ("模型密钥管理", "AI 助手", "C", "providers", "ai/providers/index", "ai:provider:list", "Key", 2),
         ("新增模型密钥", "模型密钥管理", "F", None, None, "ai:provider:add", None, 1),
         ("编辑模型密钥", "模型密钥管理", "F", None, None, "ai:provider:edit", None, 2),
@@ -126,7 +126,7 @@ async def _seed_missing_menus(db: AsyncSession) -> None:
         """Find a menu by name (optionally scoped to a parent's name).
 
         Parent lookup is name-based across any tree level (not restricted to
-        top-level menus), so sub-menus like '工具列表' or 'AI 对话' can be
+        top-level menus), so sub-menus like '工具列表' or 'AI 全能助手' can be
         used as parents for button-level (F) permission entries.
         """
         if parent_name is None:
@@ -143,7 +143,7 @@ async def _seed_missing_menus(db: AsyncSession) -> None:
         ("调用工具", "工具列表", "F", None, None, "mcp:tools:call", None, 1),
         ("调用日志", "MCP 管理", "C", "audit-logs", "mcp/audit-logs", "mcp:audit:list", "List", 4),
         # AI module button-level permissions
-        ("调用AI对话", "AI 对话", "F", None, None, "ai:chat:call", None, 1),
+        ("调用AI对话", "AI 全能助手", "F", None, None, "ai:chat:call", None, 1),
     ]
 
     added = 0

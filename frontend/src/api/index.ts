@@ -6,6 +6,11 @@ export const login = (data: { username: string; password: string }) =>
 
 export const getUserInfo = () => request.get('/auth/userinfo')
 
+// 个人中心
+export const getProfile = () => request.get('/auth/profile')
+export const updateProfile = (data: any) => request.put('/auth/profile', data)
+export const changePassword = (data: any) => request.put('/auth/profile/password', data)
+
 export const logout = () => request.post('/auth/logout')
 
 // ---- Users ----

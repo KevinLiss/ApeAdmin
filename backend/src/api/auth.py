@@ -1,9 +1,10 @@
-"""Authentication routes: login, refresh, logout, user info."""
+"""Authentication routes: login, refresh, logout, user info, profile."""
 
 from typing import Annotated
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Request
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config import settings
@@ -13,11 +14,33 @@ from src.core.deps import (
     get_user_permissions,
 )
 from src.core.exceptions import AuthException, success_response
-from src.core.security import create_access_token, create_refresh_token, decode_token
+from src.core.security import (
+    create_access_token,
+    create_refresh_token,
+    decode_token,
+    hash_password,
+    verify_password,
+)
 from src.crud import crud_user
 from src.db import get_db
 from src.models import User
 from src.schemas import LoginSchema, TokenSchema
+
+
+class ProfileUpdateSchema(BaseModel):
+    """Update current user's profile fields."""
+
+    nickname: str | None = Field(default=None, max_length=50)
+    email: str | None = Field(default=None, max_length=100)
+    phone: str | None = Field(default=None, max_length=20)
+    avatar: str | None = Field(default=None, max_length=500)
+
+
+class PasswordChangeSchema(BaseModel):
+    """Change current user's password."""
+
+    old_password: str = Field(..., min_length=6, max_length=100)
+    new_password: str = Field(..., min_length=6, max_length=100)
 
 router = APIRouter(prefix="/auth", tags=["认证管理"])
 
@@ -112,3 +135,71 @@ async def user_info(
             "roles": [r.code for r in user.roles],
         }
     )
+
+
+@router.get("/profile")
+async def get_profile(
+    user: Annotated[User, Depends(get_current_user)],
+):
+    """Get current user's profile details (for 个人中心)."""
+    return success_response(
+        data={
+            "id": user.id,
+            "username": user.username,
+            "nickname": user.nickname,
+            "email": user.email,
+            "phone": user.phone,
+            "avatar": user.avatar,
+            "dept_id": user.dept_id,
+            "dept": {"id": user.dept.id, "name": user.dept.name} if user.dept else None,
+            "roles": [{"id": r.id, "name": r.name, "code": r.code} for r in user.roles],
+            "status": user.status,
+            "last_login_at": user.last_login_at.isoformat() if user.last_login_at else None,
+            "last_login_ip": user.last_login_ip,
+            "created_at": user.created_at.isoformat() if user.created_at else None,
+        }
+    )
+
+
+@router.put("/profile")
+async def update_profile(
+    body: ProfileUpdateSchema,
+    user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    """Update current user's own profile."""
+    payload = body.model_dump(exclude_unset=True, exclude_none=True)
+    if not payload:
+        return success_response(data={"id": user.id}, msg="无修改内容")
+
+    await crud_user.update(db, user.id, payload)
+    # Refresh user object to return fresh data
+    refreshed = await crud_user.get(db, user.id)
+    return success_response(
+        data={
+            "id": refreshed.id,
+            "username": refreshed.username,
+            "nickname": refreshed.nickname,
+            "email": refreshed.email,
+            "phone": refreshed.phone,
+            "avatar": refreshed.avatar,
+        },
+        msg="资料更新成功",
+    )
+
+
+@router.put("/profile/password")
+async def change_password(
+    body: PasswordChangeSchema,
+    user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    """Change current user's password (requires old password)."""
+    if not verify_password(body.old_password, user.password):
+        raise AuthException("原密码不正确")
+
+    if body.new_password == body.old_password:
+        raise AuthException("新密码不能与原密码相同")
+
+    await crud_user.update_password(db, user.id, body.new_password)
+    return success_response(msg="密码修改成功，请重新登录")
