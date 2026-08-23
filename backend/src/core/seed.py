@@ -77,8 +77,8 @@ async def _seed_menus(db: AsyncSession) -> None:
         ("插件配置", "插件管理", "F", None, None, "system:plugin:config", None, 2),
         # MCP menu
         ("MCP 管理", None, "M", "/mcp", None, None, "Connection", 20),
-        ("工具列表", "MCP 管理", "C", "tools", "mcp/tools/index", "mcp:tools:list", "Tools", 1),
-        ("资源列表", "MCP 管理", "C", "resources", "mcp/resources/index", "mcp:resources:list", "FolderOpened", 2),
+        ("工具列表", "MCP 管理", "C", "tools", "mcp/tools", "mcp:tools:list", "Tools", 1),
+        ("资源列表", "MCP 管理", "C", "resources", "mcp/resources", "mcp:resources:list", "FolderOpened", 2),
         # AI module menu
         ("AI 助手", None, "M", "/ai", None, None, "ChatDotRound", 30),
         ("AI 对话", "AI 助手", "C", "chat", "ai/chat/index", "ai:chat", "ChatLineRound", 1),
