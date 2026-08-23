@@ -66,6 +66,9 @@ export const testProvider = (id: number) => request.post(`/ai/providers/${id}/te
 // ---- AI 对话 ----
 export const chat = (data: any) => request.post('/ai/chat', data)
 
+// ---- 仪表盘统计 ----
+export const getDashboardStats = () => request.get('/dashboard/stats')
+
 /**
  * SSE 流式对话 —— 使用 fetch + ReadableStream 解析 SSE
  * @param data  ChatStreamRequest body

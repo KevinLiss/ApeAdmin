@@ -125,20 +125,25 @@ async function onLogout() {
 .layout {
   height: 100%;
   width: 100%;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
 }
 .layout-main {
   height: 100vh;
-  margin-left: 258px;
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition: margin-left 0.3s ease;
+  padding-left: 258px;
+  transition: padding-left 0.3s ease;
 }
 .layout-main.is-collapsed {
-  margin-left: 86px;
+  padding-left: 86px;
 }
 .layout-main.is-mobile {
-  margin-left: 0;
+  padding-left: 0;
 }
 .main {
   flex: 1;
