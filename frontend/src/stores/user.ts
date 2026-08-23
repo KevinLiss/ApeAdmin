@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { login as loginApi, getUserInfo, logout as logoutApi } from '@/api'
+import { resetRouter } from '@/router'
 
 interface UserState {
   token: string | null
@@ -67,6 +68,7 @@ export const useUserStore = defineStore('user', {
       this.menus = []
       this.roles = []
       localStorage.removeItem('apeadmin_token')
+      resetRouter()
     },
   },
 })

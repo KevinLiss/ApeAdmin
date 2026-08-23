@@ -25,99 +25,129 @@
 
     <!-- Menu -->
     <nav class="sidebar-main">
+      <!-- Dashboard 顶部固定项 -->
       <ul class="sidebar-links">
-        <!-- 仪表盘 -->
         <li class="sidebar-list">
           <router-link to="/dashboard-1" class="sidebar-link" :class="{ active: activeMenu === '/dashboard-1' }">
             <el-icon class="menu-icon"><Odometer /></el-icon>
-            <span>仪表盘1</span>
+            <span>仪表盘</span>
           </router-link>
         </li>
         <li class="sidebar-list">
           <router-link to="/dashboard-2" class="sidebar-link" :class="{ active: activeMenu === '/dashboard-2' }">
             <el-icon class="menu-icon"><DataAnalysis /></el-icon>
-            <span>仪表盘2</span>
+            <span>电商仪表盘</span>
           </router-link>
-        </li>
-
-        <!-- Group: 系统管理 -->
-        <li class="sidebar-main-title">
-          <div><h4>系统管理</h4></div>
-        </li>
-        <li class="sidebar-list" v-for="item in systemMenus" :key="item.path">
-          <router-link :to="item.path" class="sidebar-link" :class="{ active: activeMenu.startsWith(item.path) }">
-            <el-icon class="menu-icon"><component :is="item.icon" /></el-icon>
-            <span>{{ item.title }}</span>
-          </router-link>
-        </li>
-
-        <!-- Group: AI 助手 -->
-        <li class="sidebar-main-title">
-          <div><h4>AI 助手</h4></div>
-        </li>
-        <li class="sidebar-list" v-for="item in aiMenus" :key="item.path">
-          <router-link :to="item.path" class="sidebar-link" :class="{ active: activeMenu === item.path }">
-            <el-icon class="menu-icon"><component :is="item.icon" /></el-icon>
-            <span>{{ item.title }}</span>
-          </router-link>
-        </li>
-
-        <!-- Group: MCP -->
-        <li class="sidebar-main-title">
-          <div><h4>MCP 体系</h4></div>
-        </li>
-        <li class="sidebar-list" v-for="item in mcpMenus" :key="item.path">
-          <router-link :to="item.path" class="sidebar-link" :class="{ active: activeMenu.startsWith(item.path) }">
-            <el-icon class="menu-icon"><component :is="item.icon" /></el-icon>
-            <span>{{ item.title }}</span>
-          </router-link>
-        </li>
-
-        <!-- Group: APEUI库 -->
-        <li class="sidebar-main-title">
-          <div><h4>APEUI库</h4></div>
-        </li>
-
-        <!-- Dashboards -->
-        <li
-          class="sidebar-list submenu-item"
-          v-for="grp in apeuiMenus"
-          :key="grp.title"
-          @mouseenter="collapsed && !isMobile && (hoverSub = grp.title)"
-          @mouseleave="collapsed && !isMobile && (hoverSub = '')"
-        >
-          <a class="sidebar-link sidebar-title" href="javascript:void(0)" @click="toggleSub(grp.title)">
-            <el-icon class="menu-icon"><component :is="grp.icon" /></el-icon>
-            <span>{{ grp.title }}</span>
-            <el-icon class="sub-arrow" :class="{ open: openedSub === grp.title }"><ArrowDown /></el-icon>
-          </a>
-          <!-- Expanded mode: inline submenu -->
-          <ul class="sidebar-submenu" v-show="openedSub === grp.title">
-            <li v-for="item in grp.items" :key="item.path">
-              <router-link :to="item.path" :class="{ active: route.path === item.path }">
-                {{ item.title }}
-              </router-link>
-            </li>
-          </ul>
-          <!-- Collapsed mode: flyout submenu -->
-          <div
-            class="flyout-submenu"
-            v-if="collapsed && !isMobile && hoverSub === grp.title"
-          >
-            <h6>{{ grp.title }}</h6>
-            <ul>
-              <li v-for="item in grp.items" :key="item.path">
-                <router-link :to="item.path" :class="{ active: route.path === item.path }">
-                  {{ item.title }}
-                </router-link>
-              </li>
-            </ul>
-          </div>
         </li>
       </ul>
+
+      <!-- APEUI 组件库（静态菜单，分组作为可折叠二级菜单，不走后端） -->
+      <template v-for="group in apeuiMenuGroups" :key="group.title">
+        <ul class="sidebar-links">
+          <li
+            class="sidebar-list"
+            @mouseenter="collapsed && !isMobile && (hoverSub = group.title)"
+            @mouseleave="collapsed && !isMobile && (hoverSub = null)"
+          >
+            <!-- 分组标题：点击折叠/展开二级菜单 -->
+            <a class="sidebar-link sidebar-title" href="javascript:void(0)" @click="toggleSub(group.title)">
+              <el-icon class="menu-icon"><component :is="group.icon || 'Menu'" /></el-icon>
+              <span>{{ group.title }}</span>
+              <el-icon class="sub-arrow" :class="{ open: openedSub === group.title }"><ArrowDown /></el-icon>
+            </a>
+            <!-- Expanded: inline submenu -->
+            <ul class="sidebar-submenu" v-show="openedSub === group.title">
+              <template v-for="sub in group.subgroups" :key="sub.title">
+                <li class="submenu-title">{{ sub.title }}</li>
+                <li v-for="item in sub.items" :key="item.path">
+                  <router-link :to="item.path" :class="{ active: route.path === item.path }">
+                    {{ item.title }}
+                  </router-link>
+                </li>
+              </template>
+            </ul>
+            <!-- Collapsed: flyout submenu -->
+            <div class="flyout-submenu" v-if="collapsed && !isMobile && hoverSub === group.title">
+              <h6>{{ group.title }}</h6>
+              <template v-for="sub in group.subgroups" :key="sub.title">
+                <div class="flyout-subgroup-title">{{ sub.title }}</div>
+                <ul>
+                  <li v-for="item in sub.items" :key="item.path">
+                    <router-link :to="item.path" :class="{ active: route.path === item.path }">
+                      {{ item.title }}
+                    </router-link>
+                  </li>
+                </ul>
+              </template>
+            </div>
+          </li>
+        </ul>
+      </template>
+
+      <!-- 动态菜单渲染 -->
+      <template v-for="menu in menuTree" :key="menu.id">
+        <!-- 顶级目录 (type=M): 渲染为带子菜单的分组 -->
+        <ul v-if="menu.type === 'M' && menu.children?.length" class="sidebar-links">
+          <li class="sidebar-main-title">
+            <div><h4>{{ menu.name }}</h4></div>
+          </li>
+          <li
+            v-for="child in menu.children.filter(c => c.type !== 'F')"
+            :key="child.id"
+            class="sidebar-list"
+            @mouseenter="collapsed && !isMobile && (hoverSub = child.id)"
+            @mouseleave="collapsed && !isMobile && (hoverSub = null)"
+          >
+            <!-- 有子菜单的 C 类型菜单（如未来扩展三级菜单） -->
+            <template v-if="child.children?.some(c => c.type !== 'F')">
+              <a class="sidebar-link sidebar-title" href="javascript:void(0)" @click="toggleSub(child.id)">
+                <el-icon class="menu-icon"><component :is="child.icon || 'Menu'" /></el-icon>
+                <span>{{ child.name }}</span>
+                <el-icon class="sub-arrow" :class="{ open: openedSub === child.id }"><ArrowDown /></el-icon>
+              </a>
+              <!-- Expanded: inline submenu -->
+              <ul class="sidebar-submenu" v-show="openedSub === child.id">
+                <li v-for="grandchild in child.children.filter(c => c.type !== 'F')" :key="grandchild.id">
+                  <router-link :to="resolvePath(menu.path, child.path, grandchild.path)" :class="{ active: route.path === resolvePath(menu.path, child.path, grandchild.path) }">
+                    {{ grandchild.name }}
+                  </router-link>
+                </li>
+              </ul>
+              <!-- Collapsed: flyout submenu -->
+              <div class="flyout-submenu" v-if="collapsed && !isMobile && hoverSub === child.id">
+                <h6>{{ child.name }}</h6>
+                <ul>
+                  <li v-for="grandchild in child.children.filter(c => c.type !== 'F')" :key="grandchild.id">
+                    <router-link :to="resolvePath(menu.path, child.path, grandchild.path)" :class="{ active: route.path === resolvePath(menu.path, child.path, grandchild.path) }">
+                      {{ grandchild.name }}
+                    </router-link>
+                  </li>
+                </ul>
+              </div>
+            </template>
+            <!-- 无子菜单的菜单项 (type=C, 只有 F 类按钮子节点) -->
+            <template v-else>
+              <router-link :to="resolvePath(menu.path, child.path)" class="sidebar-link" :class="{ active: activeMenu === resolvePath(menu.path, child.path) }">
+                <el-icon class="menu-icon"><component :is="child.icon || 'Menu'" /></el-icon>
+                <span>{{ child.name }}</span>
+              </router-link>
+            </template>
+          </li>
+        </ul>
+
+        <!-- 顶级菜单 (type=C, 直接在根级别): 直接渲染 -->
+        <ul v-else-if="menu.type === 'C' && menu.component" class="sidebar-links">
+          <li class="sidebar-list">
+            <router-link :to="resolvePath('', menu.path)" class="sidebar-link" :class="{ active: activeMenu === resolvePath('', menu.path) }">
+              <el-icon class="menu-icon"><component :is="menu.icon || 'Menu'" /></el-icon>
+              <span>{{ menu.name }}</span>
+            </router-link>
+          </li>
+        </ul>
+      </template>
     </nav>
 
-    <!-- Bottom upgrade card (ApeAdmin sidebar-img-content) -->
+    <!-- Bottom upgrade card -->
     <div class="sidebar-footer">
       <div class="upgrade-card">
         <img class="upgrade-img" src="/assets/images/sidebar/2.png" alt="" />
@@ -132,8 +162,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 
-defineProps<{
+const props = defineProps<{
   collapsed: boolean
   isMobile?: boolean
   mobileOpen?: boolean
@@ -145,131 +176,144 @@ defineEmits<{
 }>()
 
 const route = useRoute()
+const userStore = useUserStore()
 const activeMenu = computed(() => route.path)
-const openedSub = ref<string>('')
-const hoverSub = ref<string>('')
+const openedSub = ref<string | number | null>(null)
+const hoverSub = ref<string | number | null>(null)
 
-function toggleSub(title: string) {
-  openedSub.value = openedSub.value === title ? '' : title
+// 过滤掉 F 类型（按钮），只保留 M/C 用于侧边栏渲染
+const menuTree = computed(() => {
+  return (userStore.menus || []).filter((m: any) => m.type !== 'F')
+})
+
+// APEUI 组件库静态菜单（合并为 1 个「UI 组件」分组，内部按二级小标题组织，不走后端）
+const apeuiMenuGroups = [
+  {
+    title: 'UI 组件',
+    icon: 'Grid',
+    subgroups: [
+      {
+        title: '应用',
+        items: [
+          { path: '/apeui/app/projects', title: '项目列表' },
+          { path: '/apeui/app/project-create', title: '新建项目' },
+          { path: '/apeui/app/file-manager', title: '文件管理' },
+          { path: '/apeui/app/kanban', title: '看板视图' },
+          { path: '/apeui/app/bookmark', title: '书签管理' },
+          { path: '/apeui/app/contacts', title: '通讯录' },
+          { path: '/apeui/app/tasks', title: '任务列表' },
+          { path: '/apeui/app/calendar', title: '日历' },
+          { path: '/apeui/app/social', title: '社交应用' },
+          { path: '/apeui/app/todo', title: '待办事项' },
+          { path: '/apeui/app/search', title: '搜索结果' },
+          { path: '/apeui/app/chat', title: '聊天应用' },
+          { path: '/apeui/app/chat-video', title: '视频聊天' },
+        ],
+      },
+      {
+        title: '电商',
+        items: [
+          { path: '/apeui/ecommerce/product', title: '商品管理' },
+          { path: '/apeui/ecommerce/product-page', title: '商品详情页' },
+          { path: '/apeui/ecommerce/add-product', title: '添加商品' },
+          { path: '/apeui/ecommerce/product-list', title: '商品列表' },
+          { path: '/apeui/ecommerce/payment', title: '支付详情' },
+          { path: '/apeui/ecommerce/order-history', title: '订单历史' },
+          { path: '/apeui/ecommerce/invoice', title: '发票模板' },
+          { path: '/apeui/ecommerce/cart', title: '购物车' },
+          { path: '/apeui/ecommerce/wishlist', title: '心愿单' },
+          { path: '/apeui/ecommerce/checkout', title: '结算页面' },
+          { path: '/apeui/ecommerce/pricing', title: '定价方案' },
+        ],
+      },
+      {
+        title: '用户',
+        items: [
+          { path: '/apeui/users/profile', title: '用户资料' },
+          { path: '/apeui/users/edit-profile', title: '编辑资料' },
+          { path: '/apeui/users/cards', title: '用户卡片' },
+        ],
+      },
+      {
+        title: 'UI 组件',
+        items: [
+          { path: '/apeui/components/state-color', title: '状态颜色' },
+          { path: '/apeui/components/typography', title: '排版样式' },
+          { path: '/apeui/components/avatars', title: '头像' },
+          { path: '/apeui/components/grid', title: '栅格布局' },
+          { path: '/apeui/components/box-shadow', title: '阴影效果' },
+          { path: '/apeui/components/buttons', title: '按钮' },
+          { path: '/apeui/components/button-group', title: '按钮组' },
+          { path: '/apeui/components/tag-pills', title: '标签与胶囊' },
+          { path: '/apeui/components/progress-bar', title: '进度条' },
+          { path: '/apeui/components/modal', title: '模态框' },
+          { path: '/apeui/components/alert', title: '警告提示' },
+          { path: '/apeui/components/popover', title: '气泡卡片' },
+          { path: '/apeui/components/tooltip', title: '文字提示' },
+          { path: '/apeui/components/dropdown', title: '下拉菜单' },
+          { path: '/apeui/components/accordion', title: '折叠面板' },
+          { path: '/apeui/components/tabs-bootstrap', title: 'Bootstrap 标签页' },
+          { path: '/apeui/components/tabs-line', title: '线型标签页' },
+          { path: '/apeui/components/list', title: '列表' },
+          { path: '/apeui/components/scrollable', title: '滚动区域' },
+          { path: '/apeui/components/tree', title: '树形视图' },
+          { path: '/apeui/components/rating', title: '评分' },
+          { path: '/apeui/components/sweet-alert2', title: '弹窗提示' },
+          { path: '/apeui/components/pagination', title: '分页' },
+          { path: '/apeui/components/breadcrumb', title: '面包屑' },
+          { path: '/apeui/components/range-slider', title: '范围滑块' },
+          { path: '/apeui/components/basic-card', title: '基础卡片' },
+          { path: '/apeui/components/creative-card', title: '创意卡片' },
+          { path: '/apeui/components/tabbed-card', title: '标签页卡片' },
+          { path: '/apeui/components/dragable-card', title: '可拖拽卡片' },
+          { path: '/apeui/components/timeline-1', title: '时间轴一' },
+          { path: '/apeui/components/timeline-2', title: '时间轴二' },
+          { path: '/apeui/components/chart-apex', title: 'Apex 图表' },
+          { path: '/apeui/components/chart-google', title: 'Google 图表' },
+          { path: '/apeui/components/chart-sparkline', title: '迷你走势图' },
+          { path: '/apeui/components/chart-flot', title: 'Flot 图表' },
+          { path: '/apeui/components/chart-knob', title: '旋钮图表' },
+          { path: '/apeui/components/chart-morris', title: 'Morris 图表' },
+          { path: '/apeui/components/chartjs', title: 'Chart.js 图表' },
+          { path: '/apeui/components/chartist', title: 'Chartist 图表' },
+          { path: '/apeui/components/chart-peity', title: 'Peity 图表' },
+          { path: '/apeui/components/flag-icon', title: '国旗图标' },
+          { path: '/apeui/components/font-awesome', title: 'Font Awesome 图标' },
+          { path: '/apeui/components/ico-icon', title: 'Ico 图标' },
+          { path: '/apeui/components/themify-icon', title: 'Themify 图标' },
+          { path: '/apeui/components/feather-icon', title: 'Feather 图标' },
+        ],
+      },
+    ],
+  },
+]
+
+function toggleSub(id: string | number) {
+  // 折叠状态下不展开 inline 子菜单（宽度不足以展示），由 hover flyout 接管
+  if (props.collapsed && !props.isMobile) {
+    openedSub.value = null
+    return
+  }
+  openedSub.value = openedSub.value === id ? null : id
 }
 
-const systemMenus = [
-  { title: '用户管理', path: '/system/user', icon: 'User' },
-  { title: '角色管理', path: '/system/role', icon: 'UserFilled' },
-  { title: '菜单管理', path: '/system/menu', icon: 'Menu' },
-  { title: '部门管理', path: '/system/dept', icon: 'OfficeBuilding' },
-  { title: '插件管理', path: '/system/plugin', icon: 'Box' },
-]
-
-const mcpMenus = [
-  { title: '工具列表', path: '/mcp/tools', icon: 'Tools' },
-  { title: '资源列表', path: '/mcp/resources', icon: 'FolderOpened' },
-]
-
-const aiMenus = [
-  { title: 'AI 对话', path: '/ai/chat', icon: 'ChatDotRound' },
-  { title: '模型密钥管理', path: '/ai/providers', icon: 'Key' },
-]
-
-  // APEUI库 - 四大模块 (数据看板已提升为顶级仪表盘1/2)
-const apeuiMenus = [
-  {
-    title: '应用中心',
-    icon: 'Grid',
-    items: [
-      { title: '项目列表', path: '/apeui/app/projects' },
-      { title: '新建项目', path: '/apeui/app/project-create' },
-      { title: '文件管理', path: '/apeui/app/file-manager' },
-      { title: '看板视图', path: '/apeui/app/kanban' },
-      { title: '书签管理', path: '/apeui/app/bookmark' },
-      { title: '通讯录', path: '/apeui/app/contacts' },
-      { title: '任务列表', path: '/apeui/app/tasks' },
-      { title: '日历', path: '/apeui/app/calendar' },
-      { title: '社交应用', path: '/apeui/app/social' },
-      { title: '待办事项', path: '/apeui/app/todo' },
-      { title: '搜索结果', path: '/apeui/app/search' },
-      { title: '聊天应用', path: '/apeui/app/chat' },
-      { title: '视频聊天', path: '/apeui/app/chat-video' },
-    ],
-  },
-  {
-    title: '电商模块',
-    icon: 'ShoppingCart',
-    items: [
-      { title: '商品管理', path: '/apeui/ecommerce/product' },
-      { title: '商品详情页', path: '/apeui/ecommerce/product-page' },
-      { title: '添加商品', path: '/apeui/ecommerce/add-product' },
-      { title: '商品列表', path: '/apeui/ecommerce/product-list' },
-      { title: '支付详情', path: '/apeui/ecommerce/payment' },
-      { title: '订单历史', path: '/apeui/ecommerce/order-history' },
-      { title: '发票模板', path: '/apeui/ecommerce/invoice' },
-      { title: '购物车', path: '/apeui/ecommerce/cart' },
-      { title: '心愿单', path: '/apeui/ecommerce/wishlist' },
-      { title: '结算页面', path: '/apeui/ecommerce/checkout' },
-      { title: '定价方案', path: '/apeui/ecommerce/pricing' },
-    ],
-  },
-  {
-    title: '用户中心',
-    icon: 'UserFilled',
-    items: [
-      { title: '用户资料', path: '/apeui/users/profile' },
-      { title: '编辑资料', path: '/apeui/users/edit-profile' },
-      { title: '用户卡片', path: '/apeui/users/cards' },
-    ],
-  },
-  {
-    title: '组件示例',
-    icon: 'Box',
-    items: [
-      { title: '状态颜色', path: '/apeui/components/state-color' },
-      { title: '排版样式', path: '/apeui/components/typography' },
-      { title: '头像', path: '/apeui/components/avatars' },
-      { title: '栅格布局', path: '/apeui/components/grid' },
-      { title: '标签与胶囊', path: '/apeui/components/tag-pills' },
-      { title: '进度条', path: '/apeui/components/progress-bar' },
-      { title: '模态框', path: '/apeui/components/modal' },
-      { title: '警告提示', path: '/apeui/components/alert' },
-      { title: '气泡卡片', path: '/apeui/components/popover' },
-      { title: '文字提示', path: '/apeui/components/tooltip' },
-      { title: '下拉菜单', path: '/apeui/components/dropdown' },
-      { title: '折叠面板', path: '/apeui/components/accordion' },
-      { title: 'Bootstrap 标签页', path: '/apeui/components/tabs-bootstrap' },
-      { title: '线型标签页', path: '/apeui/components/tabs-line' },
-      { title: '阴影效果', path: '/apeui/components/box-shadow' },
-      { title: '列表', path: '/apeui/components/list' },
-      { title: '滚动区域', path: '/apeui/components/scrollable' },
-      { title: '树形视图', path: '/apeui/components/tree' },
-      { title: '评分', path: '/apeui/components/rating' },
-      { title: '弹窗提示', path: '/apeui/components/sweet-alert2' },
-      { title: '分页', path: '/apeui/components/pagination' },
-      { title: '面包屑', path: '/apeui/components/breadcrumb' },
-      { title: '范围滑块', path: '/apeui/components/range-slider' },
-      { title: '基础卡片', path: '/apeui/components/basic-card' },
-      { title: '创意卡片', path: '/apeui/components/creative-card' },
-      { title: '标签页卡片', path: '/apeui/components/tabbed-card' },
-      { title: '可拖拽卡片', path: '/apeui/components/dragable-card' },
-      { title: '时间轴一', path: '/apeui/components/timeline-1' },
-      { title: '时间轴二', path: '/apeui/components/timeline-2' },
-      { title: '按钮', path: '/apeui/components/buttons' },
-      { title: '按钮组', path: '/apeui/components/button-group' },
-      { title: 'Apex 图表', path: '/apeui/components/chart-apex' },
-      { title: 'Google 图表', path: '/apeui/components/chart-google' },
-      { title: '迷你走势图', path: '/apeui/components/chart-sparkline' },
-      { title: 'Flot 图表', path: '/apeui/components/chart-flot' },
-      { title: '旋钮图表', path: '/apeui/components/chart-knob' },
-      { title: 'Morris 图表', path: '/apeui/components/chart-morris' },
-      { title: 'Chart.js 图表', path: '/apeui/components/chartjs' },
-      { title: 'Chartist 图表', path: '/apeui/components/chartist' },
-      { title: 'Peity 图表', path: '/apeui/components/chart-peity' },
-      { title: '国旗图标', path: '/apeui/components/flag-icon' },
-      { title: 'Font Awesome 图标', path: '/apeui/components/font-awesome' },
-      { title: 'Ico 图标', path: '/apeui/components/ico-icon' },
-      { title: 'Themify 图标', path: '/apeui/components/themify-icon' },
-      { title: 'Feather 图标', path: '/apeui/components/feather-icon' },
-    ],
-  },
-]
+/**
+ * 拼接路由路径
+ * 顶级目录 path 如 "/system"，子菜单 path 如 "user" → "/system/user"
+ * 如果子菜单 path 已含 "/" 前缀则直接使用
+ */
+function resolvePath(parentPath: string, ...childPaths: string[]): string {
+  const parts: string[] = []
+  if (parentPath && parentPath !== '/') {
+    parts.push(parentPath.replace(/^\/+|\/+$/g, ''))
+  }
+  for (const p of childPaths) {
+    if (p) {
+      parts.push(p.replace(/^\/+|\/+$/g, ''))
+    }
+  }
+  return '/' + parts.filter(Boolean).join('/')
+}
 </script>
 
 <style scoped>
@@ -288,12 +332,8 @@ const apeuiMenus = [
   transition: width 0.3s ease;
   overflow: hidden;
 }
-/* Collapsed mode: allow flyout to overflow */
 .ape-sidebar.close-icon {
   overflow: visible;
-}
-/* ApeAdmin 1:1 collapsed: 86px icon-only mode */
-.ape-sidebar.close-icon {
   width: 86px;
 }
 .ape-sidebar.close-icon .brand-text,
@@ -365,7 +405,6 @@ const apeuiMenus = [
   overflow-y: auto;
   padding: 12px 0;
 }
-/* Collapsed mode: allow flyout to overflow */
 .ape-sidebar.close-icon .sidebar-main {
   overflow: visible;
 }
@@ -454,7 +493,7 @@ const apeuiMenus = [
   background: var(--theme-default, #5A67F5);
 }
 
-/* Footer upgrade card (ApeAdmin sidebar-img-content 1:1) */
+/* Footer upgrade card */
 .sidebar-footer {
   padding: 0 22px;
   margin-bottom: 24px;
@@ -498,6 +537,12 @@ const apeuiMenus = [
   cursor: pointer;
   transition: all 0.2s;
 }
+.upgrade-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(90, 103, 245, 0.3);
+}
+
 /* Submenu title (expandable) */
 .sidebar-title {
   cursor: pointer;
@@ -531,6 +576,18 @@ const apeuiMenus = [
   border-radius: 6px;
   transition: all 0.2s;
 }
+/* Subgroup title inside expanded submenu */
+.sidebar-submenu .submenu-title {
+  padding: 12px 16px 2px 36px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: var(--theme-default, #5A67F5);
+  text-transform: uppercase;
+}
+.sidebar-submenu .submenu-title:first-child {
+  padding-top: 4px;
+}
 .sidebar-submenu li a:hover {
   background: #eff3f9;
   color: var(--el-color-primary, #5A67F5);
@@ -542,8 +599,8 @@ const apeuiMenus = [
 }
 
 /* Collapsed: hide inline submenus, use flyout instead */
-.ape-sidebar.close-icon .submenu-item .sidebar-submenu,
-.ape-sidebar.close-icon .submenu-item .sub-arrow {
+.ape-sidebar.close-icon .sidebar-list .sidebar-submenu,
+.ape-sidebar.close-icon .sidebar-list .sub-arrow {
   display: none;
 }
 
@@ -578,6 +635,21 @@ const apeuiMenus = [
   border-bottom: 1px solid #f0f2f5;
   padding-bottom: 8px;
 }
+/* Subgroup title inside flyout */
+.flyout-subgroup-title {
+  margin: 8px 0 2px;
+  padding: 4px 12px 2px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: var(--theme-default, #5A67F5);
+  text-transform: uppercase;
+  border-bottom: 1px solid #f0f2f5;
+  padding-bottom: 6px;
+}
+.flyout-subgroup-title:first-child {
+  margin-top: 0;
+}
 .flyout-submenu ul {
   list-style: none;
   margin: 0;
@@ -607,7 +679,7 @@ const apeuiMenus = [
   to { opacity: 1; transform: translateX(0); }
 }
 
-/* Mobile: drawer mode (≤1199px) */
+/* Mobile: drawer mode */
 .ape-sidebar.mobile-hidden {
   transform: translateX(-285px);
 }
@@ -615,18 +687,11 @@ const apeuiMenus = [
   transform: translateX(0);
   box-shadow: 0 0 30px rgba(0, 0, 0, 0.15);
 }
-/* Mobile close button styling */
 .mobile-close-btn {
   background: rgba(90, 103, 245, 0.1);
   color: var(--theme-default, #5A67F5);
 }
 .mobile-close-btn:hover {
   background: rgba(90, 103, 245, 0.2);
-}
-
-.upgrade-btn:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(90, 103, 245, 0.3);
 }
 </style>

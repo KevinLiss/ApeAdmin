@@ -1,8 +1,69 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 
-// Static routes (always available)
-const routes: RouteRecordRaw[] = [
+// Vue 的动态组件导入器——使用 Vite 的 import.meta.glob 实现懒加载
+// 后端菜单 component 字段如 "system/user/index" → 自动匹配 @/views/system/user/index.vue
+const modules = import.meta.glob('@/views/**/*.vue')
+
+/**
+ * 根据后端菜单数据动态生成路由
+ * @param menus  后端 /auth/userinfo 返回的菜单树
+ * @returns RouteRecordRaw[] 动态路由数组
+ */
+export function generateDynamicRoutes(menus: any[]): RouteRecordRaw[] {
+  const routes: RouteRecordRaw[] = []
+
+  function buildPath(parentPath: string, childPath: string): string {
+    if (childPath.startsWith('/')) return childPath
+    return `${parentPath.replace(/\/$/, '')}/${childPath}`
+  }
+
+  function traverse(menuList: any[], parentPath: string) {
+    for (const menu of menuList) {
+      // 只处理 C（菜单）类型，M（目录）和 F（按钮）不生成路由
+      if (menu.type === 'C' && menu.component) {
+        const fullPath = buildPath(parentPath, menu.path || '')
+        // 相对 path（去掉前导 /），因为路由挂在 Layout 的 children 下
+        const relativePath = fullPath.replace(/^\//, '')
+
+        // 同时尝试两种路径：${component}.vue 和 ${component}/index.vue
+        const componentKey1 = `/src/views/${menu.component}.vue`
+        const componentKey2 = `/src/views/${menu.component}/index.vue`
+        const component = modules[componentKey1] || modules[componentKey2]
+
+        if (component) {
+          routes.push({
+            path: relativePath,
+            name: menu.name,
+            component: component as any,
+            meta: {
+              title: menu.name,
+              icon: menu.icon,
+              permission: menu.permission || undefined,
+            },
+          })
+        } else {
+          console.warn(`[Router] 未找到组件: ${componentKey1}（或 ${componentKey2}），菜单: ${menu.name}`)
+        }
+      }
+
+      // 递归处理子菜单
+      if (menu.children && menu.children.length > 0) {
+        const currentPath = menu.type === 'M' && menu.path
+          ? menu.path.replace(/^\//, '')
+          : parentPath
+        traverse(menu.children, currentPath)
+      }
+    }
+  }
+
+  traverse(menus, '')
+  return routes
+}
+
+// 静态路由（始终可用，不需要权限）
+const staticRoutes: RouteRecordRaw[] = [
   {
     path: '/login',
     name: 'Login',
@@ -10,7 +71,14 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '登录' },
   },
   {
+    path: '/404',
+    name: 'NotFound',
+    component: () => import('@/views/error/404.vue'),
+    meta: { title: '404' },
+  },
+  {
     path: '/',
+    name: 'Layout',
     component: () => import('@/layout/index.vue'),
     redirect: '/dashboard-1',
     children: [
@@ -19,69 +87,13 @@ const routes: RouteRecordRaw[] = [
         path: 'dashboard-1',
         name: 'Dashboard1',
         component: () => import('@/views/apeui/dashboard/Default.vue'),
-        meta: { title: '仪表盘1', icon: 'Odometer' },
+        meta: { title: '仪表盘', icon: 'Odometer' },
       },
       {
         path: 'dashboard-2',
         name: 'Dashboard2',
         component: () => import('@/views/apeui/dashboard/Ecommerce.vue'),
-        meta: { title: '仪表盘2', icon: 'DataAnalysis' },
-      },
-      {
-        path: 'system/user',
-        name: 'SystemUser',
-        component: () => import('@/views/system/user/index.vue'),
-        meta: { title: '用户管理', icon: 'User', permission: 'system:user:list' },
-      },
-      {
-        path: 'system/role',
-        name: 'SystemRole',
-        component: () => import('@/views/system/role/index.vue'),
-        meta: { title: '角色管理', icon: 'UserFilled', permission: 'system:role:list' },
-      },
-      {
-        path: 'system/menu',
-        name: 'SystemMenu',
-        component: () => import('@/views/system/menu/index.vue'),
-        meta: { title: '菜单管理', icon: 'Menu', permission: 'system:menu:list' },
-      },
-      {
-        path: 'system/dept',
-        name: 'SystemDept',
-        component: () => import('@/views/system/dept/index.vue'),
-        meta: { title: '部门管理', icon: 'OfficeBuilding', permission: 'system:dept:list' },
-      },
-      {
-        path: 'system/plugin',
-        name: 'SystemPlugin',
-        component: () => import('@/views/system/plugin/index.vue'),
-        meta: { title: '插件管理', icon: 'Box', permission: 'system:plugin:list' },
-      },
-      // ===== AI 助手 =====
-      {
-        path: 'ai/chat',
-        name: 'AiChat',
-        component: () => import('@/views/ai/chat/index.vue'),
-        meta: { title: 'AI 对话', icon: 'ChatDotRound', permission: 'ai:chat' },
-      },
-      {
-        path: 'ai/providers',
-        name: 'AiProviders',
-        component: () => import('@/views/ai/providers/index.vue'),
-        meta: { title: '模型密钥管理', icon: 'Key', permission: 'ai:provider:list' },
-      },
-      // ===== MCP =====
-      {
-        path: 'mcp/tools',
-        name: 'McpTools',
-        component: () => import('@/views/mcp/tools.vue'),
-        meta: { title: 'MCP 工具', icon: 'Tools' },
-      },
-      {
-        path: 'mcp/resources',
-        name: 'McpResources',
-        component: () => import('@/views/mcp/resources.vue'),
-        meta: { title: 'MCP 资源', icon: 'FolderOpened' },
+        meta: { title: '电商仪表盘', icon: 'DataAnalysis' },
       },
 
       // ===== APEUI库 - Applications =====
@@ -525,27 +537,111 @@ const routes: RouteRecordRaw[] = [
       },
     ],
   },
+  // Catch-all: 兜底路由，匹配所有未命中的路径
+  // 使用 component 而非 redirect，确保 beforeEach 守卫能拦截并重新导航到动态路由
   {
     path: '/:pathMatch(.*)*',
-    redirect: '/dashboard-1',
+    name: 'CatchAll',
+    component: () => import('@/views/error/404.vue'),
+    meta: { title: '404' },
   },
 ]
 
 const router = createRouter({
   history: createWebHistory(),
-  routes,
+  routes: staticRoutes,
 })
 
-// Global navigation guard: check auth
-router.beforeEach((to, _from, next) => {
+// 标记是否已加载动态路由（防止重复加载）
+let dynamicRoutesLoaded = false
+
+/**
+ * 全局路由守卫
+ * 1. 无 token → 跳转登录
+ * 2. 有 token 但未加载动态路由 → fetchUserInfo + generateDynamicRoutes + addRoute
+ * 3. 有 token 且已加载 → 校验 meta.permission
+ */
+router.beforeEach(async (to, _from, next) => {
   const token = localStorage.getItem('apeadmin_token')
+
   if (to.path === '/login') {
     if (token) next('/dashboard-1')
     else next()
-  } else {
-    if (!token) next('/login')
-    else next()
+    return
   }
+
+  if (!token) {
+    next('/login')
+    return
+  }
+
+  // 有 token，但动态路由尚未加载
+  if (!dynamicRoutesLoaded) {
+    const userStore = useUserStore()
+    try {
+      if (!userStore.menus.length) {
+        await userStore.fetchUserInfo()
+      }
+      const dynamicRoutes = generateDynamicRoutes(userStore.menus)
+      for (const route of dynamicRoutes) {
+        router.addRoute('Layout', route)  // 挂在 Layout 的 children 下
+      }
+
+      dynamicRoutesLoaded = true
+
+      // 重新导航到目标路由（addRoute 后需重新解析路径以匹配动态路由）
+      // 使用 fullPath 而非展开 to 对象，避免携带已匹配的 name/matched 等属性
+      next({ path: to.fullPath, replace: true })
+      return
+    } catch (e) {
+      console.error('[Router] 动态路由加载失败:', e)
+      userStore.reset()
+      next('/login')
+      return
+    }
+  }
+
+  // 动态路由已加载——校验权限
+  const userStore = useUserStore()
+  const requiredPerm = to.meta?.permission as string | undefined
+  if (requiredPerm && !userStore.hasPermission(requiredPerm)) {
+    next('/404')
+    return
+  }
+
+  next()
 })
+
+// 提供手动重置动态路由的方法（登出时调用）
+export function resetRouter() {
+  dynamicRoutesLoaded = false
+  // 移除所有动态路由（保留静态路由）
+  const staticNames = ['Login', 'NotFound', 'CatchAll', 'Layout', 'Dashboard1', 'Dashboard2',
+    'ApeUIProjects', 'ApeUIProjectCreate', 'ApeUIFileManager', 'ApeUIKanban',
+    'ApeUIBookmark', 'ApeUIContacts', 'ApeUITasks', 'ApeUICalendar',
+    'ApeUISocial', 'ApeUITodo', 'ApeUISearch', 'ApeUIChat', 'ApeUIChatVideo',
+    'ApeUIProduct', 'ApeUIProductPage', 'ApeUIAddProduct', 'ApeUIProductList',
+    'ApeUIPayment', 'ApeUIOrderHistory', 'ApeUIInvoice', 'ApeUICart',
+    'ApeUIWishlist', 'ApeUICheckout', 'ApeUIPricing',
+    'ApeUIUserProfile', 'ApeUIEditProfile', 'ApeUIUserCards',
+    'ApeUIStateColor', 'ApeUITypography', 'ApeUIAvatars', 'ApeUIGrid',
+    'ApeUIBoxShadow', 'ApeUIButtons', 'ApeUIButtonGroup', 'ApeUITagPills',
+    'ApeUIProgressBar', 'ApeUIModal', 'ApeUIAlert', 'ApeUIPopover',
+    'ApeUITooltip', 'ApeUIDropdown', 'ApeUIAccordion', 'ApeUITabsBootstrap',
+    'ApeUITabsLine', 'ApeUIList', 'ApeUIScrollable', 'ApeUITree',
+    'ApeUIRating', 'ApeUISweetAlert2', 'ApeUIPagination', 'ApeUIBreadcrumb',
+    'ApeUIRangeSlider', 'ApeUIBasicCard', 'ApeUICreativeCard', 'ApeUITabbedCard',
+    'ApeUIDragableCard', 'ApeUITimeline1', 'ApeUITimeline2',
+    'ApeUIChartApex', 'ApeUIChartGoogle', 'ApeUIChartSparkline', 'ApeUIChartFlot',
+    'ApeUIChartKnob', 'ApeUIChartMorris', 'ApeUIChartjs', 'ApeUIChartist',
+    'ApeUIChartPeity', 'ApeUIFlagIcon', 'ApeUIFontAwesome', 'ApeUIIcoIcon',
+    'ApeUIThemifyIcon', 'ApeUIFeatherIcon',
+  ]
+  router.getRoutes().forEach((route) => {
+    if (route.name && !staticNames.includes(route.name as string)) {
+      router.removeRoute(route.name)
+    }
+  })
+}
 
 export default router

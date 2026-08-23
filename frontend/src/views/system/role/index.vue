@@ -33,9 +33,10 @@
         </template>
       </el-table-column>
       <el-table-column prop="remark" label="备注" min-width="150" show-overflow-tooltip />
-      <el-table-column label="操作" width="160" fixed="right">
+      <el-table-column label="操作" width="220" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" @click="openDialog(row)">编辑</el-button>
+          <el-button link type="warning" @click="openMenuDialog(row)">分配菜单</el-button>
           <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
         </template>
       </el-table-column>
@@ -53,7 +54,7 @@
     />
   </el-card>
 
-  <!-- Dialog -->
+  <!-- 角色编辑 Dialog -->
   <el-dialog
     v-model="dialogVisible"
     :title="editingId ? '编辑角色' : '新增角色'"
@@ -86,13 +87,41 @@
       <el-button type="primary" :loading="saving" @click="handleSave">保存</el-button>
     </template>
   </el-dialog>
+
+  <!-- 分配菜单 Dialog -->
+  <el-dialog
+    v-model="menuDialogVisible"
+    title="分配菜单权限"
+    width="520px"
+  >
+    <div class="menu-tree-header">
+      <el-checkbox v-model="menuExpandAll" @change="handleExpandAll">展开/折叠</el-checkbox>
+      <el-checkbox v-model="menuCheckAll" @change="handleCheckAll">全选/全不选</el-checkbox>
+      <el-checkbox v-model="menuCheckStrictly">父子联动</el-checkbox>
+    </div>
+    <el-tree
+      ref="menuTreeRef"
+      :data="menuTreeData"
+      show-checkbox
+      node-key="id"
+      :props="{ label: 'name', children: 'children' }"
+      :default-expand-all="menuExpandAll"
+      :check-strictly="!menuCheckStrictly"
+      class="menu-tree"
+    />
+    <template #footer>
+      <el-button @click="menuDialogVisible = false">取消</el-button>
+      <el-button type="primary" :loading="menuSaving" @click="handleSaveMenus">保存</el-button>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
-import { getRoles, createRole, updateRole, deleteRole } from '@/api'
+import type { ElTree } from 'element-plus'
+import { getRoles, createRole, updateRole, deleteRole, getMenuTree } from '@/api'
 
 interface RoleRow {
   id: number
@@ -101,6 +130,7 @@ interface RoleRow {
   data_scope: number
   status: number
   remark: string
+  menu_ids?: number[]
 }
 
 const scopeText: Record<number, string> = {
@@ -132,6 +162,16 @@ const rules: FormRules = {
   code: [{ required: true, message: '请输入角色编码', trigger: 'blur' }],
 }
 
+// ===== 分配菜单 =====
+const menuDialogVisible = ref(false)
+const menuSaving = ref(false)
+const menuTreeRef = ref<InstanceType<typeof ElTree>>()
+const menuTreeData = ref<any[]>([])
+const menuExpandAll = ref(true)
+const menuCheckAll = ref(false)
+const menuCheckStrictly = ref(true)
+const currentRoleId = ref<number | null>(null)
+
 async function fetchData() {
   loading.value = true
   try {
@@ -150,7 +190,7 @@ function openDialog(row?: RoleRow) {
   editingId.value = row?.id ?? null
   form.name = row?.name ?? ''
   form.code = row?.code ?? ''
-  form.data_scope = row?.dataScope ?? 1
+  form.data_scope = row?.data_scope ?? 1
   form.status = row?.status ?? 1
   form.remark = row?.remark ?? ''
   dialogVisible.value = true
@@ -195,6 +235,81 @@ async function handleDelete(row: RoleRow) {
   fetchData()
 }
 
+// ===== 分配菜单逻辑 =====
+async function openMenuDialog(row: RoleRow) {
+  currentRoleId.value = row.id
+
+  // 加载菜单树
+  if (!menuTreeData.value.length) {
+    const data: any = await getMenuTree()
+    menuTreeData.value = data || []
+  }
+
+  // 加载角色当前已分配的菜单 ID
+  const roleData: any = await getRoleDetail(row.id)
+  const menuIds = roleData?.menu_ids || []
+
+  menuDialogVisible.value = true
+
+  await nextTick()
+  // 设置已勾选的菜单
+  menuTreeRef.value?.setCheckedKeys(menuIds)
+}
+
+async function getRoleDetail(id: number) {
+  // 复用 getRoles 接口，后端 GET /roles/{id} 返回含 menu_ids
+  const { default: request } = await import('@/api/request')
+  const res: any = await request.get(`/roles/${id}`)
+  return res
+}
+
+function handleExpandAll(val: any) {
+  // el-tree 通过 default-expand-all 控制，切换需要刷新
+  // 这里简单处理：设置 val 后，树会响应式更新
+  menuExpandAll.value = val
+}
+
+function handleCheckAll(val: any) {
+  if (val) {
+    // 全选：收集所有节点 id
+    const allIds = collectAllIds(menuTreeData.value)
+    menuTreeRef.value?.setCheckedKeys(allIds)
+  } else {
+    menuTreeRef.value?.setCheckedKeys([])
+  }
+}
+
+function collectAllIds(nodes: any[]): number[] {
+  const ids: number[] = []
+  function traverse(items: any[]) {
+    for (const item of items) {
+      ids.push(item.id)
+      if (item.children) traverse(item.children)
+    }
+  }
+  traverse(nodes)
+  return ids
+}
+
+async function handleSaveMenus() {
+  if (!currentRoleId.value) return
+  menuSaving.value = true
+  try {
+    const checkedKeys = menuTreeRef.value?.getCheckedKeys() || []
+    const halfCheckedKeys = menuTreeRef.value?.getHalfCheckedKeys() || []
+    const allMenuIds = [...checkedKeys, ...halfCheckedKeys]
+
+    await updateRole(currentRoleId.value, {
+      menu_ids: allMenuIds,
+    })
+    ElMessage.success('菜单分配成功')
+    menuDialogVisible.value = false
+    fetchData()
+  } finally {
+    menuSaving.value = false
+  }
+}
+
 onMounted(fetchData)
 </script>
 
@@ -210,5 +325,16 @@ onMounted(fetchData)
 .pagination {
   margin-top: 14px;
   justify-content: flex-end;
+}
+.menu-tree-header {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f2f5;
+}
+.menu-tree {
+  max-height: 400px;
+  overflow-y: auto;
 }
 </style>

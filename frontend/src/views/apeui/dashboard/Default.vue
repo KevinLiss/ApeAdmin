@@ -1015,13 +1015,69 @@ const profitChartOption = {
 /* Responsive */
 @media (max-width: 1400px) {
   .yearly-chart { height: 210px; }
+  .profile-greeting .greeting-text h1 { font-size: 26px; }
+  .greeting-img img { height: 220px; }
+}
+@media (max-width: 1200px) {
+  .profile-greeting { height: auto; min-height: 200px; }
+  .profile-greeting .greeting-text p { width: 80%; }
+  .yearly-chart { height: 200px; }
+  .beyo-chart { height: 220px; }
+  .greeting-img img { height: 200px; }
 }
 @media (max-width: 992px) {
   .yearly-chart { height: 200px; }
   .profile-greeting .greeting-text p { width: 100%; }
+  .profile-greeting .greeting-text h1 { font-size: 22px; }
   .beyo-detail > p { width: 100%; }
+  .upgrade-text p { width: 100%; }
+  .greeting-img img { height: 180px; }
+  .beyo-chart { height: 200px; }
+  .transaction-body { overflow-x: auto; }
 }
 @media (max-width: 768px) {
   .greeting-img { display: none; }
+  .profile-greeting .greeting-text { width: 100%; }
+  .profile-greeting .greeting-text p { font-size: 14px; width: 100%; }
+  .profile-greeting .greeting-text h1 { font-size: 20px; }
+  .transaction-table { min-width: 500px; }
+  .transaction-body { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .value-chart-body { flex-direction: column; gap: 5px; }
+  .round-progress-section, .valuechart-detail { flex: none; width: 100%; text-align: center; }
+  .knob-chart, .stock-chart { height: 100px; }
+  .best-sellers-table { min-width: 500px; }
+  .investment-chart .el-row { display: flex; flex-direction: column; gap: 20px; }
+  .investment-chart .el-row .el-col { width: 100%; }
+}
+@media (max-width: 575px) {
+  .profile-greeting { min-height: 160px; }
+  .profile-greeting .greeting-body { padding: 20px 18px; }
+  .profile-greeting .greeting-text h1 { font-size: 18px; margin-bottom: 6px; }
+  .profile-greeting .greeting-text p { font-size: 13px; margin-bottom: 14px; }
+  .greeting-btn { padding: 8px 12px; font-size: 13px; }
+  .yearly-view .card-header { padding: 18px 18px 0; }
+  .yearly-chart { height: 170px; }
+  .activity-review .card-body { padding: 12px 18px 18px; }
+  .activity-item { gap: 10px; }
+  .activity-avatar { width: 32px; height: 32px; }
+  .transaction-table thead th { font-size: 13px; padding: 10px 8px; }
+  .transaction-table tbody td { padding: 10px 8px; }
+  .value-chart-body { padding: 18px; }
+  .valuechart-detail h2 { font-size: 18px; }
+  .valuechart-detail p { font-size: 13px; }
+  .beyo-detail { padding: 20px 18px; }
+  .beyo-detail h3 { font-size: 17px; }
+  .beyo-detail > p { font-size: 13px; }
+  .beyo-avatars li img { width: 28px; height: 28px; }
+  .beyo-avatars li h2 { font-size: 18px; }
+  .investment-chart .card-body { padding: 18px; }
+  .invest-label { font-size: 14px; }
+  .invest-chart-sm { height: 80px; }
+  .chart-detail h2 { font-size: 18px; }
+  .upgrade-history { height: 200px; }
+  .upgrade-body { padding: 18px; }
+  .upgrade-text h3 { font-size: 16px; }
+  .upgrade-text p { font-size: 12px; margin-bottom: 14px; }
+  .upgrade-img { display: none; }
 }
 </style>

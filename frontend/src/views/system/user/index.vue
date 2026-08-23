@@ -12,9 +12,9 @@
       <el-button type="primary" @click="fetchData">
         <el-icon><Search /></el-icon>查询
       </el-button>
-      <el-button type="success" @click="openDialog()">
-        <el-icon><Plus /></el-icon>新增
-      </el-button>
+    <el-button type="success" @click="openDialog()" v-permission="'system:user:add'">
+      <el-icon><Plus /></el-icon>新增
+    </el-button>
     </div>
 
     <!-- Table -->
@@ -43,8 +43,8 @@
       </el-table-column>
       <el-table-column label="操作" width="160" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="openDialog(row)">编辑</el-button>
-          <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
+          <el-button link type="primary" @click="openDialog(row)" v-permission="'system:user:edit'">编辑</el-button>
+          <el-button link type="danger" @click="handleDelete(row)" v-permission="'system:user:delete'">删除</el-button>
         </template>
       </el-table-column>
     </el-table>

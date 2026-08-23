@@ -772,8 +772,83 @@ const countryChartOption = {
   opacity: 0.85;
 }
 
+@media (max-width: 1200px) {
+  .recent-chart { height: 300px; }
+  .country-chart { height: 280px; }
+}
 @media (max-width: 992px) {
   .recent-chart { height: 280px; }
   .country-chart { height: 280px; }
+  .sale-chart .sale-chart-body { padding: 20px; }
+  .sale-content h3 { font-size: 15px; }
+  .sale-content p { font-size: 20px; }
+  .mini-chart-wrap { width: 60px; }
+  .mini-chart { width: 60px; height: 80px; }
+  .tp-item { grid-template-columns: 1fr 50px 24px 60px; gap: 6px; }
+  .tp-icon img { width: 30px; height: 30px; }
+  .tp-product h5 { font-size: 13px; }
+  .tp-product p { font-size: 11px; }
+  .best-sellers-table { min-width: 500px; }
+  .best-sellers .card-body { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+@media (max-width: 768px) {
+  .sale-chart .sale-chart-body { padding: 18px; gap: 6px; }
+  .sale-detail { gap: 10px; }
+  .sale-icon { width: 40px; height: 40px; border-radius: 10px; }
+  .sale-icon .el-icon { font-size: 18px; }
+  .sale-content h3 { font-size: 13px; }
+  .sale-content p { font-size: 18px; }
+  .mini-chart-wrap { width: 50px; }
+  .mini-chart { width: 50px; height: 60px; }
+  .recent-chart { height: 240px; }
+  .country-chart { height: 240px; }
+  .tp-item { grid-template-columns: 1fr 50px 24px 64px; }
+  .tp-coupon p { font-size: 11px; }
+  .tp-discount h5 { font-size: 12px; }
+  .tp-discount p { font-size: 11px; }
+  .rated-product-body { padding: 18px; }
+  .rated-img-wrap img { max-height: 90px; }
+  .rated-detail h4 { font-size: 14px; }
+  .rated-detail h3 { font-size: 18px; }
+  .review-body { padding: 18px; }
+  .review-avatar img { width: 40px; height: 40px; }
+  .review-info h4 { font-size: 15px; }
+  .review-text p { font-size: 13px; }
+  .weekend-view { min-height: 200px; }
+  .weekend-body { padding: 18px; }
+  .weekend-img img { height: 60px; }
+  .weekend-detail h3 { font-size: 17px; }
+  .weekend-detail h5 { font-size: 13px; }
+}
+@media (max-width: 575px) {
+  .sale-chart .sale-chart-body { padding: 14px; gap: 4px; flex-direction: column; align-items: flex-start; }
+  .sale-detail { gap: 8px; }
+  .sale-icon { width: 36px; height: 36px; }
+  .sale-content h3 { font-size: 12px; }
+  .sale-content p { font-size: 16px; }
+  .mini-chart-wrap, .mini-chart { width: 100%; height: 50px; }
+  .mini-chart-wrap { margin-top: 4px; }
+  .recent-chart { height: 200px; }
+  .country-chart { height: 220px; }
+  .top-products .card-body { padding: 12px 14px 14px; }
+  .tp-item { grid-template-columns: 1fr 44px 20px 56px; gap: 4px; padding: 8px 0; }
+  .tp-product { gap: 8px; }
+  .tp-icon img { width: 26px; height: 26px; }
+  .tp-product h5 { font-size: 12px; }
+  .tp-product p { font-size: 10px; }
+  .best-sellers .card-body { padding: 12px 14px 14px; }
+  .rated-product-body { padding: 14px; }
+  .rated-img-wrap img { max-height: 70px; }
+  .rated-detail h4 { font-size: 13px; }
+  .rated-detail h3 { font-size: 16px; }
+  .review-body { padding: 14px; }
+  .review-avatar img { width: 36px; height: 36px; }
+  .review-info h4 { font-size: 14px; }
+  .weekend-view { min-height: 180px; }
+  .weekend-body { padding: 14px; }
+  .weekend-img img { height: 50px; }
+  .weekend-detail h3 { font-size: 15px; }
+  .weekend-detail h5 { font-size: 12px; }
+  .weekend-btn { padding: 10px 16px; font-size: 11px; }
 }
 </style>

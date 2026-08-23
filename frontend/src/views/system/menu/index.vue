@@ -1,7 +1,7 @@
 <template>
   <el-card shadow="never" class="page-card">
     <div class="toolbar">
-      <el-button type="success" @click="openDialog()">
+      <el-button type="success" @click="openDialog()" v-permission="'system:menu:add'">
         <el-icon><Plus /></el-icon>新增菜单
       </el-button>
     </div>
@@ -31,8 +31,8 @@
       </el-table-column>
       <el-table-column label="操作" width="160" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="openDialog(row)">编辑</el-button>
-          <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
+          <el-button link type="primary" @click="openDialog(row)" v-permission="'system:menu:edit'">编辑</el-button>
+          <el-button link type="danger" @click="handleDelete(row)" v-permission="'system:menu:delete'">删除</el-button>
         </template>
       </el-table-column>
     </el-table>

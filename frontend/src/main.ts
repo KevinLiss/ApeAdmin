@@ -8,6 +8,7 @@ import '@/styles/apeui-theme.css'
 
 import App from './App.vue'
 import router from './router'
+import { permissionDirective } from './directives/permission'
 
 const app = createApp(App)
 
@@ -19,5 +20,8 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 app.use(createPinia())
 app.use(router)
 app.use(ElementPlus, { locale: zhCn })
+
+// Register global directives
+app.directive('permission', permissionDirective)
 
 app.mount('#app')

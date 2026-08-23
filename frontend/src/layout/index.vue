@@ -62,11 +62,11 @@ function checkMobile() {
   if (isMobile.value) {
     mobileSidebarOpen.value = false
     collapsed.value = false
-  } else if (w <= 1400) {
-    // 1200-1400px：桌面端图标折叠模式
+  } else if (w <= 1600) {
+    // 1200-1600px：桌面端图标折叠模式，为内容区腾出更多空间
     collapsed.value = true
   } else {
-    // >1400px：完全展开
+    // >1600px：完全展开
     collapsed.value = false
   }
 }
