@@ -7,6 +7,7 @@ Execution respects the current user's RBAC permissions.
 import json
 from typing import Any
 
+from loguru import logger
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -99,39 +100,6 @@ SYSTEM_TOOLS: list[dict[str, Any]] = [
     {
         "type": "function",
         "function": {
-            "name": "get_role_list",
-            "description": "获取所有角色列表。",
-            "parameters": {
-                "type": "object",
-                "properties": {},
-            },
-        },
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "get_menu_tree",
-            "description": "获取完整的菜单树形结构。",
-            "parameters": {
-                "type": "object",
-                "properties": {},
-            },
-        },
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "get_dept_tree",
-            "description": "获取完整的部门树形结构。",
-            "parameters": {
-                "type": "object",
-                "properties": {},
-            },
-        },
-    },
-    {
-        "type": "function",
-        "function": {
             "name": "get_system_stats",
             "description": "获取系统统计信息：用户总数、角色总数、菜单总数、部门总数。",
             "parameters": {
@@ -150,9 +118,6 @@ TOOL_PERMISSIONS: dict[str, list[str]] = {
     "create_user": ["system:user:add"],
     "update_user": ["system:user:edit"],
     "delete_user": ["system:user:delete"],
-    "get_role_list": ["system:role:list"],
-    "get_menu_tree": ["system:menu:list"],
-    "get_dept_tree": ["system:dept:list"],
     "get_system_stats": [],
 }
 
@@ -219,9 +184,6 @@ async def execute_tool(
         "create_user": _handle_create_user,
         "update_user": _handle_update_user,
         "delete_user": _handle_delete_user,
-        "get_role_list": _handle_get_role_list,
-        "get_menu_tree": _handle_get_menu_tree,
-        "get_dept_tree": _handle_get_dept_tree,
         "get_system_stats": _handle_get_system_stats,
     }
 
@@ -376,73 +338,6 @@ async def _handle_delete_user(db: AsyncSession, args: dict) -> dict:
     user.deleted_at = datetime.now(timezone.utc)
     await db.commit()
     return {"message": "用户已删除"}
-
-
-async def _handle_get_role_list(db: AsyncSession, args: dict) -> dict:
-    stmt = select(Role).where(Role.deleted_at.is_(None)).order_by(Role.sort, Role.id)
-    result = await db.execute(stmt)
-    roles = result.scalars().all()
-    return {
-        "items": [
-            {
-                "id": r.id,
-                "name": r.name,
-                "code": r.code,
-                "data_scope": r.data_scope,
-                "status": r.status,
-                "remark": r.remark,
-            }
-            for r in roles
-        ]
-    }
-
-
-async def _handle_get_menu_tree(db: AsyncSession, args: dict) -> dict:
-    stmt = select(Menu).where(Menu.status == 1).order_by(Menu.sort, Menu.id)
-    result = await db.execute(stmt)
-    menus = result.scalars().all()
-
-    def build_tree(items: list, parent_id: int = 0) -> list:
-        tree = []
-        for m in items:
-            if m.parent_id == parent_id:
-                node = {
-                    "id": m.id,
-                    "name": m.name,
-                    "type": m.type,
-                    "path": m.path,
-                    "permission": m.permission,
-                    "icon": m.icon,
-                    "sort": m.sort,
-                    "children": build_tree(items, m.id),
-                }
-                tree.append(node)
-        return tree
-
-    return {"tree": build_tree(list(menus))}
-
-
-async def _handle_get_dept_tree(db: AsyncSession, args: dict) -> dict:
-    stmt = select(Dept).where(Dept.status == 1, Dept.deleted_at.is_(None)).order_by(Dept.sort, Dept.id)
-    result = await db.execute(stmt)
-    depts = result.scalars().all()
-
-    def build_tree(items: list, parent_id: int = 0) -> list:
-        tree = []
-        for d in items:
-            if d.parent_id == parent_id:
-                node = {
-                    "id": d.id,
-                    "name": d.name,
-                    "leader": d.leader,
-                    "phone": d.phone,
-                    "sort": d.sort,
-                    "children": build_tree(items, d.id),
-                }
-                tree.append(node)
-        return tree
-
-    return {"tree": build_tree(list(depts))}
 
 
 async def _handle_get_system_stats(db: AsyncSession, args: dict) -> dict:
