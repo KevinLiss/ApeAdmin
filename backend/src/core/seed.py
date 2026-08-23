@@ -77,6 +77,9 @@ async def _seed_menus(db: AsyncSession) -> None:
         ("插件管理", "系统管理", "C", "plugin", "system/plugin/index", "system:plugin:list", "Box", 5),
         ("启用/禁用插件", "插件管理", "F", None, None, "system:plugin:toggle", None, 1),
         ("插件配置", "插件管理", "F", None, None, "system:plugin:config", None, 2),
+        # System log
+        ("系统日志", "系统管理", "C", "log", "system/log/index", "system:log:list", "Document", 6),
+        ("删除日志", "系统日志", "F", None, None, "system:log:delete", None, 1),
         # MCP menu
         ("MCP 管理", None, "M", "/mcp", None, None, "Connection", 20),
         ("工具列表", "MCP 管理", "C", "tools", "mcp/tools", "mcp:tools:list", "Tools", 1),
@@ -144,6 +147,9 @@ async def _seed_missing_menus(db: AsyncSession) -> None:
         ("调用日志", "MCP 管理", "C", "audit-logs", "mcp/audit-logs", "mcp:audit:list", "List", 4),
         # AI module button-level permissions
         ("调用AI对话", "AI 全能助手", "F", None, None, "ai:chat:call", None, 1),
+        # System log menu (incremental)
+        ("系统日志", "系统管理", "C", "log", "system/log/index", "system:log:list", "Document", 6),
+        ("删除日志", "系统日志", "F", None, None, "system:log:delete", None, 1),
     ]
 
     added = 0

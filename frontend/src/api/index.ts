@@ -71,6 +71,12 @@ export const testProvider = (id: number) => request.post(`/ai/providers/${id}/te
 // ---- AI 对话 ----
 export const chat = (data: any) => request.post('/ai/chat', data)
 
+// ---- 系统日志 ----
+export const getLogs = (params: any = {}) => request.get('/logs', { params })
+export const getLogDetail = (id: number) => request.get(`/logs/${id}`)
+export const deleteLog = (id: number) => request.delete(`/logs/${id}`)
+export const clearLogs = () => request.delete('/logs')
+
 // ---- 仪表盘统计 ----
 export const getDashboardStats = () => request.get('/dashboard/stats')
 export const getDashboardSystem = () => request.get('/dashboard/system')

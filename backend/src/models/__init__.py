@@ -5,6 +5,7 @@ from src.models.rbac import Dept, Menu, Role, User, role_menu, user_role
 from src.models.ai import AiProvider
 from src.models.plugin import Plugin
 from src.models.mcp import McpAuditLog
+from src.models.log import SysLog
 
 __all__ = [
     "IDMixin",
@@ -19,4 +20,5 @@ __all__ = [
     "AiProvider",
     "Plugin",
     "McpAuditLog",
+    "SysLog",
 ]

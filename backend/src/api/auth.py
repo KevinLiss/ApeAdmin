@@ -67,7 +67,7 @@ async def login(
     await db.execute(stmt)
     await db.commit()
 
-    access = create_access_token(user.id)
+    access = create_access_token(user.id, extra={"username": user.username})
     refresh = create_refresh_token(user.id)
 
     return success_response(

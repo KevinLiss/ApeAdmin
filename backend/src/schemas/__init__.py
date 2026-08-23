@@ -31,6 +31,7 @@ from src.schemas.ai import (
     ChatStreamRequest,
 )
 from src.schemas.plugin import PluginOut, PluginToggle, PluginConfigUpdate
+from src.schemas.log import LogOut
 
 __all__ = [
     "LoginSchema",
@@ -62,4 +63,5 @@ __all__ = [
     "PluginOut",
     "PluginToggle",
     "PluginConfigUpdate",
+    "LogOut",
 ]
