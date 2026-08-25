@@ -160,6 +160,9 @@ async def _seed_menus(db: AsyncSession) -> None:
         ("插件管理", "系统管理", "C", "plugin", "system/plugin/index", "system:plugin:list", "Box", 5),
         ("启用/禁用插件", "插件管理", "F", None, None, "system:plugin:toggle", None, 1),
         ("插件配置", "插件管理", "F", None, None, "system:plugin:config", None, 2),
+        ("导入插件", "插件管理", "F", None, None, "system:plugin:upload", None, 3),
+        ("删除插件", "插件管理", "F", None, None, "system:plugin:delete", None, 4),
+        ("重启后端", "插件管理", "F", None, None, "system:plugin:restart", None, 5),
         # System log
         ("系统日志", "系统管理", "C", "log", "system/log/index", "system:log:list", "Document", 6),
         ("删除日志", "系统日志", "F", None, None, "system:log:delete", None, 1),
@@ -310,6 +313,10 @@ async def _seed_missing_menus(db: AsyncSession) -> None:
         # System log menu (incremental)
         ("系统日志", "系统管理", "C", "log", "system/log/index", "system:log:list", "Document", 6),
         ("删除日志", "系统日志", "F", None, None, "system:log:delete", None, 1),
+        # Plugin management additions (incremental)
+        ("导入插件", "插件管理", "F", None, None, "system:plugin:upload", None, 3),
+        ("删除插件", "插件管理", "F", None, None, "system:plugin:delete", None, 4),
+        ("重启后端", "插件管理", "F", None, None, "system:plugin:restart", None, 5),
     ]
 
     added = 0

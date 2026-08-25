@@ -35,3 +35,14 @@ class PluginConfigUpdate(BaseModel):
     """Update plugin config JSON."""
 
     config: dict[str, Any] = Field(default_factory=dict, description="插件配置键值对")
+
+
+class PluginImportResult(BaseModel):
+    """Result returned after importing a plugin package."""
+
+    name: str
+    display_name: str
+    version: str
+    description: str = ""
+    author: str = ""
+    message: str = "插件导入成功，需要重启后端生效"

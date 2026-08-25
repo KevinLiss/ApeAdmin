@@ -63,5 +63,14 @@ class CRUDPlugin(CRUDBase[Plugin]):
         await db.refresh(plugin)
         return plugin
 
+    async def delete_by_id(self, db: AsyncSession, plugin_id: int) -> bool:
+        """Delete a plugin record by id. Returns True if deleted."""
+        plugin = await self.get(db, plugin_id)
+        if not plugin:
+            return False
+        await db.delete(plugin)
+        await db.commit()
+        return True
+
 
 crud_plugin = CRUDPlugin(Plugin)

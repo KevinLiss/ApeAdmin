@@ -1,6 +1,7 @@
 """Application configuration using pydantic-settings."""
 
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 
 from pydantic import Field
@@ -52,7 +53,8 @@ class Settings(BaseSettings):
 
     # ---- Plugin ----
     PLUGINS_ENABLED: bool = True
-    PLUGINS_BUILTIN_DIR: str = "src/plugins/builtin"
+    PLUGINS_BUILTIN_DIR: str = str(Path(__file__).resolve().parent.parent / "plugins" / "builtin")
+    PLUGINS_UPLOAD_DIR: str = str(Path(__file__).resolve().parent.parent / "uploads" / "plugins")
 
     # ---- Super admin ----
     SUPER_ADMIN_USERNAME: str = "admin"

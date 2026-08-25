@@ -12,6 +12,14 @@
       <el-button type="primary" @click="fetchData">
         <el-icon><Search /></el-icon>查询
       </el-button>
+      <div class="toolbar-right">
+        <el-button type="success" @click="uploadVisible = true">
+          <el-icon><Upload /></el-icon>导入插件
+        </el-button>
+        <el-button type="warning" :loading="restarting" @click="handleRestart">
+          <el-icon v-if="!restarting"><RefreshRight /></el-icon>重启后端
+        </el-button>
+      </div>
     </div>
 
     <!-- Plugin cards -->
@@ -36,7 +44,7 @@
           <el-switch
             v-model="item.enabled"
             :loading="togglingId === item.id"
-            @change="(val) => handleToggle(item, val as boolean)"
+            @change="(val: boolean) => handleToggle(item, val)"
           />
         </div>
 
@@ -49,9 +57,14 @@
 
         <div class="plugin-footer">
           <span class="plugin-time">{{ formatTime(item.updated_at) }}</span>
-          <el-button link type="primary" @click="openConfig(item)">
-            <el-icon><Setting /></el-icon>配置
-          </el-button>
+          <div class="footer-actions">
+            <el-button link type="primary" @click="openConfig(item)">
+              <el-icon><Setting /></el-icon>配置
+            </el-button>
+            <el-button link type="danger" @click="handleDelete(item)">
+              <el-icon><Delete /></el-icon>删除
+            </el-button>
+          </div>
         </div>
       </el-card>
 
@@ -95,12 +108,51 @@
       <el-button type="primary" :loading="savingConfig" @click="saveConfig">保存</el-button>
     </template>
   </el-dialog>
+
+  <!-- Upload Dialog -->
+  <el-dialog v-model="uploadVisible" title="导入插件包" width="520px">
+    <el-alert
+      title="插件包格式：.zip 压缩包，内含 plugin.json 清单和插件包目录（含 __init__.py）"
+      type="info"
+      :closable="false"
+      show-icon
+      style="margin-bottom: 16px"
+    />
+    <el-upload
+      drag
+      :auto-upload="false"
+      accept=".zip"
+      :limit="1"
+      :on-change="(file: any) => handleFileSelect(file.raw)"
+      :on-remove="handleFileRemove"
+    >
+      <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
+      <div class="el-upload__text">将 .zip 文件拖到此处，或<em>点击选择</em></div>
+      <template #tip>
+        <div class="el-upload__tip">仅支持 .zip 格式，大小不超过 50MB</div>
+      </template>
+    </el-upload>
+    <template #footer>
+      <el-button @click="uploadVisible = false">取消</el-button>
+      <el-button type="primary" :loading="uploading" :disabled="!uploadingFile" @click="handleUpload">
+        上传并安装
+      </el-button>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getPlugins, togglePlugin, getPluginConfig, updatePluginConfig } from '@/api'
+import {
+  getPlugins,
+  togglePlugin,
+  getPluginConfig,
+  updatePluginConfig,
+  uploadPlugin,
+  restartServer,
+  deletePlugin,
+} from '@/api'
 
 interface PluginRow {
   id: number
@@ -121,6 +173,14 @@ const total = ref(0)
 const loading = ref(false)
 const togglingId = ref<number | null>(null)
 const query = reactive({ page: 1, page_size: 12, keyword: '' })
+
+// Upload state
+const uploadVisible = ref(false)
+const uploadingFile = ref<File | null>(null)
+const uploading = ref(false)
+
+// Restart state
+const restarting = ref(false)
 
 // Config dialog state
 const configVisible = ref(false)
@@ -204,6 +264,109 @@ function formatTime(t: string) {
   return t.replace('T', ' ').slice(0, 19)
 }
 
+// ---- Upload ----
+function handleFileSelect(file: File) {
+  if (!file.name.toLowerCase().endsWith('.zip')) {
+    ElMessage.error('仅支持 .zip 格式的插件包')
+    return
+  }
+  uploadingFile.value = file
+}
+
+function handleFileRemove() {
+  uploadingFile.value = null
+}
+
+async function handleUpload() {
+  if (!uploadingFile.value) {
+    ElMessage.warning('请先选择插件包文件')
+    return
+  }
+  uploading.value = true
+  try {
+    const data: any = await uploadPlugin(uploadingFile.value)
+    ElMessage.success(data.msg || '插件导入成功，需要重启后端生效')
+    uploadVisible.value = false
+    uploadingFile.value = null
+    fetchData()
+  } catch (err: any) {
+    ElMessage.error(err?.message || '上传失败')
+  } finally {
+    uploading.value = false
+  }
+}
+
+// ---- Restart ----
+async function handleRestart() {
+  try {
+    await ElMessageBox.confirm(
+      '重启后端将导致短暂不可用（约 5 秒），确定要重启吗？',
+      '重启确认',
+      { type: 'warning', confirmButtonText: '确认重启', cancelButtonText: '取消' }
+    )
+  } catch {
+    return
+  }
+
+  restarting.value = true
+  ElMessage.info('正在重启后端...')
+  try {
+    await restartServer()
+  } catch {
+    // Response may fail if server is already shutting down — expected
+  }
+
+  // Poll health endpoint until server is back
+  await pollHealth()
+}
+
+async function pollHealth() {
+  const maxRetries = 30
+  const interval = 1000 // 1s
+  for (let i = 0; i < maxRetries; i++) {
+    await new Promise((resolve) => setTimeout(resolve, interval))
+    try {
+      const res = await fetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: '__health_check__', password: '' }),
+      })
+      // Any response (even 400/422) means server is up
+      if (res.status === 400 || res.status === 422 || res.ok) {
+        ElMessage.success('后端已恢复，正在刷新...')
+        restarting.value = false
+        fetchData()
+        return
+      }
+    } catch {
+      // Server still down, keep polling
+    }
+  }
+  ElMessage.error('后端重启超时，请手动刷新页面')
+  restarting.value = false
+}
+
+// ---- Delete ----
+async function handleDelete(item: PluginRow) {
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除插件「${item.display_name || item.name}」吗？插件文件将被永久移除。`,
+      '删除确认',
+      { type: 'warning', confirmButtonText: '确认删除', cancelButtonText: '取消' }
+    )
+  } catch {
+    return
+  }
+
+  try {
+    await deletePlugin(item.id)
+    ElMessage.success('插件已删除，重启后端后生效')
+    fetchData()
+  } catch (err: any) {
+    ElMessage.error(err?.message || '删除失败')
+  }
+}
+
 onMounted(() => {
   fetchData()
 })
@@ -217,6 +380,12 @@ onMounted(() => {
   display: flex;
   gap: 8px;
   margin-bottom: 14px;
+  align-items: center;
+}
+.toolbar-right {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
 }
 
 /* Plugin card grid */
@@ -303,6 +472,10 @@ onMounted(() => {
   justify-content: space-between;
   border-top: 1px solid #f0f2f5;
   padding-top: 8px;
+}
+.footer-actions {
+  display: flex;
+  gap: 4px;
 }
 .plugin-time {
   font-size: 12px;

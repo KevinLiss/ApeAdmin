@@ -9,7 +9,11 @@ Discovery strategy:
 
 import importlib
 import inspect
+import json
+import os
 import pkgutil
+import shutil
+import zipfile
 from pathlib import Path
 from typing import Any
 
@@ -157,6 +161,130 @@ class PluginManager:
     def list_plugins(self) -> list[PluginInfo]:
         """List all discovered plugins."""
         return list(self._plugins.values())
+
+    # ------------------------------------------------------------------
+    # Plugin package import (upload .zip → extract → install)
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _validate_plugin_zip(zip_path: Path) -> dict[str, Any]:
+        """Validate a plugin .zip archive and return its manifest.
+
+        Requirements:
+        - Must contain a ``plugin.json`` at the top level
+        - Must contain a Python package directory (with ``__init__.py``)
+        - The package directory name must match ``plugin.json.name``
+        """
+        if not zip_path.exists() or not zipfile.is_zipfile(zip_path):
+            raise ValueError("文件不是有效的 zip 压缩包")
+
+        with zipfile.ZipFile(zip_path, "r") as zf:
+            names = zf.namelist()
+
+            # Find plugin.json (at top level or inside a single root directory)
+            json_candidates = [
+                n for n in names
+                if n.endswith("plugin.json") and n.count("/") <= 1
+            ]
+            if not json_candidates:
+                raise ValueError("压缩包中未找到 plugin.json 清单文件")
+
+            manifest_path = json_candidates[0]
+            try:
+                manifest = json.loads(zf.read(manifest_path))
+            except json.JSONDecodeError:
+                raise ValueError("plugin.json 格式错误，无法解析 JSON")
+
+            # Validate required fields
+            required = ("name", "display_name", "version")
+            for field in required:
+                if field not in manifest:
+                    raise ValueError(f"plugin.json 缺少必填字段: {field}")
+
+            plugin_name = manifest["name"]
+
+            # Determine the root directory of the zip
+            # Files are either at root or under a single top dir
+            top_dirs = set()
+            for n in names:
+                parts = n.split("/")
+                if len(parts) > 1:
+                    top_dirs.add(parts[0])
+            if not top_dirs:
+                top_dirs = {""}  # files at root
+
+            # Check for the plugin package directory with __init__.py
+            init_found = False
+            for n in names:
+                if n.endswith("__init__.py") and plugin_name in n:
+                    init_found = True
+                    break
+            if not init_found:
+                raise ValueError(
+                    f"压缩包中未找到插件包目录 '{plugin_name}/__init__.py'"
+                )
+
+            # Validate entry class reference
+            entry = manifest.get("entry", "")
+            if entry and "." not in entry:
+                raise ValueError("plugin.json 的 entry 格式应为 'ModuleName.ClassName'")
+
+            return manifest
+
+    def import_plugin(self, zip_path: str | Path) -> dict[str, Any]:
+        """Import a plugin from a .zip archive into the builtin directory.
+
+        Steps:
+        1. Validate the zip (manifest + package structure)
+        2. Remove any existing plugin with the same name
+        3. Extract into ``PLUGINS_BUILTIN_DIR``
+        4. Return the manifest for DB upsert
+
+        Raises ValueError on validation failures.
+        """
+        zip_path = Path(zip_path)
+        manifest = self._validate_plugin_zip(zip_path)
+        plugin_name = manifest["name"]
+
+        builtin_dir = self._builtin_dir.resolve()
+        target_dir = builtin_dir / plugin_name
+
+        # Remove existing plugin directory if present (overwrite / upgrade)
+        if target_dir.exists():
+            shutil.rmtree(target_dir)
+            logger.info(f"Removed existing plugin directory: {target_dir}")
+
+        # Extract
+        with zipfile.ZipFile(zip_path, "r") as zf:
+            zf.extractall(builtin_dir)
+        logger.info(f"Extracted plugin '{plugin_name}' to {builtin_dir}")
+
+        # Clean up the uploaded zip
+        try:
+            zip_path.unlink()
+        except OSError:
+            pass
+
+        # Verify the extracted package has __init__.py
+        if not (target_dir / "__init__.py").exists():
+            raise ValueError(
+                f"解压后未找到 {plugin_name}/__init__.py，插件包结构不正确"
+            )
+
+        return manifest
+
+    def remove_plugin_files(self, plugin_name: str) -> bool:
+        """Remove a plugin's files from the builtin directory.
+
+        Returns True if files were removed, False if the directory didn't exist.
+        """
+        builtin_dir = self._builtin_dir.resolve()
+        target_dir = builtin_dir / plugin_name
+        if target_dir.exists():
+            shutil.rmtree(target_dir)
+            logger.info(f"Removed plugin files: {target_dir}")
+            return True
+        return False
 
 
 # Global plugin manager

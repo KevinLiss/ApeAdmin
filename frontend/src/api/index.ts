@@ -47,6 +47,15 @@ export const togglePlugin = (id: number, enabled: boolean) =>
 export const getPluginConfig = (id: number) => request.get(`/plugins/${id}/config`)
 export const updatePluginConfig = (id: number, config: any) =>
   request.put(`/plugins/${id}/config`, { config })
+export const uploadPlugin = (file: File) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  return request.post('/plugins/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+}
+export const restartServer = () => request.post('/plugins/restart')
+export const deletePlugin = (id: number) => request.delete(`/plugins/${id}`)
 
 // ---- MCP ----
 export const getMcpTools = () => request.get('/mcp/tools')
