@@ -1,35 +1,10 @@
----
-AIGC:
-  ContentProducer: '001191110102MAD55U9H0F10002'
-  ContentPropagator: '001191110102MAD55U9H0F10002'
-  Label: '1'
-  ProduceID: '5742f615-00a3-428d-957a-e6a1b4336ba7'
-  PropagateID: '5742f615-00a3-428d-957a-e6a1b4336ba7'
-  ReservedCode1: '6a8138cd-615a-4a4e-be4d-f684cb3fb7e3'
-  ReservedCode2: '6a8138cd-615a-4a4e-be4d-f684cb3fb7e3'
----
-
 <div align="center">
 	</br>
     </br>
     </br>
   <img src="assets/logo.png" width="130" alt="ApeAdmin Logo" />
   <h1>ApeAdmin</h1>
-  <p>AI API ApeAdmin为时代而生的应用开发框架 · Strongest Transfer</p>
 </div>
-
-<p align="center">
-  <strong>ApeAdmin为时代而生的应用开发框架</strong>
-</p>
-
-<p align="center">
-  <a href="#快速开始">快速开始</a> ·
-  <a href="#功能特性">功能</a> ·
-  <a href="#架构">架构</a> ·
-  <a href="#插件开发">插件开发</a> ·
-  <a href="#配置说明">配置</a> ·
-  <a href="#贡献指南">贡献</a>
-</p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/version-0.1.0-blue" alt="version">
@@ -39,11 +14,6 @@ AIGC:
   <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey" alt="platform">
 </p>
 
----
-
-> **本项目 100% 由 AI 生成。** 每一行代码、每一个架构决策、每一次提交都由 AI 完成。人类开发者仅担任决策者和产品经理的角色——定义"要做什么"，而不是"怎么做"。
-
----
 <div align="center">
 <pre>
     ___               ___       __          _     
@@ -54,6 +24,20 @@ AIGC:
       /_/                                         
 </pre>
 </div>
+
+<p align="center">
+  <strong>为时代而生的应用开发框架</strong>
+</p>
+
+
+
+
+---
+
+> **本项目 100% 由 AI 生成。** 每一行代码、每一个架构决策、每一次提交都由 AI 完成。人类开发者仅担任决策者和产品经理的角色——定义"要做什么"，而不是"怎么做"。
+
+---
+
 
 ApeAdmin 是一款基于 FastAPI + Vue3 构建的 AI 原生管理底座。内置 RBAC 权限体系、微服务插件架构、MCP-SSE 网关和审计日志，将后台管理能力与 AI Agent 调用无缝融合。
 
