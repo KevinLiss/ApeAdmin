@@ -1,18 +1,14 @@
----
-AIGC:
-  ContentProducer: '001191110102MAD55U9H0F10002'
-  ContentPropagator: '001191110102MAD55U9H0F10002'
-  Label: '1'
-  ProduceID: '1cb01e90-d8a9-4c9b-9473-9bf7add5508e'
-  PropagateID: '1cb01e90-d8a9-4c9b-9473-9bf7add5508e'
-  ReservedCode1: 'c2a43388-8455-44e0-a943-67e7198527ed'
-  ReservedCode2: 'c2a43388-8455-44e0-a943-67e7198527ed'
----
-
-
+<div align="center">
+	</br>
+    </br>
+    </br>
+  <img src="assets/logo.svg" width="130" alt="Dokode Logo" />
+  <h1>Dokode</h1>
+  <p>AI API ApeAdmin为时代而生的应用开发框架 · Strongest Transfer</p>
+</div>
 
 <p align="center">
-  <strong>FastAPI + Vue3 构建的 AI 原生管理底座</strong>
+  <strong>ApeAdmin为时代而生的应用开发框架</strong>
 </p>
 
 <p align="center">
