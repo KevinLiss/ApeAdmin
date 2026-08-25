@@ -404,11 +404,11 @@ class MyPlugin(PluginInterface):
 
 ---
 
-☕ AtomCode 免费用，Coding Plan 也不收费。如果它帮你省下了一点时间，欢迎请作者喝杯咖啡，让我们更有动力把它做下去。
+☕ 如果它帮你省下了一点时间，欢迎请作者喝杯咖啡，让我们更有动力把它做下去。
 
 <p align="center">
-  <img src="https://cdn-news.gitcode.com/news/92108b6d6ea43f2ccd412ff2b26ad861.jpg" alt="支付宝赞赏码" width="220">
-  <img src="https://cdn-news.gitcode.com/news/9a1eb5394ef78c16d821ce98df49f420.jpg" alt="微信赞赏码" width="240">
+  <img src="assets/92108b6d6ea43f2ccd412ff2b26ad861.jpg" alt="支付宝赞赏码" width="220">
+  <img src="assets/news/9a1eb5394ef78c16d821ce98df49f420.jpg" alt="微信赞赏码" width="240">
 </p>
 
 
