@@ -11,9 +11,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config import settings
+from src.core.crypto import encrypt_api_key
 from src.core.security import hash_password
 from src.db import SessionLocal
 from src.models import Dept, Menu, Role, User
+from src.models.ai import AiProvider
 
 
 async def seed_initial_data() -> None:
@@ -23,6 +25,7 @@ async def seed_initial_data() -> None:
         await _seed_menus(db)
         await _seed_role(db)
         await _seed_super_admin(db)
+        await _seed_ai_provider(db)
         await db.commit()
     logger.info("Initial data seeded")
 
@@ -412,3 +415,26 @@ async def _seed_super_admin(db: AsyncSession) -> None:
     db.add(user)
     await db.flush()
     logger.info(f"Created super admin user '{settings.SUPER_ADMIN_USERNAME}'")
+
+
+async def _seed_ai_provider(db: AsyncSession) -> None:
+    """Seed a default DeepSeek provider so the user just needs to fill in the API Key."""
+    result = await db.execute(select(AiProvider).where(AiProvider.name == "DeepSeek-V4Pro"))
+    if result.scalars().first():
+        return
+
+    import json
+
+    provider = AiProvider(
+        name="DeepSeek-V4Pro",
+        provider_type="deepseek",
+        api_key_enc=encrypt_api_key("sk-placeholder"),
+        base_url="https://api.deepseek.com",
+        models=json.dumps(["deepseek-chat", "deepseek-reasoner"], ensure_ascii=False),
+        enabled=1,
+        sort=1,
+        remark="默认供应商，请编辑后填入真实 API Key",
+    )
+    db.add(provider)
+    await db.flush()
+    logger.info("Created default AI provider 'DeepSeek-V4Pro'")
