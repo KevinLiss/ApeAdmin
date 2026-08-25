@@ -400,14 +400,31 @@ class MyPlugin(PluginInterface):
 - API 遵循 RESTful 风格，前缀 `/api/v1`
 - 提交前确保后端可启动、前端可编译
 
+## 社区交流
+
+---
+
+用微信扫描下方二维码联系作者加入 ApeAdmin 用户群，反馈问题、分享使用心得，和其他用户、维护者一起交流：
+
+<p align="center">
+  <img src="https://cdn-news.gitcode.com/news/AtomCode_qun.png" alt="AtomCode 微信用户群二维码" width="220">
+</p>
+
+## 打赏
+
+---
+
+☕ AtomCode 免费用，Coding Plan 也不收费。如果它帮你省下了一点时间，欢迎请作者喝杯咖啡，让我们更有动力把它做下去。
+
+<p align="center">
+  <img src="https://cdn-news.gitcode.com/news/alipay_1782981974317.png" alt="AtomCode 支付宝赞赏码" width="220">
+  <img src="https://cdn-news.gitcode.com/news/wechatpay_1782982603403.png" alt="AtomCode 微信赞赏码" width="240">
+</p>
+
+
 ## License
 
 MIT License
 
 ---
 
-<p align="center">
-  用 FastAPI、Vue3 以及无数个深夜构建而成。
-</p>
-
-> AI生成
