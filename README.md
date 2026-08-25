@@ -1,18 +1,3 @@
-<div align="center">
-	</br>
-    </br>
-    </br>
-  <img src="assets/logo.png" width="130" alt="ApeAdmin Logo" />
-  <h1>ApeAdmin</h1>
-</div>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/version-0.1.0-blue" alt="version">
-  <img src="https://img.shields.io/badge/python-3.11%2B-orange" alt="python">
-  <img src="https://img.shields.io/badge/vue-3.5-brightgreen" alt="vue">
-  <img src="https://img.shields.io/badge/license-MIT-green" alt="license">
-  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey" alt="platform">
-</p>
 
 <div align="center">
 <pre>
@@ -29,8 +14,13 @@
   <strong>为时代而生的应用开发框架</strong>
 </p>
 
-
-
+<p align="center">
+  <img src="https://img.shields.io/badge/version-0.1.0-blue" alt="version">
+  <img src="https://img.shields.io/badge/python-3.11%2B-orange" alt="python">
+  <img src="https://img.shields.io/badge/vue-3.5-brightgreen" alt="vue">
+  <img src="https://img.shields.io/badge/license-MIT-green" alt="license">
+  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey" alt="platform">
+</p>
 
 ---
 
