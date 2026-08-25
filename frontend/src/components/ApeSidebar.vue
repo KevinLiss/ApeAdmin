@@ -37,20 +37,24 @@
           </li>
         </ul>
 
-        <!-- 顶级目录 (type=M): 渲染为带子菜单的分组 -->
+        <!-- 顶级目录 (type=M): 渲染为可折叠分组 -->
         <ul v-else-if="menu.type === 'M' && menu.children?.length" class="sidebar-links">
-          <li class="sidebar-main-title">
-            <div><h4>{{ menu.name }}</h4></div>
+          <li class="sidebar-main-title sidebar-group-toggle" @click="toggleTopMenu(menu.id)">
+            <div>
+              <h4>{{ menu.name }}</h4>
+              <el-icon class="sub-arrow" :class="{ open: isTopMenuOpen(menu.id) }"><ArrowDown /></el-icon>
+            </div>
           </li>
           <li
-            v-for="child in menu.children.filter(c => c.type !== 'F')"
+            v-for="child in menu.children.filter((c: any) => c.type !== 'F')"
+            v-show="isTopMenuOpen(menu.id)"
             :key="child.id"
             class="sidebar-list"
             @mouseenter="collapsed && !isMobile && (hoverSub = child.id)"
             @mouseleave="collapsed && !isMobile && (hoverSub = null)"
           >
             <!-- 有子菜单的 C 类型菜单（如未来扩展三级菜单） -->
-            <template v-if="child.children?.some(c => c.type !== 'F')">
+            <template v-if="child.children?.some((c: any) => c.type !== 'F')">
               <a class="sidebar-link sidebar-title" href="javascript:void(0)" @click="toggleSub(child.id)">
                 <el-icon class="menu-icon"><component :is="child.icon || 'Menu'" /></el-icon>
                 <span>{{ child.name }}</span>
@@ -58,7 +62,7 @@
               </a>
               <!-- Expanded: inline submenu -->
               <ul class="sidebar-submenu" v-show="openedSub === child.id">
-                <li v-for="grandchild in child.children.filter(c => c.type !== 'F')" :key="grandchild.id">
+                <li v-for="grandchild in child.children.filter((c: any) => c.type !== 'F')" :key="grandchild.id">
                   <router-link :to="resolvePath(menu.path, child.path, grandchild.path)" :class="{ active: route.path === resolvePath(menu.path, child.path, grandchild.path) }">
                     {{ grandchild.name }}
                   </router-link>
@@ -68,7 +72,7 @@
               <div class="flyout-submenu" v-if="collapsed && !isMobile && hoverSub === child.id">
                 <h6>{{ child.name }}</h6>
                 <ul>
-                  <li v-for="grandchild in child.children.filter(c => c.type !== 'F')" :key="grandchild.id">
+                  <li v-for="grandchild in child.children.filter((c: any) => c.type !== 'F')" :key="grandchild.id">
                     <router-link :to="resolvePath(menu.path, child.path, grandchild.path)" :class="{ active: route.path === resolvePath(menu.path, child.path, grandchild.path) }">
                       {{ grandchild.name }}
                     </router-link>
@@ -101,7 +105,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 
@@ -122,16 +126,69 @@ const userStore = useUserStore()
 const activeMenu = computed(() => route.path)
 const openedSub = ref<string | number | null>(null)
 const hoverSub = ref<string | number | null>(null)
+// 顶级 M 目录的折叠状态（key=菜单 id，value=是否展开）
+const openedTopMenus = ref<Record<string | number, boolean>>({})
 
-// 点击推广卡片按钮：跳转到 AI 全能助手
-function goAiChat() {
-  router.push('/ai/chat')
-}
+// 子菜单数量超过该值则默认收起（避免大量子菜单平铺过长）
+const DEFAULT_COLLAPSE_THRESHOLD = 12
 
 // 过滤掉 F 类型（按钮），只保留 M/C 用于侧边栏渲染
 const menuTree = computed(() => {
   return (userStore.menus || []).filter((m: any) => m.type !== 'F')
 })
+
+// 判断当前路由是否命中某顶级目录下的菜单
+function topMenuHasActive(menu: any): boolean {
+  if (menu.type === 'C' && menu.component) {
+    return activeMenu.value === resolvePath('', menu.path)
+  }
+  if (menu.type !== 'M') return false
+  const children = menu.children || []
+  // 直接子项
+  for (const child of children) {
+    if (child.type === 'F') continue
+    if (child.children?.some((c: any) => c.type !== 'F')) {
+      // 三级子菜单
+      for (const grandchild of child.children) {
+        if (grandchild.type === 'F') continue
+        if (resolvePath(menu.path, child.path, grandchild.path) === activeMenu.value) return true
+      }
+    } else {
+      if (resolvePath(menu.path, child.path) === activeMenu.value) return true
+    }
+  }
+  return false
+}
+
+// 初始化顶级菜单默认展开状态：子菜单少的展开，多的收起；命中当前路由的强制展开
+watch(
+  menuTree,
+  (tree) => {
+    const next: Record<string | number, boolean> = {}
+    for (const menu of tree) {
+      if (menu.type !== 'M' || !menu.children?.length) continue
+      const visibleChildren = (menu.children || []).filter((c: any) => c.type !== 'F')
+      const hasActive = topMenuHasActive(menu)
+      const shouldOpen = hasActive || visibleChildren.length <= DEFAULT_COLLAPSE_THRESHOLD
+      next[menu.id] = shouldOpen
+    }
+    openedTopMenus.value = next
+  },
+  { immediate: true }
+)
+
+// 顶级目录展开/收起
+function isTopMenuOpen(id: string | number): boolean {
+  return openedTopMenus.value[id] !== false
+}
+function toggleTopMenu(id: string | number) {
+  // 折叠侧边栏模式下由 hover flyout 接管，不展开 inline 子菜单
+  if (props.collapsed && !props.isMobile) return
+  openedTopMenus.value = {
+    ...openedTopMenus.value,
+    [id]: !isTopMenuOpen(id),
+  }
+}
 
 function toggleSub(id: string | number) {
   // 折叠状态下不展开 inline 子菜单（宽度不足以展示），由 hover flyout 接管
@@ -140,6 +197,11 @@ function toggleSub(id: string | number) {
     return
   }
   openedSub.value = openedSub.value === id ? null : id
+}
+
+// 点击推广卡片按钮：跳转到 AI 全能助手
+function goAiChat() {
+  router.push('/ai/chat')
 }
 
 /**
@@ -283,6 +345,17 @@ function resolvePath(parentPath: string, ...childPaths: string[]): string {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.sidebar-group-toggle {
+  cursor: pointer;
+  user-select: none;
+}
+.sidebar-group-toggle:hover > div {
+  background-color: #e6eaf3;
 }
 .sidebar-main-title h4 {
   margin: 0;
@@ -290,6 +363,15 @@ function resolvePath(parentPath: string, ...childPaths: string[]): string {
   font-weight: 600;
   letter-spacing: 0.4px;
   color: var(--theme-default, #5A67F5);
+}
+.sidebar-main-title .sub-arrow {
+  font-size: 12px;
+  color: #909399;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+.sidebar-main-title .sub-arrow.open {
+  transform: rotate(180deg);
 }
 
 /* Menu item */

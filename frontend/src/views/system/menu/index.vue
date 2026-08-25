@@ -20,6 +20,7 @@
         </template>
       </el-table-column>
       <el-table-column prop="path" label="路由" min-width="120" />
+      <el-table-column prop="component" label="组件路径" min-width="150" show-overflow-tooltip />
       <el-table-column prop="permission" label="权限标识" min-width="150" />
       <el-table-column prop="sort" label="排序" width="70" />
       <el-table-column label="状态" width="80">
@@ -61,8 +62,11 @@
       <el-form-item label="菜单名称" prop="name">
         <el-input v-model="form.name" />
       </el-form-item>
-      <el-form-item v-if="form.type !== 'F'" label="路由地址">
+      <el-form-item v-if="form.type !== 'F'" label="路由地址" prop="path">
         <el-input v-model="form.path" placeholder="如: system/user" />
+      </el-form-item>
+      <el-form-item v-if="form.type !== 'F'" label="组件路径" prop="component">
+        <el-input v-model="form.component" placeholder="如: system/plugin/index" />
       </el-form-item>
       <el-form-item v-if="form.type === 'F'" label="权限标识">
         <el-input v-model="form.permission" placeholder="如: system:user:add" />
@@ -85,7 +89,13 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
+import { useRouter } from 'vue-router'
 import { getMenuTree, createMenu, updateMenu, deleteMenu } from '@/api'
+import { useUserStore } from '@/stores/user'
+import { resetRouter } from '@/router'
+
+const router = useRouter()
+const userStore = useUserStore()
 
 const typeText: Record<string, string> = { M: '目录', C: '菜单', F: '按钮' }
 const typeTag: Record<string, string> = { M: 'info', C: 'primary', F: 'warning' }
@@ -103,6 +113,7 @@ const form = reactive({
   name: '',
   type: 'C',
   path: '',
+  component: '',
   permission: '',
   sort: 0,
   status: 1,
@@ -110,6 +121,17 @@ const form = reactive({
 
 const rules: FormRules = {
   name: [{ required: true, message: '请输入菜单名称', trigger: 'blur' }],
+  path: [{ required: true, message: '请输入路由地址', trigger: 'blur' }],
+  component: [{
+    validator: (_rule: any, value: string, callback: (err?: Error) => void) => {
+      if (form.type === 'C' && !value) {
+        callback(new Error('菜单类型必须填写组件路径'))
+      } else {
+        callback()
+      }
+    },
+    trigger: 'blur',
+  }],
 }
 
 async function fetchData() {
@@ -129,6 +151,7 @@ function openDialog(row?: any) {
   form.name = row?.name ?? ''
   form.type = row?.type ?? 'C'
   form.path = row?.path ?? ''
+  form.component = row?.component ?? ''
   form.permission = row?.permission ?? ''
   form.sort = row?.sort ?? 0
   form.status = row?.status ?? 1
@@ -146,6 +169,7 @@ async function handleSave() {
         name: form.name,
         type: form.type,
         path: form.type === 'F' ? null : form.path,
+        component: form.type === 'F' ? null : form.component,
         permission: form.type === 'F' ? form.permission : form.permission || null,
         sort: form.sort,
         status: form.status,
@@ -159,6 +183,7 @@ async function handleSave() {
       }
       dialogVisible.value = false
       fetchData()
+      refreshMenuSidebar()
     } finally {
       saving.value = false
     }
@@ -170,6 +195,18 @@ async function handleDelete(row: any) {
   await deleteMenu(row.id)
   ElMessage.success('删除成功')
   fetchData()
+  refreshMenuSidebar()
+}
+
+// 保存/删除菜单后同步刷新侧边栏菜单与动态路由，无需重新登录
+async function refreshMenuSidebar() {
+  try {
+    await userStore.fetchUserInfo()
+    resetRouter()
+    await router.replace(router.currentRoute.value.fullPath)
+  } catch (e) {
+    console.error('[Menu] 刷新菜单失败:', e)
+  }
 }
 
 onMounted(fetchData)
