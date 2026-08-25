@@ -422,9 +422,3 @@ class MyPlugin(PluginInterface):
 </p>
 
 
-## License
-
-MIT License
-
----
-
