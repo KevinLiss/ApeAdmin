@@ -1,9 +1,20 @@
+---
+AIGC:
+  ContentProducer: '001191110102MAD55U9H0F10002'
+  ContentPropagator: '001191110102MAD55U9H0F10002'
+  Label: '1'
+  ProduceID: '5742f615-00a3-428d-957a-e6a1b4336ba7'
+  PropagateID: '5742f615-00a3-428d-957a-e6a1b4336ba7'
+  ReservedCode1: '6a8138cd-615a-4a4e-be4d-f684cb3fb7e3'
+  ReservedCode2: '6a8138cd-615a-4a4e-be4d-f684cb3fb7e3'
+---
+
 <div align="center">
 	</br>
     </br>
     </br>
-  <img src="assets/logo.svg" width="130" alt="Dokode Logo" />
-  <h1>Dokode</h1>
+  <img src="assets/logo.png" width="130" alt="ApeAdmin Logo" />
+  <h1>ApeAdmin</h1>
   <p>AI API ApeAdmin为时代而生的应用开发框架 · Strongest Transfer</p>
 </div>
 
