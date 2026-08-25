@@ -1,13 +1,3 @@
----
-AIGC:
-  ContentProducer: '001191110102MAD55U9H0F10002'
-  ContentPropagator: '001191110102MAD55U9H0F10002'
-  Label: '1'
-  ProduceID: '5b4730eb-c39d-4861-829c-feda05011b1e'
-  PropagateID: '5b4730eb-c39d-4861-829c-feda05011b1e'
-  ReservedCode1: '72c1504d-a0f5-4ddb-a214-a2a83605c7a5'
-  ReservedCode2: '72c1504d-a0f5-4ddb-a214-a2a83605c7a5'
----
 
 <div align="center">
   <br/>
@@ -407,7 +397,7 @@ class MyPlugin(PluginInterface):
 用微信扫描下方二维码联系作者加入 ApeAdmin 用户群，反馈问题、分享使用心得，和其他用户、维护者一起交流：
 
 <p align="center">
-  <img src="https://cdn-news.gitcode.com/news/AtomCode_qun.png" alt="AtomCode 微信用户群二维码" width="220">
+  <img src="assets/aa4f8c941d68d25fe00fb679b62d923b.jpg" alt="微信用户群二维码" width="220">
 </p>
 
 ## 打赏
@@ -417,8 +407,8 @@ class MyPlugin(PluginInterface):
 ☕ AtomCode 免费用，Coding Plan 也不收费。如果它帮你省下了一点时间，欢迎请作者喝杯咖啡，让我们更有动力把它做下去。
 
 <p align="center">
-  <img src="https://cdn-news.gitcode.com/news/alipay_1782981974317.png" alt="AtomCode 支付宝赞赏码" width="220">
-  <img src="https://cdn-news.gitcode.com/news/wechatpay_1782982603403.png" alt="AtomCode 微信赞赏码" width="240">
+  <img src="https://cdn-news.gitcode.com/news/92108b6d6ea43f2ccd412ff2b26ad861.jpg" alt="支付宝赞赏码" width="220">
+  <img src="https://cdn-news.gitcode.com/news/9a1eb5394ef78c16d821ce98df49f420.jpg" alt="微信赞赏码" width="240">
 </p>
 
 
