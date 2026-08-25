@@ -408,7 +408,7 @@ class MyPlugin(PluginInterface):
 
 <p align="center">
   <img src="assets/92108b6d6ea43f2ccd412ff2b26ad861.jpg" alt="支付宝赞赏码" width="220">
-  <img src="assets/news/9a1eb5394ef78c16d821ce98df49f420.jpg" alt="微信赞赏码" width="240">
+  <img src="assets/9a1eb5394ef78c16d821ce98df49f420.jpg" alt="微信赞赏码" width="240">
 </p>
 
 
