@@ -227,10 +227,14 @@ class PluginManager:
             permission = menu.permission or ""
             component = menu.component or ""
             path = menu.path or ""
+            # ``apeui/dashboard/Monitor`` is the core landing page. Its
+            # frontend namespace must not make it disappear when the optional
+            # ApeUI website plugin is disabled.
+            is_core_dashboard = name == "apeui" and component == "apeui/dashboard/Monitor"
             if (
-                permission.startswith(prefix)
+                (permission.startswith(prefix) and not is_core_dashboard)
                 or component == name
-                or component.startswith(component_prefix)
+                or (component.startswith(component_prefix) and not is_core_dashboard)
                 or path == route_prefix
                 or path.startswith(f"{route_prefix}/")
             ):

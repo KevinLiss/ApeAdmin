@@ -263,6 +263,16 @@ async def _seed_missing_menus(db: AsyncSession) -> None:
 
         pid = parent_menu.id if parent_menu else 0
 
+        # The dashboard component lives under the ``apeui`` frontend namespace
+        # but is a core page, not an ApeUI plugin-owned menu. Restore it when a
+        # previous plugin toggle left the existing row hidden.
+        if name == "系统仪表盘" and pid == 0:
+            dashboard = next((m for m in existing_menus if m.name == name and m.parent_id == 0), None)
+            if dashboard:
+                dashboard.status = 1
+                dashboard.visible = 1
+                continue
+
         # Skip if already exists (by parent id)
         dup = any(m.name == name and m.parent_id == pid for m in existing_menus)
         if dup:
