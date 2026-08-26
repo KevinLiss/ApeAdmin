@@ -567,9 +567,22 @@ const staticRoutes: RouteRecordRaw[] = [
   },
 ]
 
+// Legacy component-demo pages are no longer part of the product navigation.
+// Keep their files temporarily for reference while preventing direct route registration.
+const productRoutes = staticRoutes.map((route) => {
+  if (route.name !== 'Layout' || !route.children) return route
+  return {
+    ...route,
+    children: route.children.filter((child) => {
+      const path = typeof child.path === 'string' ? child.path : ''
+      return !path.startsWith('apeui/components/')
+    }),
+  }
+})
+
 const router = createRouter({
   history: createWebHistory(),
-  routes: staticRoutes,
+  routes: productRoutes,
 })
 
 // 标记是否已加载动态路由（防止重复加载）
