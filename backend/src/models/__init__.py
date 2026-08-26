@@ -6,6 +6,7 @@ from src.models.ai import AiProvider
 from src.models.plugin import Plugin
 from src.models.mcp import McpAuditLog
 from src.models.log import SysLog
+from src.models.file import FileFolder, SystemFile
 
 __all__ = [
     "IDMixin",
@@ -21,4 +22,6 @@ __all__ = [
     "Plugin",
     "McpAuditLog",
     "SysLog",
+    "FileFolder",
+    "SystemFile",
 ]

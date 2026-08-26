@@ -91,6 +91,20 @@ export const clearLogs = () => request.delete('/logs')
 export const getDashboardStats = () => request.get('/dashboard/stats')
 export const getDashboardSystem = () => request.get('/dashboard/system')
 
+// ---- System files ----
+export const getFileFolders = () => request.get('/files/folders/tree')
+export const getFiles = (params: any = {}) => request.get('/files', { params })
+export const createFileFolder = (data: any) => request.post('/files/folders', data)
+export const renameFileFolder = (id: number, data: any) => request.put(`/files/folders/${id}`, data)
+export const deleteFileFolder = (id: number) => request.delete(`/files/folders/${id}`)
+export const uploadSystemFile = (file: File, folderId: number) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  return request.post(`/files/upload?folder_id=${folderId}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+}
+export const deleteSystemFile = (id: number) => request.delete(`/files/${id}`)
+export const downloadSystemFileUrl = (id: number) => `/api/v1/files/${id}/download`
+
 /**
  * SSE 流式对话 —— 使用 fetch + ReadableStream 解析 SSE
  * @param data  ChatStreamRequest body
