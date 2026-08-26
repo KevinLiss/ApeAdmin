@@ -407,6 +407,10 @@ class PluginManager:
                 continue
             try:
                 self._register_runtime(name, info, app)
+                # Startup registration makes the plugin live in the current
+                # process; keep the runtime state consistent with hot-toggle
+                # operations so the first disable removes its resources.
+                info.runtime_state = "active"
                 logger.info(f"Plugin '{name}' routes registered")
             except Exception as exc:
                 self._unregister_resources(name, app)
