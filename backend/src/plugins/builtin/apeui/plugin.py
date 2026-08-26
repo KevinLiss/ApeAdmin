@@ -21,6 +21,9 @@ class ApeUiPlugin(PluginInterface):
     async def install(self) -> None:
         """Create apeui_* tables and seed initial data."""
         from src.db.engine import Base, engine
+        # Ensure the core user table is registered when this plugin is enabled
+        # outside the normal application startup sequence.
+        from src.models import User  # noqa: F401
         from src.plugins.builtin.apeui import models  # noqa: F401
         from src.plugins.builtin.apeui.seed import seed_apeui_data
 
