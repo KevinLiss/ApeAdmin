@@ -52,6 +52,8 @@ async def login(
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
     """User login — returns JWT access + refresh tokens."""
+    from src.plugins import plugin_manager
+    await plugin_manager.before_login(body.model_dump())
     user = await crud_user.authenticate(db, body.username, body.password)
     if not user:
         raise AuthException("用户名或密码错误")

@@ -155,6 +155,10 @@ class PluginInterface(ABC):
         """
         pass
 
+    async def before_login(self, payload: dict[str, Any]) -> None:
+        """Optional login guard executed before core credential validation."""
+        return None
+
     def on_load(self) -> None:
         """Optional: called when the plugin is first loaded into memory."""
         pass

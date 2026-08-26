@@ -4,7 +4,7 @@ import secrets
 import time
 from typing import Any
 
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter, FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -74,6 +74,16 @@ class LoginCaptchaPlugin(PluginInterface):
     async def uninstall(self) -> None:
         self._captchas.clear()
         logger.info("LoginCaptchaPlugin uninstalled")
+
+    async def before_login(self, payload: dict[str, Any]) -> None:
+        captcha_id = payload.get("captcha_id")
+        captcha_code = payload.get("captcha_code")
+        if not captcha_id or not captcha_code:
+            raise HTTPException(status_code=422, detail="请输入验证码")
+        self._purge_expired()
+        stored = self._captchas.pop(captcha_id, None)
+        if not stored or not secrets.compare_digest(stored[0], str(captcha_code)):
+            raise HTTPException(status_code=422, detail="验证码错误或已过期")
 
     async def _find_menu(self, db: AsyncSession, name: str, parent_id: int) -> Menu | None:
         result = await db.execute(select(Menu).where(Menu.name == name, Menu.parent_id == parent_id))

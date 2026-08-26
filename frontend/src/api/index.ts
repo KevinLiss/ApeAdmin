@@ -1,8 +1,9 @@
 import request from './request'
 
 // ---- Auth ----
-export const login = (data: { username: string; password: string }) =>
+export const login = (data: { username: string; password: string; captcha_id?: string; captcha_code?: string }) =>
   request.post('/auth/login', data)
+export const getLoginCaptcha = () => request.get('/login-captcha/captcha')
 
 export const getUserInfo = () => request.get('/auth/userinfo')
 

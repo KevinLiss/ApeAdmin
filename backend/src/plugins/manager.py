@@ -438,6 +438,12 @@ class PluginManager:
         """List all discovered plugins."""
         return list(self._plugins.values())
 
+    async def before_login(self, payload: dict[str, Any]) -> None:
+        """Let active plugins validate a login attempt without coupling auth to them."""
+        for info in self._plugins.values():
+            if info.runtime_state == "active" and info.instance:
+                await info.instance.before_login(payload)
+
     def _register_runtime(self, name: str, info: PluginInfo, app: FastAPI) -> dict[str, int]:
         from src.mcp import mcp_manager
 

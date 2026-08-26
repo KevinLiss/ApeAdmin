@@ -31,6 +31,8 @@ class TokenSchema(BaseModel):
 class LoginSchema(BaseModel):
     username: str = Field(..., min_length=2, max_length=50)
     password: str = Field(..., min_length=6, max_length=100)
+    captcha_id: str | None = Field(default=None, max_length=64)
+    captcha_code: str | None = Field(default=None, max_length=8)
 
 
 class ChangePasswordSchema(BaseModel):
