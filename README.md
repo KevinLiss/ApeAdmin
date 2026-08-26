@@ -11,7 +11,7 @@ AIGC:
 
 # ApeAdmin
 
-> 基于 FastAPI + Vue3 构建的平台化管理底座，内置 RBAC 权限、插件市场、审计日志。采用微服务插件架构，业务插件以 Docker 服务独立部署，支持插件热启用禁用。集成 MCP-SSE 网关，可将底座与插件能力对外暴露为 AI 工具，适配 Agent 调用，提供完整后台管理与 AI 能力输出能力。
+> 基于 FastAPI + Vue3 构建的平台化管理底座，内置 RBAC 权限、插件管理、审计日志。业务插件以 Python 包形式运行在底座进程内，支持运行时安装、启用、禁用和卸载。集成 MCP-SSE 网关，可将底座与插件能力对外暴露为 AI 工具。
 
 ## 技术栈
 
@@ -33,11 +33,14 @@ AIGC:
 - 菜单类型：目录(M) / 菜单(C) / 按钮(F)
 - 超管通配权限，普通用户按角色菜单分配
 
-### 微服务插件架构
+### 热拔插插件架构
 
 - 插件以独立 Python 包形式开发，通过 importlib 自动发现
-- 业务插件支持 Docker 服务独立部署，与底座解耦
-- 完整生命周期：load → install → register → uninstall
+- 支持运行时安装、启用、禁用和卸载，无需重启后端
+- 禁用默认保留业务数据，卸载可通过 `keep_data=false` 删除插件数据
+- 完整生命周期：discover → install → register → unregister → unload
+- 插件资源自动追踪和清理：FastAPI 路由、MCP 工具、EventBus 订阅
+- `plugin.json` 支持依赖声明和版本校验
 - 事件总线（EventBus）支持插件间通信，7 种内置事件
 - 插件可注册自有路由、MCP 工具、事件监听器
 
@@ -54,6 +57,18 @@ AIGC:
 - 请求链路追踪（RequestContextMiddleware）
 - 操作日志记录
 - 请求耗时监控
+- 插件启用、禁用、安装、卸载记录操作人、结果、资源清单和耗时
+
+### 热拔插 API
+
+```text
+PUT    /api/v1/plugins/{id}/toggle       启用或禁用插件
+POST   /api/v1/plugins/upload            上传并运行时安装 ZIP
+DELETE /api/v1/plugins/{id}?keep_data=true  卸载并保留数据
+POST   /api/v1/plugins/restart           热拔插失败时的重启兜底
+```
+
+插件包必须包含 `plugin.json` 和与 `name` 一致的 Python 包目录。`dependencies` 可声明类似 `core>=0.1.0` 或 `other_plugin>=1.2.0` 的依赖。
 
 ## 项目结构
 
@@ -96,6 +111,8 @@ pip install -e .
 uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
+热拔插运行时状态是进程内状态，当前要求使用单 worker 启动；CLI 会拒绝 `workers > 1`。
+
 默认使用 SQLite，无需额外安装数据库。访问 `http://localhost:8000/docs` 查看 API 文档。
 
 ### 前端
@@ -126,6 +143,7 @@ npm run dev                     # http://localhost:5173
 | `JWT_SECRET` | change-me | JWT 签名密钥 |
 | `MCP_ENABLED` | true | 是否启用 MCP 网关 |
 | `PLUGINS_ENABLED` | true | 是否启用插件系统 |
+| `PLUGIN_RUNTIME_MODE` | single_process | 热拔插运行模式，当前要求单 worker |
 
 ## License
 

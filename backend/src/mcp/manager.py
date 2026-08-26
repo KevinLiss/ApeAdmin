@@ -30,6 +30,7 @@ class McpTool:
     handler: Callable
     input_schema: dict = field(default_factory=dict)
     required_permissions: list[str] = field(default_factory=list)
+    plugin_name: str = ""
 
 
 @dataclass
@@ -68,6 +69,7 @@ class McpManager:
         description: str,
         handler: Callable,
         required_permissions: list[str] | None = None,
+        plugin_name: str = "",
     ) -> None:
         """Register an MCP tool."""
         # Auto-generate input schema from function signature
@@ -78,12 +80,20 @@ class McpManager:
             handler=handler,
             input_schema=input_schema,
             required_permissions=required_permissions or [],
+            plugin_name=plugin_name,
         )
         logger.info(f"MCP tool registered: {name}")
 
-    def unregister_tool(self, name: str) -> None:
+    def unregister_tool(self, name: str) -> bool:
         """Remove a registered tool."""
-        self._tools.pop(name, None)
+        return self._tools.pop(name, None) is not None
+
+    def unregister_plugin_tools(self, plugin_name: str) -> list[str]:
+        """Remove all tools owned by a plugin and return their names."""
+        names = [name for name, tool in self._tools.items() if tool.plugin_name == plugin_name]
+        for name in names:
+            self._tools.pop(name, None)
+        return names
 
     def get_tool(self, name: str) -> McpTool | None:
         return self._tools.get(name)

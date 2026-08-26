@@ -69,7 +69,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     if settings.PLUGINS_ENABLED:
         from src.plugins import plugin_manager
-        await plugin_manager.uninstall_all()
+        await plugin_manager.uninstall_all(app)
 
     await close_db()
     logger.info("Goodbye!")

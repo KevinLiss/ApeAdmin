@@ -4,21 +4,51 @@ import json
 import os
 import sys
 import tempfile
+import time
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, Query, UploadFile
+from fastapi import APIRouter, Depends, File, Query, Request, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config import settings
 from src.core.deps import require_permission
-from src.core.exceptions import NotFoundException, success_response, ValidationException
+from src.core.exceptions import AppException, NotFoundException, success_response, ValidationException
 from src.crud.plugin import crud_plugin
 from src.db import get_db
 from src.models import User
+from src.models.log import SysLog
 from src.schemas.plugin import PluginConfigUpdate, PluginToggle
 
 router = APIRouter(prefix="/plugins", tags=["插件管理"])
+
+
+async def _write_plugin_audit(
+    db: AsyncSession,
+    user: User,
+    action: str,
+    plugin_name: str,
+    started: float,
+    result: dict | None = None,
+    error: str | None = None,
+) -> None:
+    """Write a dedicated plugin lifecycle audit entry without masking the operation result."""
+    try:
+        entry = SysLog(
+            user_id=user.id,
+            username=user.username,
+            method="PLUGIN",
+            path=f"/api/v1/plugins/{plugin_name}/{action}",
+            params=json.dumps(result or {}, ensure_ascii=False)[:10000],
+            status_code=200 if error is None else 409,
+            duration_ms=int((time.perf_counter() - started) * 1000),
+            error=error,
+        )
+        db.add(entry)
+        await db.commit()
+    except Exception as exc:
+        await db.rollback()
+        __import__("loguru").logger.warning(f"Failed to write plugin audit log: {exc}")
 
 
 def _plugin_to_dict(p) -> dict:
@@ -27,6 +57,8 @@ def _plugin_to_dict(p) -> dict:
         config = json.loads(p.config) if p.config else None
     except (json.JSONDecodeError, TypeError):
         config = None
+    from src.plugins.manager import plugin_manager
+    runtime = plugin_manager.get_plugin(p.name)
     return {
         "id": p.id,
         "name": p.name,
@@ -39,6 +71,9 @@ def _plugin_to_dict(p) -> dict:
         "config": config,
         "created_at": p.created_at.isoformat() if p.created_at else None,
         "updated_at": p.updated_at.isoformat() if p.updated_at else None,
+        "runtime_state": runtime.runtime_state if runtime else ("active" if p.enabled else "inactive"),
+        "last_error": runtime.last_error if runtime else None,
+        "dependencies": runtime.dependencies if runtime else [],
     }
 
 
@@ -63,17 +98,34 @@ async def list_plugins(
 async def toggle_plugin(
     plugin_id: int,
     body: PluginToggle,
+    request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[User, Depends(require_permission("system:plugin:toggle"))],
 ):
-    """Enable or disable a plugin (requires restart to take effect)."""
+    """Enable or disable a plugin in the current process."""
     plugin = await crud_plugin.get(db, plugin_id)
     if not plugin:
         raise NotFoundException("插件不存在")
 
-    await crud_plugin.update(db, plugin_id, {"enabled": body.enabled})
+    from src.plugins.manager import plugin_manager
+
+    started = time.perf_counter()
+    try:
+        if body.enabled:
+            result = await plugin_manager.enable_plugin(plugin.name, request.app, db=db)
+        else:
+            result = await plugin_manager.disable_plugin(plugin.name, request.app, db=db)
+    except Exception as exc:
+        await _write_plugin_audit(db, user, "enable" if body.enabled else "disable", plugin.name, started, error=str(exc))
+        raise AppException(
+            msg=f"热拔插失败：{exc}，建议重启后端",
+            code=409,
+            data={"fallback": "/api/v1/plugins/restart", "name": plugin.name},
+        ) from exc
+
     state = "启用" if body.enabled else "禁用"
-    return success_response(msg=f"插件已{state}，重启后生效")
+    await _write_plugin_audit(db, user, "enable" if body.enabled else "disable", plugin.name, started, result=result)
+    return success_response(data=result | {"refresh": True}, msg=f"插件已{state}，运行时生效")
 
 
 @router.get("/{plugin_id}/config")
@@ -123,6 +175,7 @@ _MAX_UPLOAD_SIZE = 50 * 1024 * 1024
 
 @router.post("/upload")
 async def upload_plugin(
+    request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[User, Depends(require_permission("system:plugin:upload"))],
     file: UploadFile = File(..., description="插件包 .zip 文件"),
@@ -131,7 +184,7 @@ async def upload_plugin(
 
     The zip is validated, extracted into the builtin plugins directory,
     and the plugin metadata is upserted into the database.
-    A restart is required for the plugin to be loaded.
+    The plugin is installed and activated without restarting the backend.
     """
     # Validate file extension
     filename = file.filename or ""
@@ -151,25 +204,31 @@ async def upload_plugin(
     tmp_path = upload_dir / f"upload_{filename}"
     tmp_path.write_bytes(content)
 
-    # Import the plugin package
+    # Import, install and register the plugin package in the current process.
     from src.plugins.manager import plugin_manager
 
+    started = time.perf_counter()
     try:
-        manifest = plugin_manager.import_plugin(tmp_path)
-    except ValueError as exc:
+        result = await plugin_manager.install_plugin_from_zip(tmp_path, request.app)
+    except (ValueError, OSError) as exc:
         # Clean up temp file on failure
         tmp_path.unlink(missing_ok=True)
+        await _write_plugin_audit(db, user, "install", filename, started, error=str(exc))
         raise ValidationException(str(exc))
 
-    # Upsert into DB
-    plugin_name = manifest["name"]
+    # Upsert metadata only after runtime installation succeeds.
+    plugin_name = result["name"]
     record = await crud_plugin.upsert(db, plugin_name, {
-        "display_name": manifest.get("display_name", plugin_name),
-        "description": manifest.get("description", ""),
-        "version": manifest.get("version", "1.0.0"),
-        "author": manifest.get("author", ""),
+        "display_name": result.get("display_name", plugin_name),
+        "description": result.get("description", ""),
+        "version": result.get("version", "1.0.0"),
+        "author": result.get("author", ""),
         "module_path": f"src.plugins.builtin.{plugin_name}",
     })
+    record.enabled = True
+    await db.commit()
+    await db.refresh(record)
+    await _write_plugin_audit(db, user, "install", plugin_name, started, result=result)
 
     return success_response(data={
         "id": record.id,
@@ -177,7 +236,9 @@ async def upload_plugin(
         "display_name": record.display_name,
         "version": record.version,
         "enabled": record.enabled,
-    }, msg="插件导入成功，需要重启后端生效")
+        **{k: v for k, v in result.items() if k not in {"name", "display_name", "version"}},
+        "refresh": True,
+    }, msg="插件安装成功，运行时生效")
 
 
 @router.post("/restart")
@@ -236,21 +297,34 @@ exec {python_bin} -m uvicorn src.main:app --host 127.0.0.1 --port 8000 >> /tmp/a
 @router.delete("/{plugin_id}")
 async def delete_plugin(
     plugin_id: int,
+    request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[User, Depends(require_permission("system:plugin:delete"))],
+    keep_data: bool = Query(True, description="是否保留插件业务数据"),
 ):
-    """Delete a plugin: remove its files and database record."""
+    """Uninstall a plugin at runtime and optionally remove its data."""
     plugin = await crud_plugin.get(db, plugin_id)
     if not plugin:
         raise NotFoundException("插件不存在")
 
     plugin_name = plugin.name
 
-    # Remove plugin files from disk
     from src.plugins.manager import plugin_manager
-    plugin_manager.remove_plugin_files(plugin_name)
+    started = time.perf_counter()
+    try:
+        result = await plugin_manager.uninstall_plugin(
+            plugin_name,
+            request.app,
+            keep_data=keep_data,
+            db=db,
+        )
+    except Exception as exc:
+        await _write_plugin_audit(db, user, "uninstall", plugin_name, started, error=str(exc))
+        raise AppException(
+            msg=f"插件卸载失败：{exc}，建议重启后端",
+            code=409,
+            data={"fallback": "/api/v1/plugins/restart", "name": plugin_name},
+        ) from exc
 
-    # Delete DB record
-    await crud_plugin.delete_by_id(db, plugin_id)
-
-    return success_response(msg=f"插件 '{plugin_name}' 已删除，重启后生效")
+    await _write_plugin_audit(db, user, "uninstall", plugin_name, started, result=result)
+    return success_response(data={**result, "refresh": True}, msg=f"插件 '{plugin_name}' 已卸载，运行时生效")

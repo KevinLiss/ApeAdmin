@@ -66,12 +66,13 @@ class ExamplePlugin(PluginInterface):
                 name="example_hello",
                 description="A demo MCP tool that returns a greeting",
                 handler=self._mcp_hello,
+                plugin_name=self.name,
             )
         except Exception as exc:
             logger.warning(f"Failed to register MCP tool: {exc}")
 
         # Subscribe to events
-        event_bus.on(Event.USER_LOGIN, self._on_user_login)
+        event_bus.on(Event.USER_LOGIN, self._on_user_login, plugin_name=self.name)
 
     async def _on_user_login(self, *args, **kwargs) -> None:
         """Event handler: log when a user logs in."""

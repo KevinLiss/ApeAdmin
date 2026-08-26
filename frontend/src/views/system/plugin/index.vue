@@ -90,7 +90,7 @@
     width="600px"
   >
     <el-alert
-      title="插件配置为 JSON 格式，修改后需重启后端生效"
+      title="插件配置为 JSON 格式，保存后按插件实现决定是否立即读取"
       type="info"
       :closable="false"
       show-icon
@@ -143,6 +143,9 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
+import { resetRouter } from '@/router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   getPlugins,
@@ -187,6 +190,15 @@ const configVisible = ref(false)
 const currentPlugin = ref<PluginRow | null>(null)
 const configText = ref('')
 const savingConfig = ref(false)
+const router = useRouter()
+const userStore = useUserStore()
+
+async function refreshRuntimeMenus() {
+  await userStore.fetchUserInfo()
+  const currentPath = router.currentRoute.value.fullPath
+  resetRouter()
+  await router.replace(currentPath)
+}
 
 const filteredList = computed(() => {
   if (!query.keyword) return list.value
@@ -215,8 +227,9 @@ async function fetchData() {
 async function handleToggle(item: PluginRow, val: boolean) {
   togglingId.value = item.id
   try {
-    await togglePlugin(item.id, val)
-    ElMessage.success(`${val ? '启用' : '禁用'}成功，重启后端后生效`)
+    const result: any = await togglePlugin(item.id, val)
+    if (result?.refresh) await refreshRuntimeMenus()
+    ElMessage.success(`${val ? '启用' : '禁用'}成功，运行时已生效`)
   } catch {
     // Revert on error
     item.enabled = !val
@@ -285,7 +298,8 @@ async function handleUpload() {
   uploading.value = true
   try {
     const data: any = await uploadPlugin(uploadingFile.value)
-    ElMessage.success(data.msg || '插件导入成功，需要重启后端生效')
+    if (data?.refresh) await refreshRuntimeMenus()
+    ElMessage.success('插件安装成功，运行时已生效')
     uploadVisible.value = false
     uploadingFile.value = null
     fetchData()
@@ -360,7 +374,8 @@ async function handleDelete(item: PluginRow) {
 
   try {
     await deletePlugin(item.id)
-    ElMessage.success('插件已删除，重启后端后生效')
+    await refreshRuntimeMenus()
+    ElMessage.success('插件已卸载，运行时已生效')
     fetchData()
   } catch (err: any) {
     ElMessage.error(err?.message || '删除失败')

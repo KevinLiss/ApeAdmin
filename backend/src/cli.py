@@ -22,9 +22,13 @@ def serve(
     host: str = typer.Option("0.0.0.0", help="Bind host"),
     port: int = typer.Option(8000, help="Bind port"),
     reload: bool = typer.Option(True, help="Auto-reload on file changes"),
+    workers: int = typer.Option(1, min=1, help="Uvicorn worker count; hot-plugging requires 1"),
 ):
     """Start the development server."""
     import uvicorn
+
+    if workers != 1:
+        raise typer.BadParameter("插件热拔插当前要求 workers=1；多 worker 协调控制面尚未启用")
 
     console.print(f"[bold green]Starting ApeAdmin on {host}:{port}[/bold green]")
     uvicorn.run(
@@ -32,6 +36,7 @@ def serve(
         host=host,
         port=port,
         reload=reload,
+        workers=workers,
         log_level="debug",
     )
 

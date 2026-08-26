@@ -144,8 +144,12 @@ async def dashboard_stats(
 
 
 # ---- System monitor (psutil) ----
-# Cache boot time to calculate uptime
-_boot_time = psutil.boot_time()
+# Cache boot time to calculate uptime. Some sandboxed systems deny sysctl;
+# uptime then falls back to process start time instead of breaking app startup.
+try:
+    _boot_time = psutil.boot_time()
+except (OSError, PermissionError):
+    _boot_time = time.time()
 
 # Cache last network counters for rate calculation
 _last_net = psutil.net_io_counters()

@@ -7,7 +7,7 @@ Creates:
 """
 
 from loguru import logger
-from sqlalchemy import select, update
+from sqlalchemy import insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config import settings
@@ -15,6 +15,7 @@ from src.core.crypto import encrypt_api_key
 from src.core.security import hash_password
 from src.db import SessionLocal
 from src.models import Dept, Menu, Role, User
+from src.models.rbac import role_menu
 from src.models.ai import AiProvider
 
 
@@ -32,6 +33,7 @@ async def seed_initial_data() -> None:
         await _seed_dept(db)
         await _seed_menus(db)
         await _seed_role(db)
+        await _seed_developer_role(db)
         await _seed_super_admin(db)
         await _seed_ai_provider(db)
         await db.commit()
@@ -187,6 +189,18 @@ async def _seed_menus(db: AsyncSession) -> None:
         ("新增模型密钥", "模型密钥管理", "F", None, None, "ai:provider:add", None, 1),
         ("编辑模型密钥", "模型密钥管理", "F", None, None, "ai:provider:edit", None, 2),
         ("删除模型密钥", "模型密钥管理", "F", None, None, "ai:provider:delete", None, 3),
+        # ApeHub management menus (also included in the first-run seed)
+        ("ApeHub 管理", None, "M", "/apehub", None, None, "Shop", 40),
+        ("官网配置", "ApeHub 管理", "C", "admin/config", "apehub/admin/config", "apehub:config", "Setting", 1),
+        ("内容管理", "ApeHub 管理", "C", "admin/content", "apehub/admin/content", "apehub:content:list", "Document", 2),
+        ("文档管理", "ApeHub 管理", "C", "admin/docs", "apehub/admin/docs", "apehub:docs:list", "Files", 3),
+        ("插件审核", "ApeHub 管理", "C", "admin/plugins", "apehub/admin/plugins", "apehub:plugin:review", "Box", 4),
+        ("提现审核", "ApeHub 管理", "C", "admin/withdrawals", "apehub/admin/withdrawals", "apehub:withdrawal:review", "Money", 5),
+        ("用户列表", "ApeHub 管理", "C", "admin/users", "apehub/admin/users", "apehub:user:list", "User", 6),
+        ("收入明细", "ApeHub 管理", "C", "admin/incomes", "apehub/admin/incomes", "apehub:income:list", "Tickets", 7),
+        ("提交插件", "ApeHub 管理", "F", None, None, "apehub:plugin:submit", None, 8),
+        ("订单列表", "ApeHub 管理", "F", None, None, "apehub:order:list", None, 9),
+        ("申请提现", "ApeHub 管理", "F", None, None, "apehub:withdrawal:create", None, 10),
     ]
 
     # Track created menus by name for parent linking
@@ -331,6 +345,18 @@ async def _seed_missing_menus(db: AsyncSession) -> None:
         ("导入插件", "插件管理", "F", None, None, "system:plugin:upload", None, 3),
         ("删除插件", "插件管理", "F", None, None, "system:plugin:delete", None, 4),
         ("重启后端", "插件管理", "F", None, None, "system:plugin:restart", None, 5),
+        # ApeHub plugin-owned management menus and developer actions
+        ("ApeHub 管理", None, "M", "/apehub", None, None, "Shop", 40),
+        ("官网配置", "ApeHub 管理", "C", "admin/config", "apehub/admin/config", "apehub:config", "Setting", 1),
+        ("内容管理", "ApeHub 管理", "C", "admin/content", "apehub/admin/content", "apehub:content:list", "Document", 2),
+        ("文档管理", "ApeHub 管理", "C", "admin/docs", "apehub/admin/docs", "apehub:docs:list", "Files", 3),
+        ("插件审核", "ApeHub 管理", "C", "admin/plugins", "apehub/admin/plugins", "apehub:plugin:review", "Box", 4),
+        ("提现审核", "ApeHub 管理", "C", "admin/withdrawals", "apehub/admin/withdrawals", "apehub:withdrawal:review", "Money", 5),
+        ("用户列表", "ApeHub 管理", "C", "admin/users", "apehub/admin/users", "apehub:user:list", "User", 6),
+        ("收入明细", "ApeHub 管理", "C", "admin/incomes", "apehub/admin/incomes", "apehub:income:list", "Tickets", 7),
+        ("提交插件", "ApeHub 管理", "F", None, None, "apehub:plugin:submit", None, 8),
+        ("订单列表", "ApeHub 管理", "F", None, None, "apehub:order:list", None, 9),
+        ("申请提现", "ApeHub 管理", "F", None, None, "apehub:withdrawal:create", None, 10),
     ]
 
     missing_menus = [
@@ -421,6 +447,35 @@ async def _seed_role(db: AsyncSession) -> None:
     db.add(role)
     await db.flush()
     logger.info("Created role '超级管理员'")
+
+
+async def _seed_developer_role(db: AsyncSession) -> None:
+    """Create or update the least-privilege ApeHub developer role."""
+    result = await db.execute(select(Role).where(Role.code == "developer"))
+    role = result.scalars().first()
+    if role is None:
+        role = Role(
+            name="开发者",
+            code="developer",
+            data_scope=1,
+            sort=2,
+            status=1,
+            remark="ApeHub 插件开发者角色",
+        )
+        db.add(role)
+        await db.flush()
+
+    menus_result = await db.execute(
+        select(Menu).where(Menu.permission.like("apehub:%"), Menu.status == 1)
+    )
+    apehub_menus = list(menus_result.scalars().all())
+    bound_result = await db.execute(select(role_menu.c.menu_id).where(role_menu.c.role_id == role.id))
+    bound_ids = set(bound_result.scalars().all())
+    missing = [menu for menu in apehub_menus if menu.id not in bound_ids]
+    if missing:
+        await db.execute(insert(role_menu), [{"role_id": role.id, "menu_id": menu.id} for menu in missing])
+        await db.flush()
+    logger.info(f"Developer role ready ({len(apehub_menus)} ApeHub permissions)")
 
 
 async def _seed_super_admin(db: AsyncSession) -> None:

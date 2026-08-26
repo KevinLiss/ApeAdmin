@@ -6,7 +6,7 @@ Design inspired by:
 
 Strategy:
 - Plugins are Python packages discovered via importlib
-- No hot-plugging: plugin enable/disable requires restart
+- Plugins can be enabled and disabled at runtime
 - Each plugin implements PluginInterface with lifecycle hooks
 - An EventBus allows plugins to react to application events
 """
@@ -43,6 +43,7 @@ class EventHandler:
     event: str
     handler: Callable
     priority: int = 0
+    plugin_name: str = ""
 
 
 class EventBus:
@@ -51,11 +52,24 @@ class EventBus:
     def __init__(self):
         self._handlers: dict[str, list[EventHandler]] = {}
 
-    def on(self, event: str, handler: Callable, priority: int = 0) -> None:
+    def on(
+        self,
+        event: str,
+        handler: Callable,
+        priority: int = 0,
+        plugin_name: str = "",
+    ) -> None:
         """Subscribe to an event."""
         if event not in self._handlers:
             self._handlers[event] = []
-        self._handlers[event].append(EventHandler(event=event, handler=handler, priority=priority))
+        self._handlers[event].append(
+            EventHandler(
+                event=event,
+                handler=handler,
+                priority=priority,
+                plugin_name=plugin_name,
+            )
+        )
         # Sort by priority (lower runs first)
         self._handlers[event].sort(key=lambda h: h.priority)
 
@@ -78,6 +92,18 @@ class EventBus:
             self._handlers[event] = []
         else:
             self._handlers[event] = [h for h in self._handlers[event] if h.handler != handler]
+
+    def off_plugin(self, plugin_name: str) -> int:
+        """Remove all subscriptions owned by a plugin and return the count."""
+        removed = 0
+        for event, handlers in list(self._handlers.items()):
+            kept = [h for h in handlers if h.plugin_name != plugin_name]
+            removed += len(handlers) - len(kept)
+            if kept:
+                self._handlers[event] = kept
+            else:
+                self._handlers.pop(event, None)
+        return removed
 
 
 # Global event bus
@@ -104,6 +130,7 @@ class PluginInterface(ABC):
     description: str = ""
     version: str = "1.0.0"
     author: str = ""
+    dependencies: tuple[str, ...] = ()
 
     @abstractmethod
     async def install(self) -> None:
@@ -119,6 +146,14 @@ class PluginInterface(ABC):
     def register(self, app: "FastAPI") -> None:
         """Register routes, middleware, MCP tools, etc. on the FastAPI app."""
         ...
+
+    def unregister(self, app: "FastAPI") -> None:
+        """Release plugin-owned runtime resources before it is disabled.
+
+        The default implementation keeps existing plugins source-compatible.
+        The manager still removes resources it can track automatically.
+        """
+        pass
 
     def on_load(self) -> None:
         """Optional: called when the plugin is first loaded into memory."""
@@ -141,3 +176,6 @@ class PluginInfo:
     enabled: bool = False
     installed: bool = False
     instance: PluginInterface | None = field(default=None)
+    runtime_state: str = "discovered"
+    last_error: str | None = None
+    dependencies: list[str] = field(default_factory=list)
