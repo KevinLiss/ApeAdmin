@@ -548,8 +548,23 @@ class PluginManager:
             if old and old.runtime_state == "active":
                 raise ValueError(f"插件 '{name}' 已启用，请先禁用后升级")
             self._check_dependencies(name, manifest.get("dependencies", []))
-            manifest = self.import_plugin(zip_path)
-            info = self._discover_one(name)
+            backup_root: Path | None = None
+            existing_dir = self._builtin_dir.resolve() / name
+            if existing_dir.exists():
+                backup_root = Path(tempfile.mkdtemp(prefix="apeadmin-plugin-backup-", dir=str(self._builtin_dir.resolve().parent)))
+                shutil.move(str(existing_dir), str(backup_root / name))
+            try:
+                manifest = self.import_plugin(zip_path)
+                info = self._discover_one(name)
+            except Exception:
+                target_dir = self._builtin_dir.resolve() / name
+                if target_dir.exists():
+                    shutil.rmtree(target_dir, ignore_errors=True)
+                if backup_root and (backup_root / name).exists():
+                    shutil.move(str(backup_root / name), str(target_dir))
+                if backup_root:
+                    shutil.rmtree(backup_root, ignore_errors=True)
+                raise
             try:
                 info.instance.on_load()
                 await info.instance.install()
@@ -559,6 +574,8 @@ class PluginManager:
                 info.enabled = True
                 info.runtime_state = "active"
                 await self._persist_enabled(name, True, db)
+                if backup_root:
+                    shutil.rmtree(backup_root, ignore_errors=True)
                 return {
                     "name": name,
                     "display_name": info.display_name,
@@ -572,7 +589,14 @@ class PluginManager:
                 self._unregister_resources(name, app)
                 self._cleanup_module_cache(info.module_path)
                 self.remove_plugin_files(name)
-                self._plugins.pop(name, None)
+                if backup_root and (backup_root / name).exists():
+                    shutil.move(str(backup_root / name), str(self._builtin_dir.resolve() / name))
+                if backup_root:
+                    shutil.rmtree(backup_root, ignore_errors=True)
+                if old:
+                    self._plugins[name] = old
+                else:
+                    self._plugins.pop(name, None)
                 raise ValueError(f"插件安装失败: {exc}") from exc
 
     async def uninstall_plugin(
