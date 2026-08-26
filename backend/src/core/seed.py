@@ -198,6 +198,9 @@ async def _seed_missing_menus(db: AsyncSession) -> None:
 
     # (name, parent_name, type, path, component, permission, icon, sort)
     missing_menus = [
+        # Restore the default landing page when it was previously nested
+        # under the retired Apeadmin style-library menu.
+        ("系统仪表盘", None, "C", "/dashboard-monitor", "apeui/dashboard/Monitor", None, "Monitor", 1),
         # MCP management additions
         ("提示词列表", "MCP 管理", "C", "prompts", "mcp/prompts", "mcp:prompts:list", "ChatLineSquare", 3),
         ("调用工具", "工具列表", "F", None, None, "mcp:tools:call", None, 1),
