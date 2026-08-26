@@ -124,6 +124,49 @@ class PluginManager:
                 })
                 # Read enabled state from DB
                 info.enabled = record.enabled
+            await self._sync_plugin_menus(db)
+
+    async def _sync_plugin_menus(self, db: "AsyncSession") -> int:
+        """Keep plugin-owned menu branches aligned with runtime availability."""
+        from sqlalchemy import select
+        from src.models.plugin import Plugin
+        from src.models.rbac import Menu
+
+        registered = {
+            record.name
+            for record in (await db.execute(select(Plugin))).scalars().all()
+        }
+        available = {name for name, info in self._plugins.items() if info.enabled}
+        # ``apehub`` was seeded before plugin ownership metadata existed and
+        # must remain hidden when its package has been removed from the host.
+        known_names = registered | set(self._plugins) | {"apehub"}
+        menus = (await db.execute(select(Menu))).scalars().all()
+        changed = 0
+        for menu in menus:
+            permission = menu.permission or ""
+            component = menu.component or ""
+            path = menu.path or ""
+            owner = next(
+                (
+                    plugin_name
+                    for plugin_name in known_names
+                    if permission.startswith(f"{plugin_name}:")
+                    or component == plugin_name
+                    or component.startswith(f"{plugin_name}/")
+                    or path == f"/{plugin_name}"
+                    or path.startswith(f"/{plugin_name}/")
+                ),
+                None,
+            )
+            if owner is None:
+                continue
+            target_status = 1 if owner in available else 0
+            if menu.status != target_status:
+                menu.status = target_status
+                changed += 1
+        if changed:
+            await db.commit()
+        return changed
 
     def _find_plugin_class(self, module: Any) -> type[PluginInterface] | None:
         """Find the first PluginInterface subclass in a module."""
@@ -155,6 +198,48 @@ class PluginManager:
             record.enabled = enabled
             await db.commit()
             await db.refresh(record)
+
+    async def _set_plugin_menus_enabled(
+        self,
+        name: str,
+        enabled: bool,
+        db: "AsyncSession | None",
+    ) -> int:
+        """Hide or restore menus owned by a plugin.
+
+        Plugin menus follow the existing convention of using the plugin name
+        in their permission/component/path (for example ``apehub:content:list``
+        and ``apehub/admin/content``). The parent directory is matched by its
+        route path as well, so disabling a plugin removes the whole sidebar
+        branch from the next ``/auth/userinfo`` response.
+        """
+        if db is None:
+            return 0
+        from sqlalchemy import select
+        from src.models.rbac import Menu
+
+        result = await db.execute(select(Menu))
+        prefix = f"{name}:"
+        route_prefix = f"/{name}"
+        component_prefix = f"{name}/"
+        matched = []
+        for menu in result.scalars().all():
+            permission = menu.permission or ""
+            component = menu.component or ""
+            path = menu.path or ""
+            if (
+                permission.startswith(prefix)
+                or component == name
+                or component.startswith(component_prefix)
+                or path == route_prefix
+                or path.startswith(f"{route_prefix}/")
+            ):
+                matched.append(menu)
+        for menu in matched:
+            menu.status = 1 if enabled else 0
+        if matched:
+            await db.commit()
+        return len(matched)
 
     def _discover_one(self, name: str) -> PluginInfo:
         existing = self._plugins.get(name)
@@ -365,6 +450,7 @@ class PluginManager:
             if info is None:
                 info = self._discover_one(name)
             if info.runtime_state == "active":
+                await self._set_plugin_menus_enabled(name, True, db)
                 return {"name": name, "status": "active", "already_active": True}
             try:
                 self._check_dependencies(name, info.dependencies)
@@ -379,7 +465,8 @@ class PluginManager:
                 info.runtime_state = "active"
                 info.last_error = None
                 await self._persist_enabled(name, True, db)
-                return {"name": name, "status": "active", **resources}
+                menus_enabled = await self._set_plugin_menus_enabled(name, True, db)
+                return {"name": name, "status": "active", **resources, "menus_enabled": menus_enabled}
             except Exception as exc:
                 logger.exception(f"Failed to enable plugin '{name}': {exc}")
                 self._unregister_resources(name, app)
@@ -403,7 +490,8 @@ class PluginManager:
                 info.enabled = False
                 info.runtime_state = "inactive"
                 await self._persist_enabled(name, False, db)
-                return {"name": name, "status": "inactive", "already_inactive": True}
+                menus_disabled = await self._set_plugin_menus_enabled(name, False, db)
+                return {"name": name, "status": "inactive", "already_inactive": True, "menus_disabled": menus_disabled}
             try:
                 warnings: list[str] = []
                 if info.instance:
@@ -424,7 +512,8 @@ class PluginManager:
                 info.runtime_state = "inactive"
                 info.last_error = None
                 await self._persist_enabled(name, False, db)
-                result = {"name": name, "status": "inactive", **resources}
+                menus_disabled = await self._set_plugin_menus_enabled(name, False, db)
+                result = {"name": name, "status": "inactive", **resources, "menus_disabled": menus_disabled}
                 if warnings:
                     result["warnings"] = warnings
                 return result
@@ -514,6 +603,7 @@ class PluginManager:
                     if record:
                         await db.delete(record)
                         await db.commit()
+                await self._set_plugin_menus_enabled(name, False, db)
                 self._plugins.pop(name, None)
                 result = {"name": name, "status": "removed", "data_preserved": keep_data, **resources}
                 if warnings:
