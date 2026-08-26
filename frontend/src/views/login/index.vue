@@ -87,7 +87,6 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
-import { getLoginCaptcha } from '@/api'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -109,7 +108,10 @@ const captchaLoading = ref(false)
 async function loadCaptcha() {
   captchaLoading.value = true
   try {
-    const data: any = await getLoginCaptcha()
+    const response = await fetch('/api/v1/login-captcha/captcha')
+    if (!response.ok) throw new Error('captcha plugin unavailable')
+    const envelope: any = await response.json()
+    const data = envelope.data
     captchaEnabled.value = true
     captchaId.value = data.captcha_id
     captchaCode.value = data.code
