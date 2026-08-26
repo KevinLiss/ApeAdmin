@@ -121,7 +121,7 @@ def get_user_menu_tree(user: User) -> list[dict]:
         if role.status != 1:
             continue
         for menu in role.menus:
-            if menu.id not in seen and menu.status == 1:
+            if menu.id not in seen and menu.status == 1 and menu.visible == 1:
                 seen.add(menu.id)
                 menus.append(menu)
 
