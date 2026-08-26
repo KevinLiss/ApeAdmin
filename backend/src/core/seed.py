@@ -61,6 +61,7 @@ async def _seed_dept(db: AsyncSession) -> None:
 async def _seed_menus(db: AsyncSession) -> None:
     """Create the default system management menu tree."""
     await _retire_removed_component_menus(db)
+    await _retire_style_library_menus(db)
 
     # Check if any menus exist
     result = await db.execute(select(Menu).limit(1))
@@ -207,7 +208,10 @@ async def _seed_menus(db: AsyncSession) -> None:
     name_to_menu: dict[str, Menu] = {}
 
     menus_data = [
-        item for item in menus_data if not _is_removed_component_menu(item[4])
+        item for item in menus_data
+        if not _is_removed_component_menu(item[4])
+        and item[0] != "Apeadmin 样式库"
+        and item[1] != "Apeadmin 样式库"
     ]
 
     for name, parent_name, mtype, path, component, permission, icon, sort in menus_data:
@@ -360,7 +364,10 @@ async def _seed_missing_menus(db: AsyncSession) -> None:
     ]
 
     missing_menus = [
-        item for item in missing_menus if not _is_removed_component_menu(item[4])
+        item for item in missing_menus
+        if not _is_removed_component_menu(item[4])
+        and item[0] != "Apeadmin 样式库"
+        and item[1] != "Apeadmin 样式库"
     ]
 
     added = 0
@@ -424,6 +431,31 @@ async def _retire_removed_component_menus(db: AsyncSession) -> None:
     )
     if result.rowcount:
         logger.info(f"Retired {result.rowcount} legacy component-demo menus")
+
+
+async def _retire_style_library_menus(db: AsyncSession) -> None:
+    """Hide the obsolete Apeadmin style-library directory and descendants."""
+    result = await db.execute(select(Menu).where(Menu.name == "Apeadmin 样式库", Menu.parent_id == 0))
+    roots = list(result.scalars().all())
+    if not roots:
+        return
+    all_menus = list((await db.execute(select(Menu))).scalars().all())
+    descendants = {menu.id for menu in roots}
+    changed = True
+    while changed:
+        changed = False
+        for menu in all_menus:
+            if menu.parent_id in descendants and menu.id not in descendants:
+                descendants.add(menu.id)
+                changed = True
+    retired = 0
+    for menu in all_menus:
+        if menu.id in descendants and (menu.status != 0 or menu.visible != 0):
+            menu.status = 0
+            menu.visible = 0
+            retired += 1
+    if retired:
+        logger.info(f"Retired {retired} Apeadmin style-library menus")
 
 
 async def _seed_role(db: AsyncSession) -> None:
