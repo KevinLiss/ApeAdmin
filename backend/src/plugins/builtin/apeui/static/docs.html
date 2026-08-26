@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>ApeAdmin · 技术文档</title>
 <meta name="description" content="ApeAdmin 技术文档 —— 架构、插件开发、MCP 网关、配置说明、快速开始。" />
-<link rel="icon" type="image/png" href="assets/logo.png" />
+<link rel="icon" type="image/png" href="/apeui/assets/logo.png" />
 <style>
   :root {
     --bg: #07080f;
@@ -406,8 +406,8 @@
 <!-- 顶部导航 -->
 <nav>
   <div class="nav-inner">
-    <a class="brand" href="index.html">
-      <img src="assets/logo.png" alt="ApeAdmin" />
+    <a class="brand" href="/apeui/index.html">
+      <img src="/apeui/assets/logo.png" alt="ApeAdmin" />
       <span>ApeAdmin <span class="badge">Docs</span></span>
     </a>
     <div class="nav-search">
@@ -416,12 +416,12 @@
       <span class="search-kbd">Ctrl K</span>
     </div>
     <div class="nav-links">
-      <a href="index.html">首页</a>
-      <a href="index.html#features">特性</a>
-      <a href="index.html#mcp">MCP</a>
-      <a href="plugins.html">插件市场</a>
-      <a class="active" href="docs.html">文档</a>
-      <a href="profile.html">个人中心</a>
+      <a href="/apeui/index.html">首页</a>
+      <a href="/apeui/index.html#features">特性</a>
+      <a href="/apeui/index.html#mcp">MCP</a>
+      <a href="/apeui/plugins.html">插件市场</a>
+      <a class="active" href="/apeui/docs.html">文档</a>
+      <a href="/apeui/profile.html">个人中心</a>
     </div>
     <div class="nav-actions">
       <button class="btn btn-ghost theme-toggle" id="themeToggle" aria-label="切换主题" title="切换明暗主题">🌙</button>
@@ -481,9 +481,9 @@
 
     <!-- 面包屑 -->
     <div class="breadcrumb">
-      <a href="index.html">首页</a>
+      <a href="/apeui/index.html">首页</a>
       <span class="sep">/</span>
-      <a href="docs.html">技术文档</a>
+      <a href="/apeui/docs.html">技术文档</a>
       <span class="sep">/</span>
       <span class="current" id="crumbCurrent">项目简介</span>
     </div>
@@ -906,7 +906,7 @@ git commit -m <span class="c-s">"feat: add xxx support"</span>
         <span class="nav-label">上一篇</span>
         <span class="nav-title" id="prevTitle">AI 模型配置</span>
       </a>
-      <a class="next" href="index.html" id="nextPage">
+      <a class="next" href="/apeui/index.html" id="nextPage">
         <span class="nav-label">下一篇</span>
         <span class="nav-title" id="nextTitle">返回首页</span>
       </a>
@@ -920,8 +920,8 @@ git commit -m <span class="c-s">"feat: add xxx support"</span>
   <div class="foot-inner">
     <div class="l">© 2026 ApeAdmin · 面向 AI 智能体场景的开发框架 · MIT License</div>
     <div class="r">
-      <a href="index.html">首页</a>
-      <a href="plugins.html">插件市场</a>
+      <a href="/apeui/index.html">首页</a>
+      <a href="/apeui/plugins.html">插件市场</a>
       <a href="https://github.com/KevinLiss/ApeAdmin" target="_blank" rel="noopener">GitHub</a>
       <a href="https://github.com/KevinLiss/ApeAdmin/issues" target="_blank" rel="noopener">Issues</a>
     </div>
@@ -1002,7 +1002,7 @@ git commit -m <span class="c-s">"feat: add xxx support"</span>
       nextPage.href = '#' + DOC_SECTIONS[idx + 1].id;
       nextTitle.textContent = DOC_SECTIONS[idx + 1].title;
     } else {
-      nextPage.href = 'index.html';
+      nextPage.href = '/apeui/index.html';
       nextTitle.textContent = '返回首页';
     }
     // TOC 已移除，高亮逻辑清理

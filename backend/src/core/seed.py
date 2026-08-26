@@ -132,6 +132,15 @@ async def _seed_menus(db: AsyncSession) -> None:
         ("提交插件", "ApeHub 管理", "F", None, None, "apehub:plugin:submit", None, 8),
         ("订单列表", "ApeHub 管理", "F", None, None, "apehub:order:list", None, 9),
         ("申请提现", "ApeHub 管理", "F", None, None, "apehub:withdrawal:create", None, 10),
+        # ApeUI 官网菜单
+        ("ApeUI 官网", None, "M", "/apeui", None, None, "Monitor", 50),
+        ("官网配置", "ApeUI 官网", "C", "apeui/admin/config", "apeui/admin/Config", "apeui:config", "Setting", 1),
+        ("内容管理", "ApeUI 官网", "C", "apeui/admin/content", "apeui/admin/Content", "apeui:content:list", "Document", 2),
+        ("文档管理", "ApeUI 官网", "C", "apeui/admin/docs", "apeui/admin/Docs", "apeui:docs:list", "Notebook", 3),
+        ("插件审核", "ApeUI 官网", "C", "apeui/admin/plugins", "apeui/admin/Plugins", "apeui:plugins:review", "Box", 4),
+        ("订单管理", "ApeUI 官网", "C", "apeui/admin/orders", "apeui/admin/Orders", "apeui:orders:list", "ShoppingCart", 5),
+        ("提现审核", "ApeUI 官网", "C", "apeui/admin/withdrawals", "apeui/admin/Withdrawals", "apeui:withdrawals:review", "Money", 6),
+        ("用户管理", "ApeUI 官网", "C", "apeui/admin/users", "apeui/admin/Users", "apeui:users:list", "User", 7),
     ]
 
     # Track created menus by name for parent linking
@@ -221,6 +230,15 @@ async def _seed_missing_menus(db: AsyncSession) -> None:
         ("提交插件", "ApeHub 管理", "F", None, None, "apehub:plugin:submit", None, 8),
         ("订单列表", "ApeHub 管理", "F", None, None, "apehub:order:list", None, 9),
         ("申请提现", "ApeHub 管理", "F", None, None, "apehub:withdrawal:create", None, 10),
+        # ApeUI plugin-owned management menus
+        ("ApeUI 官网", None, "M", "/apeui", None, None, "Monitor", 50),
+        ("官网配置", "ApeUI 官网", "C", "apeui/admin/config", "apeui/admin/Config", "apeui:config", "Setting", 1),
+        ("内容管理", "ApeUI 官网", "C", "apeui/admin/content", "apeui/admin/Content", "apeui:content:list", "Document", 2),
+        ("文档管理", "ApeUI 官网", "C", "apeui/admin/docs", "apeui/admin/Docs", "apeui:docs:list", "Notebook", 3),
+        ("插件审核", "ApeUI 官网", "C", "apeui/admin/plugins", "apeui/admin/Plugins", "apeui:plugins:review", "Box", 4),
+        ("订单管理", "ApeUI 官网", "C", "apeui/admin/orders", "apeui/admin/Orders", "apeui:orders:list", "ShoppingCart", 5),
+        ("提现审核", "ApeUI 官网", "C", "apeui/admin/withdrawals", "apeui/admin/Withdrawals", "apeui:withdrawals:review", "Money", 6),
+        ("用户管理", "ApeUI 官网", "C", "apeui/admin/users", "apeui/admin/Users", "apeui:users:list", "User", 7),
     ]
 
     missing_menus = [
