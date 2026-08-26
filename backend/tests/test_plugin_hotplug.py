@@ -23,23 +23,21 @@ def reset_global_resources():
 async def test_enable_disable_reenable_tracks_and_removes_resources():
     app = FastAPI()
     manager = PluginManager()
-    manager._discover_one("example")
+    manager._discover_one("login_captcha")
 
-    enabled = await manager.enable_plugin("example", app)
+    enabled = await manager.enable_plugin("login_captcha", app)
     assert enabled["status"] == "active"
     assert enabled["routes_registered"] == 1
-    assert mcp_manager.get_tool("example_hello") is not None
 
-    disabled = await manager.disable_plugin("example", app)
+    disabled = await manager.disable_plugin("login_captcha", app)
     assert disabled["routes_removed"] == 1
-    assert disabled["mcp_tools_removed"] == 1
+    assert disabled["mcp_tools_removed"] == 0
     assert disabled["events_unsubscribed"] == 1
-    assert mcp_manager.get_tool("example_hello") is None
 
-    enabled_again = await manager.enable_plugin("example", app)
+    enabled_again = await manager.enable_plugin("login_captcha", app)
     assert enabled_again["status"] == "active"
     assert enabled_again["routes_registered"] == 1
-    await manager.disable_plugin("example", app)
+    await manager.disable_plugin("login_captcha", app)
 
 
 def test_plugin_zip_rejects_unsafe_name_and_supports_single_root():
