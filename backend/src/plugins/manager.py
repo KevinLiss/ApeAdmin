@@ -555,6 +555,8 @@ class PluginManager:
                 shutil.move(str(existing_dir), str(backup_root / name))
             try:
                 manifest = self.import_plugin(zip_path)
+                self._cleanup_module_cache(f"src.plugins.builtin.{name}")
+                self._remove_plugin_metadata(name)
                 info = self._discover_one(name)
             except Exception:
                 target_dir = self._builtin_dir.resolve() / name
@@ -654,6 +656,25 @@ class PluginManager:
             sys.modules.pop(key, None)
         importlib.invalidate_caches()
         return len(keys)
+
+    @staticmethod
+    def _remove_plugin_metadata(name: str) -> int:
+        """Remove stale in-memory table definitions before re-importing models.
+
+        SQLAlchemy keeps declarative ``Table`` objects in shared metadata even
+        after a plugin module is removed from ``sys.modules``. This cleanup
+        does not drop database tables or delete any persisted data.
+        """
+        from src.db.engine import Base
+
+        prefix = f"{name}_"
+        stale = [
+            table for table_name, table in Base.metadata.tables.items()
+            if table_name.startswith(prefix)
+        ]
+        for table in stale:
+            Base.metadata.remove(table)
+        return len(stale)
 
     # ------------------------------------------------------------------
     # Plugin package import (upload .zip → extract → install)
