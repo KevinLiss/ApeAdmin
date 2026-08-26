@@ -7,7 +7,7 @@ Creates:
 """
 
 from loguru import logger
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config import settings
@@ -16,6 +16,14 @@ from src.core.security import hash_password
 from src.db import SessionLocal
 from src.models import Dept, Menu, Role, User
 from src.models.ai import AiProvider
+
+
+_REMOVED_COMPONENT_PREFIX = "apeui/components/pages/"
+
+
+def _is_removed_component_menu(component: str | None) -> bool:
+    """Identify legacy static component-demo menus retired from the product."""
+    return bool(component and component.startswith(_REMOVED_COMPONENT_PREFIX))
 
 
 async def seed_initial_data() -> None:
@@ -50,6 +58,8 @@ async def _seed_dept(db: AsyncSession) -> None:
 
 async def _seed_menus(db: AsyncSession) -> None:
     """Create the default system management menu tree."""
+    await _retire_removed_component_menus(db)
+
     # Check if any menus exist
     result = await db.execute(select(Menu).limit(1))
     if result.scalars().first():
@@ -181,6 +191,10 @@ async def _seed_menus(db: AsyncSession) -> None:
 
     # Track created menus by name for parent linking
     name_to_menu: dict[str, Menu] = {}
+
+    menus_data = [
+        item for item in menus_data if not _is_removed_component_menu(item[4])
+    ]
 
     for name, parent_name, mtype, path, component, permission, icon, sort in menus_data:
         parent_id = name_to_menu[parent_name].id if parent_name and parent_name in name_to_menu else 0
@@ -319,6 +333,10 @@ async def _seed_missing_menus(db: AsyncSession) -> None:
         ("重启后端", "插件管理", "F", None, None, "system:plugin:restart", None, 5),
     ]
 
+    missing_menus = [
+        item for item in missing_menus if not _is_removed_component_menu(item[4])
+    ]
+
     added = 0
     for name, parent_name, mtype, path, component, permission, icon, sort in missing_menus:
         # Determine parent (any level, not just top-level menus)
@@ -368,6 +386,18 @@ async def _seed_missing_menus(db: AsyncSession) -> None:
                 role.menus = list(role.menus) + new_menus
                 await db.flush()
                 logger.info(f"Bound {len(new_menus)} new menus to admin role")
+
+
+async def _retire_removed_component_menus(db: AsyncSession) -> None:
+    """Hide legacy component-demo menus on existing installations."""
+    result = await db.execute(
+        update(Menu)
+        .where(Menu.component.like(f"{_REMOVED_COMPONENT_PREFIX}%"))
+        .where((Menu.status != 0) | (Menu.visible != 0))
+        .values(status=0, visible=0)
+    )
+    if result.rowcount:
+        logger.info(f"Retired {result.rowcount} legacy component-demo menus")
 
 
 async def _seed_role(db: AsyncSession) -> None:
