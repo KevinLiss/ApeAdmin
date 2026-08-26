@@ -146,13 +146,16 @@ class PluginManager:
             permission = menu.permission or ""
             component = menu.component or ""
             path = menu.path or ""
+            is_core_dashboard = component == "apeui/dashboard/Monitor"
             owner = next(
                 (
                     plugin_name
                     for plugin_name in known_names
-                    if permission.startswith(f"{plugin_name}:")
-                    or component == plugin_name
-                    or component.startswith(f"{plugin_name}/")
+                    if not is_core_dashboard and (
+                        permission.startswith(f"{plugin_name}:")
+                        or component == plugin_name
+                        or component.startswith(f"{plugin_name}/")
+                    )
                     or path == f"/{plugin_name}"
                     or path.startswith(f"/{plugin_name}/")
                 ),
