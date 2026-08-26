@@ -3,7 +3,7 @@
   <br/>
   <img src="assets/logo.png" width="130" alt="ApeAdmin Logo" />
   <h1>ApeAdmin</h1>
-  <p>面向 AI 智能体场景的开发框架 · 适配 Agent 调用的管理底座</p>
+  <p>让中后台管理 · 为 AI 智能体而生</p>
 </div>
 
 <p align="center">
