@@ -6,13 +6,9 @@ from typing import Any
 
 from fastapi import APIRouter, FastAPI, HTTPException
 from pydantic import BaseModel, Field
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
 
 from src.core.config import settings
-from src.db import SessionLocal
-from src.models.rbac import Menu
 from src.plugins import Event, PluginInterface, event_bus
 
 
@@ -37,38 +33,6 @@ class LoginCaptchaPlugin(PluginInterface):
         logger.info("LoginCaptchaPlugin loaded into memory")
 
     async def install(self) -> None:
-        """Create the plugin menu branch if it does not already exist."""
-        async with SessionLocal() as db:
-            root = await self._find_menu(db, "登录验证码", 0)
-            if root is None:
-                root = Menu(
-                    name="登录验证码",
-                    parent_id=0,
-                    type="M",
-                    path="/login-captcha",
-                    permission="login_captcha:access",
-                    icon="Lock",
-                    sort=45,
-                    visible=1,
-                    status=1,
-                )
-                db.add(root)
-                await db.flush()
-            child = await self._find_menu(db, "验证码测试", root.id)
-            if child is None:
-                db.add(Menu(
-                    name="验证码测试",
-                    parent_id=root.id,
-                    type="C",
-                    path="index",
-                    component="login-captcha/index",
-                    permission="login_captcha:test",
-                    icon="Key",
-                    sort=1,
-                    visible=1,
-                    status=1,
-                ))
-            await db.commit()
         logger.info("LoginCaptchaPlugin installed")
 
     async def uninstall(self) -> None:
@@ -84,10 +48,6 @@ class LoginCaptchaPlugin(PluginInterface):
         stored = self._captchas.pop(captcha_id, None)
         if not stored or not secrets.compare_digest(stored[0], str(captcha_code)):
             raise HTTPException(status_code=422, detail="验证码错误或已过期")
-
-    async def _find_menu(self, db: AsyncSession, name: str, parent_id: int) -> Menu | None:
-        result = await db.execute(select(Menu).where(Menu.name == name, Menu.parent_id == parent_id))
-        return result.scalar_one_or_none()
 
     def register(self, app: FastAPI) -> None:
         router = APIRouter(prefix="/login-captcha", tags=["登录验证码"])
