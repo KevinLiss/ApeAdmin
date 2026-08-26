@@ -1,0 +1,8 @@
+{
+  "name": "apeui",
+  "display_name": "ApeUI 官网",
+  "version": "1.0.0",
+  "description": "ApeAdmin 官网门户插件 — 首页、插件市场、技术文档、个人中心、支付提现",
+  "author": "ApeAdmin",
+  "dependencies": ["core>=0.1.0"]
+}

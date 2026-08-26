@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ApeAdmin · 插件详情</title>
+<meta name="description" content="ApeAdmin 插件详情 —— 介绍、文档、Demo 体验与购买。" />
+<link rel="icon" type="image/png" href="assets/logo.png" />
+<style>
+  :root {
+    --bg: #07080f;
+    --bg-soft: #0c0e1a;
+    --panel: rgba(255,255,255,0.04);
+    --panel-2: rgba(255,255,255,0.06);
+    --border: rgba(255,255,255,0.08);
+    --border-2: rgba(255,255,255,0.14);
+    --primary: #6d5cff;
+    --primary-2: #9d6bff;
+    --accent: #22d3ee;
+    --green: #34d399;
+    --orange: #fb923c;
+    --red: #f87171;
+    --text: #eef0ff;
+    --text-2: #a4a9c9;
+    --text-3: #6b7096;
+    --radius: 20px;
+    --maxw: 1140px;
+    --grad: linear-gradient(135deg, #6d5cff 0%, #9d6bff 50%, #d65ef0 100%);
+    --grad-2: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    --grad-green: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  }
+  :root[data-theme="light"] {
+    --bg: #f8fafc;
+    --bg-soft: #ffffff;
+    --panel: rgba(0,0,0,0.025);
+    --panel-2: rgba(0,0,0,0.04);
+    --border: rgba(0,0,0,0.08);
+    --border-2: rgba(0,0,0,0.14);
+    --primary: #6d5cff;
+    --primary-2: #7c3aed;
+    --accent: #0891b2;
+    --green: #059669;
+    --orange: #ea580c;
+    --red: #dc2626;
+    --text: #1e293b;
+    --text-2: #475569;
+    --text-3: #94a3b8;
+    --grad: linear-gradient(135deg, #6d5cff 0%, #9d6bff 50%, #d65ef0 100%);
+    --grad-2: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    --grad-green: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  }
+  :root[data-theme="light"] .bg-glow {
+    background: radial-gradient(700px 500px at 15% -5%, rgba(109,92,255,.10), transparent 60%), radial-gradient(600px 400px at 85% 5%, rgba(214,94,240,.06), transparent 60%);
+  }
+  :root[data-theme="light"] .bg-grid {
+    background-image: linear-gradient(rgba(0,0,0,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,.035) 1px, transparent 1px);
+  }
+  :root[data-theme="light"] nav { background: rgba(255,255,255,.85); }
+  :root[data-theme="light"] .hero-bg { background: linear-gradient(135deg, rgba(109,92,255,.06) 0%, rgba(214,94,240,.04) 50%, rgba(34,211,238,.03) 100%); }
+  :root[data-theme="light"] .code-box { background: #1e293b; }
+  :root[data-theme="light"] .code-box .cb-head { background: rgba(255,255,255,.06); }
+  :root[data-theme="light"] .code-box code { color: #e2e8f0; }
+  :root[data-theme="light"] .modal-overlay { background: rgba(248,250,252,.7); }
+  :root[data-theme="light"] ::-webkit-scrollbar-thumb { background: #cbd5e1; }
+  :root[data-theme="light"] .menu-toggle { color: var(--text); }
+  .theme-toggle { font-size: 16px; padding: 8px 12px; line-height: 1; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; overflow-x: hidden; }
+  a { color: inherit; text-decoration: none; }
+  ::selection { background: rgba(109,92,255,.4); }
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-thumb { background: #2a2d45; border-radius: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  .container { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+  /* 背景 */
+  .bg-glow { position: fixed; inset: 0; z-index: -2; pointer-events: none; background: radial-gradient(700px 500px at 15% -5%, rgba(109,92,255,.16), transparent 60%), radial-gradient(600px 400px at 85% 5%, rgba(214,94,240,.10), transparent 60%); }
+  .bg-grid { position: fixed; inset: 0; z-index: -1; pointer-events: none; background-image: linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px); background-size: 56px 56px; mask-image: radial-gradient(ellipse 80% 50% at 50% 0%, #000 30%, transparent 80%); }
+
+  /* 导航 */
+  nav { position: sticky; top: 0; z-index: 100; backdrop-filter: blur(14px); background: rgba(7,8,15,.8); border-bottom: 1px solid var(--border); }
+  .nav-inner { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; }
+  .brand img { width: 28px; height: 28px; border-radius: 7px; }
+  .brand .badge { font-size: 10px; font-weight: 600; color: var(--accent); border: 1px solid rgba(34,211,238,.4); background: rgba(34,211,238,.1); padding: 2px 8px; border-radius: 999px; margin-left: 2px; }
+  .nav-links { display: flex; gap: 26px; align-items: center; }
+  .nav-links a { color: var(--text-2); font-size: 14px; transition: color .2s; }
+  .nav-links a:hover, .nav-links a.active { color: var(--text); }
+  .nav-actions { display: flex; gap: 12px; align-items: center; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 600; border-radius: 12px; padding: 10px 18px; border: 1px solid transparent; transition: all .22s; font-family: inherit; }
+  .btn-ghost { color: var(--text-2); background: transparent; border-color: var(--border); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--border-2); }
+  .btn-primary { color: #fff; background: var(--grad-2); box-shadow: 0 6px 20px -6px rgba(109,92,255,.6); }
+  .btn-primary:hover { transform: translateY(-2px); }
+  .btn-green { color: #fff; background: var(--grad-green); box-shadow: 0 6px 20px -6px rgba(16,185,129,.5); }
+  .btn-green:hover { transform: translateY(-2px); }
+  .btn-lg { padding: 14px 28px; font-size: 15px; border-radius: 14px; }
+  .menu-toggle { display: none; background: none; border: none; color: var(--text); font-size: 20px; cursor: pointer; }
+
+  /* 面包屑 */
+  .breadcrumb { padding: 20px 0 0; }
+  .breadcrumb a { color: var(--text-3); font-size: 13px; }
+  .breadcrumb a:hover { color: var(--text-2); }
+  .breadcrumb .sep { color: var(--text-3); margin: 0 8px; font-size: 12px; }
+  .breadcrumb .current { color: var(--text-2); font-size: 13px; }
+
+  /* Hero 区 */
+  .hero { padding: 36px 0 40px; position: relative; overflow: hidden; border-bottom: 1px solid var(--border); }
+  .hero-bg { position: absolute; inset: 0; z-index: -1; background: linear-gradient(135deg, rgba(109,92,255,.12) 0%, rgba(214,94,240,.08) 50%, rgba(34,211,238,.05) 100%); }
+  .hero-inner { display: grid; grid-template-columns: 1.4fr 1fr; gap: 40px; align-items: center; }
+  .hero-left .star-tag { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: #fbbf24; background: rgba(251,191,36,.12); border: 1px solid rgba(251,191,36,.25); padding: 5px 14px; border-radius: 999px; margin-bottom: 18px; }
+  .hero-left h1 { font-size: clamp(28px, 4vw, 40px); font-weight: 800; letter-spacing: -.5px; margin-bottom: 10px; }
+  .hero-left .sub { font-size: 16px; color: var(--primary-2); font-weight: 600; margin-bottom: 16px; }
+  .hero-left .desc { color: var(--text-2); font-size: 15px; margin-bottom: 28px; }
+  .hero-left .meta { display: flex; gap: 24px; margin-bottom: 28px; font-size: 14px; color: var(--text-3); }
+  .hero-left .meta span { display: flex; align-items: center; gap: 4px; }
+  .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; position: relative; }
+  .demo-dropdown { position: absolute; top: 56px; left: 0; min-width: 220px; background: #11131f; border: 1px solid var(--border-2); border-radius: 14px; padding: 8px; display: none; z-index: 120; box-shadow: 0 20px 40px rgba(0,0,0,.5); }
+  .demo-dropdown.show { display: block; animation: fadeIn .2s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+  .demo-dropdown a { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 10px; font-size: 14px; color: var(--text-2); transition: all .18s; }
+  .demo-dropdown a:hover { background: var(--panel-2); color: var(--text); }
+  .hero-right { text-align: center; }
+  .hero-icon-box { width: 200px; height: 200px; margin: 0 auto; border-radius: 40px; display: flex; align-items: center; justify-content: center; font-size: 90px; background: var(--panel); border: 1px solid var(--border); position: relative; }
+  .hero-icon-box::before { content: ''; position: absolute; inset: -20px; border-radius: 50px; background: var(--grad); opacity: .15; filter: blur(30px); z-index: -1; }
+
+  /* Tab 栏 */
+  .tabs-bar { position: sticky; top: 64px; z-index: 90; background: rgba(7,8,15,.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+  .tabs-inner { display: flex; gap: 6px; max-width: var(--maxw); margin: 0 auto; padding: 0 24px; overflow-x: auto; }
+  .tab-btn { padding: 14px 20px; font-size: 14.5px; font-weight: 600; color: var(--text-3); cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; transition: all .2s; font-family: inherit; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+  .tab-btn:hover { color: var(--text-2); }
+  .tab-btn.active { color: var(--text); border-bottom-color: var(--primary); }
+
+  /* 内容区 */
+  .tab-content { padding: 48px 0 80px; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; animation: fadeIn .3s ease; }
+  .sec-title { font-size: 22px; font-weight: 800; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .sec-title .em { background: var(--grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .sec-desc { color: var(--text-2); font-size: 15px; margin-bottom: 32px; }
+  .sub-title { font-size: 17px; font-weight: 700; margin: 36px 0 16px; display: flex; align-items: center; gap: 8px; }
+  .sub-title::before { content: ''; width: 4px; height: 18px; border-radius: 4px; background: var(--grad); }
+  p.text { color: var(--text-2); font-size: 15px; margin-bottom: 16px; }
+
+  /* 功能卡片 */
+  .feat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 32px; }
+  .feat-card { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 22px; transition: all .25s; }
+  .feat-card:hover { transform: translateY(-3px); border-color: rgba(109,92,255,.3); }
+  .feat-card h4 { font-size: 15.5px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .feat-card p { font-size: 13.5px; color: var(--text-3); }
+
+  /* 截图区 */
+  .shots { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 32px; }
+  .shot { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .shot .ph { height: 180px; background: linear-gradient(135deg, #1a1d2e, #0f1118); display: flex; align-items: center; justify-content: center; font-size: 48px; }
+  .shot .cap { padding: 12px 16px; font-size: 13px; color: var(--text-2); border-top: 1px solid var(--border); }
+
+  /* 参数表 */
+  .tbl-wrap { overflow-x: auto; margin: 14px 0 24px; border: 1px solid var(--border); border-radius: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 460px; }
+  table th { text-align: left; padding: 12px 16px; font-weight: 700; background: var(--panel-2); border-bottom: 1px solid var(--border); white-space: nowrap; }
+  table td { padding: 11px 16px; color: var(--text-2); border-bottom: 1px solid var(--border); }
+  table tr:last-child td { border-bottom: none; }
+  table tr:hover td { background: rgba(255,255,255,.02); }
+  table td code { font-family: "SF Mono",monospace; font-size: 12.5px; color: var(--accent); }
+
+  /* 代码块 */
+  .code-box { background: #0a0c16; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin: 14px 0 24px; font-family: "SF Mono","JetBrains Mono",Consolas,monospace; font-size: 13px; }
+  .code-box .cb-head { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: rgba(255,255,255,.04); border-bottom: 1px solid var(--border); }
+  .code-box .cb-head .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .code-box .cb-head .fname { font-size: 12px; color: var(--text-3); margin-left: 6px; }
+  .code-box pre { padding: 16px 18px; overflow-x: auto; line-height: 1.7; }
+  .code-box code { color: #c5c9e8; white-space: pre; }
+  .c-k { color: #c792ea; } .c-s { color: #a5e07a; } .c-n { color: #f6c177; } .c-c { color: #556; } .c-f { color: #82aaff; }
+
+  /* Demo 体验区 */
+  .demo-frame { border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 24px; background: var(--bg-soft); }
+  .demo-frame .df-head { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--panel-2); border-bottom: 1px solid var(--border); }
+  .demo-frame .df-head .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .demo-frame .df-head .url { font-size: 12px; color: var(--text-3); margin-left: 8px; font-family: monospace; }
+  .demo-frame .df-body { height: 480px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 16px; }
+  .demo-frame .df-body .big-icon { font-size: 64px; opacity: .6; }
+  .demo-frame .df-body p { color: var(--text-3); font-size: 14px; }
+
+  /* 更新日志 */
+  .changelog { margin-bottom: 24px; }
+  .log-item { display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--border); }
+  .log-item:last-child { border-bottom: none; }
+  .log-item .ver { font-size: 13px; font-weight: 700; color: var(--primary-2); white-space: nowrap; min-width: 70px; }
+  .log-item .date { font-size: 12px; color: var(--text-3); }
+  .log-item ul { list-style: none; margin-top: 6px; }
+  .log-item ul li { font-size: 13.5px; color: var(--text-2); padding: 2px 0 2px 16px; position: relative; }
+  .log-item ul li::before { content: '•'; position: absolute; left: 0; color: var(--primary-2); }
+
+  /* 购买弹窗 */
+  .modal-overlay { position: fixed; inset: 0; z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(7,8,15,.7); backdrop-filter: blur(8px); animation: fadeIn .25s ease; }
+  .modal-overlay.show { display: flex; }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .modal { width: 100%; max-width: 760px; background: #0c0e1a; border: 1px solid var(--border-2); border-radius: 24px; padding: 36px; position: relative; box-shadow: 0 40px 80px -20px rgba(0,0,0,.7); animation: slideUp .3s ease; max-height: 90vh; overflow-y: auto; }
+  .modal .close-btn { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; border-radius: 8px; border: none; background: rgba(255,255,255,.06); color: var(--text-2); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; }
+  .modal .close-btn:hover { background: rgba(255,255,255,.12); color: var(--text); }
+  .modal h3 { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+  .modal .m-sub { color: var(--text-2); font-size: 14px; margin-bottom: 28px; }
+
+  /* 价格卡 */
+  .price-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+  .price-card { background: var(--panel); border: 2px solid var(--border); border-radius: 16px; padding: 24px 20px; transition: all .25s; position: relative; }
+  .price-card:hover { border-color: var(--border-2); }
+  .price-card.popular { border-color: var(--primary); background: rgba(109,92,255,.06); }
+  .price-card .pop-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); font-size: 11px; font-weight: 700; color: #fff; background: var(--grad-2); padding: 4px 14px; border-radius: 999px; white-space: nowrap; }
+  .price-card .p-name { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+  .price-card .p-price { font-size: 32px; font-weight: 800; margin-bottom: 4px; }
+  .price-card .p-price .unit { font-size: 14px; font-weight: 500; color: var(--text-3); }
+  .price-card .p-desc { font-size: 12.5px; color: var(--text-3); margin-bottom: 18px; }
+  .price-card .p-features { list-style: none; margin-bottom: 20px; }
+  .price-card .p-features li { font-size: 13px; color: var(--text-2); padding: 5px 0 5px 22px; position: relative; }
+  .price-card .p-features li::before { content: '✓'; position: absolute; left: 0; color: var(--green); font-weight: 700; }
+  .price-card .p-features li.no::before { content: '✕'; color: var(--text-3); }
+  .price-card .p-features li.no { color: var(--text-3); }
+  .price-card .p-btn { width: 100%; padding: 11px; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all .22s; }
+  .price-card .p-btn.free { background: var(--panel-2); color: var(--text); border: 1px solid var(--border-2); }
+  .price-card .p-btn.pro { background: var(--grad-2); color: #fff; box-shadow: 0 6px 18px -6px rgba(109,92,255,.5); }
+  .price-card .p-btn.ent { background: var(--grad-green); color: #fff; box-shadow: 0 6px 18px -6px rgba(16,185,129,.4); }
+  .price-card .p-btn:hover { transform: translateY(-2px); }
+  .modal .agree { text-align: center; font-size: 12px; color: var(--text-3); margin-top: 8px; }
+  .modal .agree a { color: var(--primary-2); }
+
+  /* 页脚 */
+  footer { border-top: 1px solid var(--border); padding: 40px 24px; }
+  .foot-inner { max-width: var(--maxw); margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+  .foot-inner .l { color: var(--text-3); font-size: 13px; }
+  .foot-inner .r { display: flex; gap: 18px; }
+  .foot-inner .r a { color: var(--text-3); font-size: 13px; transition: color .2s; }
+  .foot-inner .r a:hover { color: var(--text); }
+
+  /* 右侧悬浮 */
+  .float-actions { position: fixed; right: 20px; bottom: 30px; z-index: 80; display: flex; flex-direction: column; gap: 12px; }
+  .float-btn { width: 44px; height: 44px; border-radius: 12px; background: var(--panel); border: 1px solid var(--border-2); display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; transition: all .2s; backdrop-filter: blur(8px); }
+  .float-btn:hover { transform: scale(1.08); border-color: var(--primary); }
+
+  /* 响应式 */
+  @media (max-width: 900px) {
+    .nav-links { display: none; } .menu-toggle { display: block; }
+    .hero-inner { grid-template-columns: 1fr; }
+    .hero-right { display: none; }
+    .feat-grid, .shots, .price-grid { grid-template-columns: 1fr; }
+    .nav-actions .gh-link { display: none; }
+  }
+  @media (max-width: 600px) {
+    .nav-actions .btn-primary { padding: 7px 12px; font-size: 13px; }
+    .tabs-inner { padding: 0 16px; }
+    .modal { padding: 24px 18px; }
+  }
+</style>
+</head>
+<body>
+<div class="bg-glow"></div>
+<div class="bg-grid"></div>
+
+<!-- 导航 -->
+<nav>
+  <div class="nav-inner">
+    <a class="brand" href="index.html"><img src="assets/logo.png" alt="ApeAdmin" /><span>ApeAdmin <span class="badge">Detail</span></span></a>
+    <div class="nav-links">
+      <a href="index.html">首页</a>
+      <a href="index.html#features">核心特性</a>
+      <a href="index.html#mcp">MCP 网关</a>
+      <a class="active" href="plugins.html">插件市场</a>
+      <a href="docs.html">技术文档</a>
+      <a href="profile.html">个人中心</a>
+    </div>
+    <div class="nav-actions">
+      <button class="btn btn-ghost theme-toggle" id="themeToggle" aria-label="切换主题" title="切换明暗主题">🌙</button>
+      <a class="btn btn-ghost gh-link" href="https://github.com/KevinLiss/ApeAdmin" target="_blank" rel="noopener">GitHub</a>
+      <a class="btn btn-primary" href="plugins.html">返回市场</a>
+    </div>
+    <button class="menu-toggle" id="menuToggle" aria-label="菜单">☰</button>
+  </div>
+</nav>
+
+<!-- 面包屑 -->
+<div class="container">
+  <div class="breadcrumb">
+    <a href="index.html">首页</a>
+    <span class="sep">/</span>
+    <a href="plugins.html">插件市场</a>
+    <span class="sep">/</span>
+    <span class="current" id="crumbName">插件详情</span>
+  </div>
+</div>
+
+<!-- Hero 区 -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="container">
+    <div class="hero-inner">
+      <div class="hero-left">
+        <div class="star-tag" id="starTag">⭐ ApeAdmin 精选插件</div>
+        <h1 id="pluginName">插件名称</h1>
+        <div class="sub" id="pluginSub">核心卖点副标题</div>
+        <p class="desc" id="pluginDesc">插件详细描述。</p>
+        <div class="meta">
+          <span>📦 <span id="pluginVer">v1.0.0</span></span>
+          <span>👤 <span id="pluginAuthor">ApeAdmin</span></span>
+          <span>⬇ <span id="pluginDl">0</span> 下载</span>
+          <span>★ <span id="pluginRate">5.0</span></span>
+        </div>
+        <div class="hero-actions">
+          <div style="position:relative;">
+            <button class="btn btn-primary btn-lg" id="demoBtn">🖥 立即体验 ▾</button>
+            <div class="demo-dropdown" id="demoDropdown">
+              <a href="#demo" data-terminal="h5">📱 H5 在线体验</a>
+              <a href="#demo" data-terminal="pc">💻 PC 后台体验</a>
+              <a href="#demo" data-terminal="api">🔌 API 接口调试</a>
+              <a href="#demo" data-terminal="mcp">🤖 MCP 工具调用</a>
+            </div>
+          </div>
+          <button class="btn btn-green btn-lg" id="buyBtn">🛒 立即购买</button>
+        </div>
+      </div>
+      <div class="hero-right">
+        <div class="hero-icon-box" id="heroIcon">🤖</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Tab 栏 -->
+<div class="tabs-bar">
+  <div class="tabs-inner">
+    <button class="tab-btn active" data-tab="intro">📖 介绍</button>
+    <button class="tab-btn" data-tab="docs">📄 文档</button>
+    <button class="tab-btn" data-tab="demo">🖥 Demo 体验</button>
+    <button class="tab-btn" data-tab="changelog">📜 更新日志</button>
+  </div>
+</div>
+
+<!-- Tab 内容 -->
+<div class="container">
+<div class="tab-content">
+
+  <!-- 介绍 -->
+  <div class="tab-panel active" id="tab-intro">
+    <h2 class="sec-title">插件<span class="em">介绍</span></h2>
+    <p class="sec-desc">了解这个插件的核心能力、技术特点与使用场景。</p>
+
+    <h3 class="sub-title">核心功能</h3>
+    <div class="feat-grid" id="featGrid">
+      <div class="feat-card"><h4>🧠 多模型对话引擎</h4><p>支持 DeepSeek / 通义千问 / 智谱 GLM / OpenAI，统一 OpenAI 兼容接口。</p></div>
+      <div class="feat-card"><h4>📡 流式 SSE 输出</h4><p>实时流式响应 + Markdown 渲染 + 代码高亮，体验流畅自然。</p></div>
+      <div class="feat-card"><h4>🔧 Function Calling</h4><p>AI 可调用 MCP 工具完成管理操作，最多 5 轮工具调用循环。</p></div>
+      <div class="feat-card"><h4>🔐 密钥加密管理</h4><p>后台管理 AI 供应商密钥，加密存储，支持多供应商切换。</p></div>
+    </div>
+
+    <h3 class="sub-title">产品截图</h3>
+    <div class="shots">
+      <div class="shot"><div class="ph">💬</div><div class="cap">AI 对话主界面</div></div>
+      <div class="shot"><div class="ph">⚙️</div><div class="cap">模型密钥管理</div></div>
+      <div class="shot"><div class="ph">🔧</div><div class="cap">MCP 工具调用日志</div></div>
+      <div class="shot"><div class="ph">📊</div><div class="cap">对话统计看板</div></div>
+    </div>
+
+    <h3 class="sub-title">技术参数</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>参数</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td>插件版本</td><td>v2.1.0</td></tr>
+          <tr><td>兼容版本</td><td>ApeAdmin ≥ 0.1.0</td></tr>
+          <tr><td>运行依赖</td><td>Python 3.11+, FastAPI, SQLAlchemy 2.0</td></tr>
+          <tr><td>支持模型</td><td>DeepSeek / 通义千问 / 智谱 GLM / OpenAI</td></tr>
+          <tr><td>传输协议</td><td>MCP-SSE (Server-Sent Events)</td></tr>
+          <tr><td>授权方式</td><td>MIT 开源 / 付费商业授权</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 文档 -->
+  <div class="tab-panel" id="tab-docs">
+    <h2 class="sec-title">技术<span class="em">文档</span></h2>
+    <p class="sec-desc">插件的安装配置、接口说明与使用指南。</p>
+
+    <h3 class="sub-title">安装方式</h3>
+    <div class="code-box">
+      <div class="cb-head"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="fname">方式一：ZIP 上传安装</span></div>
+      <pre><code><span class="c-c"># 1. 在管理后台 → 系统管理 → 插件管理</span>
+<span class="c-c"># 2. 点击「上传安装」，选择 ai-chat-engine-v2.1.0.zip</span>
+<span class="c-c"># 3. 系统自动解压、发现、注册插件</span>
+<span class="c-c"># 4. 安装后可在 AI 助手菜单使用</span></code></pre>
+    </div>
+    <div class="code-box">
+      <div class="cb-head"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="fname">方式二：手动安装</span></div>
+      <pre><code><span class="c-n">cd</span> backend/src/plugins/builtin/
+<span class="c-c"># 将插件包放入 builtin 目录</span>
+<span class="c-c"># 重启后端，插件自动发现并加载</span>
+uvicorn src.main:app --reload</code></pre>
+    </div>
+
+    <h3 class="sub-title">配置说明</h3>
+    <div class="code-box">
+      <div class="cb-head"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="fname">.env 配置项</span></div>
+      <pre><code><span class="c-c"># AI 对话引擎配置</span>
+AI_DEFAULT_PROVIDER=<span class="c-s">deepseek</span>
+AI_DEFAULT_MODEL=<span class="c-s">deepseek-chat</span>
+AI_MAX_TOOL_ROUNDS=<span class="c-n">5</span>
+AI_STREAM_ENABLED=<span class="c-s">true</span>
+
+<span class="c-c"># 供应商密钥（在后台 AI 助手 → 密钥管理中添加）</span>
+<span class="c-c"># DeepSeek → https://api.deepseek.com</span>
+<span class="c-c"># 通义千问 → https://dashscope.aliyuncs.com/compatible-mode/v1</span></code></pre>
+    </div>
+
+    <h3 class="sub-title">MCP 工具注册</h3>
+    <div class="code-box">
+      <div class="cb-head"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="fname">plugin.py</span></div>
+      <pre><code><span class="c-k">def</span> <span class="c-f">register_mcp_tools</span>(self, mcp_manager):
+    <span class="c-k">@mcp_manager.tool</span>(<span class="c-s">"ai_chat_send"</span>, <span class="c-s">"发送AI对话消息"</span>)
+    <span class="c-k">def</span> <span class="c-f">send_message</span>(message: <span class="c-k">str</span>, model: <span class="c-k">str</span> = <span class="c-s">"deepseek-chat"</span>) -> dict:
+        <span class="c-s">"""向AI模型发送消息并获取响应"""</span>
+        <span class="c-k">return</span> agent.chat(message, model)</code></pre>
+    </div>
+  </div>
+
+  <!-- Demo 体验 -->
+  <div class="tab-panel" id="tab-demo">
+    <h2 class="sec-title">Demo<span class="em">体验</span></h2>
+    <p class="sec-desc">选择终端体验方式，直接在线感受插件的 AI 对话能力。</p>
+
+    <div class="demo-frame" id="demoFrame">
+      <div class="df-head">
+        <span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span>
+        <span class="url" id="demoUrl">https://demo.apeadmin.dev/ai-chat</span>
+      </div>
+      <div class="df-body" id="demoBody">
+        <div class="big-icon">💬</div>
+        <p>选择上方「立即体验」下拉中的体验方式开始</p>
+      </div>
+    </div>
+
+    <h3 class="sub-title">体验指引</h3>
+    <div class="feat-grid">
+      <div class="feat-card"><h4>📱 H5 在线体验</h4><p>移动端对话界面，体验流式输出效果。</p></div>
+      <div class="feat-card"><h4>💻 PC 后台体验</h4><p>完整后台管理界面，模型密钥配置与对话。</p></div>
+      <div class="feat-card"><h4>🔌 API 接口调试</h4><p>直接调用 REST API，查看请求与响应。</p></div>
+      <div class="feat-card"><h4>🤖 MCP 工具调用</h4><p>Agent 通过 MCP 网关调用工具的完整流程。</p></div>
+    </div>
+  </div>
+
+  <!-- 更新日志 -->
+  <div class="tab-panel" id="tab-changelog">
+    <h2 class="sec-title">更新<span class="em">日志</span></h2>
+    <p class="sec-desc">插件版本迭代记录与功能变更。</p>
+    <div class="changelog">
+      <div class="log-item">
+        <div><div class="ver">v2.1.0</div><div class="date">2026-08-20</div></div>
+        <div>
+          <ul>
+            <li>新增 DeepSeek-V4 模型支持</li>
+            <li>优化 SSE 流式输出延迟，首字响应提升 40%</li>
+            <li>Function Calling 循环上限调整为 5 轮</li>
+            <li>修复多轮对话上下文截断问题</li>
+          </ul>
+        </div>
+      </div>
+      <div class="log-item">
+        <div><div class="ver">v2.0.0</div><div class="date">2026-07-15</div></div>
+        <div>
+          <ul>
+            <li>重构对话引擎架构，支持多模型并行</li>
+            <li>新增 MCP 工具注册能力</li>
+            <li>密钥管理改为加密存储</li>
+            <li>新增对话统计看板</li>
+          </ul>
+        </div>
+      </div>
+      <div class="log-item">
+        <div><div class="ver">v1.4.2</div><div class="date">2026-06-08</div></div>
+        <div>
+          <ul>
+            <li>新增智谱 GLM-4-Flash 支持</li>
+            <li>优化 Markdown 实时渲染性能</li>
+            <li>修复代码高亮主题切换异常</li>
+          </ul>
+        </div>
+      </div>
+      <div class="log-item">
+        <div><div class="ver">v1.3.0</div><div class="date">2026-05-01</div></div>
+        <div>
+          <ul>
+            <li>新增通义千问模型支持</li>
+            <li>新增对话历史分页加载</li>
+            <li>优化移动端对话界面</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- 购买弹窗 -->
+<div class="modal-overlay" id="buyModal">
+  <div class="modal">
+    <button class="close-btn" id="buyClose">✕</button>
+    <h3>选择授权方案</h3>
+    <p class="m-sub">不同授权方案满足个人、团队与企业的使用需求，全部包含完整源码。</p>
+    <div class="price-grid">
+      <div class="price-card">
+        <div class="p-name">开源版</div>
+        <div class="p-price">¥0<span class="unit">/永久</span></div>
+        <div class="p-desc">MIT 开源协议，个人学习使用</div>
+        <ul class="p-features">
+          <li>完整源代码</li>
+          <li>社区技术支持</li>
+          <li>基础 AI 对话功能</li>
+          <li class="no">商业使用授权</li>
+          <li class="no">优先技术支持</li>
+          <li class="no">定制功能开发</li>
+        </ul>
+        <button class="p-btn free" onclick="alert('开源版可通过 GitHub 直接获取')">免费获取</button>
+      </div>
+      <div class="price-card popular">
+        <div class="pop-badge">推荐</div>
+        <div class="p-name">专业版</div>
+        <div class="p-price">¥680<span class="unit">/年</span></div>
+        <div class="p-desc">适合个人开发者与小团队</div>
+        <ul class="p-features">
+          <li>完整源代码</li>
+          <li>商业使用授权</li>
+          <li>全部 AI 对话功能</li>
+          <li>MCP 工具注册</li>
+          <li>邮件技术支持</li>
+          <li class="no">定制功能开发</li>
+        </ul>
+        <button class="p-btn pro" onclick="alert('专业版购买（演示）')">立即购买</button>
+      </div>
+      <div class="price-card">
+        <div class="p-name">企业版</div>
+        <div class="p-price">¥2,800<span class="unit">/年</span></div>
+        <div class="p-desc">适合企业级部署与定制</div>
+        <ul class="p-features">
+          <li>完整源代码</li>
+          <li>商业使用授权</li>
+          <li>全部 AI 对话功能</li>
+          <li>MCP 工具注册</li>
+          <li>专属技术支持</li>
+          <li>定制功能开发（2 次/年）</li>
+        </ul>
+        <button class="p-btn ent" onclick="alert('企业版购买（演示）')">联系销售</button>
+      </div>
+    </div>
+    <div class="agree">购买即表示同意 <a href="#">授权协议</a> · <a href="#">服务条款</a> · <a href="#">免责声明</a></div>
+  </div>
+</div>
+
+<!-- 右侧悬浮 -->
+<div class="float-actions">
+  <div class="float-btn" title="客服咨询" onclick="alert('客服咨询（演示）')">💬</div>
+  <div class="float-btn" title="帮助文档" onclick="location.href='docs.html'">📖</div>
+  <div class="float-btn" title="返回顶部" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</div>
+</div>
+
+<!-- 页脚 -->
+<footer>
+  <div class="foot-inner">
+    <div class="l">© 2026 ApeAdmin · 插件详情 · MIT License</div>
+    <div class="r">
+      <a href="index.html">首页</a>
+      <a href="plugins.html">插件市场</a>
+      <a href="docs.html">技术文档</a>
+      <a href="https://github.com/KevinLiss/ApeAdmin" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // 插件数据（与 plugins.html 共享）
+  const PLUGINS = {
+    'AI Chat Engine': { name:'AI Chat Engine', sub:'多模型对话引擎 · 流式 SSE · Function Calling', icon:'🤖', ver:'v2.1.0', author:'ApeAdmin Team', downloads:'12.3k', rating:4.9, star:true, desc:'多模型对话引擎，支持 DeepSeek / 通义千问 / 智谱 GLM / OpenAI，流式 SSE 输出与 Function Calling 工具调用循环，密钥加密管理。开箱即用，让 AI 对话能力快速接入你的系统。' },
+    'Code Graph Analyzer': { name:'Code Graph Analyzer', sub:'tree-sitter AST 代码图谱 · 多语言解析', icon:'🔍', ver:'v1.4.2', author:'ApeAdmin Team', downloads:'8.7k', rating:4.7, star:false, desc:'基于 tree-sitter AST 解析的代码图谱工具，支持多语言项目结构与依赖分析。可视化展示代码调用关系、模块依赖与函数引用链。' },
+    'Doc Generator': { name:'Doc Generator', sub:'DOCX / PPT / Excel 三件套自动生成', icon:'📄', ver:'v3.0.1', author:'ApeAdmin Team', downloads:'15.2k', rating:4.8, star:true, desc:'一键生成 DOCX / PPT / Excel 三件套，自动从代码注释提取文档结构。支持模板自定义、批量生成与多格式导出。' },
+  };
+
+  // 默认插件（URL ?name=xxx 指定，否则取第一个）
+  function getPlugin() {
+    const params = new URLSearchParams(location.search);
+    const name = params.get('name');
+    if (name && PLUGINS[name]) return PLUGINS[name];
+    return PLUGINS['AI Chat Engine'];
+  }
+
+  const p = getPlugin();
+  document.getElementById('pluginName').textContent = p.name;
+  document.getElementById('pluginSub').textContent = p.sub;
+  document.getElementById('pluginDesc').textContent = p.desc;
+  document.getElementById('pluginVer').textContent = p.ver;
+  document.getElementById('pluginAuthor').textContent = p.author;
+  document.getElementById('pluginDl').textContent = p.downloads;
+  document.getElementById('pluginRate').textContent = p.rating;
+  document.getElementById('heroIcon').textContent = p.icon;
+  document.getElementById('crumbName').textContent = p.name;
+  document.getElementById('starTag').style.display = p.star ? '' : 'none';
+  document.title = 'ApeAdmin · ' + p.name;
+
+  // Tab 切换
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // 立即体验下拉
+  const demoBtn = document.getElementById('demoBtn');
+  const demoDropdown = document.getElementById('demoDropdown');
+  demoBtn.addEventListener('click', e => { e.stopPropagation(); demoDropdown.classList.toggle('show'); });
+  document.addEventListener('click', () => demoDropdown.classList.remove('show'));
+  demoDropdown.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      demoDropdown.classList.remove('show');
+      // 切换到 Demo Tab
+      document.querySelector('.tab-btn[data-tab="demo"]').click();
+      const terminal = a.dataset.terminal;
+      const labels = { h5:'H5 对话', pc:'PC 后台', api:'API 调试', mcp:'MCP 工具' };
+      const icons = { h5:'📱', pc:'💻', api:'🔌', mcp:'🤖' };
+      document.getElementById('demoBody').innerHTML = `
+        <div class="big-icon">${icons[terminal]}</div>
+        <p>${labels[terminal]} 体验环境加载中...</p>
+        <p style="font-size:13px;color:var(--text-3);">演示环境，实际使用请安装插件后体验完整功能</p>
+      `;
+    });
+  });
+
+  // 购买弹窗
+  const buyModal = document.getElementById('buyModal');
+  document.getElementById('buyBtn').addEventListener('click', () => buyModal.classList.add('show'));
+  document.getElementById('buyClose').addEventListener('click', () => buyModal.classList.remove('show'));
+  buyModal.addEventListener('click', e => { if (e.target === buyModal) buyModal.classList.remove('show'); });
+
+  // ESC 关闭
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { buyModal.classList.remove('show'); demoDropdown.classList.remove('show'); }
+  });
+
+  // 移动端菜单
+  document.getElementById('menuToggle')?.addEventListener('click', () => {
+    const nl = document.querySelector('.nav-links');
+    const visible = nl.style.display === 'flex';
+    nl.style.display = visible ? 'none' : 'flex';
+    nl.style.flexDirection = 'column'; nl.style.position = 'absolute'; nl.style.top = '64px';
+    nl.style.left = '0'; nl.style.right = '0';     nl.style.background = getComputedStyle(document.documentElement).getPropertyValue('--bg-soft').trim();
+    nl.style.padding = '20px 24px'; nl.style.borderBottom = '1px solid var(--border)';
+    nl.style.gap = '18px'; nl.style.alignItems = 'flex-start';
+  });
+
+  // 主题切换
+  const ttBtn = document.getElementById('themeToggle');
+  const ttRoot = document.documentElement;
+  const ttSaved = localStorage.getItem('ape-theme') || 'dark';
+  ttRoot.setAttribute('data-theme', ttSaved);
+  if (ttBtn) {
+    ttBtn.textContent = ttSaved === 'dark' ? '🌙' : '☀️';
+    ttBtn.addEventListener('click', () => {
+      const cur = ttRoot.getAttribute('data-theme') || 'dark';
+      const nxt = cur === 'dark' ? 'light' : 'dark';
+      ttRoot.setAttribute('data-theme', nxt);
+      localStorage.setItem('ape-theme', nxt);
+      ttBtn.textContent = nxt === 'dark' ? '🌙' : '☀️';
+    });
+  }
+</script>
+</body>
+</html>
