@@ -3,7 +3,7 @@
   <br/>
   <img src="assets/logo.png" width="130" alt="ApeAdmin Logo" />
   <h1>ApeAdmin</h1>
-  <p> 面向AI工具打造 · 后台管理框架</p>
+  <p> 面向AI产品应用打造 · 开源后台管理框架</p>
 </div>
 
 <p align="center">
