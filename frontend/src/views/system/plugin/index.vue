@@ -90,7 +90,7 @@
     width="600px"
   >
     <el-alert
-      title="插件配置为 JSON 格式，修改后需重启后端生效"
+      title="插件配置为 JSON 格式，保存后按插件实现决定是否立即读取"
       type="info"
       :closable="false"
       show-icon
@@ -143,6 +143,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useUserStore } from '@/stores/user'
+import { refreshDynamicRoutes } from '@/router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   getPlugins,
@@ -187,6 +189,12 @@ const configVisible = ref(false)
 const currentPlugin = ref<PluginRow | null>(null)
 const configText = ref('')
 const savingConfig = ref(false)
+const userStore = useUserStore()
+
+async function refreshRuntimeMenus() {
+  await userStore.fetchUserInfo()
+  refreshDynamicRoutes(userStore.menus)
+}
 
 const filteredList = computed(() => {
   if (!query.keyword) return list.value
@@ -215,8 +223,9 @@ async function fetchData() {
 async function handleToggle(item: PluginRow, val: boolean) {
   togglingId.value = item.id
   try {
-    await togglePlugin(item.id, val)
-    ElMessage.success(`${val ? '启用' : '禁用'}成功，重启后端后生效`)
+    const result: any = await togglePlugin(item.id, val)
+    if (result?.refresh) await refreshRuntimeMenus()
+    ElMessage.success(`${val ? '启用' : '禁用'}成功，运行时已生效`)
   } catch {
     // Revert on error
     item.enabled = !val
@@ -285,7 +294,8 @@ async function handleUpload() {
   uploading.value = true
   try {
     const data: any = await uploadPlugin(uploadingFile.value)
-    ElMessage.success(data.msg || '插件导入成功，需要重启后端生效')
+    if (data?.refresh) await refreshRuntimeMenus()
+    ElMessage.success('插件安装成功，运行时已生效')
     uploadVisible.value = false
     uploadingFile.value = null
     fetchData()
@@ -310,39 +320,63 @@ async function handleRestart() {
 
   restarting.value = true
   ElMessage.info('正在重启后端...')
+  let oldPid: number | undefined
   try {
-    await restartServer()
+    const result: any = await restartServer()
+    oldPid = result?.old_pid
   } catch {
     // Response may fail if server is already shutting down — expected
   }
 
   // Poll health endpoint until server is back
-  await pollHealth()
+  await pollHealth(oldPid)
 }
 
-async function pollHealth() {
-  const maxRetries = 30
+async function pollHealth(oldPid?: number) {
+  const maxRetries = 60
   const interval = 1000 // 1s
+  let healthyPid: number | undefined
+  let consecutiveSuccesses = 0
+
+  // Give the old process enough time to exit before accepting a health response.
+  await new Promise((resolve) => setTimeout(resolve, 2000))
+
   for (let i = 0; i < maxRetries; i++) {
-    await new Promise((resolve) => setTimeout(resolve, interval))
     try {
-      const res = await fetch('/api/v1/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: '__health_check__', password: '' }),
+      const res = await fetch(`/api/v1/health?t=${Date.now()}`, {
+        method: 'GET',
+        cache: 'no-store',
       })
-      // Any response (even 400/422) means server is up
-      if (res.status === 400 || res.status === 422 || res.ok) {
-        ElMessage.success('后端已恢复，正在刷新...')
-        restarting.value = false
-        fetchData()
-        return
+      if (res.ok) {
+        const body = await res.json()
+        const currentPid = Number(body?.data?.pid)
+        const isNewProcess = Number.isFinite(currentPid) && (!oldPid || currentPid !== oldPid)
+
+        if (isNewProcess) {
+          if (healthyPid === currentPid) consecutiveSuccesses += 1
+          else {
+            healthyPid = currentPid
+            consecutiveSuccesses = 1
+          }
+
+          // Require the same new process to stay healthy across multiple polls.
+          if (consecutiveSuccesses >= 2) {
+            ElMessage.success('后端已恢复，正在刷新...')
+            restarting.value = false
+            await new Promise((resolve) => setTimeout(resolve, 500))
+            window.location.reload()
+            return
+          }
+        }
       }
     } catch {
       // Server still down, keep polling
+      healthyPid = undefined
+      consecutiveSuccesses = 0
     }
+    await new Promise((resolve) => setTimeout(resolve, interval))
   }
-  ElMessage.error('后端重启超时，请手动刷新页面')
+  ElMessage.error('后端在 60 秒内未恢复，请检查后端日志')
   restarting.value = false
 }
 
@@ -360,7 +394,8 @@ async function handleDelete(item: PluginRow) {
 
   try {
     await deletePlugin(item.id)
-    ElMessage.success('插件已删除，重启后端后生效')
+    await refreshRuntimeMenus()
+    ElMessage.success('插件已卸载，运行时已生效')
     fetchData()
   } catch (err: any) {
     ElMessage.error(err?.message || '删除失败')

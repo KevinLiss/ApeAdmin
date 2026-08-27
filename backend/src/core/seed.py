@@ -7,7 +7,7 @@ Creates:
 """
 
 from loguru import logger
-from sqlalchemy import select
+from sqlalchemy import delete, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config import settings
@@ -15,7 +15,16 @@ from src.core.crypto import encrypt_api_key
 from src.core.security import hash_password
 from src.db import SessionLocal
 from src.models import Dept, Menu, Role, User
+from src.models.rbac import role_menu
 from src.models.ai import AiProvider
+
+
+_REMOVED_COMPONENT_PREFIX = "apeui/components/pages/"
+
+
+def _is_removed_component_menu(component: str | None) -> bool:
+    """Identify legacy static component-demo menus retired from the product."""
+    return bool(component and component.startswith(_REMOVED_COMPONENT_PREFIX))
 
 
 async def seed_initial_data() -> None:
@@ -24,6 +33,7 @@ async def seed_initial_data() -> None:
         await _seed_dept(db)
         await _seed_menus(db)
         await _seed_role(db)
+        await _seed_developer_role(db)
         await _seed_super_admin(db)
         await _seed_ai_provider(db)
         await db.commit()
@@ -50,6 +60,10 @@ async def _seed_dept(db: AsyncSession) -> None:
 
 async def _seed_menus(db: AsyncSession) -> None:
     """Create the default system management menu tree."""
+    await _retire_removed_component_menus(db)
+    await _retire_style_library_menus(db)
+    await _remove_unimplemented_apeui_menus(db)
+
     # Check if any menus exist
     result = await db.execute(select(Menu).limit(1))
     if result.scalars().first():
@@ -61,83 +75,6 @@ async def _seed_menus(db: AsyncSession) -> None:
         # (name, parent_key, type, path, component, permission, icon, sort)
         # Dashboard (top-level)
         ("系统仪表盘", None, "C", "/dashboard-monitor", "apeui/dashboard/Monitor", None, "Monitor", 1),
-        # UI Components (top-level directory, children are static frontend pages)
-        # path="" so resolvePath skips parent prefix; children paths are already full (e.g. dashboard-1, apeui/app/projects)
-        ("Apeadmin 样式库", None, "M", "", None, None, "Grid", 99),
-        ("仪表盘样式1", "Apeadmin 样式库", "C", "dashboard-1", "apeui/dashboard/Default", None, "Odometer", 1),
-        ("仪表盘样式2", "Apeadmin 样式库", "C", "dashboard-2", "apeui/dashboard/Ecommerce", None, "DataAnalysis", 2),
-        ("项目列表", "Apeadmin 样式库", "C", "apeui/app/projects", "apeui/applications/Projects", None, "Folder", 3),
-        ("新建项目", "Apeadmin 样式库", "C", "apeui/app/project-create", "apeui/applications/ProjectCreate", None, "FolderAdd", 4),
-        ("文件管理", "Apeadmin 样式库", "C", "apeui/app/file-manager", "apeui/applications/FileManager", None, "Document", 5),
-        ("看板视图", "Apeadmin 样式库", "C", "apeui/app/kanban", "apeui/applications/Kanban", None, "Grid", 6),
-        ("书签管理", "Apeadmin 样式库", "C", "apeui/app/bookmark", "apeui/applications/Bookmark", None, "Collection", 7),
-        ("通讯录", "Apeadmin 样式库", "C", "apeui/app/contacts", "apeui/applications/Contacts", None, "Phone", 8),
-        ("任务列表", "Apeadmin 样式库", "C", "apeui/app/tasks", "apeui/applications/Tasks", None, "List", 9),
-        ("日历", "Apeadmin 样式库", "C", "apeui/app/calendar", "apeui/applications/CalendarBasic", None, "Calendar", 10),
-        ("社交应用", "Apeadmin 样式库", "C", "apeui/app/social", "apeui/applications/SocialApp", None, "ChatDotSquare", 11),
-        ("待办事项", "Apeadmin 样式库", "C", "apeui/app/todo", "apeui/applications/Todo", None, "Checked", 12),
-        ("搜索结果", "Apeadmin 样式库", "C", "apeui/app/search", "apeui/applications/SearchResult", None, "Search", 13),
-        ("聊天应用", "Apeadmin 样式库", "C", "apeui/app/chat", "apeui/applications/ChatApp", None, "ChatLineSquare", 14),
-        ("视频聊天", "Apeadmin 样式库", "C", "apeui/app/chat-video", "apeui/applications/ChatVideo", None, "VideoCamera", 15),
-        ("商品管理", "Apeadmin 样式库", "C", "apeui/ecommerce/product", "apeui/ecommerce/Product", None, "Goods", 16),
-        ("商品详情页", "Apeadmin 样式库", "C", "apeui/ecommerce/product-page", "apeui/ecommerce/ProductPage", None, "GoodsFilled", 17),
-        ("添加商品", "Apeadmin 样式库", "C", "apeui/ecommerce/add-product", "apeui/ecommerce/AddProduct", None, "CirclePlus", 18),
-        ("商品列表", "Apeadmin 样式库", "C", "apeui/ecommerce/product-list", "apeui/ecommerce/ProductList", None, "List", 19),
-        ("支付详情", "Apeadmin 样式库", "C", "apeui/ecommerce/payment", "apeui/ecommerce/PaymentDetails", None, "CreditCard", 20),
-        ("订单历史", "Apeadmin 样式库", "C", "apeui/ecommerce/order-history", "apeui/ecommerce/OrderHistory", None, "Timer", 21),
-        ("发票模板", "Apeadmin 样式库", "C", "apeui/ecommerce/invoice", "apeui/ecommerce/InvoiceTemplate", None, "Tickets", 22),
-        ("购物车", "Apeadmin 样式库", "C", "apeui/ecommerce/cart", "apeui/ecommerce/Cart", None, "ShoppingCart", 23),
-        ("心愿单", "Apeadmin 样式库", "C", "apeui/ecommerce/wishlist", "apeui/ecommerce/Wishlist", None, "StarFilled", 24),
-        ("结算页面", "Apeadmin 样式库", "C", "apeui/ecommerce/checkout", "apeui/ecommerce/Checkout", None, "ShoppingCartFull", 25),
-        ("定价方案", "Apeadmin 样式库", "C", "apeui/ecommerce/pricing", "apeui/ecommerce/Pricing", None, "Ticket", 26),
-        ("用户资料", "Apeadmin 样式库", "C", "apeui/users/profile", "apeui/users/UserProfile", None, "User", 27),
-        ("编辑资料", "Apeadmin 样式库", "C", "apeui/users/edit-profile", "apeui/users/EditProfile", None, "Edit", 28),
-        ("用户卡片", "Apeadmin 样式库", "C", "apeui/users/cards", "apeui/users/UserCards", None, "Postcard", 29),
-        ("状态颜色", "Apeadmin 样式库", "C", "apeui/components/state-color", "apeui/components/pages/StateColor", None, "Brush", 30),
-        ("排版样式", "Apeadmin 样式库", "C", "apeui/components/typography", "apeui/components/pages/Typography", None, "Document", 31),
-        ("头像", "Apeadmin 样式库", "C", "apeui/components/avatars", "apeui/components/pages/Avatars", None, "Avatar", 32),
-        ("栅格布局", "Apeadmin 样式库", "C", "apeui/components/grid", "apeui/components/pages/Grid", None, "Grid", 33),
-        ("阴影效果", "Apeadmin 样式库", "C", "apeui/components/box-shadow", "apeui/components/pages/BoxShadow", None, "Box", 34),
-        ("按钮", "Apeadmin 样式库", "C", "apeui/components/buttons", "apeui/components/pages/Buttons", None, "Pointer", 35),
-        ("按钮组", "Apeadmin 样式库", "C", "apeui/components/button-group", "apeui/components/pages/ButtonGroup", None, "Pointer", 36),
-        ("标签与胶囊", "Apeadmin 样式库", "C", "apeui/components/tag-pills", "apeui/components/pages/TagPills", None, "CollectionTag", 37),
-        ("进度条", "Apeadmin 样式库", "C", "apeui/components/progress-bar", "apeui/components/pages/ProgressBar", None, "Histogram", 38),
-        ("模态框", "Apeadmin 样式库", "C", "apeui/components/modal", "apeui/components/pages/Modal", None, "Box", 39),
-        ("警告提示", "Apeadmin 样式库", "C", "apeui/components/alert", "apeui/components/pages/Alert", None, "Warning", 40),
-        ("气泡卡片", "Apeadmin 样式库", "C", "apeui/components/popover", "apeui/components/pages/Popover", None, "ChatLineSquare", 41),
-        ("文字提示", "Apeadmin 样式库", "C", "apeui/components/tooltip", "apeui/components/pages/Tooltip", None, "InfoFilled", 42),
-        ("下拉菜单", "Apeadmin 样式库", "C", "apeui/components/dropdown", "apeui/components/pages/Dropdown", None, "ArrowDown", 43),
-        ("折叠面板", "Apeadmin 样式库", "C", "apeui/components/accordion", "apeui/components/pages/Accordion", None, "Fold", 44),
-        ("ApeAdmin 标签页", "Apeadmin 样式库", "C", "apeui/components/tabs-bootstrap", "apeui/components/pages/TabsBootstrap", None, "Document", 45),
-        ("线型标签页", "Apeadmin 样式库", "C", "apeui/components/tabs-line", "apeui/components/pages/TabsLine", None, "Document", 46),
-        ("列表", "Apeadmin 样式库", "C", "apeui/components/list", "apeui/components/pages/List", None, "List", 47),
-        ("滚动区域", "Apeadmin 样式库", "C", "apeui/components/scrollable", "apeui/components/pages/Scrollable", None, "Scroll", 48),
-        ("树形视图", "Apeadmin 样式库", "C", "apeui/components/tree", "apeui/components/pages/Tree", None, "Connection", 49),
-        ("评分", "Apeadmin 样式库", "C", "apeui/components/rating", "apeui/components/pages/Rating", None, "StarFilled", 50),
-        ("弹窗提示", "Apeadmin 样式库", "C", "apeui/components/sweet-alert2", "apeui/components/pages/SweetAlert2", None, "Warning", 51),
-        ("分页", "Apeadmin 样式库", "C", "apeui/components/pagination", "apeui/components/pages/Pagination", None, "Document", 52),
-        ("面包屑", "Apeadmin 样式库", "C", "apeui/components/breadcrumb", "apeui/components/pages/Breadcrumb", None, "Rank", 53),
-        ("范围滑块", "Apeadmin 样式库", "C", "apeui/components/range-slider", "apeui/components/pages/RangeSlider", None, "Slider", 54),
-        ("基础卡片", "Apeadmin 样式库", "C", "apeui/components/basic-card", "apeui/components/pages/BasicCard", None, "Postcard", 55),
-        ("创意卡片", "Apeadmin 样式库", "C", "apeui/components/creative-card", "apeui/components/pages/CreativeCard", None, "Postcard", 56),
-        ("标签页卡片", "Apeadmin 样式库", "C", "apeui/components/tabbed-card", "apeui/components/pages/TabbedCard", None, "Postcard", 57),
-        ("可拖拽卡片", "Apeadmin 样式库", "C", "apeui/components/dragable-card", "apeui/components/pages/DragableCard", None, "Postcard", 58),
-        ("时间轴一", "Apeadmin 样式库", "C", "apeui/components/timeline-1", "apeui/components/pages/Timeline1", None, "Timer", 59),
-        ("时间轴二", "Apeadmin 样式库", "C", "apeui/components/timeline-2", "apeui/components/pages/Timeline2", None, "Timer", 60),
-        ("Apex 图表", "Apeadmin 样式库", "C", "apeui/components/chart-apex", "apeui/components/pages/ChartApex", None, "TrendCharts", 61),
-        ("Google 图表", "Apeadmin 样式库", "C", "apeui/components/chart-google", "apeui/components/pages/ChartGoogle", None, "TrendCharts", 62),
-        ("迷你走势图", "Apeadmin 样式库", "C", "apeui/components/chart-sparkline", "apeui/components/pages/ChartSparkline", None, "TrendCharts", 63),
-        ("Flot 图表", "Apeadmin 样式库", "C", "apeui/components/chart-flot", "apeui/components/pages/ChartFlot", None, "TrendCharts", 64),
-        ("旋钮图表", "Apeadmin 样式库", "C", "apeui/components/chart-knob", "apeui/components/pages/ChartKnob", None, "TrendCharts", 65),
-        ("Morris 图表", "Apeadmin 样式库", "C", "apeui/components/chart-morris", "apeui/components/pages/ChartMorris", None, "TrendCharts", 66),
-        ("Chart.js 图表", "Apeadmin 样式库", "C", "apeui/components/chartjs", "apeui/components/pages/Chartjs", None, "TrendCharts", 67),
-        ("Chartist 图表", "Apeadmin 样式库", "C", "apeui/components/chartist", "apeui/components/pages/Chartist", None, "TrendCharts", 68),
-        ("Peity 图表", "Apeadmin 样式库", "C", "apeui/components/chart-peity", "apeui/components/pages/ChartPeity", None, "TrendCharts", 69),
-        ("国旗图标", "Apeadmin 样式库", "C", "apeui/components/flag-icon", "apeui/components/pages/FlagIcon", None, "Flag", 70),
-        ("Font Awesome 图标", "Apeadmin 样式库", "C", "apeui/components/font-awesome", "apeui/components/pages/FontAwesome", None, "StarFilled", 71),
-        ("Ico 图标", "Apeadmin 样式库", "C", "apeui/components/ico-icon", "apeui/components/pages/IcoIcon", None, "StarFilled", 72),
-        ("Themify 图标", "Apeadmin 样式库", "C", "apeui/components/themify-icon", "apeui/components/pages/ThemifyIcon", None, "StarFilled", 73),
-        ("Feather 图标", "Apeadmin 样式库", "C", "apeui/components/feather-icon", "apeui/components/pages/FeatherIcon", None, "Sunny", 74),
         # System management
         ("系统管理", None, "M", "/system", None, None, "Setting", 10),
         ("用户管理", "系统管理", "C", "user", "system/user/index", "system:user:list", "User", 1),
@@ -157,9 +94,19 @@ async def _seed_menus(db: AsyncSession) -> None:
         ("新增部门", "部门管理", "F", None, None, "system:dept:add", None, 1),
         ("编辑部门", "部门管理", "F", None, None, "system:dept:edit", None, 2),
         ("删除部门", "部门管理", "F", None, None, "system:dept:delete", None, 3),
-        ("插件管理", "系统管理", "C", "plugin", "system/plugin/index", "system:plugin:list", "Box", 5),
+        # Plugin management is a top-level operational page. Its action
+        # permissions remain nested below it, but it is not part of the system
+        # settings directory.
+        ("插件管理", None, "C", "/plugin", "system/plugin/index", "system:plugin:list", "Box", 5),
         ("启用/禁用插件", "插件管理", "F", None, None, "system:plugin:toggle", None, 1),
         ("插件配置", "插件管理", "F", None, None, "system:plugin:config", None, 2),
+        ("文件管理", "系统管理", "C", "file", "system/file/index", "system:file:list", "FolderOpened", 6),
+        ("上传文件", "文件管理", "F", None, None, "system:file:upload", None, 1),
+        ("新建文件夹", "文件管理", "F", None, None, "system:file:create-folder", None, 2),
+        ("重命名文件", "文件管理", "F", None, None, "system:file:rename", None, 3),
+        ("移动文件", "文件管理", "F", None, None, "system:file:move", None, 4),
+        ("删除文件", "文件管理", "F", None, None, "system:file:delete", None, 5),
+        ("下载文件", "文件管理", "F", None, None, "system:file:download", None, 6),
         ("导入插件", "插件管理", "F", None, None, "system:plugin:upload", None, 3),
         ("删除插件", "插件管理", "F", None, None, "system:plugin:delete", None, 4),
         ("重启后端", "插件管理", "F", None, None, "system:plugin:restart", None, 5),
@@ -177,10 +124,29 @@ async def _seed_menus(db: AsyncSession) -> None:
         ("新增模型密钥", "模型密钥管理", "F", None, None, "ai:provider:add", None, 1),
         ("编辑模型密钥", "模型密钥管理", "F", None, None, "ai:provider:edit", None, 2),
         ("删除模型密钥", "模型密钥管理", "F", None, None, "ai:provider:delete", None, 3),
+        # ApeHub management menus (also included in the first-run seed)
+        ("ApeHub 管理", None, "M", "/apehub", None, None, "Shop", 40),
+        ("官网配置", "ApeHub 管理", "C", "admin/config", "apehub/admin/config", "apehub:config", "Setting", 1),
+        ("内容管理", "ApeHub 管理", "C", "admin/content", "apehub/admin/content", "apehub:content:list", "Document", 2),
+        ("文档管理", "ApeHub 管理", "C", "admin/docs", "apehub/admin/docs", "apehub:docs:list", "Files", 3),
+        ("插件审核", "ApeHub 管理", "C", "admin/plugins", "apehub/admin/plugins", "apehub:plugin:review", "Box", 4),
+        ("提现审核", "ApeHub 管理", "C", "admin/withdrawals", "apehub/admin/withdrawals", "apehub:withdrawal:review", "Money", 5),
+        ("用户列表", "ApeHub 管理", "C", "admin/users", "apehub/admin/users", "apehub:user:list", "User", 6),
+        ("收入明细", "ApeHub 管理", "C", "admin/incomes", "apehub/admin/incomes", "apehub:income:list", "Tickets", 7),
+        ("提交插件", "ApeHub 管理", "F", None, None, "apehub:plugin:submit", None, 8),
+        ("订单列表", "ApeHub 管理", "F", None, None, "apehub:order:list", None, 9),
+        ("申请提现", "ApeHub 管理", "F", None, None, "apehub:withdrawal:create", None, 10),
     ]
 
     # Track created menus by name for parent linking
     name_to_menu: dict[str, Menu] = {}
+
+    menus_data = [
+        item for item in menus_data
+        if not _is_removed_component_menu(item[4])
+        and item[0] != "Apeadmin 样式库"
+        and item[1] != "Apeadmin 样式库"
+    ]
 
     for name, parent_name, mtype, path, component, permission, icon, sort in menus_data:
         parent_id = name_to_menu[parent_name].id if parent_name and parent_name in name_to_menu else 0
@@ -227,83 +193,9 @@ async def _seed_missing_menus(db: AsyncSession) -> None:
 
     # (name, parent_name, type, path, component, permission, icon, sort)
     missing_menus = [
-        # Dashboard and UI Components (top-level)
+        # Restore the default landing page when it was previously nested
+        # under the retired Apeadmin style-library menu.
         ("系统仪表盘", None, "C", "/dashboard-monitor", "apeui/dashboard/Monitor", None, "Monitor", 1),
-        ("Apeadmin 样式库", None, "M", "", None, None, "Grid", 99),
-        ("仪表盘样式1", "Apeadmin 样式库", "C", "dashboard-1", "apeui/dashboard/Default", None, "Odometer", 1),
-        ("仪表盘样式2", "Apeadmin 样式库", "C", "dashboard-2", "apeui/dashboard/Ecommerce", None, "DataAnalysis", 2),
-        ("项目列表", "Apeadmin 样式库", "C", "apeui/app/projects", "apeui/applications/Projects", None, "Folder", 3),
-        ("新建项目", "Apeadmin 样式库", "C", "apeui/app/project-create", "apeui/applications/ProjectCreate", None, "FolderAdd", 4),
-        ("文件管理", "Apeadmin 样式库", "C", "apeui/app/file-manager", "apeui/applications/FileManager", None, "Document", 5),
-        ("看板视图", "Apeadmin 样式库", "C", "apeui/app/kanban", "apeui/applications/Kanban", None, "Grid", 6),
-        ("书签管理", "Apeadmin 样式库", "C", "apeui/app/bookmark", "apeui/applications/Bookmark", None, "Collection", 7),
-        ("通讯录", "Apeadmin 样式库", "C", "apeui/app/contacts", "apeui/applications/Contacts", None, "Phone", 8),
-        ("任务列表", "Apeadmin 样式库", "C", "apeui/app/tasks", "apeui/applications/Tasks", None, "List", 9),
-        ("日历", "Apeadmin 样式库", "C", "apeui/app/calendar", "apeui/applications/CalendarBasic", None, "Calendar", 10),
-        ("社交应用", "Apeadmin 样式库", "C", "apeui/app/social", "apeui/applications/SocialApp", None, "ChatDotSquare", 11),
-        ("待办事项", "Apeadmin 样式库", "C", "apeui/app/todo", "apeui/applications/Todo", None, "Checked", 12),
-        ("搜索结果", "Apeadmin 样式库", "C", "apeui/app/search", "apeui/applications/SearchResult", None, "Search", 13),
-        ("聊天应用", "Apeadmin 样式库", "C", "apeui/app/chat", "apeui/applications/ChatApp", None, "ChatLineSquare", 14),
-        ("视频聊天", "Apeadmin 样式库", "C", "apeui/app/chat-video", "apeui/applications/ChatVideo", None, "VideoCamera", 15),
-        ("商品管理", "Apeadmin 样式库", "C", "apeui/ecommerce/product", "apeui/ecommerce/Product", None, "Goods", 16),
-        ("商品详情页", "Apeadmin 样式库", "C", "apeui/ecommerce/product-page", "apeui/ecommerce/ProductPage", None, "GoodsFilled", 17),
-        ("添加商品", "Apeadmin 样式库", "C", "apeui/ecommerce/add-product", "apeui/ecommerce/AddProduct", None, "CirclePlus", 18),
-        ("商品列表", "Apeadmin 样式库", "C", "apeui/ecommerce/product-list", "apeui/ecommerce/ProductList", None, "List", 19),
-        ("支付详情", "Apeadmin 样式库", "C", "apeui/ecommerce/payment", "apeui/ecommerce/PaymentDetails", None, "CreditCard", 20),
-        ("订单历史", "Apeadmin 样式库", "C", "apeui/ecommerce/order-history", "apeui/ecommerce/OrderHistory", None, "Timer", 21),
-        ("发票模板", "Apeadmin 样式库", "C", "apeui/ecommerce/invoice", "apeui/ecommerce/InvoiceTemplate", None, "Tickets", 22),
-        ("购物车", "Apeadmin 样式库", "C", "apeui/ecommerce/cart", "apeui/ecommerce/Cart", None, "ShoppingCart", 23),
-        ("心愿单", "Apeadmin 样式库", "C", "apeui/ecommerce/wishlist", "apeui/ecommerce/Wishlist", None, "StarFilled", 24),
-        ("结算页面", "Apeadmin 样式库", "C", "apeui/ecommerce/checkout", "apeui/ecommerce/Checkout", None, "ShoppingCartFull", 25),
-        ("定价方案", "Apeadmin 样式库", "C", "apeui/ecommerce/pricing", "apeui/ecommerce/Pricing", None, "Ticket", 26),
-        ("用户资料", "Apeadmin 样式库", "C", "apeui/users/profile", "apeui/users/UserProfile", None, "User", 27),
-        ("编辑资料", "Apeadmin 样式库", "C", "apeui/users/edit-profile", "apeui/users/EditProfile", None, "Edit", 28),
-        ("用户卡片", "Apeadmin 样式库", "C", "apeui/users/cards", "apeui/users/UserCards", None, "Postcard", 29),
-        ("状态颜色", "Apeadmin 样式库", "C", "apeui/components/state-color", "apeui/components/pages/StateColor", None, "Brush", 30),
-        ("排版样式", "Apeadmin 样式库", "C", "apeui/components/typography", "apeui/components/pages/Typography", None, "Document", 31),
-        ("头像", "Apeadmin 样式库", "C", "apeui/components/avatars", "apeui/components/pages/Avatars", None, "Avatar", 32),
-        ("栅格布局", "Apeadmin 样式库", "C", "apeui/components/grid", "apeui/components/pages/Grid", None, "Grid", 33),
-        ("阴影效果", "Apeadmin 样式库", "C", "apeui/components/box-shadow", "apeui/components/pages/BoxShadow", None, "Box", 34),
-        ("按钮", "Apeadmin 样式库", "C", "apeui/components/buttons", "apeui/components/pages/Buttons", None, "Pointer", 35),
-        ("按钮组", "Apeadmin 样式库", "C", "apeui/components/button-group", "apeui/components/pages/ButtonGroup", None, "Pointer", 36),
-        ("标签与胶囊", "Apeadmin 样式库", "C", "apeui/components/tag-pills", "apeui/components/pages/TagPills", None, "CollectionTag", 37),
-        ("进度条", "Apeadmin 样式库", "C", "apeui/components/progress-bar", "apeui/components/pages/ProgressBar", None, "Histogram", 38),
-        ("模态框", "Apeadmin 样式库", "C", "apeui/components/modal", "apeui/components/pages/Modal", None, "Box", 39),
-        ("警告提示", "Apeadmin 样式库", "C", "apeui/components/alert", "apeui/components/pages/Alert", None, "Warning", 40),
-        ("气泡卡片", "Apeadmin 样式库", "C", "apeui/components/popover", "apeui/components/pages/Popover", None, "ChatLineSquare", 41),
-        ("文字提示", "Apeadmin 样式库", "C", "apeui/components/tooltip", "apeui/components/pages/Tooltip", None, "InfoFilled", 42),
-        ("下拉菜单", "Apeadmin 样式库", "C", "apeui/components/dropdown", "apeui/components/pages/Dropdown", None, "ArrowDown", 43),
-        ("折叠面板", "Apeadmin 样式库", "C", "apeui/components/accordion", "apeui/components/pages/Accordion", None, "Fold", 44),
-        ("ApeAdmin 标签页", "Apeadmin 样式库", "C", "apeui/components/tabs-bootstrap", "apeui/components/pages/TabsBootstrap", None, "Document", 45),
-        ("线型标签页", "Apeadmin 样式库", "C", "apeui/components/tabs-line", "apeui/components/pages/TabsLine", None, "Document", 46),
-        ("列表", "Apeadmin 样式库", "C", "apeui/components/list", "apeui/components/pages/List", None, "List", 47),
-        ("滚动区域", "Apeadmin 样式库", "C", "apeui/components/scrollable", "apeui/components/pages/Scrollable", None, "Scroll", 48),
-        ("树形视图", "Apeadmin 样式库", "C", "apeui/components/tree", "apeui/components/pages/Tree", None, "Connection", 49),
-        ("评分", "Apeadmin 样式库", "C", "apeui/components/rating", "apeui/components/pages/Rating", None, "StarFilled", 50),
-        ("弹窗提示", "Apeadmin 样式库", "C", "apeui/components/sweet-alert2", "apeui/components/pages/SweetAlert2", None, "Warning", 51),
-        ("分页", "Apeadmin 样式库", "C", "apeui/components/pagination", "apeui/components/pages/Pagination", None, "Document", 52),
-        ("面包屑", "Apeadmin 样式库", "C", "apeui/components/breadcrumb", "apeui/components/pages/Breadcrumb", None, "Rank", 53),
-        ("范围滑块", "Apeadmin 样式库", "C", "apeui/components/range-slider", "apeui/components/pages/RangeSlider", None, "Slider", 54),
-        ("基础卡片", "Apeadmin 样式库", "C", "apeui/components/basic-card", "apeui/components/pages/BasicCard", None, "Postcard", 55),
-        ("创意卡片", "Apeadmin 样式库", "C", "apeui/components/creative-card", "apeui/components/pages/CreativeCard", None, "Postcard", 56),
-        ("标签页卡片", "Apeadmin 样式库", "C", "apeui/components/tabbed-card", "apeui/components/pages/TabbedCard", None, "Postcard", 57),
-        ("可拖拽卡片", "Apeadmin 样式库", "C", "apeui/components/dragable-card", "apeui/components/pages/DragableCard", None, "Postcard", 58),
-        ("时间轴一", "Apeadmin 样式库", "C", "apeui/components/timeline-1", "apeui/components/pages/Timeline1", None, "Timer", 59),
-        ("时间轴二", "Apeadmin 样式库", "C", "apeui/components/timeline-2", "apeui/components/pages/Timeline2", None, "Timer", 60),
-        ("Apex 图表", "Apeadmin 样式库", "C", "apeui/components/chart-apex", "apeui/components/pages/ChartApex", None, "TrendCharts", 61),
-        ("Google 图表", "Apeadmin 样式库", "C", "apeui/components/chart-google", "apeui/components/pages/ChartGoogle", None, "TrendCharts", 62),
-        ("迷你走势图", "Apeadmin 样式库", "C", "apeui/components/chart-sparkline", "apeui/components/pages/ChartSparkline", None, "TrendCharts", 63),
-        ("Flot 图表", "Apeadmin 样式库", "C", "apeui/components/chart-flot", "apeui/components/pages/ChartFlot", None, "TrendCharts", 64),
-        ("旋钮图表", "Apeadmin 样式库", "C", "apeui/components/chart-knob", "apeui/components/pages/ChartKnob", None, "TrendCharts", 65),
-        ("Morris 图表", "Apeadmin 样式库", "C", "apeui/components/chart-morris", "apeui/components/pages/ChartMorris", None, "TrendCharts", 66),
-        ("Chart.js 图表", "Apeadmin 样式库", "C", "apeui/components/chartjs", "apeui/components/pages/Chartjs", None, "TrendCharts", 67),
-        ("Chartist 图表", "Apeadmin 样式库", "C", "apeui/components/chartist", "apeui/components/pages/Chartist", None, "TrendCharts", 68),
-        ("Peity 图表", "Apeadmin 样式库", "C", "apeui/components/chart-peity", "apeui/components/pages/ChartPeity", None, "TrendCharts", 69),
-        ("国旗图标", "Apeadmin 样式库", "C", "apeui/components/flag-icon", "apeui/components/pages/FlagIcon", None, "Flag", 70),
-        ("Font Awesome 图标", "Apeadmin 样式库", "C", "apeui/components/font-awesome", "apeui/components/pages/FontAwesome", None, "StarFilled", 71),
-        ("Ico 图标", "Apeadmin 样式库", "C", "apeui/components/ico-icon", "apeui/components/pages/IcoIcon", None, "StarFilled", 72),
-        ("Themify 图标", "Apeadmin 样式库", "C", "apeui/components/themify-icon", "apeui/components/pages/ThemifyIcon", None, "StarFilled", 73),
-        ("Feather 图标", "Apeadmin 样式库", "C", "apeui/components/feather-icon", "apeui/components/pages/FeatherIcon", None, "Sunny", 74),
         # MCP management additions
         ("提示词列表", "MCP 管理", "C", "prompts", "mcp/prompts", "mcp:prompts:list", "ChatLineSquare", 3),
         ("调用工具", "工具列表", "F", None, None, "mcp:tools:call", None, 1),
@@ -317,6 +209,32 @@ async def _seed_missing_menus(db: AsyncSession) -> None:
         ("导入插件", "插件管理", "F", None, None, "system:plugin:upload", None, 3),
         ("删除插件", "插件管理", "F", None, None, "system:plugin:delete", None, 4),
         ("重启后端", "插件管理", "F", None, None, "system:plugin:restart", None, 5),
+        ("文件管理", "系统管理", "C", "file", "system/file/index", "system:file:list", "FolderOpened", 6),
+        ("上传文件", "文件管理", "F", None, None, "system:file:upload", None, 1),
+        ("新建文件夹", "文件管理", "F", None, None, "system:file:create-folder", None, 2),
+        ("重命名文件", "文件管理", "F", None, None, "system:file:rename", None, 3),
+        ("移动文件", "文件管理", "F", None, None, "system:file:move", None, 4),
+        ("删除文件", "文件管理", "F", None, None, "system:file:delete", None, 5),
+        ("下载文件", "文件管理", "F", None, None, "system:file:download", None, 6),
+        # ApeHub plugin-owned management menus and developer actions
+        ("ApeHub 管理", None, "M", "/apehub", None, None, "Shop", 40),
+        ("官网配置", "ApeHub 管理", "C", "admin/config", "apehub/admin/config", "apehub:config", "Setting", 1),
+        ("内容管理", "ApeHub 管理", "C", "admin/content", "apehub/admin/content", "apehub:content:list", "Document", 2),
+        ("文档管理", "ApeHub 管理", "C", "admin/docs", "apehub/admin/docs", "apehub:docs:list", "Files", 3),
+        ("插件审核", "ApeHub 管理", "C", "admin/plugins", "apehub/admin/plugins", "apehub:plugin:review", "Box", 4),
+        ("提现审核", "ApeHub 管理", "C", "admin/withdrawals", "apehub/admin/withdrawals", "apehub:withdrawal:review", "Money", 5),
+        ("用户列表", "ApeHub 管理", "C", "admin/users", "apehub/admin/users", "apehub:user:list", "User", 6),
+        ("收入明细", "ApeHub 管理", "C", "admin/incomes", "apehub/admin/incomes", "apehub:income:list", "Tickets", 7),
+        ("提交插件", "ApeHub 管理", "F", None, None, "apehub:plugin:submit", None, 8),
+        ("订单列表", "ApeHub 管理", "F", None, None, "apehub:order:list", None, 9),
+        ("申请提现", "ApeHub 管理", "F", None, None, "apehub:withdrawal:create", None, 10),
+    ]
+
+    missing_menus = [
+        item for item in missing_menus
+        if not _is_removed_component_menu(item[4])
+        and item[0] != "Apeadmin 样式库"
+        and item[1] != "Apeadmin 样式库"
     ]
 
     added = 0
@@ -330,6 +248,16 @@ async def _seed_missing_menus(db: AsyncSession) -> None:
                 continue
 
         pid = parent_menu.id if parent_menu else 0
+
+        # The dashboard component lives under the ``apeui`` frontend namespace
+        # but is a core page, not an ApeUI plugin-owned menu. Restore it when a
+        # previous plugin toggle left the existing row hidden.
+        if name == "系统仪表盘" and pid == 0:
+            dashboard = next((m for m in existing_menus if m.name == name and m.parent_id == 0), None)
+            if dashboard:
+                dashboard.status = 1
+                dashboard.visible = 1
+                continue
 
         # Skip if already exists (by parent id)
         dup = any(m.name == name and m.parent_id == pid for m in existing_menus)
@@ -370,6 +298,88 @@ async def _seed_missing_menus(db: AsyncSession) -> None:
                 logger.info(f"Bound {len(new_menus)} new menus to admin role")
 
 
+async def _retire_removed_component_menus(db: AsyncSession) -> None:
+    """Hide legacy component-demo menus on existing installations."""
+    result = await db.execute(
+        update(Menu)
+        .where(Menu.component.like(f"{_REMOVED_COMPONENT_PREFIX}%"))
+        .where((Menu.status != 0) | (Menu.visible != 0))
+        .values(status=0, visible=0)
+    )
+    if result.rowcount:
+        logger.info(f"Retired {result.rowcount} legacy component-demo menus")
+
+
+async def _retire_style_library_menus(db: AsyncSession) -> None:
+    """Hide the obsolete Apeadmin style-library directory and descendants."""
+    result = await db.execute(select(Menu).where(Menu.name == "Apeadmin 样式库", Menu.parent_id == 0))
+    roots = list(result.scalars().all())
+    if not roots:
+        return
+    all_menus = list((await db.execute(select(Menu))).scalars().all())
+    descendants = {menu.id for menu in roots}
+    changed = True
+    while changed:
+        changed = False
+        for menu in all_menus:
+            if menu.parent_id in descendants and menu.id not in descendants:
+                descendants.add(menu.id)
+                changed = True
+    retired = 0
+    for menu in all_menus:
+        if menu.id in descendants and (menu.status != 0 or menu.visible != 0):
+            menu.status = 0
+            menu.visible = 0
+            retired += 1
+    if retired:
+        logger.info(f"Retired {retired} Apeadmin style-library menus")
+
+
+async def _remove_unimplemented_apeui_menus(db: AsyncSession) -> None:
+    """Remove ApeUI admin menus whose Vue route components are not shipped.
+
+    The static ApeUI website is a separate plugin surface. Its planned admin
+    pages were seeded before their frontend implementation existed, which made
+    every sidebar entry resolve to the 404 route. Remove both new-install and
+    historical menu rows until a future plugin release ships the matching
+    components and APIs.
+    """
+    all_menus = list((await db.execute(select(Menu))).scalars().all())
+    root_ids = {
+        menu.id
+        for menu in all_menus
+        if menu.name == "ApeUI 官网" and menu.parent_id == 0 and menu.path == "/apeui"
+    }
+    menu_ids = {
+        menu.id
+        for menu in all_menus
+        if menu.component and menu.component.startswith("apeui/admin/")
+    }
+    menu_ids.update(
+        menu.id
+        for menu in all_menus
+        if menu.permission and menu.permission.startswith("apeui:")
+    )
+    menu_ids.update(root_ids)
+
+    # Include descendants of the legacy root directory, including any
+    # button-level permissions that may have been added manually.
+    changed = True
+    while changed:
+        changed = False
+        for menu in all_menus:
+            if menu.parent_id in menu_ids and menu.id not in menu_ids:
+                menu_ids.add(menu.id)
+                changed = True
+
+    if not menu_ids:
+        return
+
+    await db.execute(delete(role_menu).where(role_menu.c.menu_id.in_(menu_ids)))
+    await db.execute(delete(Menu).where(Menu.id.in_(menu_ids)))
+    logger.info(f"Removed {len(menu_ids)} unimplemented ApeUI admin menus")
+
+
 async def _seed_role(db: AsyncSession) -> None:
     """Create a default admin role with all menus."""
     result = await db.execute(select(Role).where(Role.code == "admin"))
@@ -391,6 +401,35 @@ async def _seed_role(db: AsyncSession) -> None:
     db.add(role)
     await db.flush()
     logger.info("Created role '超级管理员'")
+
+
+async def _seed_developer_role(db: AsyncSession) -> None:
+    """Create or update the least-privilege ApeHub developer role."""
+    result = await db.execute(select(Role).where(Role.code == "developer"))
+    role = result.scalars().first()
+    if role is None:
+        role = Role(
+            name="开发者",
+            code="developer",
+            data_scope=1,
+            sort=2,
+            status=1,
+            remark="ApeHub 插件开发者角色",
+        )
+        db.add(role)
+        await db.flush()
+
+    menus_result = await db.execute(
+        select(Menu).where(Menu.permission.like("apehub:%"), Menu.status == 1)
+    )
+    apehub_menus = list(menus_result.scalars().all())
+    bound_result = await db.execute(select(role_menu.c.menu_id).where(role_menu.c.role_id == role.id))
+    bound_ids = set(bound_result.scalars().all())
+    missing = [menu for menu in apehub_menus if menu.id not in bound_ids]
+    if missing:
+        await db.execute(insert(role_menu), [{"role_id": role.id, "menu_id": menu.id} for menu in missing])
+        await db.flush()
+    logger.info(f"Developer role ready ({len(apehub_menus)} ApeHub permissions)")
 
 
 async def _seed_super_admin(db: AsyncSession) -> None:

@@ -81,6 +81,15 @@ class CRUDMenu(CRUDBase[Menu]):
         result = await db.execute(stmt)
         return list(result.scalars().all())
 
+    async def update(self, db: AsyncSession, id: int, obj_in: dict[str, Any]) -> Menu | None:
+        """Update a menu while preserving explicit nulls for nullable columns."""
+        if not obj_in:
+            return await self.get(db, id)
+        from sqlalchemy import update
+        await db.execute(update(Menu).where(Menu.id == id).values(**obj_in))
+        await db.commit()
+        return await self.get(db, id)
+
 
 class CRUDDept(CRUDBase[Dept]):
     async def get_tree(self, db: AsyncSession) -> list[Dept]:

@@ -24,6 +24,14 @@
             </div>
           </div>
 
+          <div v-if="captchaEnabled" class="form-group">
+            <label class="col-form-label">Captcha</label>
+            <div class="captcha-input-row">
+              <input class="form-control" type="text" v-model="form.captcha_code" maxlength="4" placeholder="Enter captcha" required />
+              <button class="captcha-image" type="button" @click="loadCaptcha" :disabled="captchaLoading">{{ captchaCode || '----' }}</button>
+            </div>
+          </div>
+
           <div class="form-group mb-0">
             <div class="checkbox p-0">
               <input id="checkbox1" type="checkbox" v-model="remember" />
@@ -90,7 +98,31 @@ const pwdType = ref<'password' | 'text'>('password')
 const form = reactive({
   username: 'admin',
   password: 'admin123',
+  captcha_code: '',
 })
+const captchaId = ref('')
+const captchaCode = ref('')
+const captchaEnabled = ref(false)
+const captchaLoading = ref(false)
+
+async function loadCaptcha() {
+  captchaLoading.value = true
+  try {
+    const response = await fetch('/api/v1/login-captcha/captcha')
+    if (!response.ok) throw new Error('captcha plugin unavailable')
+    const envelope: any = await response.json()
+    const data = envelope.data
+    captchaEnabled.value = true
+    captchaId.value = data.captcha_id
+    captchaCode.value = data.code
+  } catch {
+    captchaEnabled.value = false
+  } finally {
+    captchaLoading.value = false
+  }
+}
+
+loadCaptcha()
 
 function togglePwd() {
   pwdType.value = pwdType.value === 'password' ? 'text' : 'password'
@@ -104,7 +136,7 @@ async function handleLogin() {
   }
   loading.value = true
   try {
-    await userStore.login(form.username, form.password)
+    await userStore.login(form.username, form.password, captchaEnabled.value ? { captcha_id: captchaId.value, captcha_code: form.captcha_code } : undefined)
     ElMessage.success('登录成功')
     router.push('/dashboard-monitor')
   } catch (e: any) {
@@ -127,6 +159,8 @@ async function handleLogin() {
   background-position: center;
   padding: 30px 12px;
 }
+.captcha-input-row { display: flex; gap: 10px; }
+.captcha-image { width: 110px; border: 1px solid #eff3f9; border-radius: 4px; background: #f4f6ff; color: #5A67F5; font-size: 18px; letter-spacing: 3px; cursor: pointer; }
 .login-logo {
   display: flex;
   align-items: center;

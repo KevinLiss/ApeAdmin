@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ApeAdmin · 插件市场</title>
+<meta name="description" content="ApeAdmin 插件市场 —— 发现、安装和管理 ApeAdmin 插件。" />
+<link rel="icon" type="image/png" href="/apehub-web/assets/logo.png" />
+<style>
+  :root {
+    --bg: #07080f;
+    --bg-soft: #0c0e1a;
+    --panel: rgba(255,255,255,0.04);
+    --panel-2: rgba(255,255,255,0.06);
+    --border: rgba(255,255,255,0.08);
+    --border-2: rgba(255,255,255,0.14);
+    --primary: #6d5cff;
+    --primary-2: #9d6bff;
+    --accent: #22d3ee;
+    --text: #eef0ff;
+    --text-2: #a4a9c9;
+    --text-3: #6b7096;
+    --radius: 20px;
+    --maxw: 1200px;
+    --grad: linear-gradient(135deg, #6d5cff 0%, #9d6bff 50%, #d65ef0 100%);
+    --grad-2: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  }
+  :root[data-theme="light"] {
+    --bg: #f8fafc;
+    --bg-soft: #ffffff;
+    --panel: rgba(0,0,0,0.025);
+    --panel-2: rgba(0,0,0,0.04);
+    --border: rgba(0,0,0,0.08);
+    --border-2: rgba(0,0,0,0.14);
+    --primary: #6d5cff;
+    --primary-2: #7c3aed;
+    --accent: #0891b2;
+    --text: #1e293b;
+    --text-2: #475569;
+    --text-3: #94a3b8;
+    --grad: linear-gradient(135deg, #6d5cff 0%, #9d6bff 50%, #d65ef0 100%);
+    --grad-2: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  }
+  :root[data-theme="light"] .bg-glow {
+    background: radial-gradient(700px 500px at 15% -5%, rgba(109,92,255,.10), transparent 60%),
+                radial-gradient(600px 400px at 85% 5%, rgba(214,94,240,.06), transparent 60%);
+  }
+  :root[data-theme="light"] .bg-grid {
+    background-image: linear-gradient(rgba(0,0,0,.035) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(0,0,0,.035) 1px, transparent 1px);
+  }
+  :root[data-theme="light"] nav { background: rgba(255,255,255,.85); }
+  :root[data-theme="light"] .cat-pill.active { color: #fff; }
+  :root[data-theme="light"] .plugin-card:hover { background: rgba(109,92,255,.05); }
+  :root[data-theme="light"] .plugin-card .p-tag { background: rgba(8,145,178,.08); border-color: rgba(8,145,178,.2); }
+  :root[data-theme="light"] ::-webkit-scrollbar-thumb { background: #cbd5e1; }
+  :root[data-theme="light"] .menu-toggle { color: var(--text); }
+  :root[data-theme="light"] .search-bar input:focus { background: rgba(109,92,255,.05); }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.6; overflow-x: hidden;
+  }
+  a { color: inherit; text-decoration: none; }
+  ::selection { background: rgba(109,92,255,.4); }
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-thumb { background: #2a2d45; border-radius: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  .bg-glow {
+    position: fixed; inset: 0; z-index: -2; pointer-events: none;
+    background:
+      radial-gradient(700px 500px at 15% -5%, rgba(109,92,255,.16), transparent 60%),
+      radial-gradient(600px 400px at 85% 5%, rgba(214,94,240,.10), transparent 60%);
+  }
+  .bg-grid {
+    position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 80% 50% at 50% 0%, #000 30%, transparent 80%);
+  }
+  .container { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+  /* 导航 */
+  nav { position: sticky; top: 0; z-index: 100; backdrop-filter: blur(14px); background: rgba(7,8,15,.8); border-bottom: 1px solid var(--border); }
+  .nav-inner { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 68px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+  .brand img { width: 30px; height: 30px; border-radius: 8px; }
+  .brand .badge { font-size: 10px; font-weight: 600; color: var(--accent); border: 1px solid rgba(34,211,238,.4); background: rgba(34,211,238,.1); padding: 2px 8px; border-radius: 999px; margin-left: 4px; }
+  .nav-links { display: flex; gap: 26px; align-items: center; }
+  .nav-links a { color: var(--text-2); font-size: 14.5px; transition: color .2s; }
+  .nav-links a:hover, .nav-links a.active { color: var(--text); }
+  .nav-actions { display: flex; gap: 12px; align-items: center; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 600; border-radius: 12px; padding: 10px 18px; border: 1px solid transparent; transition: all .22s; font-family: inherit; }
+  .btn-ghost { color: var(--text-2); background: transparent; border-color: var(--border); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--border-2); }
+  .btn-primary { color: #fff; background: var(--grad-2); box-shadow: 0 8px 24px -8px rgba(109,92,255,.7); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 32px -8px rgba(109,92,255,.9); }
+  .btn-sm { padding: 8px 16px; font-size: 13px; border-radius: 10px; }
+  .theme-toggle { font-size: 16px; padding: 8px 12px; line-height: 1; }
+  .menu-toggle { display: none; background: none; border: none; color: var(--text); font-size: 22px; cursor: pointer; }
+
+  /* 页面头部 */
+  .page-head { padding: 80px 0 40px; text-align: center; }
+  .page-head h1 { font-size: clamp(32px, 5vw, 48px); font-weight: 800; letter-spacing: -.5px; margin-bottom: 16px; }
+  .page-head h1 .grad { background: var(--grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .page-head .sub { color: var(--text-2); font-size: 16px; max-width: 560px; margin: 0 auto 32px; }
+
+  /* 搜索栏 */
+  .search-bar { display: flex; gap: 12px; max-width: 560px; margin: 0 auto 32px; }
+  .search-bar input {
+    flex: 1; padding: 14px 18px; border-radius: 14px;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text);
+    font-size: 15px; font-family: inherit; transition: all .2s;
+  }
+  .search-bar input::placeholder { color: var(--text-3); }
+  .search-bar input:focus { outline: none; border-color: var(--primary); background: rgba(109,92,255,.06); }
+  .search-bar button {
+    padding: 14px 22px; border: none; border-radius: 14px;
+    background: var(--grad-2); color: #fff; font-size: 14px; font-weight: 600;
+    cursor: pointer; font-family: inherit; box-shadow: 0 6px 18px -6px rgba(109,92,255,.6);
+    transition: all .22s;
+  }
+  .search-bar button:hover { transform: translateY(-2px); }
+
+  /* 分类标签 */
+  .categories { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 50px; }
+  .cat-pill {
+    padding: 8px 18px; border-radius: 999px; font-size: 13.5px; font-weight: 600;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text-2);
+    cursor: pointer; transition: all .2s;
+  }
+  .cat-pill:hover { color: var(--text); border-color: var(--border-2); }
+  .cat-pill.active { color: #fff; background: var(--grad-2); border-color: transparent; box-shadow: 0 4px 14px -4px rgba(109,92,255,.5); }
+
+  /* 插件卡片网格 */
+  .plugins-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-bottom: 60px; }
+  .plugin-card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 26px; transition: all .3s; position: relative; overflow: hidden;
+    display: flex; flex-direction: column; cursor: pointer;
+  }
+  .plugin-card:hover { transform: translateY(-6px); border-color: rgba(109,92,255,.4); background: rgba(109,92,255,.05); }
+  .plugin-card .ribbon {
+    position: absolute; top: 14px; right: -28px; transform: rotate(35deg);
+    font-size: 11px; font-weight: 700; padding: 3px 32px; color: #fff;
+  }
+  .ribbon.hot { background: linear-gradient(90deg, #f59e0b, #f97316); }
+  .ribbon.new { background: linear-gradient(90deg, #10b981, #22d3ee); }
+  .plugin-card .p-head { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+  .plugin-card .p-icon {
+    width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center;
+    font-size: 24px; flex-shrink: 0;
+  }
+  .plugin-card .p-name { font-size: 17px; font-weight: 700; margin-bottom: 2px; }
+  .plugin-card .p-ver { font-size: 12px; color: var(--text-3); }
+  .plugin-card .p-desc { color: var(--text-2); font-size: 14px; margin-bottom: 18px; flex: 1; }
+  .plugin-card .p-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
+  .plugin-card .p-tag { font-size: 12px; color: var(--accent); background: rgba(34,211,238,.1); border: 1px solid rgba(34,211,238,.2); padding: 3px 10px; border-radius: 999px; }
+  .plugin-card .p-meta { display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid var(--border); }
+  .plugin-card .p-stats { display: flex; gap: 16px; font-size: 13px; color: var(--text-3); }
+  .plugin-card .p-stats span { display: flex; align-items: center; gap: 4px; }
+  .plugin-card .p-actions { display: flex; gap: 8px; }
+  .install-btn {
+    padding: 8px 18px; border: none; border-radius: 10px;
+    background: var(--grad-2); color: #fff; font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: inherit; transition: all .2s;
+    box-shadow: 0 4px 12px -4px rgba(109,92,255,.4);
+  }
+  .install-btn:hover { transform: translateY(-2px); }
+
+  /* 加载更多 */
+  .load-more { text-align: center; margin-bottom: 80px; }
+
+  /* 页脚 */
+  footer { border-top: 1px solid var(--border); padding: 40px 24px; }
+  .foot-inner { max-width: var(--maxw); margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+  .foot-inner .l { color: var(--text-3); font-size: 13px; }
+  .foot-inner .r { display: flex; gap: 18px; }
+  .foot-inner .r a { color: var(--text-3); font-size: 13px; transition: color .2s; }
+  .foot-inner .r a:hover { color: var(--text); }
+
+  /* 响应式 */
+  @media (max-width: 900px) {
+    .nav-links { display: none; }
+    .menu-toggle { display: block; }
+    .plugins-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 600px) {
+    .plugins-grid { grid-template-columns: 1fr; }
+    .nav-actions .gh-link { display: none; }
+    .nav-actions .btn-primary { padding: 8px 14px; font-size: 13px; }
+    .page-head { padding: 60px 0 30px; }
+  }
+</style>
+</head>
+<body>
+<div class="bg-glow"></div>
+<div class="bg-grid"></div>
+
+<!-- 导航 -->
+<nav>
+  <div class="nav-inner">
+    <a class="brand" href="/apehub-web/index.html">
+      <img src="/apehub-web/assets/logo.png" alt="ApeAdmin" />
+      <span>ApeAdmin <span class="badge">Plugins</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="/apehub-web/index.html">首页</a>
+      <a href="/apehub-web/index.html#features">核心特性</a>
+      <a href="/apehub-web/index.html#mcp">MCP 网关</a>
+      <a class="active" href="/apehub-web/plugins.html">插件市场</a>
+      <a href="/apehub-web/docs.html">技术文档</a>
+      <a href="/apehub-web/profile.html">个人中心</a>
+    </div>
+    <div class="nav-actions">
+      <button class="btn btn-ghost theme-toggle" id="themeToggle" aria-label="切换主题" title="切换明暗主题">🌙</button>
+      <a class="btn btn-ghost gh-link" href="https://github.com/KevinLiss/ApeAdmin" target="_blank" rel="noopener">GitHub</a>
+      <a class="btn btn-primary" href="/apehub-web/index.html#start">开始使用</a>
+    </div>
+    <button class="menu-toggle" id="menuToggle" aria-label="菜单">☰</button>
+  </div>
+</nav>
+
+<!-- 页面头部 -->
+<div class="page-head">
+  <div class="container">
+    <h1>插件<span class="grad">市场</span></h1>
+    <p class="sub">发现、安装和管理 ApeAdmin 插件。插件以 Python 包形式开发，支持 ZIP 一键安装、热启用禁用，与底座完全解耦。</p>
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="搜索插件名称、描述或标签..." />
+      <button id="searchBtn">搜索</button>
+    </div>
+    <div class="categories" id="categories">
+      <span class="cat-pill active" data-cat="all">全部</span>
+      <span class="cat-pill" data-cat="dev">开发工具</span>
+      <span class="cat-pill" data-cat="ai">AI 能力</span>
+      <span class="cat-pill" data-cat="data">数据管理</span>
+      <span class="cat-pill" data-cat="sys">系统运维</span>
+      <span class="cat-pill" data-cat="ui">UI 增强</span>
+      <span class="cat-pill" data-cat="biz">业务应用</span>
+    </div>
+  </div>
+</div>
+
+<!-- 插件列表 -->
+<div class="container">
+  <div class="plugins-grid" id="pluginsGrid">
+    <!-- 插件卡片由 JS 动态渲染 -->
+  </div>
+  <div class="load-more">
+    <button class="btn btn-ghost btn-sm" id="loadMore">加载更多</button>
+  </div>
+</div>
+
+<!-- 页脚 -->
+<footer>
+  <div class="foot-inner">
+    <div class="l">© 2026 ApeAdmin · 插件市场 · MIT License</div>
+    <div class="r">
+      <a href="/apehub-web/index.html">首页</a>
+      <a href="/apehub-web/docs.html">技术文档</a>
+      <a href="https://github.com/KevinLiss/ApeAdmin" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // 主题切换
+  const themeToggle = document.getElementById('themeToggle');
+  const root = document.documentElement;
+  const savedTheme = localStorage.getItem('ape-theme') || 'dark';
+  root.setAttribute('data-theme', savedTheme);
+  themeToggle.textContent = savedTheme === 'dark' ? '🌙' : '☀️';
+  themeToggle.addEventListener('click', () => {
+    const current = root.getAttribute('data-theme') || 'dark';
+    const next = current === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    localStorage.setItem('ape-theme', next);
+    themeToggle.textContent = next === 'dark' ? '🌙' : '☀️';
+  });
+
+  // 插件数据
+  const PLUGINS = [
+    { name: 'AI Chat Engine', ver: 'v2.1.0', icon: '🤖', iconBg: 'rgba(109,92,255,.15)', desc: '多模型对话引擎，支持 DeepSeek/通义千问/智谱GLM，流式 SSE 输出与 Function Calling。', tags: ['AI', 'SSE', '多模型'], cat: 'ai', downloads: '12.3k', rating: 4.9, ribbon: 'hot' },
+    { name: 'Code Graph Analyzer', ver: 'v1.4.2', icon: '🔍', iconBg: 'rgba(34,211,238,.15)', desc: '基于 tree-sitter AST 解析的代码图谱工具，支持多语言项目结构与依赖分析。', tags: ['AST', 'tree-sitter', '分析'], cat: 'dev', downloads: '8.7k', rating: 4.7, ribbon: '' },
+    { name: 'Doc Generator', ver: 'v3.0.1', icon: '📄', iconBg: 'rgba(251,146,60,.15)', desc: '一键生成 DOCX/PPT/Excel 三件套，自动从代码注释提取文档结构。', tags: ['DOCX', 'PPT', 'Excel'], cat: 'dev', downloads: '15.2k', rating: 4.8, ribbon: 'hot' },
+    { name: 'RAG Knowledge Base', ver: 'v2.0.0', icon: '📚', iconBg: 'rgba(52,211,153,.15)', desc: 'TF-IDF + 向量索引双引擎 RAG 知识库，支持文档分块、语义检索与引用溯源。', tags: ['RAG', '向量', '检索'], cat: 'ai', downloads: '9.1k', rating: 4.6, ribbon: '' },
+    { name: 'Sandbox Code Runner', ver: 'v1.2.3', icon: '🛡️', iconBg: 'rgba(244,114,182,.15)', desc: '云端 AI 沙盒执行环境，路径隔离 + 命令白/黑名单双重防护，安全运行用户代码。', tags: ['沙盒', '隔离', '安全'], cat: 'dev', downloads: '6.4k', rating: 4.5, ribbon: '' },
+    { name: 'System Monitor', ver: 'v1.8.0', icon: '📊', iconBg: 'rgba(109,92,255,.15)', desc: '基于 psutil 的系统监控面板，实时 CPU/内存/磁盘/网络，支持历史曲线与告警。', tags: ['psutil', '监控', '仪表盘'], cat: 'sys', downloads: '11.0k', rating: 4.7, ribbon: '' },
+    { name: 'Project Preview', ver: 'v1.5.1', icon: '👁️', iconBg: 'rgba(34,211,238,.15)', desc: '项目实时预览，支持 Vite/Webpack 项目自动检测与一键启动预览服务。', tags: ['预览', 'Vite', '实时'], cat: 'dev', downloads: '5.8k', rating: 4.4, ribbon: 'new' },
+    { name: 'Data Masking', ver: 'v1.1.0', icon: '🔐', iconBg: 'rgba(251,146,60,.15)', desc: '数据脱敏规则管理，支持手机号/身份证/邮箱等自动脱敏与自定义规则配置。', tags: ['脱敏', '隐私', '规则'], cat: 'data', downloads: '4.2k', rating: 4.3, ribbon: '' },
+    { name: 'Smart Routing', ver: 'v2.3.0', icon: '🧭', iconBg: 'rgba(52,211,153,.15)', desc: 'AI 引擎按消息内容自动路由模型，根据对话意图智能选择最匹配的大模型。', tags: ['路由', '自动', '意图'], cat: 'ai', downloads: '7.9k', rating: 4.6, ribbon: '' },
+    { name: 'Log Dashboard', ver: 'v1.6.0', icon: '📋', iconBg: 'rgba(244,114,182,.15)', desc: '操作日志可视化面板，按模块/时间/用户多维筛选，支持请求链路追踪。', tags: ['日志', '审计', '追踪'], cat: 'sys', downloads: '6.7k', rating: 4.5, ribbon: '' },
+    { name: 'UI Theme Studio', ver: 'v1.3.0', icon: '🎨', iconBg: 'rgba(109,92,255,.15)', desc: '深色/浅色主题自定义工作室，CSS 变量体系，768px 断点 PC/H5 自适应。', tags: ['主题', 'CSS', '响应式'], cat: 'ui', downloads: '5.1k', rating: 4.4, ribbon: 'new' },
+    { name: 'Plugin Manager Pro', ver: 'v2.0.0', icon: '📦', iconBg: 'rgba(34,211,238,.15)', desc: '插件管理增强版，ZIP 上传导入、生命周期可视化、一键启用禁用与依赖检查。', tags: ['管理', 'ZIP', '生命周期'], cat: 'sys', downloads: '8.3k', rating: 4.8, ribbon: 'hot' },
+    { name: 'Form Designer', ver: 'v1.0.2', icon: '📝', iconBg: 'rgba(251,146,60,.15)', desc: '可视化表单设计器，拖拽生成 Element Plus 表单，支持校验规则与自定义组件。', tags: ['表单', '拖拽', 'EP'], cat: 'ui', downloads: '3.9k', rating: 4.2, ribbon: 'new' },
+    { name: 'API Tester', ver: 'v1.4.0', icon: '🔌', iconBg: 'rgba(52,211,153,.15)', desc: '内置 API 测试工具，支持 REST/GraphQL，自动生成请求模板与断言。', tags: ['API', 'REST', '测试'], cat: 'dev', downloads: '5.5k', rating: 4.3, ribbon: '' },
+    { name: 'Cron Scheduler', ver: 'v1.2.0', icon: '⏰', iconBg: 'rgba(244,114,182,.15)', desc: '定时任务管理插件，支持 cron 表达式与一次性任务，可视化运行日志。', tags: ['定时', 'cron', '调度'], cat: 'sys', downloads: '4.8k', rating: 4.4, ribbon: '' },
+    { name: 'Data Export Kit', ver: 'v1.1.0', icon: '📤', iconBg: 'rgba(109,92,255,.15)', desc: '数据导出工具包，支持 CSV/Excel/JSON 多格式，大数据量分页流式导出。', tags: ['导出', 'Excel', 'CSV'], cat: 'data', downloads: '6.0k', rating: 4.5, ribbon: '' },
+    { name: 'Chat Widget', ver: 'v1.0.0', icon: '💬', iconBg: 'rgba(34,211,238,.15)', desc: '可嵌入的 AI 对话浮窗组件，Markdown 实时渲染 + 代码高亮，支持多会话管理。', tags: ['聊天', '浮窗', 'Markdown'], cat: 'biz', downloads: '3.5k', rating: 4.3, ribbon: 'new' },
+    { name: 'Workflow Engine', ver: 'v2.1.0', icon: '🔄', iconBg: 'rgba(251,146,60,.15)', desc: '可视化工作流编排引擎，节点拖拽连线、条件分支、支持自定义节点与 Webhook 触发。', tags: ['工作流', '编排', '自动化'], cat: 'biz', downloads: '7.2k', rating: 4.7, ribbon: 'hot' },
+  ];
+
+  let currentCat = 'all';
+  let currentSearch = '';
+  let displayCount = 9;
+
+  function renderPlugins() {
+    const grid = document.getElementById('pluginsGrid');
+    let list = PLUGINS.filter(p => {
+      const catMatch = currentCat === 'all' || p.cat === currentCat;
+      const q = currentSearch.toLowerCase().trim();
+      const searchMatch = !q || p.name.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q) || p.tags.some(t => t.toLowerCase().includes(q));
+      return catMatch && searchMatch;
+    });
+    const shown = list.slice(0, displayCount);
+    grid.innerHTML = shown.map((p, i) => {
+      const ribbonHtml = p.ribbon === 'hot' ? '<div class="ribbon hot">热门</div>'
+        : p.ribbon === 'new' ? '<div class="ribbon new">最新</div>' : '';
+      return `
+        <div class="plugin-card" onclick="location.href='/apehub-web/plugin-detail.html?name=${encodeURIComponent(p.name)}'">
+          ${ribbonHtml}
+          <div class="p-head">
+            <div class="p-icon" style="background:${p.iconBg}">${p.icon}</div>
+            <div>
+              <div class="p-name">${p.name}</div>
+              <div class="p-ver">${p.ver}</div>
+            </div>
+          </div>
+          <div class="p-desc">${p.desc}</div>
+          <div class="p-tags">${p.tags.map(t => `<span class="p-tag">${t}</span>`).join('')}</div>
+          <div class="p-meta">
+            <div class="p-stats">
+              <span>⬇ ${p.downloads}</span>
+              <span>★ ${p.rating}</span>
+            </div>
+            <div class="p-actions">
+              <button class="install-btn" data-name="${p.name}" onclick="location.href='/apehub-web/plugin-detail.html?name=${encodeURIComponent(p.name)}'; event.stopPropagation()">
+                详情
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+    // 详情按钮事件
+    grid.querySelectorAll('.install-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const name = btn.dataset.name;
+        location.href = `/apehub-web/plugin-detail.html?name=${encodeURIComponent(name)}`;
+      });
+    });
+    // 加载更多按钮显隐
+    const loadMoreBtn = document.getElementById('loadMore');
+    loadMoreBtn.style.display = list.length > displayCount ? 'inline-flex' : 'none';
+  }
+
+  // 分类切换
+  document.querySelectorAll('.cat-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      currentCat = pill.dataset.cat;
+      displayCount = 9;
+      renderPlugins();
+    });
+  });
+  // 搜索
+  document.getElementById('searchInput').addEventListener('input', e => {
+    currentSearch = e.target.value;
+    displayCount = 9;
+    renderPlugins();
+  });
+  document.getElementById('searchBtn').addEventListener('click', () => {
+    currentSearch = document.getElementById('searchInput').value;
+    displayCount = 9;
+    renderPlugins();
+  });
+  // 加载更多
+  document.getElementById('loadMore').addEventListener('click', () => {
+    displayCount += 6;
+    renderPlugins();
+  });
+  // 移动端菜单
+  document.getElementById('menuToggle')?.addEventListener('click', () => {
+    const nl = document.querySelector('.nav-links');
+    const visible = nl.style.display === 'flex';
+    nl.style.display = visible ? 'none' : 'flex';
+    nl.style.flexDirection = 'column';
+    nl.style.position = 'absolute';
+    nl.style.top = '68px'; nl.style.left = '0'; nl.style.right = '0';
+    nl.style.background = getComputedStyle(document.documentElement).getPropertyValue('--bg-soft').trim();
+    nl.style.padding = '20px 24px';
+    nl.style.borderBottom = '1px solid var(--border)';
+    nl.style.gap = '18px';
+    nl.style.alignItems = 'flex-start';
+  });
+
+  // 初始渲染
+  renderPlugins();
+</script>
+</body>
+</html>

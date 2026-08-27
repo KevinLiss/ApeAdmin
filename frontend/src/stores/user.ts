@@ -28,8 +28,8 @@ export const useUserStore = defineStore('user', {
   },
 
   actions: {
-    async login(username: string, password: string) {
-      const data: any = await loginApi({ username, password })
+    async login(username: string, password: string, captcha?: { captcha_id: string; captcha_code: string }) {
+      const data: any = await loginApi({ username, password, ...captcha })
       this.token = data.access_token
       localStorage.setItem('apeadmin_token', data.access_token)
       await this.fetchUserInfo()

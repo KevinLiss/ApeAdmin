@@ -165,7 +165,7 @@ function statusTagType(code: number) {
   return 'info'
 }
 
-function formatTime(iso: string | null) {
+function formatTime(iso: string | null | undefined) {
   if (!iso) return '-'
   const d = new Date(iso)
   return d.toLocaleString('zh-CN', { hour12: false })

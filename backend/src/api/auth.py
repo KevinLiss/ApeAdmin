@@ -52,6 +52,8 @@ async def login(
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
     """User login — returns JWT access + refresh tokens."""
+    from src.plugins import plugin_manager
+    await plugin_manager.before_login(body.model_dump())
     user = await crud_user.authenticate(db, body.username, body.password)
     if not user:
         raise AuthException("用户名或密码错误")
@@ -120,7 +122,11 @@ async def user_info(
         from src.crud import crud_menu
         all_menus = await crud_menu.get_tree(db)
         from src.core.deps import _build_menu_tree
-        menu_tree = _build_menu_tree(all_menus)
+        # Super admins bypass permission checks, but disabled/hidden menus
+        # must still stay out of the sidebar after a plugin is turned off.
+        menu_tree = _build_menu_tree(
+            [menu for menu in all_menus if menu.status == 1 and menu.visible == 1]
+        )
     else:
         menu_tree = get_user_menu_tree(user)
 

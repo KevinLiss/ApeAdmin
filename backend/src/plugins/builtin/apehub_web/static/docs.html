@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ApeAdmin · 技术文档</title>
+<meta name="description" content="ApeAdmin 技术文档 —— 架构、插件开发、MCP 网关、配置说明、快速开始。" />
+<link rel="icon" type="image/png" href="/apehub-web/assets/logo.png" />
+<style>
+  :root {
+    --bg: #07080f;
+    --bg-soft: #0c0e1a;
+    --panel: rgba(255,255,255,0.04);
+    --panel-2: rgba(255,255,255,0.06);
+    --border: rgba(255,255,255,0.08);
+    --border-2: rgba(255,255,255,0.14);
+    --primary: #6d5cff;
+    --primary-2: #9d6bff;
+    --accent: #22d3ee;
+    --text: #eef0ff;
+    --text-2: #a4a9c9;
+    --text-3: #6b7096;
+    --grad: linear-gradient(135deg, #6d5cff 0%, #9d6bff 50%, #d65ef0 100%);
+    --grad-2: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    --sidebar-w: 260px;
+  }
+  :root[data-theme="light"] {
+    --bg: #f8fafc;
+    --bg-soft: #ffffff;
+    --panel: rgba(0,0,0,0.025);
+    --panel-2: rgba(0,0,0,0.04);
+    --border: rgba(0,0,0,0.08);
+    --border-2: rgba(0,0,0,0.14);
+    --primary: #6d5cff;
+    --primary-2: #7c3aed;
+    --accent: #0891b2;
+    --text: #1e293b;
+    --text-2: #475569;
+    --text-3: #94a3b8;
+    --grad: linear-gradient(135deg, #6d5cff 0%, #9d6bff 50%, #d65ef0 100%);
+    --grad-2: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    --sidebar-w: 260px;
+  }
+  :root[data-theme="light"] .bg-glow {
+    background:
+      radial-gradient(700px 500px at 10% -5%, rgba(109,92,255,.10), transparent 60%),
+      radial-gradient(600px 400px at 90% 5%, rgba(214,94,240,.06), transparent 60%);
+  }
+  :root[data-theme="light"] .bg-grid {
+    background-image:
+      linear-gradient(rgba(0,0,0,.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,0,0,.035) 1px, transparent 1px);
+  }
+  :root[data-theme="light"] nav { background: rgba(255,255,255,.88); }
+  :root[data-theme="light"] .nav-search input:focus { background: rgba(109,92,255,.05); }
+  :root[data-theme="light"] .code-box { background: #1e293b; }
+  :root[data-theme="light"] .code-box .cb-head { background: rgba(255,255,255,.06); }
+  :root[data-theme="light"] .code-box code { color: #e2e8f0; }
+  :root[data-theme="light"] .arch-tree .cm { color: #94a3b8; }
+  :root[data-theme="light"] .ic { background: rgba(109,92,255,.10); color: #6d5cff; border-color: rgba(109,92,255,.15); }
+  :root[data-theme="light"] p.text code { background: rgba(8,145,178,.08); }
+  :root[data-theme="light"] ul.bullet li code { background: rgba(8,145,178,.08); }
+  :root[data-theme="light"] table tr:hover td { background: rgba(0,0,0,.02); }
+  :root[data-theme="light"] table td code { background: rgba(8,145,178,.08); }
+  :root[data-theme="light"] .search-panel { background: rgba(255,255,255,.95); }
+  :root[data-theme="light"] .sidebar { background: var(--bg-soft); }
+  :root[data-theme="light"] ::-webkit-scrollbar-thumb { background: #cbd5e1; }
+  :root[data-theme="light"] .sidebar::-webkit-scrollbar-thumb { background: #cbd5e1; }
+  :root[data-theme="light"] .nav-group a.active { color: #fff; }
+  :root[data-theme="light"] .callout.info { background: rgba(109,92,255,.06); }
+  :root[data-theme="light"] .callout.tip { background: rgba(52,211,153,.05); }
+  :root[data-theme="light"] .callout.warn { background: rgba(251,146,60,.05); }
+  :root[data-theme="light"] .doc-card:hover { background: rgba(109,92,255,.04); }
+  :root[data-theme="light"] .c-c { color: #64748b; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.7;
+    overflow-x: hidden;
+  }
+  a { color: inherit; text-decoration: none; }
+  ::selection { background: rgba(109,92,255,.4); }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-thumb { background: #2a2d45; border-radius: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  /* 背景装饰 */
+  .bg-glow {
+    position: fixed; inset: 0; z-index: -2; pointer-events: none;
+    background:
+      radial-gradient(700px 500px at 10% -5%, rgba(109,92,255,.16), transparent 60%),
+      radial-gradient(600px 400px at 90% 5%, rgba(214,94,240,.10), transparent 60%);
+  }
+  .bg-grid {
+    position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 80% 50% at 50% 0%, #000 30%, transparent 80%);
+  }
+
+  /* ---------- 顶部导航 ---------- */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    backdrop-filter: blur(14px); background: rgba(7,8,15,.85);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner {
+    max-width: 1440px; margin: 0 auto; padding: 0 24px;
+    display: flex; align-items: center; justify-content: space-between; height: 64px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; }
+  .brand img { width: 28px; height: 28px; border-radius: 7px; }
+  .brand .badge {
+    font-size: 10px; font-weight: 600; color: var(--accent);
+    border: 1px solid rgba(34,211,238,.4); background: rgba(34,211,238,.1);
+    padding: 2px 8px; border-radius: 999px; margin-left: 2px;
+  }
+  .nav-search {
+    flex: 1; max-width: 420px; margin: 0 32px;
+    position: relative;
+  }
+  .nav-search input {
+    width: 100%; padding: 9px 14px 9px 36px;
+    border-radius: 10px; border: 1px solid var(--border);
+    background: var(--panel); color: var(--text); font-size: 14px; font-family: inherit;
+    transition: all .2s;
+  }
+  .nav-search input::placeholder { color: var(--text-3); }
+  .nav-search input:focus { outline: none; border-color: var(--primary); background: rgba(109,92,255,.06); }
+  .nav-search .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 15px; opacity: .5; }
+  .nav-search .search-kbd {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    font-size: 11px; color: var(--text-3); background: var(--panel-2);
+    border: 1px solid var(--border); padding: 2px 7px; border-radius: 6px; font-family: monospace;
+  }
+  .nav-links { display: flex; gap: 24px; align-items: center; }
+  .nav-links a { color: var(--text-2); font-size: 14px; transition: color .2s; }
+  .nav-links a:hover, .nav-links a.active { color: var(--text); }
+  .nav-actions { display: flex; gap: 12px; align-items: center; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+    font-size: 14px; font-weight: 600; border-radius: 10px;
+    padding: 9px 16px; border: 1px solid transparent; transition: all .22s; font-family: inherit;
+  }
+  .btn-ghost { color: var(--text-2); background: transparent; border-color: var(--border); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--border-2); }
+  .btn-primary { color: #fff; background: var(--grad-2); box-shadow: 0 6px 20px -6px rgba(109,92,255,.6); }
+  .btn-primary:hover { transform: translateY(-2px); }
+  .theme-toggle { font-size: 16px; padding: 8px 12px; line-height: 1; }
+  .menu-toggle { display: none; background: none; border: none; color: var(--text); font-size: 20px; cursor: pointer; }
+
+  /* ---------- 布局 ---------- */
+  .docs-layout {
+    max-width: 1440px; margin: 0 auto; padding: 24px 24px 80px;
+    display: grid; grid-template-columns: var(--sidebar-w) 1fr; gap: 48px;
+    align-items: start;
+  }
+
+  /* ---------- 侧边栏 ---------- */
+  .sidebar {
+    position: sticky; top: 88px; max-height: calc(100vh - 108px);
+    overflow-y: auto; padding-right: 8px;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-thumb { background: #2a2d45; border-radius: 4px; }
+  .nav-group { margin-bottom: 24px; }
+  .nav-group .g-title {
+    font-size: 12px; font-weight: 700; letter-spacing: .5px;
+    color: var(--text); margin-bottom: 8px; padding-left: 12px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .nav-group .g-title::before {
+    content: ''; width: 3px; height: 14px; border-radius: 3px; background: var(--grad);
+  }
+  .nav-group a {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 12px; border-radius: 8px; font-size: 14px; color: var(--text-2);
+    transition: all .18s; margin-bottom: 2px;
+  }
+  .nav-group a:hover { color: var(--text); background: var(--panel); }
+  .nav-group a.active {
+    color: #fff; background: var(--grad-2);
+    box-shadow: 0 4px 12px -4px rgba(109,92,255,.5);
+  }
+  .sidebar-toggle { display: none; }
+
+  /* ---------- 内容区 ---------- */
+  .content { min-width: 0; }
+
+  /* 面包屑 */
+  .breadcrumb { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; font-size: 13px; }
+  .breadcrumb a { color: var(--text-3); transition: color .2s; }
+  .breadcrumb a:hover { color: var(--text-2); }
+  .breadcrumb .sep { color: var(--text-3); }
+  .breadcrumb .current { color: var(--text-2); }
+
+  .doc-section { padding: 8px 0 48px; border-bottom: 1px solid var(--border); }
+  .doc-section:last-child { border-bottom: none; }
+  .anchor { scroll-margin-top: 88px; }
+
+  .sec-title {
+    font-size: 28px; font-weight: 800; letter-spacing: -.5px; margin-bottom: 8px;
+    display: flex; align-items: center;
+  }
+  .sec-title .grad-text {
+    background: var(--grad); -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .sec-title .anchor-link {
+    font-size: 16px; color: var(--text-3); opacity: 0; transition: opacity .2s; margin-left: 8px;
+  }
+  .sec-title:hover .anchor-link { opacity: 1; }
+  .sec-desc { color: var(--text-2); font-size: 15px; margin-bottom: 28px; }
+  .sub-title {
+    font-size: 19px; font-weight: 700; margin: 32px 0 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .sub-title::before {
+    content: ""; width: 4px; height: 18px; border-radius: 4px; background: var(--grad);
+  }
+  .sub-title .anchor-link {
+    font-size: 15px; color: var(--text-3); opacity: 0; transition: opacity .2s; margin-left: 4px;
+  }
+  .sub-title:hover .anchor-link { opacity: 1; }
+  p.text { color: var(--text-2); font-size: 15px; margin-bottom: 16px; }
+  p.text code { font-family: "SF Mono",monospace; font-size: 13px; color: var(--accent); background: rgba(34,211,238,.08); padding: 1px 6px; border-radius: 5px; }
+  ul.bullet { list-style: none; margin-bottom: 18px; }
+  ul.bullet li { color: var(--text-2); font-size: 14.5px; padding: 5px 0 5px 22px; position: relative; }
+  ul.bullet li::before { content: "▸"; position: absolute; left: 0; color: var(--primary-2); font-size: 13px; }
+  ul.bullet li b { color: var(--text); font-weight: 600; }
+  ul.bullet li code { font-family: "SF Mono",monospace; font-size: 12.5px; color: var(--accent); background: rgba(34,211,238,.08); padding: 1px 6px; border-radius: 5px; }
+
+  /* ---------- 代码块 ---------- */
+  .code-box {
+    background: #0a0c16; border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden; margin: 14px 0 20px; font-family: "SF Mono","JetBrains Mono",Consolas,monospace; font-size: 13px;
+    position: relative;
+  }
+  .code-box .cb-head {
+    display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+    background: rgba(255,255,255,.04); border-bottom: 1px solid var(--border);
+  }
+  .code-box .cb-head .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .code-box .cb-head .fname { font-size: 12px; color: var(--text-3); margin-left: 6px; flex: 1; }
+  .code-box .cb-head .copy-btn {
+    font-size: 12px; color: var(--text-3); cursor: pointer; padding: 3px 10px;
+    border-radius: 6px; border: 1px solid var(--border); background: transparent;
+    font-family: inherit; transition: all .2s; display: flex; align-items: center; gap: 4px;
+  }
+  .code-box .cb-head .copy-btn:hover { color: var(--text); border-color: var(--border-2); background: var(--panel-2); }
+  .code-box .cb-head .copy-btn.copied { color: #34d399; border-color: rgba(52,211,153,.3); }
+  .code-box pre { padding: 16px 18px; overflow-x: auto; line-height: 1.7; }
+  .code-box code { color: #c5c9e8; white-space: pre; }
+  .c-k { color: #c792ea; } .c-s { color: #a5e07a; } .c-n { color: #f6c177; } .c-c { color: #556; } .c-f { color: #82aaff; }
+
+  /* 行内代码 */
+  .ic {
+    font-family: "SF Mono","JetBrains Mono",Consolas,monospace; font-size: 13px;
+    background: rgba(109,92,255,.14); color: #c4b8ff;
+    padding: 2px 7px; border-radius: 6px; border: 1px solid rgba(109,92,255,.2);
+  }
+
+  /* 表格 */
+  .tbl-wrap { overflow-x: auto; margin: 14px 0 22px; border-radius: 12px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 520px; }
+  table th {
+    text-align: left; padding: 12px 16px; font-weight: 700; color: var(--text);
+    background: var(--panel-2); border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  table td { padding: 11px 16px; color: var(--text-2); border-bottom: 1px solid var(--border); }
+  table tr:last-child td { border-bottom: none; }
+  table tr:hover td { background: rgba(255,255,255,.02); }
+  table td code { font-family: "SF Mono",monospace; font-size: 12.5px; color: var(--accent); background: rgba(34,211,238,.08); padding: 1px 6px; border-radius: 5px; }
+
+  /* 提示框 */
+  .callout {
+    border-radius: 12px; padding: 16px 18px; margin: 16px 0; font-size: 14px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .callout .c-ic { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .callout .c-body b { display: block; margin-bottom: 2px; }
+  .callout.info { background: rgba(109,92,255,.08); border: 1px solid rgba(109,92,255,.2); }
+  .callout.info .c-ic { color: var(--primary-2); }
+  .callout.tip { background: rgba(52,211,153,.08); border: 1px solid rgba(52,211,153,.2); }
+  .callout.tip .c-ic { color: #34d399; }
+  .callout.warn { background: rgba(251,146,60,.08); border: 1px solid rgba(251,146,60,.2); }
+  .callout.warn .c-ic { color: #fb923c; }
+
+  /* 目录树 */
+  .arch-tree {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+    padding: 22px 24px; margin: 16px 0; font-family: "SF Mono",monospace; font-size: 13px; line-height: 1.85;
+    overflow-x: auto;
+  }
+  .arch-tree .dir { color: var(--primary-2); font-weight: 700; }
+  .arch-tree .file { color: var(--text-2); }
+  .arch-tree .cm { color: #556; }
+  .arch-tree .accent { color: var(--accent); }
+
+  /* 文档卡片网格 */
+  .doc-cards { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; margin: 16px 0; }
+  .doc-card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 20px;
+    transition: all .25s; cursor: pointer;
+  }
+  .doc-card:hover { transform: translateY(-3px); border-color: rgba(109,92,255,.4); background: rgba(109,92,255,.06); }
+  .doc-card h4 { font-size: 15px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .doc-card p { font-size: 13.5px; color: var(--text-3); }
+
+  /* 上下页导航 */
+  .doc-nav {
+    display: flex; justify-content: space-between; gap: 16px;
+    margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--border);
+  }
+  .doc-nav a {
+    flex: 1; display: flex; flex-direction: column; gap: 4px;
+    padding: 14px 18px; border-radius: 12px; border: 1px solid var(--border);
+    background: var(--panel); transition: all .22s; max-width: 48%;
+  }
+  .doc-nav a:hover { border-color: rgba(109,92,255,.4); background: rgba(109,92,255,.04); transform: translateY(-2px); }
+  .doc-nav a .nav-label { font-size: 12px; color: var(--text-3); }
+  .doc-nav a .nav-title { font-size: 15px; font-weight: 600; color: var(--text); }
+  .doc-nav a.next { text-align: right; align-items: flex-end; }
+  .doc-nav a.prev .nav-label::before { content: '← '; }
+  .doc-nav a.next .nav-label::after { content: ' →'; }
+
+  /* ---------- 搜索面板 ---------- */
+  .search-panel {
+    position: fixed; top: 64px; left: 0; right: 0; z-index: 99;
+    background: rgba(7,8,15,.95); backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+    max-height: 0; overflow: hidden; transition: max-height .3s ease;
+  }
+  .search-panel.show { max-height: 400px; overflow-y: auto; }
+  .search-panel-inner { max-width: 720px; margin: 0 auto; padding: 16px 24px; }
+  .search-result { display: flex; flex-direction: column; gap: 4px; }
+  .search-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+    border-radius: 8px; cursor: pointer; transition: all .15s;
+  }
+  .search-item:hover, .search-item.highlighted { background: var(--panel-2); }
+  .search-item .s-ic { font-size: 15px; opacity: .7; }
+  .search-item .s-group { font-size: 12px; color: var(--text-3); }
+  .search-item .s-title { font-size: 14px; color: var(--text); }
+  .search-item mark { background: rgba(109,92,255,.25); color: var(--text); padding: 0 2px; border-radius: 3px; }
+  .search-empty { text-align: center; padding: 24px; color: var(--text-3); font-size: 14px; }
+
+  /* ---------- 页脚 ---------- */
+  footer { border-top: 1px solid var(--border); padding: 40px 24px; }
+  .foot-inner { max-width: 1440px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+  .foot-inner .l { color: var(--text-3); font-size: 13px; }
+  .foot-inner .r { display: flex; gap: 18px; }
+  .foot-inner .r a { color: var(--text-3); font-size: 13px; transition: color .2s; }
+  .foot-inner .r a:hover { color: var(--text); }
+
+  /* ---------- 响应式 ---------- */
+  @media (max-width: 1200px) {
+    .docs-layout { grid-template-columns: 1fr; gap: 0; }
+    .sidebar {
+      position: fixed; top: 64px; left: 0; bottom: 0; width: 280px; z-index: 90;
+      background: var(--bg-soft); border-right: 1px solid var(--border);
+      padding: 24px 20px; transform: translateX(-100%); transition: transform .3s ease;
+      max-height: calc(100vh - 64px);
+    }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-toggle { display: inline-flex; }
+  }
+  @media (max-width: 1024px) {
+    .docs-layout { grid-template-columns: 1fr; gap: 0; }
+    .sidebar {
+      position: fixed; top: 64px; left: 0; bottom: 0; width: 280px; z-index: 90;
+      background: var(--bg-soft); border-right: 1px solid var(--border);
+      padding: 24px 20px; transform: translateX(-100%); transition: transform .3s ease;
+      max-height: calc(100vh - 64px);
+    }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-toggle {
+      display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+      font-size: 14px; color: var(--text-2); background: var(--panel); border: 1px solid var(--border);
+      padding: 8px 14px; border-radius: 10px; margin-bottom: 20px;
+    }
+    .sidebar-toggle:hover { color: var(--text); border-color: var(--border-2); }
+    .doc-cards { grid-template-columns: 1fr; }
+    .nav-search { display: none; }
+  }
+  @media (max-width: 600px) {
+    .nav-links { display: none; }
+    .menu-toggle { display: block; }
+    .nav-actions .gh-link { display: none; }
+    .nav-actions .btn-primary { padding: 7px 12px; font-size: 13px; }
+    .sec-title { font-size: 22px; }
+    .content { padding: 0 4px; }
+    .doc-nav { flex-direction: column; }
+    .doc-nav a { max-width: 100%; }
+    .doc-nav a.next { text-align: left; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+<div class="bg-glow"></div>
+<div class="bg-grid"></div>
+
+<!-- 顶部导航 -->
+<nav>
+  <div class="nav-inner">
+    <a class="brand" href="/apehub-web/index.html">
+      <img src="/apehub-web/assets/logo.png" alt="ApeAdmin" />
+      <span>ApeAdmin <span class="badge">Docs</span></span>
+    </a>
+    <div class="nav-search">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="搜索文档..." autocomplete="off" />
+      <span class="search-kbd">Ctrl K</span>
+    </div>
+    <div class="nav-links">
+      <a href="/apehub-web/index.html">首页</a>
+      <a href="/apehub-web/index.html#features">特性</a>
+      <a href="/apehub-web/index.html#mcp">MCP</a>
+      <a href="/apehub-web/plugins.html">插件市场</a>
+      <a class="active" href="/apehub-web/docs.html">文档</a>
+      <a href="/apehub-web/profile.html">个人中心</a>
+    </div>
+    <div class="nav-actions">
+      <button class="btn btn-ghost theme-toggle" id="themeToggle" aria-label="切换主题" title="切换明暗主题">🌙</button>
+      <a class="btn btn-ghost gh-link" href="https://github.com/KevinLiss/ApeAdmin" target="_blank" rel="noopener">GitHub</a>
+      <a class="btn btn-primary" href="#quickstart">快速开始</a>
+    </div>
+    <button class="menu-toggle" id="menuToggle" aria-label="菜单">☰</button>
+  </div>
+</nav>
+
+<!-- 搜索面板 -->
+<div class="search-panel" id="searchPanel">
+  <div class="search-panel-inner">
+    <div class="search-result" id="searchResults"></div>
+  </div>
+</div>
+
+<!-- 文档布局 -->
+<div class="docs-layout">
+  <!-- 侧边栏 -->
+  <aside class="sidebar" id="sidebar">
+    <div class="nav-group">
+      <div class="g-title">入门</div>
+      <a href="#intro">项目简介</a>
+      <a href="#quickstart">快速开始</a>
+      <a href="#account">默认账号</a>
+    </div>
+    <div class="nav-group">
+      <div class="g-title">核心架构</div>
+      <a href="#architecture">目录结构</a>
+      <a href="#principles">设计原则</a>
+      <a href="#techstack">技术栈</a>
+    </div>
+    <div class="nav-group">
+      <div class="g-title">插件开发</div>
+      <a href="#plugin-create">创建插件</a>
+      <a href="#plugin-api">插件接口</a>
+      <a href="#plugin-events">事件总线</a>
+    </div>
+    <div class="nav-group">
+      <div class="g-title">MCP 网关</div>
+      <a href="#mcp-overview">网关概览</a>
+      <a href="#mcp-tools">内置工具</a>
+      <a href="#mcp-register">注册工具</a>
+    </div>
+    <div class="nav-group">
+      <div class="g-title">配置与运维</div>
+      <a href="#config">配置说明</a>
+      <a href="#ai-config">AI 模型配置</a>
+      <a href="#contribute">贡献指南</a>
+    </div>
+  </aside>
+
+  <!-- 内容区 -->
+  <div class="content">
+    <div class="sidebar-toggle" id="sidebarToggle">☰ 目录导航</div>
+
+    <!-- 面包屑 -->
+    <div class="breadcrumb">
+      <a href="/apehub-web/index.html">首页</a>
+      <span class="sep">/</span>
+      <a href="/apehub-web/docs.html">技术文档</a>
+      <span class="sep">/</span>
+      <span class="current" id="crumbCurrent">项目简介</span>
+    </div>
+
+    <!-- 项目简介 -->
+    <section class="doc-section" id="intro" data-title="项目简介" data-group="入门">
+      <h2 class="sec-title">项目<span class="grad-text">简介</span><a class="anchor-link" href="#intro">¶</a></h2>
+      <p class="sec-desc">ApeAdmin 是面向 AI 智能体场景打造的开源开发框架，基于 FastAPI + Vue3 搭建，原生为 AI Agent 能力调用做适配。</p>
+      <p class="text">你可以把它理解为一个"开箱即用 + 可插拔扩展"的中后台框架——底座提供权限、菜单、日志等基础设施，业务功能以插件形式独立开发和部署，同时通过 MCP 网关将管理能力暴露给 AI Agent 调用。项目采用 MIT 开源协议。</p>
+      <div class="callout info">
+        <span class="c-ic">💡</span>
+        <div class="c-body"><b>100% 由 AI 生成</b>每一行代码、每一个架构决策、每一次提交都由 AI 完成。人类开发者仅担任决策者和产品经理的角色——定义"要做什么"，而不是"怎么做"。</div>
+      </div>
+      <div class="doc-cards">
+        <div class="doc-card" onclick="location.href='#architecture'"><h4>🛡️ RBAC 权限</h4><p>五表模型 · 四层权限粒度 · 超管通配</p></div>
+        <div class="doc-card" onclick="location.href='#plugin-create'"><h4>🧩 插件化</h4><p>自动发现 · 热插拔 · ZIP 安装 · 事件总线</p></div>
+        <div class="doc-card" onclick="location.href='#mcp-overview'"><h4>🔌 MCP-SSE 网关</h4><p>Tools / Resources / Prompts · RBAC 过滤 · 全程审计</p></div>
+        <div class="doc-card" onclick="location.href='#ai-config'"><h4>🤖 AI 对话</h4><p>多模型 · 流式 SSE · Function Calling</p></div>
+      </div>
+    </section>
+
+    <!-- 快速开始 -->
+    <section class="doc-section" id="quickstart" data-title="快速开始" data-group="入门">
+      <h2 class="sec-title">快速<span class="grad-text">开始</span><a class="anchor-link" href="#quickstart">¶</a></h2>
+      <p class="sec-desc">三分钟跑起来，默认使用 SQLite 零配置启动。</p>
+
+      <h3 class="sub-title">前置条件<a class="anchor-link" href="#">¶</a></h3>
+      <ul class="bullet">
+        <li><b>Python 3.11+</b></li>
+        <li><b>Node.js 18+</b></li>
+        <li><b>Git</b></li>
+      </ul>
+
+      <h3 class="sub-title">启动后端<a class="anchor-link" href="#">¶</a></h3>
+      <div class="code-box" data-copy="backend-setup">
+        <div class="cb-head"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="fname">terminal · backend</span><button class="copy-btn" data-target="backend-setup">📋 复制</button></div>
+        <pre><code id="backend-setup"><span class="c-n">cd</span> backend
+python -m venv .venv
+<span class="c-c"># Windows: .venv\Scripts\activate</span>
+<span class="c-c"># Linux / macOS:</span>
+<span class="c-n">source</span> .venv/bin/activate
+pip install -e .
+uvicorn src.main:app --reload --host 0.0.0.0 --port <span class="c-n">8000</span></code></pre>
+      </div>
+      <p class="text">默认使用 SQLite，无需额外安装数据库。访问 <code>http://localhost:8000/docs</code> 查看 API 文档。</p>
+
+      <h3 class="sub-title">启动前端<a class="anchor-link" href="#">¶</a></h3>
+      <div class="code-box" data-copy="frontend-setup">
+        <div class="cb-head"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="fname">terminal · frontend</span><button class="copy-btn" data-target="frontend-setup">📋 复制</button></div>
+        <pre><code id="frontend-setup"><span class="c-n">cd</span> frontend
+npm install --legacy-peer-deps
+npm run dev   <span class="c-c"># http://localhost:5173</span></code></pre>
+      </div>
+    </section>
+
+    <!-- 默认账号 -->
+    <section class="doc-section" id="account" data-title="默认账号" data-group="入门">
+      <h2 class="sec-title">默认<span class="grad-text">账号</span><a class="anchor-link" href="#account">¶</a></h2>
+      <p class="sec-desc">首次启动后使用以下账号登录系统。</p>
+      <div class="callout warn">
+        <span class="c-ic">⚠️</span>
+        <div class="c-body"><b>生产环境务必修改默认密码</b>默认账号仅用于开发演示，部署到生产环境前请通过环境变量 <code>SUPER_ADMIN_PASSWORD</code> 修改。</div>
+      </div>
+      <div class="code-box" data-copy="default-cred">
+        <div class="cb-head"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="fname">默认凭据</span><button class="copy-btn" data-target="default-cred">📋 复制</button></div>
+        <pre><code id="default-cred">用户名: <span class="c-s">admin</span>
+密码:   <span class="c-s">admin123</span></code></pre>
+      </div>
+      <h3 class="sub-title">开始使用<a class="anchor-link" href="#">¶</a></h3>
+      <ul class="bullet">
+        <li>访问 <code>http://localhost:5173</code> 进入登录页</li>
+        <li>使用默认账号登录</li>
+        <li><b>系统管理</b> → 用户 / 角色 / 菜单 / 部门 / 插件管理</li>
+        <li><b>MCP 管理</b> → 工具 / 资源 / 提示词 / 调用日志</li>
+        <li><b>AI 助手</b> → 配置模型密钥后即可对话</li>
+      </ul>
+    </section>
+
+    <!-- 目录结构 -->
+    <section class="doc-section" id="architecture" data-title="目录结构" data-group="核心架构">
+      <h2 class="sec-title">目录<span class="grad-text">结构</span><a class="anchor-link" href="#architecture">¶</a></h2>
+      <p class="sec-desc">前后端分离的单体应用，后端插件化扩展。</p>
+      <div class="arch-tree">
+<span class="dir">apeadmin/</span>
+  <span class="dir">backend/</span>                       <span class="cm"># FastAPI 后端</span>
+    <span class="dir">src/</span>
+      <span class="dir">api/</span>                       <span class="cm"># 路由层</span>
+        <span class="file">auth.py</span>                  <span class="cm"># 认证（登录/登出/用户信息）</span>
+        <span class="file">user.py</span>                  <span class="cm"># 用户管理</span>
+        <span class="file">role.py</span>                  <span class="cm"># 角色管理</span>
+        <span class="file">menu.py</span>                  <span class="cm"># 菜单管理（树形）</span>
+        <span class="file">dept.py</span>                  <span class="cm"># 部门管理（树形）</span>
+        <span class="file">plugin.py</span>                <span class="cm"># 插件管理</span>
+        <span class="file">ai_provider.py</span>            <span class="cm"># AI 模型密钥管理</span>
+        <span class="file">chat.py</span>                  <span class="cm"># AI 对话（流式 SSE）</span>
+        <span class="file">dashboard.py</span>             <span class="cm"># 仪表盘统计</span>
+        <span class="file">log.py</span>                   <span class="cm"># 系统日志</span>
+      <span class="dir">core/</span>                      <span class="cm"># 基础设施</span>
+        <span class="file">config.py</span>                <span class="cm"># 配置（pydantic-settings）</span>
+        <span class="file">security.py</span>              <span class="cm"># 密码哈希 + JWT</span>
+        <span class="file">deps.py</span>                  <span class="cm"># 依赖注入</span>
+        <span class="file">middleware.py</span>             <span class="cm"># 中间件（CORS / 请求追踪）</span>
+        <span class="file">seed.py</span>                  <span class="cm"># 种子数据初始化</span>
+        <span class="file">crypto.py</span>                <span class="cm"># API Key 加密</span>
+      <span class="dir">crud/</span>                       <span class="cm"># 泛型 CRUD 基类 + RBAC CRUD</span>
+      <span class="dir">db/</span>                         <span class="cm"># 数据库引擎与会话管理</span>
+      <span class="dir">models/</span>                     <span class="cm"># ORM 模型</span>
+        <span class="file">rbac.py</span>                  <span class="cm"># RBAC 五表</span>
+        <span class="file">ai.py</span>                    <span class="cm"># AI 供应商</span>
+        <span class="file">plugin.py</span>                <span class="cm"># 插件记录</span>
+        <span class="file">mcp.py</span>                   <span class="cm"># MCP 审计日志</span>
+      <span class="dir">mcp/</span>                        <span class="cm"># MCP 协议体系</span>
+        <span class="file">manager.py</span>               <span class="cm"># 工具/资源/提示词管理 + RBAC 过滤</span>
+        <span class="file">routes.py</span>                <span class="cm"># MCP HTTP 路由 + 审计日志</span>
+      <span class="dir">plugins/</span>                    <span class="cm"># 插件系统</span>
+        <span class="file">base.py</span>                  <span class="cm"># PluginInterface + EventBus</span>
+        <span class="file">manager.py</span>               <span class="cm"># 插件发现/加载/安装/卸载</span>
+        <span class="dir">builtin/</span>                 <span class="cm"># 内置插件</span>
+      <span class="dir">ai/</span>                         <span class="cm"># AI 智能体</span>
+        <span class="file">agent.py</span>                 <span class="cm"># 多模型对话 + 工具调用循环</span>
+      <span class="file">main.py</span>                      <span class="cm"># 应用入口（lifespan）</span>
+    <span class="dir">alembic/</span>                     <span class="cm"># 数据库迁移</span>
+    <span class="file">pyproject.toml</span>
+
+  <span class="dir">frontend/</span>                      <span class="cm"># Vue3 前端</span>
+    <span class="dir">src/</span>
+      <span class="dir">api/</span>                        <span class="cm"># Axios 封装 + 全部接口定义</span>
+      <span class="dir">components/</span>                 <span class="cm"># ApeHeader / ApeSidebar</span>
+      <span class="dir">composables/</span>                <span class="cm"># useTheme（深色/浅色切换）</span>
+      <span class="dir">directives/</span>                 <span class="cm"># v-permission 权限指令</span>
+      <span class="dir">router/</span>                     <span class="cm"># 路由 + 守卫 + 动态路由生成</span>
+      <span class="dir">stores/</span>                    <span class="cm"># Pinia（用户状态/权限/菜单）</span>
+      <span class="dir">views/</span>                      <span class="cm"># 页面</span>
+        <span class="dir">login/</span>                   <span class="cm"># 登录</span>
+        <span class="dir">system/</span>                  <span class="cm"># 系统管理</span>
+        <span class="dir">mcp/</span>                     <span class="cm"># MCP 管理</span>
+        <span class="dir">ai/</span>                       <span class="cm"># AI 助手</span>
+        <span class="dir">apeui/</span>                   <span class="cm"># 73 页 UI 组件库</span></div>
+    </section>
+
+    <!-- 设计原则 -->
+    <section class="doc-section" id="principles" data-title="设计原则" data-group="核心架构">
+      <h2 class="sec-title">设计<span class="grad-text">原则</span><a class="anchor-link" href="#principles">¶</a></h2>
+      <p class="sec-desc">框架选型兼顾性能与开发效率，确保在开发与生产间无缝切换。</p>
+      <div class="doc-cards">
+        <div class="doc-card"><h4>1. 底座与插件解耦</h4><p>底座提供 RBAC、日志、MCP 网关等基础设施，业务功能全部以插件形式开发，互不依赖。</p></div>
+        <div class="doc-card"><h4>2. 双数据库驱动</h4><p>开发用 SQLite 零配置启动，生产用 MySQL，通过 <code>DB_TYPE</code> 环境变量切换。</p></div>
+        <div class="doc-card"><h4>3. Redis 可选</h4><p>缓存层缺失时自动降级为内存字典，不影响功能。</p></div>
+        <div class="doc-card"><h4>4. 权限贯穿 AI</h4><p>MCP 工具调用和 AI Function Calling 均受 RBAC 权限控制，Agent 只能操作有权限的资源。</p></div>
+      </div>
+      <div class="callout tip">
+        <span class="c-ic">✨</span>
+        <div class="c-body"><b>动态路由</b>前端路由从后端菜单树动态生成，菜单增减无需改前端代码。</div>
+      </div>
+    </section>
+
+    <!-- 技术栈 -->
+    <section class="doc-section" id="techstack" data-title="技术栈" data-group="核心架构">
+      <h2 class="sec-title">技术<span class="grad-text">栈</span><a class="anchor-link" href="#techstack">¶</a></h2>
+      <p class="sec-desc">现代、稳健、可扩展的技术选型。</p>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>层级</th><th>技术</th></tr></thead>
+          <tbody>
+            <tr><td>后端</td><td>FastAPI + SQLAlchemy 2.0 (async) + Alembic</td></tr>
+            <tr><td>前端</td><td>Vue 3.5 + Vite 6 + TypeScript 5.7 + Element Plus 2.9</td></tr>
+            <tr><td>状态管理</td><td>Pinia 2.3</td></tr>
+            <tr><td>图表</td><td>ECharts 5.6 + vue-echarts</td></tr>
+            <tr><td>数据库</td><td>MySQL (aiomysql) / SQLite (aiosqlite) 双驱动自动切换</td></tr>
+            <tr><td>缓存</td><td>Redis（可选，缺失自动降级内存）</td></tr>
+            <tr><td>认证</td><td>JWT (access token) + bcrypt 密码哈希</td></tr>
+            <tr><td>AI 协议</td><td>MCP (Model Context Protocol) — SSE 传输</td></tr>
+            <tr><td>AI 模型</td><td>DeepSeek / 通义千问 / 智谱 GLM / OpenAI（OpenAI 兼容接口）</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 创建插件 -->
+    <section class="doc-section" id="plugin-create" data-title="创建插件" data-group="插件开发">
+      <h2 class="sec-title">创建<span class="grad-text">插件</span><a class="anchor-link" href="#plugin-create">¶</a></h2>
+      <p class="sec-desc">在 <code>backend/src/plugins/builtin/</code> 下创建 Python 包。</p>
+      <div class="code-box" data-copy="plugin-struct">
+        <div class="cb-head"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="fname">my_plugin/ 目录结构</span><button class="copy-btn" data-target="plugin-struct">📋 复制</button></div>
+        <pre><code id="plugin-struct"><span class="dir">my_plugin/</span>
+  <span class="file">__init__.py</span>
+  <span class="file">plugin.py</span>          <span class="c-c"># 插件入口（实现 PluginInterface）</span>
+  <span class="file">models.py</span>           <span class="c-c"># ORM 模型（可选）</span>
+  <span class="file">api.py</span>              <span class="c-c"># 路由（可选）</span>
+  <span class="file">services.py</span>         <span class="c-c"># 业务逻辑（可选）</span></code></pre>
+      </div>
+    </section>
+
+    <!-- 插件接口 -->
+    <section class="doc-section" id="plugin-api" data-title="插件接口" data-group="插件开发">
+      <h2 class="sec-title">插件<span class="grad-text">接口</span><a class="anchor-link" href="#plugin-api">¶</a></h2>
+      <p class="sec-desc">实现 PluginInterface 接口，注册路由与 MCP 工具。</p>
+      <div class="code-box" data-copy="plugin-example">
+        <div class="cb-head"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="fname">plugin.py · 完整示例</span><button class="copy-btn" data-target="plugin-example">📋 复制</button></div>
+        <pre><code id="plugin-example"><span class="c-k">from</span> src.plugins.base <span class="c-k">import</span> PluginInterface, PluginInfo, EventBus, Event
+
+<span class="c-k">class</span> <span class="c-f">MyPlugin</span>(PluginInterface):
+    <span class="c-k">@property</span>
+    <span class="c-k">def</span> <span class="c-f">info</span>(self) -> PluginInfo:
+        <span class="c-k">return</span> PluginInfo(
+            name=<span class="c-s">"my-plugin"</span>,
+            version=<span class="c-s">"1.0.0"</span>,
+            description=<span class="c-s">"我的第一个插件"</span>,
+            author=<span class="c-s">"Your Name"</span>,
+        )
+
+    <span class="c-k">def</span> <span class="c-f">on_load</span>(self):
+        <span class="c-s">"""插件加载时调用"""</span>
+        <span class="c-k">pass</span>
+
+    <span class="c-k">def</span> <span class="c-f">on_install</span>(self):
+        <span class="c-s">"""插件安装时调用（可创建数据库表）"""</span>
+        <span class="c-k">pass</span>
+
+    <span class="c-k">def</span> <span class="c-f">register_routes</span>(self, app):
+        <span class="c-s">"""注册 FastAPI 路由"""</span>
+        <span class="c-k">@app.get</span>(<span class="c-s">"/api/v1/my-plugin/hello"</span>)
+        <span class="c-k">def</span> <span class="c-f">hello</span>():
+            <span class="c-k">return</span> {<span class="c-s">"msg"</span>: <span class="c-s">"Hello from MyPlugin!"</span>}
+
+    <span class="c-k">def</span> <span class="c-f">register_mcp_tools</span>(self, mcp_manager):
+        <span class="c-s">"""注册 MCP 工具，暴露给 AI Agent 调用"""</span>
+        <span class="c-k">@mcp_manager.tool</span>(<span class="c-s">"my_plugin_greet"</span>, <span class="c-s">"问候工具"</span>)
+        <span class="c-k">def</span> <span class="c-f">greet</span>(name: <span class="c-k">str</span>) -> dict:
+            <span class="c-s">"""向指定用户问候"""</span>
+            <span class="c-k">return</span> {<span class="c-s">"message"</span>: <span class="c-s">f"Hello, {name}!"</span>}
+
+    <span class="c-k">def</span> <span class="c-f">on_event</span>(self, event: Event, *args, **kwargs):
+        <span class="c-s">"""监听事件总线事件"""</span>
+        <span class="c-k">if</span> event == Event.USER_LOGIN:
+            print(<span class="c-s">f"用户登录: {kwargs.get('username')}"</span>)</code></pre>
+      </div>
+      <div class="callout info">
+        <span class="c-ic">💡</span>
+        <div class="c-body"><b>插件能力开放</b>插件可注册自有路由、MCP 工具、事件监听器，实现能力级对外开放，互不直接依赖。</div>
+      </div>
+    </section>
+
+    <!-- 事件总线 -->
+    <section class="doc-section" id="plugin-events" data-title="事件总线" data-group="插件开发">
+      <h2 class="sec-title">事件<span class="grad-text">总线</span><a class="anchor-link" href="#plugin-events">¶</a></h2>
+      <p class="sec-desc">EventBus 支持 7 种内置事件，插件间松耦合通信。</p>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>事件</th><th>触发时机</th></tr></thead>
+          <tbody>
+            <tr><td><code>APP_STARTUP</code></td><td>应用启动</td></tr>
+            <tr><td><code>APP_SHUTDOWN</code></td><td>应用关闭</td></tr>
+            <tr><td><code>DB_READY</code></td><td>数据库初始化完成</td></tr>
+            <tr><td><code>USER_LOGIN</code></td><td>用户登录</td></tr>
+            <tr><td><code>USER_LOGOUT</code></td><td>用户登出</td></tr>
+            <tr><td><code>BEFORE_REQUEST</code></td><td>请求处理前</td></tr>
+            <tr><td><code>AFTER_REQUEST</code></td><td>请求处理后</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- MCP 网关概览 -->
+    <section class="doc-section" id="mcp-overview" data-title="网关概览" data-group="MCP 网关">
+      <h2 class="sec-title">MCP 网关<span class="grad-text">概览</span><a class="anchor-link" href="#mcp-overview">¶</a></h2>
+      <p class="sec-desc">将底座与插件的管理能力对外暴露为 AI Agent 可调用的工具。</p>
+      <ul class="bullet">
+        <li><b>三原语</b> —— Tools（工具调用）/ Resources（资源读取）/ Prompts（模板渲染）</li>
+        <li><b>自动 Schema</b> —— 工具注册时自动从函数签名推断 JSON Schema，无需手写</li>
+        <li><b>RBAC 过滤</b> —— AI Agent 只能看到当前用户有权限调用的工具</li>
+        <li><b>审计日志</b> —— 每次工具调用自动记录请求、响应、耗时、调用者</li>
+        <li><b>插件扩展</b> —— 插件可向 MCP 网关注册工具，实现能力级对外开放</li>
+      </ul>
+    </section>
+
+    <!-- 内置工具 -->
+    <section class="doc-section" id="mcp-tools" data-title="内置工具" data-group="MCP 网关">
+      <h2 class="sec-title">内置<span class="grad-text">工具</span><a class="anchor-link" href="#mcp-tools">¶</a></h2>
+      <p class="sec-desc">框架内置的 MCP 工具，开箱即供 Agent 调用。</p>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>工具</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td><code>system_health_check</code></td><td>系统健康检查</td></tr>
+            <tr><td><code>system_list_plugins</code></td><td>列出已安装插件</td></tr>
+            <tr><td><code>role_list / create / update / delete</code></td><td>角色管理（需权限）</td></tr>
+            <tr><td><code>dept_list / create / update / delete</code></td><td>部门管理（需权限）</td></tr>
+            <tr><td><code>menu_list / create / update / delete</code></td><td>菜单管理（需权限）</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 注册工具 -->
+    <section class="doc-section" id="mcp-register" data-title="注册工具" data-group="MCP 网关">
+      <h2 class="sec-title">注册<span class="grad-text">工具</span><a class="anchor-link" href="#mcp-register">¶</a></h2>
+      <p class="sec-desc">插件只需一行装饰器即可向 MCP 网关注册工具。</p>
+      <div class="code-box" data-copy="mcp-register">
+        <div class="cb-head"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="fname">plugin.py · 向 MCP 注册工具</span><button class="copy-btn" data-target="mcp-register">📋 复制</button></div>
+        <pre><code id="mcp-register"><span class="c-k">@mcp_manager.tool</span>(<span class="c-s">"my_plugin_greet"</span>, <span class="c-s">"问候工具"</span>)
+<span class="c-k">def</span> <span class="c-f">greet</span>(name: <span class="c-k">str</span>) -> dict:
+    <span class="c-s">"""向指定用户问候"""</span>
+    <span class="c-k">return</span> {<span class="c-s">"message"</span>: <span class="c-s">f"Hello, {name}!"</span>}
+
+<span class="c-c"># AI Agent 侧即可调用：</span>
+<span class="c-k">tools</span> = mcp.build_tools(user)
+<span class="c-k">result</span> = await agent.call(<span class="c-s">"问候小张"</span>)
+<span class="c-c"># → {"message": "Hello, 小张!"}</span></code></pre>
+      </div>
+      <div class="callout tip">
+        <span class="c-ic">🔐</span>
+        <div class="c-body"><b>权限安全</b>AI Agent 调用工具时自动进行 RBAC 过滤，只能看到当前登录用户有权限调用的工具，每次调用自动记录审计日志。</div>
+      </div>
+    </section>
+
+    <!-- 配置说明 -->
+    <section class="doc-section" id="config" data-title="配置说明" data-group="配置与运维">
+      <h2 class="sec-title">配置<span class="grad-text">说明</span><a class="anchor-link" href="#config">¶</a></h2>
+      <p class="sec-desc">后端配置通过 <code>.env</code> 文件或环境变量。</p>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>配置项</th><th>默认值</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td><code>DB_TYPE</code></td><td>sqlite</td><td>数据库类型 (sqlite / mysql)</td></tr>
+            <tr><td><code>DB_HOST</code></td><td>localhost</td><td>MySQL 地址</td></tr>
+            <tr><td><code>DB_PORT</code></td><td>3306</td><td>MySQL 端口</td></tr>
+            <tr><td><code>DB_USER</code></td><td>root</td><td>MySQL 用户名</td></tr>
+            <tr><td><code>DB_PASSWORD</code></td><td>—</td><td>MySQL 密码</td></tr>
+            <tr><td><code>DB_NAME</code></td><td>apeadmin</td><td>数据库名</td></tr>
+            <tr><td><code>REDIS_URL</code></td><td>redis://localhost:6379/1</td><td>Redis 连接（可选）</td></tr>
+            <tr><td><code>JWT_SECRET</code></td><td>change-me-in-production...</td><td>JWT 签名密钥</td></tr>
+            <tr><td><code>JWT_EXPIRE_MINUTES</code></td><td>1440</td><td>Token 有效期（分钟）</td></tr>
+            <tr><td><code>CORS_ORIGINS</code></td><td>localhost:5173,localhost:8000</td><td>CORS 白名单</td></tr>
+            <tr><td><code>MCP_ENABLED</code></td><td>true</td><td>是否启用 MCP 网关</td></tr>
+            <tr><td><code>PLUGINS_ENABLED</code></td><td>true</td><td>是否启用插件系统</td></tr>
+            <tr><td><code>SUPER_ADMIN_USERNAME</code></td><td>admin</td><td>超管用户名</td></tr>
+            <tr><td><code>SUPER_ADMIN_PASSWORD</code></td><td>admin123</td><td>超管密码</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- AI 模型配置 -->
+    <section class="doc-section" id="ai-config" data-title="AI 模型配置" data-group="配置与运维">
+      <h2 class="sec-title">AI 模型<span class="grad-text">配置</span><a class="anchor-link" href="#ai-config">¶</a></h2>
+      <p class="sec-desc">在管理后台 → AI 助手 → 模型密钥管理中添加。</p>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>供应商</th><th>默认模型</th><th>Base URL</th></tr></thead>
+          <tbody>
+            <tr><td>DeepSeek</td><td>deepseek-chat</td><td><code>https://api.deepseek.com</code></td></tr>
+            <tr><td>通义千问</td><td>qwen-plus</td><td><code>https://dashscope.aliyuncs.com/compatible-mode/v1</code></td></tr>
+            <tr><td>智谱 GLM</td><td>glm-4-flash</td><td><code>https://open.bigmodel.cn/api/paas/v4</code></td></tr>
+            <tr><td>OpenAI</td><td>gpt-4o-mini</td><td><code>https://api.openai.com/v1</code></td></tr>
+            <tr><td>自定义</td><td>—</td><td>任意 OpenAI 兼容端点</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout info">
+        <span class="c-ic">🔑</span>
+        <div class="c-body"><b>密钥管理</b>后台管理 AI 供应商密钥，加密存储，API Key 通过 <code>crypto.py</code> 加密保护。</div>
+      </div>
+    </section>
+
+    <!-- 贡献指南 -->
+    <section class="doc-section" id="contribute" data-title="贡献指南" data-group="配置与运维">
+      <h2 class="sec-title">贡献<span class="grad-text">指南</span><a class="anchor-link" href="#contribute">¶</a></h2>
+      <p class="sec-desc">欢迎贡献！请遵循以下流程。</p>
+      <h3 class="sub-title">如何贡献<a class="anchor-link" href="#">¶</a></h3>
+      <div class="code-box" data-copy="contribute-flow">
+        <div class="cb-head"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="fname">贡献流程</span><button class="copy-btn" data-target="contribute-flow">📋 复制</button></div>
+        <pre><code id="contribute-flow"><span class="c-c"># 1. Fork 仓库并克隆</span>
+git clone https://github.com/&lt;你的用户名&gt;/ApeAdmin.git
+<span class="c-n">cd</span> ApeAdmin
+
+<span class="c-c"># 2. 创建分支</span>
+git checkout -b feat/your-feature
+
+<span class="c-c"># 3. 后端</span>
+<span class="c-n">cd</span> backend && pip install -e . && uvicorn src.main:app --reload
+
+<span class="c-c"># 4. 前端</span>
+<span class="c-n">cd</span> frontend && npm install --legacy-peer-deps && npm run dev
+
+<span class="c-c"># 5. 提交</span>
+git commit -m <span class="c-s">"feat: add xxx support"</span>
+
+<span class="c-c"># 6. 向 master 分支提交 Pull Request</span></code></pre>
+      </div>
+      <h3 class="sub-title">分支命名<a class="anchor-link" href="#">¶</a></h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>前缀</th><th>用途</th></tr></thead>
+          <tbody>
+            <tr><td><code>feat/</code></td><td>新功能</td></tr>
+            <tr><td><code>fix/</code></td><td>Bug 修复</td></tr>
+            <tr><td><code>refactor/</code></td><td>重构（不改变行为）</td></tr>
+            <tr><td><code>docs/</code></td><td>仅文档</td></tr>
+            <tr><td><code>chore/</code></td><td>构建、CI、工具链</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3 class="sub-title">约定<a class="anchor-link" href="#">¶</a></h3>
+      <ul class="bullet">
+        <li>插件保持独立，不直接依赖其他插件</li>
+        <li>破坏性操作必须需要用户确认</li>
+        <li>API 遵循 RESTful 风格，前缀 <code>/api/v1</code></li>
+        <li>提交前确保后端可启动、前端可编译</li>
+      </ul>
+      <div class="callout tip">
+        <span class="c-ic">💬</span>
+        <div class="c-body"><b>社区交流</b>用微信扫描 README 中的二维码联系作者加入 ApeAdmin 用户群，反馈问题、分享使用心得。</div>
+      </div>
+    </section>
+
+    <!-- 上下页导航 -->
+    <div class="doc-nav">
+      <a class="prev" href="#ai-config" id="prevPage">
+        <span class="nav-label">上一篇</span>
+        <span class="nav-title" id="prevTitle">AI 模型配置</span>
+      </a>
+      <a class="next" href="/apehub-web/index.html" id="nextPage">
+        <span class="nav-label">下一篇</span>
+        <span class="nav-title" id="nextTitle">返回首页</span>
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<!-- 页脚 -->
+<footer>
+  <div class="foot-inner">
+    <div class="l">© 2026 ApeAdmin · 面向 AI 智能体场景的开发框架 · MIT License</div>
+    <div class="r">
+      <a href="/apehub-web/index.html">首页</a>
+      <a href="/apehub-web/plugins.html">插件市场</a>
+      <a href="https://github.com/KevinLiss/ApeAdmin" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/KevinLiss/ApeAdmin/issues" target="_blank" rel="noopener">Issues</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // ===== 主题切换 =====
+  (function() {
+    const root = document.documentElement;
+    const savedTheme = localStorage.getItem('ape-theme') || 'dark';
+    root.setAttribute('data-theme', savedTheme);
+    document.addEventListener('DOMContentLoaded', () => {
+      const btn = document.getElementById('themeToggle');
+      if (btn) {
+        btn.textContent = savedTheme === 'dark' ? '🌙' : '☀️';
+        btn.addEventListener('click', () => {
+          const current = root.getAttribute('data-theme') || 'dark';
+          const next = current === 'dark' ? 'light' : 'dark';
+          root.setAttribute('data-theme', next);
+          localStorage.setItem('ape-theme', next);
+          btn.textContent = next === 'dark' ? '🌙' : '☀️';
+        });
+      }
+    });
+  })();
+
+  // ===== 文档数据索引（用于搜索和大纲） =====
+  const DOC_SECTIONS = [
+    { id: 'intro', title: '项目简介', group: '入门', icon: '📖' },
+    { id: 'quickstart', title: '快速开始', group: '入门', icon: '🚀' },
+    { id: 'account', title: '默认账号', group: '入门', icon: '🔑' },
+    { id: 'architecture', title: '目录结构', group: '核心架构', icon: '🏛️' },
+    { id: 'principles', title: '设计原则', group: '核心架构', icon: '🧭' },
+    { id: 'techstack', title: '技术栈', group: '核心架构', icon: '🧰' },
+    { id: 'plugin-create', title: '创建插件', group: '插件开发', icon: '🧩' },
+    { id: 'plugin-api', title: '插件接口', group: '插件开发', icon: '🔌' },
+    { id: 'plugin-events', title: '事件总线', group: '插件开发', icon: '📡' },
+    { id: 'mcp-overview', title: '网关概览', group: 'MCP 网关', icon: '🌐' },
+    { id: 'mcp-tools', title: '内置工具', group: 'MCP 网关', icon: '🔧' },
+    { id: 'mcp-register', title: '注册工具', group: 'MCP 网关', icon: '⚡' },
+    { id: 'config', title: '配置说明', group: '配置与运维', icon: '⚙️' },
+    { id: 'ai-config', title: 'AI 模型配置', group: '配置与运维', icon: '🤖' },
+    { id: 'contribute', title: '贡献指南', group: '配置与运维', icon: '🤝' },
+  ];
+
+  // ===== 侧边栏高亮 + 面包屑 + 上下页 =====
+  const sidebarLinks = document.querySelectorAll('.sidebar a[href^="#"]');
+  const crumbCurrent = document.getElementById('crumbCurrent');
+  const prevPage = document.getElementById('prevPage');
+  const prevTitle = document.getElementById('prevTitle');
+  const nextPage = document.getElementById('nextPage');
+  const nextTitle = document.getElementById('nextTitle');
+
+  function updateActive() {
+    const scrollY = window.scrollY + 120;
+    let current = DOC_SECTIONS[0];
+    for (const s of DOC_SECTIONS) {
+      const el = document.getElementById(s.id);
+      if (el && el.offsetTop <= scrollY) current = s;
+    }
+    // 高亮侧边栏
+    sidebarLinks.forEach(l => {
+      l.classList.toggle('active', l.getAttribute('href') === '#' + current.id);
+    });
+    // 面包屑
+    if (crumbCurrent) crumbCurrent.textContent = current.title;
+    // 上下页
+    const idx = DOC_SECTIONS.findIndex(s => s.id === current.id);
+    if (idx > 0) {
+      prevPage.href = '#' + DOC_SECTIONS[idx - 1].id;
+      prevTitle.textContent = DOC_SECTIONS[idx - 1].title;
+      prevPage.style.visibility = 'visible';
+    } else {
+      prevPage.style.visibility = 'hidden';
+    }
+    if (idx < DOC_SECTIONS.length - 1) {
+      nextPage.href = '#' + DOC_SECTIONS[idx + 1].id;
+      nextTitle.textContent = DOC_SECTIONS[idx + 1].title;
+    } else {
+      nextPage.href = '/apehub-web/index.html';
+      nextTitle.textContent = '返回首页';
+    }
+    // TOC 已移除，高亮逻辑清理
+  }
+  window.addEventListener('scroll', updateActive, { passive: true });
+  updateActive();
+
+  // ===== 代码复制功能 =====
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.dataset.target;
+      const codeEl = document.getElementById(targetId);
+      if (!codeEl) return;
+      // 获取纯文本（去掉 HTML 标签）
+      const text = codeEl.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        btn.classList.add('copied');
+        btn.textContent = '✓ 已复制';
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.textContent = '📋 复制';
+        }, 2000);
+      }).catch(() => {
+        // 降级方案
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        btn.classList.add('copied');
+        btn.textContent = '✓ 已复制';
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.textContent = '📋 复制';
+        }, 2000);
+      });
+    });
+  });
+
+  // ===== 搜索功能 =====
+  const searchInput = document.getElementById('searchInput');
+  const searchPanel = document.getElementById('searchPanel');
+  const searchResults = document.getElementById('searchResults');
+  let searchHighlighted = -1;
+
+  function renderSearch(query) {
+    const q = query.toLowerCase().trim();
+    if (!q) { searchPanel.classList.remove('show'); return; }
+    const matches = DOC_SECTIONS.filter(s =>
+      s.title.toLowerCase().includes(q) ||
+      s.group.toLowerCase().includes(q) ||
+      s.id.toLowerCase().includes(q)
+    );
+    if (matches.length === 0) {
+      searchResults.innerHTML = '<div class="search-empty">未找到相关文档</div>';
+    } else {
+      searchResults.innerHTML = matches.map((s, i) => {
+        const titleHi = s.title.replace(new RegExp(q, 'gi'), m => `<mark>${m}</mark>`);
+        return `<div class="search-item" data-href="#${s.id}" data-idx="${i}">
+          <span class="s-ic">${s.icon}</span>
+          <span class="s-group">${s.group}</span>
+          <span class="s-title">${titleHi}</span>
+        </div>`;
+      }).join('');
+      // 点击搜索结果跳转
+      searchResults.querySelectorAll('.search-item').forEach(item => {
+        item.addEventListener('click', () => {
+          location.href = item.dataset.href;
+          searchInput.value = '';
+          searchPanel.classList.remove('show');
+        });
+      });
+    }
+    searchPanel.classList.add('show');
+    searchHighlighted = -1;
+  }
+
+  searchInput.addEventListener('input', e => renderSearch(e.target.value));
+  searchInput.addEventListener('focus', e => { if (e.target.value) renderSearch(e.target.value); });
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.nav-search') && !e.target.closest('.search-panel')) {
+      searchPanel.classList.remove('show');
+    }
+  });
+
+  // Ctrl+K 聚焦搜索
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault();
+      searchInput.focus();
+    }
+    // ESC 清除搜索
+    if (e.key === 'Escape') {
+      searchInput.value = '';
+      searchPanel.classList.remove('show');
+      searchInput.blur();
+    }
+    // 上下键导航搜索结果
+    if (searchPanel.classList.contains('show')) {
+      const items = searchResults.querySelectorAll('.search-item');
+      if (e.key === 'ArrowDown' && items.length > 0) {
+        e.preventDefault();
+        searchHighlighted = Math.min(searchHighlighted + 1, items.length - 1);
+        items.forEach((it, i) => it.classList.toggle('highlighted', i === searchHighlighted));
+        items[searchHighlighted]?.scrollIntoView({ block: 'nearest' });
+      }
+      if (e.key === 'ArrowUp' && items.length > 0) {
+        e.preventDefault();
+        searchHighlighted = Math.max(searchHighlighted - 1, -1);
+        items.forEach((it, i) => it.classList.toggle('highlighted', i === searchHighlighted));
+      }
+      if (e.key === 'Enter' && searchHighlighted >= 0) {
+        const item = items[searchHighlighted];
+        if (item) {
+          location.href = item.dataset.href;
+          searchInput.value = '';
+          searchPanel.classList.remove('show');
+        }
+      }
+    }
+  });
+
+  // ===== 移动端侧边栏开关 =====
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  const sidebar = document.getElementById('sidebar');
+  sidebarToggle?.addEventListener('click', () => sidebar.classList.toggle('open'));
+  sidebar?.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => {
+      if (window.innerWidth <= 1024) sidebar.classList.remove('open');
+    });
+  });
+
+  // ===== 顶部导航汉堡（移动端） =====
+  const navToggle = document.getElementById('menuToggle');
+  navToggle?.addEventListener('click', () => {
+    const nl = document.querySelector('.nav-links');
+    const visible = nl.style.display === 'flex';
+    nl.style.display = visible ? 'none' : 'flex';
+    nl.style.flexDirection = 'column';
+    nl.style.position = 'absolute';
+    nl.style.top = '64px'; nl.style.left = '0'; nl.style.right = '0';
+    nl.style.background = getComputedStyle(document.documentElement).getPropertyValue('--bg-soft').trim();
+    nl.style.padding = '20px 24px';
+    nl.style.borderBottom = '1px solid var(--border)';
+    nl.style.gap = '18px'; nl.style.alignItems = 'flex-start';
+  });
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 600) {
+      const nl = document.querySelector('.nav-links');
+      nl.style.display = ''; nl.style.flexDirection = ''; nl.style.position = '';
+      nl.style.top = ''; nl.style.left = ''; nl.style.right = '';
+      nl.style.background = ''; nl.style.padding = ''; nl.style.borderBottom = '';
+      nl.style.gap = '24px'; nl.style.alignItems = 'center';
+    }
+  });
+</script>
+</body>
+</html>

@@ -31,6 +31,8 @@ class TokenSchema(BaseModel):
 class LoginSchema(BaseModel):
     username: str = Field(..., min_length=2, max_length=50)
     password: str = Field(..., min_length=6, max_length=100)
+    captcha_id: str | None = Field(default=None, max_length=64)
+    captcha_code: str | None = Field(default=None, max_length=8)
 
 
 class ChangePasswordSchema(BaseModel):
@@ -113,7 +115,7 @@ class RoleOut(RoleBase):
 
 class MenuBase(BaseModel):
     name: str = Field(..., max_length=50)
-    parent_id: int = 0
+    parent_id: int = Field(default=0, ge=0)
     type: str = "M"
     path: str | None = None
     component: str | None = None
@@ -130,7 +132,7 @@ class MenuCreate(MenuBase):
 
 class MenuUpdate(BaseModel):
     name: str | None = None
-    parent_id: int | None = None
+    parent_id: int | None = Field(default=None, ge=0)
     type: str | None = None
     path: str | None = None
     component: str | None = None

@@ -55,6 +55,10 @@ class Settings(BaseSettings):
     PLUGINS_ENABLED: bool = True
     PLUGINS_BUILTIN_DIR: str = str(Path(__file__).resolve().parent.parent / "plugins" / "builtin")
     PLUGINS_UPLOAD_DIR: str = str(Path(__file__).resolve().parent.parent / "uploads" / "plugins")
+    FILE_STORAGE_DIR: str = str(Path(__file__).resolve().parent.parent / "uploads" / "files")
+    # Runtime plugin state is process-local. Use a single worker unless a
+    # future coordinated control plane is configured.
+    PLUGIN_RUNTIME_MODE: Literal["single_process"] = "single_process"
 
     # ---- Super admin ----
     SUPER_ADMIN_USERNAME: str = "admin"
