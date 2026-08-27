@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>ApeAdmin · 插件市场</title>
 <meta name="description" content="ApeAdmin 插件市场 —— 发现、安装和管理 ApeAdmin 插件。" />
-<link rel="icon" type="image/png" href="/apeui/assets/logo.png" />
+<link rel="icon" type="image/png" href="/apehub-web/assets/logo.png" />
 <style>
   :root {
     --bg: #07080f;
@@ -204,22 +204,22 @@
 <!-- 导航 -->
 <nav>
   <div class="nav-inner">
-    <a class="brand" href="/apeui/index.html">
-      <img src="/apeui/assets/logo.png" alt="ApeAdmin" />
+    <a class="brand" href="/apehub-web/index.html">
+      <img src="/apehub-web/assets/logo.png" alt="ApeAdmin" />
       <span>ApeAdmin <span class="badge">Plugins</span></span>
     </a>
     <div class="nav-links">
-      <a href="/apeui/index.html">首页</a>
-      <a href="/apeui/index.html#features">核心特性</a>
-      <a href="/apeui/index.html#mcp">MCP 网关</a>
-      <a class="active" href="/apeui/plugins.html">插件市场</a>
-      <a href="/apeui/docs.html">技术文档</a>
-      <a href="/apeui/profile.html">个人中心</a>
+      <a href="/apehub-web/index.html">首页</a>
+      <a href="/apehub-web/index.html#features">核心特性</a>
+      <a href="/apehub-web/index.html#mcp">MCP 网关</a>
+      <a class="active" href="/apehub-web/plugins.html">插件市场</a>
+      <a href="/apehub-web/docs.html">技术文档</a>
+      <a href="/apehub-web/profile.html">个人中心</a>
     </div>
     <div class="nav-actions">
       <button class="btn btn-ghost theme-toggle" id="themeToggle" aria-label="切换主题" title="切换明暗主题">🌙</button>
       <a class="btn btn-ghost gh-link" href="https://github.com/KevinLiss/ApeAdmin" target="_blank" rel="noopener">GitHub</a>
-      <a class="btn btn-primary" href="/apeui/index.html#start">开始使用</a>
+      <a class="btn btn-primary" href="/apehub-web/index.html#start">开始使用</a>
     </div>
     <button class="menu-toggle" id="menuToggle" aria-label="菜单">☰</button>
   </div>
@@ -261,8 +261,8 @@
   <div class="foot-inner">
     <div class="l">© 2026 ApeAdmin · 插件市场 · MIT License</div>
     <div class="r">
-      <a href="/apeui/index.html">首页</a>
-      <a href="/apeui/docs.html">技术文档</a>
+      <a href="/apehub-web/index.html">首页</a>
+      <a href="/apehub-web/docs.html">技术文档</a>
       <a href="https://github.com/KevinLiss/ApeAdmin" target="_blank" rel="noopener">GitHub</a>
     </div>
   </div>
@@ -322,7 +322,7 @@
       const ribbonHtml = p.ribbon === 'hot' ? '<div class="ribbon hot">热门</div>'
         : p.ribbon === 'new' ? '<div class="ribbon new">最新</div>' : '';
       return `
-        <div class="plugin-card" onclick="location.href='/apeui/plugin-detail.html?name=${encodeURIComponent(p.name)}'">
+        <div class="plugin-card" onclick="location.href='/apehub-web/plugin-detail.html?name=${encodeURIComponent(p.name)}'">
           ${ribbonHtml}
           <div class="p-head">
             <div class="p-icon" style="background:${p.iconBg}">${p.icon}</div>
@@ -339,7 +339,7 @@
               <span>★ ${p.rating}</span>
             </div>
             <div class="p-actions">
-              <button class="install-btn" data-name="${p.name}" onclick="location.href='/apeui/plugin-detail.html?name=${encodeURIComponent(p.name)}'; event.stopPropagation()">
+              <button class="install-btn" data-name="${p.name}" onclick="location.href='/apehub-web/plugin-detail.html?name=${encodeURIComponent(p.name)}'; event.stopPropagation()">
                 详情
               </button>
             </div>
@@ -352,7 +352,7 @@
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const name = btn.dataset.name;
-        location.href = `/apeui/plugin-detail.html?name=${encodeURIComponent(name)}`;
+        location.href = `/apehub-web/plugin-detail.html?name=${encodeURIComponent(name)}`;
       });
     });
     // 加载更多按钮显隐

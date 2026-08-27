@@ -210,11 +210,14 @@ async def upload_plugin(
     started = time.perf_counter()
     try:
         result = await plugin_manager.install_plugin_from_zip(tmp_path, request.app)
-    except (ValueError, OSError) as exc:
+    except Exception as exc:
         # Clean up temp file on failure
         tmp_path.unlink(missing_ok=True)
         await _write_plugin_audit(db, user, "install", filename, started, error=str(exc))
-        raise ValidationException(str(exc))
+        raise ValidationException(
+            f"插件 '{filename}' 导入失败（manager）：{type(exc).__name__}: {exc}。"
+            "临时上传文件已清理；请根据错误信息修复后重试。"
+        ) from exc
 
     # Upsert metadata only after runtime installation succeeds.
     plugin_name = result["name"]
@@ -257,7 +260,7 @@ async def restart_server(
     # Write the restart helper script to a temp location
     restart_script = Path(tempfile.gettempdir()) / "apeadmin_restart.sh"
     python_bin = sys.executable
-    project_root = Path(__file__).resolve().parent.parent.parent.parent  # backend/
+    project_root = Path(__file__).resolve().parents[2]  # backend/
 
     script_content = f"""#!/bin/bash
 # ApeAdmin auto-restart script
@@ -268,7 +271,7 @@ sleep 2
 
 # Relaunch uvicorn
 cd "{project_root}"
-exec {python_bin} -m uvicorn src.main:app --host 127.0.0.1 --port 8000 >> /tmp/apeadmin_backend.log 2>&1
+exec "{python_bin}" -m uvicorn src.main:app --host 127.0.0.1 --port 8000 </dev/null >> /tmp/apeadmin_backend.log 2>&1
 """
     restart_script.write_text(script_content)
     restart_script.chmod(restart_script.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
@@ -276,6 +279,7 @@ exec {python_bin} -m uvicorn src.main:app --host 127.0.0.1 --port 8000 >> /tmp/a
     # Spawn the restart script as a detached process
     proc = await asyncio.create_subprocess_exec(
         "bash", str(restart_script),
+        stdin=asyncio.subprocess.DEVNULL,
         stdout=asyncio.subprocess.DEVNULL,
         stderr=asyncio.subprocess.DEVNULL,
         start_new_session=True,  # Detach from parent process group
@@ -291,7 +295,10 @@ exec {python_bin} -m uvicorn src.main:app --host 127.0.0.1 --port 8000 >> /tmp/a
 
     asyncio.create_task(_delayed_exit())
 
-    return success_response(msg="后端正在重启，请等待约 5 秒后刷新页面")
+    return success_response(
+        data={"old_pid": os.getpid()},
+        msg="后端正在重启，请等待约 5 秒后刷新页面",
+    )
 
 
 @router.delete("/{plugin_id}")

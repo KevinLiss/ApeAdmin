@@ -18,7 +18,14 @@ export function generateDynamicRoutes(menus: any[]): RouteRecordRaw[] {
         const componentKey1 = `/src/views/${menu.component}.vue`
         const componentKey2 = `/src/views/${menu.component}/index.vue`
         const component = modules[componentKey1] || modules[componentKey2]
-        if (component) routes.push({ path: relativePath, name: menu.name, component: component as any, meta: { title: menu.name, icon: menu.icon, permission: menu.permission || undefined } })
+        if (component) {
+          // Menu labels are not unique (for example, system and plugin users
+          // pages can both be named "用户管理"). Vue Router replaces a route
+          // when a duplicate name is added, so derive a stable name from the
+          // full path while keeping the label in route meta.
+          const routeName = `dynamic_${relativePath.replace(/[^a-zA-Z0-9_]/g, '_')}`
+          routes.push({ path: relativePath, name: routeName, component: component as any, meta: { title: menu.name, icon: menu.icon, permission: menu.permission || undefined } })
+        }
       }
       if (menu.children?.length) {
         const currentPath = menu.type === 'M' && menu.path ? menu.path.replace(/^\//, '') : parentPath
@@ -43,6 +50,11 @@ const staticRoutes: RouteRecordRaw[] = [
 const router = createRouter({ history: createWebHistory(), routes: staticRoutes })
 let dynamicRoutesLoaded = false
 
+function registerDynamicRoutes(menus: any[]) {
+  for (const route of generateDynamicRoutes(menus)) router.addRoute('Layout', route)
+  dynamicRoutesLoaded = true
+}
+
 router.beforeEach(async (to, _from, next) => {
   const token = localStorage.getItem('apeadmin_token')
   if (to.path === '/login') { if (token) next('/dashboard-monitor'); else next(); return }
@@ -51,8 +63,7 @@ router.beforeEach(async (to, _from, next) => {
     const userStore = useUserStore()
     try {
       if (!userStore.menus.length) await userStore.fetchUserInfo()
-      for (const route of generateDynamicRoutes(userStore.menus)) router.addRoute('Layout', route)
-      dynamicRoutesLoaded = true
+      registerDynamicRoutes(userStore.menus)
       next({ path: to.fullPath, replace: true })
     } catch { userStore.reset(); next('/login') }
     return
@@ -66,6 +77,11 @@ export function resetRouter() {
   dynamicRoutesLoaded = false
   const staticNames = new Set(['Login', 'NotFound', 'CatchAll', 'Layout', 'Profile', 'SystemSettings'])
   router.getRoutes().forEach((route) => { if (route.name && !staticNames.has(route.name as string)) router.removeRoute(route.name) })
+}
+
+export function refreshDynamicRoutes(menus: any[]) {
+  resetRouter()
+  registerDynamicRoutes(menus)
 }
 
 export default router

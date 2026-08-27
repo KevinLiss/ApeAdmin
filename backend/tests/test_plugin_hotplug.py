@@ -4,8 +4,14 @@ from pathlib import Path
 
 import pytest
 from fastapi import FastAPI
+from sqlalchemy import insert, select
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
+from src.core.seed import _remove_unimplemented_apeui_menus
+from src.db import Base
 from src.mcp import mcp_manager
+from src.models import Menu, Role
+from src.models.rbac import role_menu
 from src.plugins.base import event_bus
 from src.plugins.manager import PluginManager
 
@@ -60,3 +66,54 @@ def test_plugin_zip_rejects_unsafe_name_and_supports_single_root():
 
         with pytest.raises(ValueError):
             manager._validate_plugin_zip(unsafe_zip)
+
+
+@pytest.mark.asyncio
+async def test_seed_removes_unimplemented_apeui_admin_menu_branch():
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+    async with engine.begin() as connection:
+        await connection.run_sync(Base.metadata.create_all)
+
+    try:
+        async with session_factory() as db:
+            root = Menu(name="ApeUI 官网", parent_id=0, type="M", path="/apeui")
+            config = Menu(
+                name="官网配置",
+                parent_id=0,
+                type="C",
+                path="apeui/admin/config",
+                component="apeui/admin/Config",
+                permission="apeui:config",
+            )
+            dashboard = Menu(
+                name="系统仪表盘",
+                parent_id=0,
+                type="C",
+                path="/dashboard-monitor",
+                component="apeui/dashboard/Monitor",
+            )
+            role = Role(name="超级管理员", code="admin")
+            db.add_all([root, config, dashboard, role])
+            await db.flush()
+            config.parent_id = root.id
+            await db.flush()
+            await db.execute(
+                insert(role_menu),
+                [
+                    {"role_id": role.id, "menu_id": root.id},
+                    {"role_id": role.id, "menu_id": config.id},
+                    {"role_id": role.id, "menu_id": dashboard.id},
+                ],
+            )
+            await db.commit()
+
+            await _remove_unimplemented_apeui_menus(db)
+            await db.commit()
+
+            remaining = list((await db.execute(select(Menu))).scalars().all())
+            assert [menu.component for menu in remaining] == ["apeui/dashboard/Monitor"]
+            role_menu_ids = set((await db.execute(select(role_menu.c.menu_id))).scalars().all())
+            assert role_menu_ids == {dashboard.id}
+    finally:
+        await engine.dispose()

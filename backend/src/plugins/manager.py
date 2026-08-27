@@ -156,8 +156,10 @@ class PluginManager:
                         or component == plugin_name
                         or component.startswith(f"{plugin_name}/")
                     )
-                    or path == f"/{plugin_name}"
-                    or path.startswith(f"/{plugin_name}/")
+                    or any(
+                        path == route_prefix or path.startswith(f"{route_prefix}/")
+                        for route_prefix in {f"/{plugin_name}", f"/{plugin_name.replace('_', '-')}"}
+                    )
                 ),
                 None,
             )
@@ -223,7 +225,7 @@ class PluginManager:
 
         result = await db.execute(select(Menu))
         prefix = f"{name}:"
-        route_prefix = f"/{name}"
+        route_prefixes = {f"/{name}", f"/{name.replace('_', '-')}"}
         component_prefix = f"{name}/"
         matched = []
         for menu in result.scalars().all():
@@ -238,8 +240,7 @@ class PluginManager:
                 (permission.startswith(prefix) and not is_core_dashboard)
                 or component == name
                 or (component.startswith(component_prefix) and not is_core_dashboard)
-                or path == route_prefix
-                or path.startswith(f"{route_prefix}/")
+                or any(path == route_prefix or path.startswith(f"{route_prefix}/") for route_prefix in route_prefixes)
             ):
                 matched.append(menu)
         for menu in matched:
@@ -472,6 +473,7 @@ class PluginManager:
             try:
                 self._check_dependencies(name, info.dependencies)
                 if info.instance is None:
+                    self._remove_plugin_metadata(name)
                     info = self._discover_one(name)
                 info.instance.on_load()
                 if not info.installed:
@@ -522,14 +524,17 @@ class PluginManager:
                     await info.instance.uninstall()
                 if info.instance:
                     info.instance.on_unload()
+                # Update ORM-backed menu rows before unloading plugin modules.
+                # Some plugin model mappers may still be resolving while the
+                # current request session is alive.
+                await self._persist_enabled(name, False, db)
+                menus_disabled = await self._set_plugin_menus_enabled(name, False, db)
                 self._cleanup_module_cache(info.module_path)
                 info.instance = None
                 info.installed = False
                 info.enabled = False
                 info.runtime_state = "inactive"
                 info.last_error = None
-                await self._persist_enabled(name, False, db)
-                menus_disabled = await self._set_plugin_menus_enabled(name, False, db)
                 result = {"name": name, "status": "inactive", **resources, "menus_disabled": menus_disabled}
                 if warnings:
                     result["warnings"] = warnings
@@ -606,7 +611,13 @@ class PluginManager:
                     self._plugins[name] = old
                 else:
                     self._plugins.pop(name, None)
-                raise ValueError(f"插件安装失败: {exc}") from exc
+                version = manifest.get("version", "未知版本")
+                raise ValueError(
+                    f"插件 '{name}' {version} 安装失败（install/register）："
+                    f"{type(exc).__name__}: {exc}。"
+                    "插件文件和本次运行时注册已回滚；已提交的数据库迁移不会自动删除，以保护既有数据。"
+                    "请检查插件依赖、迁移脚本和后端日志后重试。"
+                ) from exc
 
     async def uninstall_plugin(
         self,
@@ -637,6 +648,7 @@ class PluginManager:
                         info.instance.on_unload()
                 else:
                     resources = {"routes_removed": 0, "mcp_tools_removed": 0, "events_unsubscribed": 0}
+                await self._set_plugin_menus_enabled(name, False, db)
                 self._cleanup_module_cache(info.module_path)
                 self.remove_plugin_files(name)
                 if db is not None:
@@ -646,7 +658,6 @@ class PluginManager:
                     if record:
                         await db.delete(record)
                         await db.commit()
-                await self._set_plugin_menus_enabled(name, False, db)
                 self._plugins.pop(name, None)
                 result = {"name": name, "status": "removed", "data_preserved": keep_data, **resources}
                 if warnings:

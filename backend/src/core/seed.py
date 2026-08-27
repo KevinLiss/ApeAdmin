@@ -7,7 +7,7 @@ Creates:
 """
 
 from loguru import logger
-from sqlalchemy import insert, select, update
+from sqlalchemy import delete, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config import settings
@@ -62,6 +62,7 @@ async def _seed_menus(db: AsyncSession) -> None:
     """Create the default system management menu tree."""
     await _retire_removed_component_menus(db)
     await _retire_style_library_menus(db)
+    await _remove_unimplemented_apeui_menus(db)
 
     # Check if any menus exist
     result = await db.execute(select(Menu).limit(1))
@@ -93,7 +94,10 @@ async def _seed_menus(db: AsyncSession) -> None:
         ("新增部门", "部门管理", "F", None, None, "system:dept:add", None, 1),
         ("编辑部门", "部门管理", "F", None, None, "system:dept:edit", None, 2),
         ("删除部门", "部门管理", "F", None, None, "system:dept:delete", None, 3),
-        ("插件管理", "系统管理", "C", "plugin", "system/plugin/index", "system:plugin:list", "Box", 5),
+        # Plugin management is a top-level operational page. Its action
+        # permissions remain nested below it, but it is not part of the system
+        # settings directory.
+        ("插件管理", None, "C", "/plugin", "system/plugin/index", "system:plugin:list", "Box", 5),
         ("启用/禁用插件", "插件管理", "F", None, None, "system:plugin:toggle", None, 1),
         ("插件配置", "插件管理", "F", None, None, "system:plugin:config", None, 2),
         ("文件管理", "系统管理", "C", "file", "system/file/index", "system:file:list", "FolderOpened", 6),
@@ -132,15 +136,6 @@ async def _seed_menus(db: AsyncSession) -> None:
         ("提交插件", "ApeHub 管理", "F", None, None, "apehub:plugin:submit", None, 8),
         ("订单列表", "ApeHub 管理", "F", None, None, "apehub:order:list", None, 9),
         ("申请提现", "ApeHub 管理", "F", None, None, "apehub:withdrawal:create", None, 10),
-        # ApeUI 官网菜单
-        ("ApeUI 官网", None, "M", "/apeui", None, None, "Monitor", 50),
-        ("官网配置", "ApeUI 官网", "C", "apeui/admin/config", "apeui/admin/Config", "apeui:config", "Setting", 1),
-        ("内容管理", "ApeUI 官网", "C", "apeui/admin/content", "apeui/admin/Content", "apeui:content:list", "Document", 2),
-        ("文档管理", "ApeUI 官网", "C", "apeui/admin/docs", "apeui/admin/Docs", "apeui:docs:list", "Notebook", 3),
-        ("插件审核", "ApeUI 官网", "C", "apeui/admin/plugins", "apeui/admin/Plugins", "apeui:plugins:review", "Box", 4),
-        ("订单管理", "ApeUI 官网", "C", "apeui/admin/orders", "apeui/admin/Orders", "apeui:orders:list", "ShoppingCart", 5),
-        ("提现审核", "ApeUI 官网", "C", "apeui/admin/withdrawals", "apeui/admin/Withdrawals", "apeui:withdrawals:review", "Money", 6),
-        ("用户管理", "ApeUI 官网", "C", "apeui/admin/users", "apeui/admin/Users", "apeui:users:list", "User", 7),
     ]
 
     # Track created menus by name for parent linking
@@ -233,15 +228,6 @@ async def _seed_missing_menus(db: AsyncSession) -> None:
         ("提交插件", "ApeHub 管理", "F", None, None, "apehub:plugin:submit", None, 8),
         ("订单列表", "ApeHub 管理", "F", None, None, "apehub:order:list", None, 9),
         ("申请提现", "ApeHub 管理", "F", None, None, "apehub:withdrawal:create", None, 10),
-        # ApeUI plugin-owned management menus
-        ("ApeUI 官网", None, "M", "/apeui", None, None, "Monitor", 50),
-        ("官网配置", "ApeUI 官网", "C", "apeui/admin/config", "apeui/admin/Config", "apeui:config", "Setting", 1),
-        ("内容管理", "ApeUI 官网", "C", "apeui/admin/content", "apeui/admin/Content", "apeui:content:list", "Document", 2),
-        ("文档管理", "ApeUI 官网", "C", "apeui/admin/docs", "apeui/admin/Docs", "apeui:docs:list", "Notebook", 3),
-        ("插件审核", "ApeUI 官网", "C", "apeui/admin/plugins", "apeui/admin/Plugins", "apeui:plugins:review", "Box", 4),
-        ("订单管理", "ApeUI 官网", "C", "apeui/admin/orders", "apeui/admin/Orders", "apeui:orders:list", "ShoppingCart", 5),
-        ("提现审核", "ApeUI 官网", "C", "apeui/admin/withdrawals", "apeui/admin/Withdrawals", "apeui:withdrawals:review", "Money", 6),
-        ("用户管理", "ApeUI 官网", "C", "apeui/admin/users", "apeui/admin/Users", "apeui:users:list", "User", 7),
     ]
 
     missing_menus = [
@@ -347,6 +333,51 @@ async def _retire_style_library_menus(db: AsyncSession) -> None:
             retired += 1
     if retired:
         logger.info(f"Retired {retired} Apeadmin style-library menus")
+
+
+async def _remove_unimplemented_apeui_menus(db: AsyncSession) -> None:
+    """Remove ApeUI admin menus whose Vue route components are not shipped.
+
+    The static ApeUI website is a separate plugin surface. Its planned admin
+    pages were seeded before their frontend implementation existed, which made
+    every sidebar entry resolve to the 404 route. Remove both new-install and
+    historical menu rows until a future plugin release ships the matching
+    components and APIs.
+    """
+    all_menus = list((await db.execute(select(Menu))).scalars().all())
+    root_ids = {
+        menu.id
+        for menu in all_menus
+        if menu.name == "ApeUI 官网" and menu.parent_id == 0 and menu.path == "/apeui"
+    }
+    menu_ids = {
+        menu.id
+        for menu in all_menus
+        if menu.component and menu.component.startswith("apeui/admin/")
+    }
+    menu_ids.update(
+        menu.id
+        for menu in all_menus
+        if menu.permission and menu.permission.startswith("apeui:")
+    )
+    menu_ids.update(root_ids)
+
+    # Include descendants of the legacy root directory, including any
+    # button-level permissions that may have been added manually.
+    changed = True
+    while changed:
+        changed = False
+        for menu in all_menus:
+            if menu.parent_id in menu_ids and menu.id not in menu_ids:
+                menu_ids.add(menu.id)
+                changed = True
+
+    if not menu_ids:
+        return
+
+    await db.execute(delete(role_menu).where(role_menu.c.menu_id.in_(menu_ids)))
+    await db.execute(delete(Menu).where(Menu.id.in_(menu_ids)))
+    logger.info(f"Removed {len(menu_ids)} unimplemented ApeUI admin menus")
 
 
 async def _seed_role(db: AsyncSession) -> None:

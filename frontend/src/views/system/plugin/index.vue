@@ -143,9 +143,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { resetRouter } from '@/router'
+import { refreshDynamicRoutes } from '@/router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   getPlugins,
@@ -190,14 +189,11 @@ const configVisible = ref(false)
 const currentPlugin = ref<PluginRow | null>(null)
 const configText = ref('')
 const savingConfig = ref(false)
-const router = useRouter()
 const userStore = useUserStore()
 
 async function refreshRuntimeMenus() {
   await userStore.fetchUserInfo()
-  const currentPath = router.currentRoute.value.fullPath
-  resetRouter()
-  await router.replace(currentPath)
+  refreshDynamicRoutes(userStore.menus)
 }
 
 const filteredList = computed(() => {
@@ -324,39 +320,63 @@ async function handleRestart() {
 
   restarting.value = true
   ElMessage.info('正在重启后端...')
+  let oldPid: number | undefined
   try {
-    await restartServer()
+    const result: any = await restartServer()
+    oldPid = result?.old_pid
   } catch {
     // Response may fail if server is already shutting down — expected
   }
 
   // Poll health endpoint until server is back
-  await pollHealth()
+  await pollHealth(oldPid)
 }
 
-async function pollHealth() {
-  const maxRetries = 30
+async function pollHealth(oldPid?: number) {
+  const maxRetries = 60
   const interval = 1000 // 1s
+  let healthyPid: number | undefined
+  let consecutiveSuccesses = 0
+
+  // Give the old process enough time to exit before accepting a health response.
+  await new Promise((resolve) => setTimeout(resolve, 2000))
+
   for (let i = 0; i < maxRetries; i++) {
-    await new Promise((resolve) => setTimeout(resolve, interval))
     try {
-      const res = await fetch('/api/v1/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: '__health_check__', password: '' }),
+      const res = await fetch(`/api/v1/health?t=${Date.now()}`, {
+        method: 'GET',
+        cache: 'no-store',
       })
-      // Any response (even 400/422) means server is up
-      if (res.status === 400 || res.status === 422 || res.ok) {
-        ElMessage.success('后端已恢复，正在刷新...')
-        restarting.value = false
-        fetchData()
-        return
+      if (res.ok) {
+        const body = await res.json()
+        const currentPid = Number(body?.data?.pid)
+        const isNewProcess = Number.isFinite(currentPid) && (!oldPid || currentPid !== oldPid)
+
+        if (isNewProcess) {
+          if (healthyPid === currentPid) consecutiveSuccesses += 1
+          else {
+            healthyPid = currentPid
+            consecutiveSuccesses = 1
+          }
+
+          // Require the same new process to stay healthy across multiple polls.
+          if (consecutiveSuccesses >= 2) {
+            ElMessage.success('后端已恢复，正在刷新...')
+            restarting.value = false
+            await new Promise((resolve) => setTimeout(resolve, 500))
+            window.location.reload()
+            return
+          }
+        }
       }
     } catch {
       // Server still down, keep polling
+      healthyPid = undefined
+      consecutiveSuccesses = 0
     }
+    await new Promise((resolve) => setTimeout(resolve, interval))
   }
-  ElMessage.error('后端重启超时，请手动刷新页面')
+  ElMessage.error('后端在 60 秒内未恢复，请检查后端日志')
   restarting.value = false
 }
 

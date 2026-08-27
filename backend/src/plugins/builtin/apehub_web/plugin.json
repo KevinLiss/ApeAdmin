@@ -1,0 +1,8 @@
+{
+  "name": "apehub_web",
+  "display_name": "Apehub_web",
+  "description": "ApeAdmin 官网门户：产品介绍、插件市场、技术文档和个人中心",
+  "version": "1.2.2",
+  "author": "ApeAdmin",
+  "entry": "plugin.ApehubWebPlugin"
+}

@@ -144,6 +144,7 @@ def _build_menu_tree(menus: list[Menu], parent_id: int = 0) -> list[dict]:
                 "icon": menu.icon,
                 "sort": menu.sort,
                 "visible": menu.visible,
+                "status": menu.status,
                 "children": _build_menu_tree(menus, menu.id),
             }
             tree.append(node)

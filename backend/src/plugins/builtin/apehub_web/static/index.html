@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>ApeAdmin · 面向 AI 智能体场景的开发框架</title>
 <meta name="description" content="ApeAdmin —— 面向 AI 智能体场景的开源中后台框架。RBAC 权限 · 插件化架构 · MCP-SSE 网关 · AI 对话 · 审计日志 · 73 页 UI 组件库。" />
-<link rel="icon" type="image/png" href="/apeui/assets/logo.png" />
+<link rel="icon" type="image/png" href="/apehub-web/assets/logo.png" />
 <style>
   :root {
     --bg: #07080f;
@@ -451,16 +451,16 @@
 <nav>
   <div class="nav-inner">
     <a class="brand" href="#top">
-      <img src="/apeui/assets/logo.png" alt="ApeAdmin" />
+      <img src="/apehub-web/assets/logo.png" alt="ApeAdmin" />
       <span>ApeAdmin <span class="badge">v0.1.0</span></span>
     </a>
     <div class="nav-links">
       <a href="#features">核心特性</a>
       <a href="#arch">架构</a>
       <a href="#mcp">MCP 网关</a>
-      <a href="/apeui/plugins.html">插件市场</a>
-      <a href="/apeui/docs.html">技术文档</a>
-      <a href="/apeui/profile.html">个人中心</a>
+      <a href="/apehub-web/plugins.html">插件市场</a>
+      <a href="/apehub-web/docs.html">技术文档</a>
+      <a href="/apehub-web/profile.html">个人中心</a>
     </div>
     <div class="nav-actions">
       <button class="btn btn-ghost theme-toggle" id="themeToggle" aria-label="切换主题" title="切换明暗主题">🌙</button>
@@ -479,8 +479,8 @@
     <p class="sub">ApeAdmin 基于 FastAPI + Vue3 打造，跳出传统后台设计思路，原生为 AI Agent 能力调用做适配。开箱即用、可插拔扩展，帮开发者快速搭建兼具业务管理与 AI 工具输出能力的应用。</p>
     <div class="cta">
       <a class="btn btn-primary btn-lg" href="javascript:void(0)" id="heroLoginBtn">立即体验 →</a>
-      <a class="btn btn-ghost btn-lg" href="/apeui/plugins.html">插件市场</a>
-      <a class="btn btn-ghost btn-lg" href="/apeui/docs.html">技术文档</a>
+      <a class="btn btn-ghost btn-lg" href="/apehub-web/plugins.html">插件市场</a>
+      <a class="btn btn-ghost btn-lg" href="/apehub-web/docs.html">技术文档</a>
     </div>
     <div class="stat-row">
       <div class="stat"><div class="num">RBAC</div><div class="label">五表四层权限体系</div></div>
@@ -491,7 +491,7 @@
     <div class="hero-shot">
       <div class="shot-glow"></div>
       <div class="shot-frame">
-        <img src="/apeui/assets/screenshot.png" alt="ApeAdmin 产品截图" />
+        <img src="/apehub-web/assets/screenshot.png" alt="ApeAdmin 产品截图" />
       </div>
     </div>
   </div>
@@ -745,7 +745,7 @@ npm run dev   <span class="c-c"># http://localhost:5173</span>
   <div class="container">
     <div class="foot-grid">
       <div class="foot-brand">
-        <div class="brand"><img src="/apeui/assets/logo.png" alt="ApeAdmin" /><span>ApeAdmin</span></div>
+        <div class="brand"><img src="/apehub-web/assets/logo.png" alt="ApeAdmin" /><span>ApeAdmin</span></div>
         <p>面向 AI 智能体场景的开发框架 · 适配 Agent 调用的管理底座。100% 由 AI 生成的创新项目。</p>
       </div>
       <div class="foot-col">
@@ -753,12 +753,12 @@ npm run dev   <span class="c-c"># http://localhost:5173</span>
         <a href="#features">核心特性</a>
         <a href="#arch">架构</a>
         <a href="#mcp">MCP 网关</a>
-        <a href="/apeui/plugins.html">插件市场</a>
+        <a href="/apehub-web/plugins.html">插件市场</a>
       </div>
       <div class="foot-col">
         <h5>开发</h5>
-        <a href="/apeui/docs.html">技术文档</a>
-        <a href="/apeui/plugins.html">插件市场</a>
+        <a href="/apehub-web/docs.html">技术文档</a>
+        <a href="/apehub-web/plugins.html">插件市场</a>
         <a href="#start">快速开始</a>
         <a href="https://github.com/KevinLiss/ApeAdmin" target="_blank" rel="noopener">GitHub 仓库</a>
       </div>
@@ -832,7 +832,7 @@ npm run dev   <span class="c-c"># http://localhost:5173</span>
   <div class="modal">
     <button class="close-btn" id="modalClose">✕</button>
     <div class="modal-logo">
-      <img src="/apeui/assets/logo.png" alt="ApeAdmin" />
+      <img src="/apehub-web/assets/logo.png" alt="ApeAdmin" />
       <span>ApeAdmin</span>
     </div>
     <h3 class="modal-title" id="modalTitle">欢迎回来</h3>
@@ -842,27 +842,28 @@ npm run dev   <span class="c-c"># http://localhost:5173</span>
       <button id="tabRegister">注册</button>
     </div>
     <form id="authForm">
-      <div class="field" id="nameField" style="display:none;">
+      <div class="field" id="nameField">
         <label>用户名</label>
-        <input type="text" placeholder="输入你的用户名" required />
+        <input type="text" id="usernameInput" placeholder="输入你的用户名" required minlength="3" maxlength="50" />
       </div>
-      <div class="field">
+      <div class="field" id="emailField" style="display:none;">
         <label>邮箱</label>
-        <input type="email" placeholder="you@example.com" required />
+        <input type="email" id="emailInput" placeholder="you@example.com" maxlength="100" />
       </div>
       <div class="field" id="codeField" style="display:none;">
         <label>邮箱验证码</label>
         <div class="field-group">
-          <input type="text" placeholder="输入 6 位验证码" maxlength="6" id="codeInput" />
+          <input type="text" placeholder="输入 6 位验证码" maxlength="6" id="codeInput" inputmode="numeric" />
           <button type="button" class="send-code-btn" id="sendCodeBtn">发送验证码</button>
         </div>
       </div>
       <div class="field">
         <label>密码</label>
-        <input type="password" placeholder="输入密码" required />
+        <input type="password" id="passwordInput" placeholder="至少 8 位密码" required minlength="8" maxlength="100" />
       </div>
       <button type="submit" class="submit-btn" id="submitBtn">登录</button>
     </form>
+    <p class="modal-sub" id="authMessage" role="status" style="min-height:20px;margin-top:12px;"></p>
     <div class="alt-text" id="altText">还没有账号？<a id="switchLink">立即注册</a></div>
   </div>
 </div>
@@ -878,12 +879,35 @@ npm run dev   <span class="c-c"># http://localhost:5173</span>
   const modalTitle = document.getElementById('modalTitle');
   const modalSub = document.getElementById('modalSub');
   const nameField = document.getElementById('nameField');
+  const emailField = document.getElementById('emailField');
+  const usernameInput = document.getElementById('usernameInput');
+  const emailInput = document.getElementById('emailInput');
+  const passwordInput = document.getElementById('passwordInput');
+  const codeInput = document.getElementById('codeInput');
   const codeField = document.getElementById('codeField');
   const sendCodeBtn = document.getElementById('sendCodeBtn');
   const submitBtn = document.getElementById('submitBtn');
   const switchLink = document.getElementById('switchLink');
   const altText = document.getElementById('altText');
+  const authMessage = document.getElementById('authMessage');
   let mode = 'login';
+
+  function showMessage(message, isError = false) {
+    authMessage.textContent = message;
+    authMessage.style.color = isError ? '#ef4444' : '#22c55e';
+  }
+
+  async function apiRequest(path, options = {}) {
+    const response = await fetch(`/api/v1${path}`, {
+      headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+      ...options,
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || payload.code !== 200) {
+      throw new Error(payload.msg || payload.detail || '请求失败，请稍后重试');
+    }
+    return payload.data;
+  }
 
   function openModal(m) {
     mode = m;
@@ -897,9 +921,13 @@ npm run dev   <span class="c-c"># http://localhost:5173</span>
     tabRegister.classList.toggle('active', !isLogin);
     modalTitle.textContent = isLogin ? '欢迎回来' : '创建账户';
     modalSub.textContent = isLogin ? '登录你的账户以继续' : '注册一个新账户开始使用';
-    nameField.style.display = isLogin ? 'none' : 'block';
+    nameField.style.display = 'block';
+    emailField.style.display = isLogin ? 'none' : 'block';
     codeField.style.display = isLogin ? 'none' : 'block';
+    emailInput.required = !isLogin;
+    codeInput.required = !isLogin;
     submitBtn.textContent = isLogin ? '登录' : '注册';
+    showMessage('');
     altText.innerHTML = isLogin
       ? '还没有账号？<a id="switchLink">立即注册</a>'
       : '已有账号？<a id="switchLink">返回登录</a>';
@@ -914,26 +942,61 @@ npm run dev   <span class="c-c"># http://localhost:5173</span>
   tabLogin.addEventListener('click', () => { mode='login'; updateMode(); });
   tabRegister.addEventListener('click', () => { mode='register'; updateMode(); });
   switchLink.addEventListener('click', () => openModal('register'));
-  sendCodeBtn?.addEventListener('click', () => {
+  sendCodeBtn?.addEventListener('click', async () => {
+    const email = emailInput.value.trim();
+    if (!email) {
+      showMessage('请先填写邮箱地址', true);
+      return;
+    }
     sendCodeBtn.disabled = true;
-    let count = 60;
-    sendCodeBtn.textContent = count + 's 后重发';
-    const timer = setInterval(() => {
-      count--;
-      if (count <= 0) {
-        clearInterval(timer);
-        sendCodeBtn.disabled = false;
-        sendCodeBtn.textContent = '发送验证码';
-      } else {
-        sendCodeBtn.textContent = count + 's 后重发';
-      }
-    }, 1000);
-    alert('验证码已发送至邮箱（演示）');
+    try {
+      const data = await apiRequest('/apehub-web/site/auth/register/code', {
+        method: 'POST', body: JSON.stringify({ email }),
+      });
+      showMessage('验证码已发送，请查收邮箱');
+      let count = data.resend_in || 60;
+      sendCodeBtn.textContent = count + 's 后重发';
+      const timer = setInterval(() => {
+        count--;
+        if (count <= 0) {
+          clearInterval(timer);
+          sendCodeBtn.disabled = false;
+          sendCodeBtn.textContent = '发送验证码';
+        } else {
+          sendCodeBtn.textContent = count + 's 后重发';
+        }
+      }, 1000);
+    } catch (error) {
+      sendCodeBtn.disabled = false;
+      sendCodeBtn.textContent = '发送验证码';
+      showMessage(error.message, true);
+    }
   });
-  document.getElementById('authForm').addEventListener('submit', e => {
+  document.getElementById('authForm').addEventListener('submit', async e => {
     e.preventDefault();
-    closeModal();
-    alert(mode === 'login' ? '登录成功（演示）' : '注册成功（演示）');
+    submitBtn.disabled = true;
+    try {
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value;
+      const data = mode === 'login'
+        ? await apiRequest('/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) })
+        : await apiRequest('/apehub-web/site/auth/register', {
+            method: 'POST',
+            body: JSON.stringify({
+              username,
+              password,
+              email: emailInput.value.trim(),
+              verification_code: codeInput.value.trim(),
+            }),
+          });
+      localStorage.setItem('access_token', data.access_token);
+      if (data.refresh_token) localStorage.setItem('refresh_token', data.refresh_token);
+      window.location.assign('/apehub-web/profile.html');
+    } catch (error) {
+      showMessage(error.message, true);
+    } finally {
+      submitBtn.disabled = false;
+    }
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 </script>

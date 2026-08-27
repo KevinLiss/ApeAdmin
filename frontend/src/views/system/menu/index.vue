@@ -48,6 +48,7 @@
           :props="{ label: 'name', children: 'children' }"
           check-strictly
           clearable
+          @clear="form.parent_id = 0"
           placeholder="选择父级（留空为顶级）"
           style="width: 100%"
         />
@@ -89,12 +90,10 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
-import { useRouter } from 'vue-router'
 import { getMenuTree, createMenu, updateMenu, deleteMenu } from '@/api'
 import { useUserStore } from '@/stores/user'
-import { resetRouter } from '@/router'
+import { refreshDynamicRoutes } from '@/router'
 
-const router = useRouter()
 const userStore = useUserStore()
 
 const typeText: Record<string, string> = { M: '目录', C: '菜单', F: '按钮' }
@@ -139,10 +138,23 @@ async function fetchData() {
   try {
     const data: any = await getMenuTree()
     tree.value = data || []
-    parentOptions.value = [{ id: 0, name: '顶级', children: data || [] }]
+    parentOptions.value = buildParentOptions(editingId.value)
   } finally {
     loading.value = false
   }
+}
+
+function removeBranch(nodes: any[], excludedId: number | null): any[] {
+  return nodes
+    .filter((node) => node.id !== excludedId)
+    .map((node) => ({
+      ...node,
+      children: removeBranch(node.children || [], excludedId),
+    }))
+}
+
+function buildParentOptions(excludedId: number | null = null) {
+  return [{ id: 0, name: '顶级', children: removeBranch(tree.value, excludedId) }]
 }
 
 function openDialog(row?: any) {
@@ -155,6 +167,7 @@ function openDialog(row?: any) {
   form.permission = row?.permission ?? ''
   form.sort = row?.sort ?? 0
   form.status = row?.status ?? 1
+  parentOptions.value = buildParentOptions(editingId.value)
   dialogVisible.value = true
 }
 
@@ -165,7 +178,7 @@ async function handleSave() {
     saving.value = true
     try {
       const payload = {
-        parent_id: form.parent_id,
+        parent_id: Number(form.parent_id) || 0,
         name: form.name,
         type: form.type,
         path: form.type === 'F' ? null : form.path,
@@ -182,8 +195,8 @@ async function handleSave() {
         ElMessage.success('创建成功')
       }
       dialogVisible.value = false
-      fetchData()
-      refreshMenuSidebar()
+      await fetchData()
+      await refreshMenuSidebar()
     } finally {
       saving.value = false
     }
@@ -194,16 +207,15 @@ async function handleDelete(row: any) {
   await ElMessageBox.confirm(`确定删除菜单「${row.name}」吗？`, '提示', { type: 'warning' })
   await deleteMenu(row.id)
   ElMessage.success('删除成功')
-  fetchData()
-  refreshMenuSidebar()
+  await fetchData()
+  await refreshMenuSidebar()
 }
 
 // 保存/删除菜单后同步刷新侧边栏菜单与动态路由，无需重新登录
 async function refreshMenuSidebar() {
   try {
     await userStore.fetchUserInfo()
-    resetRouter()
-    await router.replace(router.currentRoute.value.fullPath)
+    refreshDynamicRoutes(userStore.menus)
   } catch (e) {
     console.error('[Menu] 刷新菜单失败:', e)
   }
