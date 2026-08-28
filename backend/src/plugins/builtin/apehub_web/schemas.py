@@ -40,6 +40,7 @@ class SiteConfigIn(BaseModel):
     deepseek_api_key: str | None = None
     deepseek_base_url: str | None = None
     deepseek_model: str | None = None
+    plugin_detail_config: dict[str, Any] | None = None
     service_fee_rate: Decimal | None = Field(default=None, ge=0, le=100)
     settlement_days: int | None = Field(default=None, ge=0, le=365)
     refund_days: int | None = Field(default=None, ge=0, le=365)

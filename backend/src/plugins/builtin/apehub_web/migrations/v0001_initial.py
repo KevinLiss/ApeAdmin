@@ -4,7 +4,7 @@ from sqlalchemy import inspect, text
 
 from src.db.engine import Base, engine
 
-SCHEMA_VERSION = 8
+SCHEMA_VERSION = 9
 VERSION_TABLE = "apehub_web_schema_version"
 
 
@@ -93,3 +93,10 @@ async def apply_migrations() -> None:
 
             await activate_docs_portal(connection)
             await connection.execute(text(f"INSERT INTO {VERSION_TABLE} (version) VALUES (8)"))
+            current = 8
+        if current < 9:
+            from .v0009_plugin_detail_config import add_plugin_detail_config
+
+            await add_plugin_detail_config(connection)
+            await connection.execute(text(f"INSERT INTO {VERSION_TABLE} (version) VALUES (9)"))
+            current = 9

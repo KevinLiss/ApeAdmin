@@ -81,6 +81,107 @@
           <el-form-item><el-button type="primary" :loading="saving" @click="saveConfig">保存 AI 配置</el-button></el-form-item>
         </el-form>
       </el-tab-pane>
+
+      <el-tab-pane label="插件详情页" name="plugin_detail">
+        <el-alert title="以下配置控制官网插件详情页的布局、文案、Tab 与按钮，保存后官网页面立即生效。" type="info" :closable="false" show-icon class="asset-tip" />
+        <div class="detail-config" v-loading="loading">
+          <div class="cfg-grid">
+            <!-- 板块显隐 -->
+            <el-card shadow="never" class="cfg-card">
+              <template #header>板块显隐</template>
+              <div v-for="key in ['hero', 'intro', 'docs', 'demo', 'changelog']" :key="key" class="cfg-row">
+                <span class="cfg-label">{{ sectionNames[key] }}</span>
+                <el-switch v-model="detailCfg.sections[key].enabled" />
+              </div>
+            </el-card>
+
+            <!-- 板块文案 -->
+            <el-card shadow="never" class="cfg-card">
+              <template #header>板块文案</template>
+              <template v-for="key in ['intro', 'docs', 'demo', 'changelog']" :key="key">
+                <div class="cfg-field">
+                  <div class="cfg-sub">{{ sectionNames[key] }}</div>
+                  <el-input v-model="detailCfg.sections[key].title" size="small" placeholder="标题" />
+                  <el-input v-model="detailCfg.sections[key].title_em" size="small" placeholder="强调词（渐变高亮）" class="mt8" />
+                  <el-input v-model="detailCfg.sections[key].description" size="small" type="textarea" :rows="2" placeholder="描述" />
+                </div>
+              </template>
+            </el-card>
+
+            <!-- Tab 标签 -->
+            <el-card shadow="never" class="cfg-card">
+              <template #header>Tab 标签</template>
+              <div v-for="key in ['intro', 'docs', 'demo', 'changelog']" :key="key" class="cfg-row">
+                <el-input v-model="detailCfg.tabs[key].label" size="small" class="flex-1" />
+                <el-input-number v-model="detailCfg.tabs[key].sort" :min="1" size="small" controls-position="right" class="sort-input" />
+                <el-switch v-model="detailCfg.tabs[key].enabled" />
+              </div>
+            </el-card>
+
+            <!-- 按钮 -->
+            <el-card shadow="never" class="cfg-card">
+              <template #header>按钮</template>
+              <div class="cfg-field">
+                <div class="cfg-sub">Demo 按钮</div>
+                <el-input v-model="detailCfg.buttons.demo.label" size="small" placeholder="按钮文案" />
+                <div class="cfg-row mt8">
+                  <el-select v-model="detailCfg.buttons.demo.style" size="small" class="flex-1">
+                    <el-option label="幽灵描边 (ghost)" value="ghost" />
+                    <el-option label="主色实心 (primary)" value="primary" />
+                    <el-option label="成功绿 (success)" value="success" />
+                    <el-option label="警告橙 (warning)" value="warning" />
+                  </el-select>
+                  <el-switch v-model="detailCfg.buttons.demo.enabled" />
+                </div>
+              </div>
+              <div class="cfg-field">
+                <div class="cfg-sub">购买按钮</div>
+                <el-input v-model="detailCfg.buttons.buy.label_free" size="small" placeholder="免费版文案" />
+                <el-input v-model="detailCfg.buttons.buy.label_paid" size="small" class="mt8" placeholder="付费版文案" />
+                <div class="cfg-row mt8">
+                  <el-select v-model="detailCfg.buttons.buy.style" size="small" class="flex-1">
+                    <el-option label="主色实心 (primary)" value="primary" />
+                    <el-option label="幽灵描边 (ghost)" value="ghost" />
+                    <el-option label="成功绿 (success)" value="success" />
+                    <el-option label="警告橙 (warning)" value="warning" />
+                  </el-select>
+                  <el-switch v-model="detailCfg.buttons.buy.enabled" />
+                </div>
+              </div>
+            </el-card>
+
+            <!-- 文案标签 -->
+            <el-card shadow="never" class="cfg-card">
+              <template #header>文案标签</template>
+              <div class="cfg-field">
+                <div class="cfg-sub">元信息文案</div>
+                <el-input v-model="detailCfg.labels.content" size="small" placeholder="下载" />
+                <el-input v-model="detailCfg.labels.author" size="small" class="mt8" placeholder="开发者" />
+                <el-input v-model="detailCfg.labels.rating" size="small" class="mt8" placeholder="评分" />
+                <el-input v-model="detailCfg.labels.version" size="small" class="mt8" placeholder="版本" />
+              </div>
+              <div class="cfg-field">
+                <div class="cfg-sub">精选标签</div>
+                <el-input v-model="detailCfg.sections.hero.star_tag_text" size="small" placeholder="⭐ 精选插件" />
+              </div>
+            </el-card>
+
+            <!-- 悬浮操作 -->
+            <el-card shadow="never" class="cfg-card">
+              <template #header>悬浮操作</template>
+              <div v-for="key in ['contact', 'docs', 'top']" :key="key" class="cfg-row">
+                <el-input v-model="detailCfg.float_actions[key].icon" size="small" class="icon-input" />
+                <el-input v-model="detailCfg.float_actions[key].title" size="small" class="flex-1" />
+                <el-switch v-model="detailCfg.float_actions[key].enabled" />
+              </div>
+            </el-card>
+          </div>
+          <div class="cfg-actions">
+            <el-button type="primary" :loading="saving" @click="saveDetailConfig">保存插件详情页配置</el-button>
+            <el-button @click="resetDetailConfig">恢复默认</el-button>
+          </div>
+        </div>
+      </el-tab-pane>
     </el-tabs>
   </el-card>
 
@@ -143,9 +244,63 @@ const AssetField = defineComponent({
 const activeTab = ref('basic'); const loading = ref(false); const saving = ref(false)
 const navLoading = ref(false); const navSaving = ref(false); const navigation = ref<any[]>([]); const navDialog = ref(false); const hero = ref<any>(null)
 const form = ref<any>({ site_name: '', site_logo: '/apehub-web/assets/logo.png', site_icon: '/apehub-web/assets/logo.png', site_domain: '', site_prefix: '/apehub-web', seo_title: '', seo_description: '', seo_keywords: '', service_fee_rate: 30, mail_user: '', mail_code: '', mail_host: 'smtp.qq.com', mail_port: 465, lempay_pid: 0, lempay_key: '', lempay_submit_url: '', lempay_api_url: '', lempay_notify_url: '', lempay_return_url: '', lempay_payment_type: 'usdt', deepseek_api_key: '', deepseek_base_url: 'https://api.deepseek.com', deepseek_model: 'deepseek-chat', settlement_days: 7, refund_days: 7, min_withdrawal: 100, withdrawal_fee_type: 'fixed', withdrawal_fee_value: 0 })
+
+/* ---------------- 插件详情页配置 ---------------- */
+const defaultDetailConfig = () => ({
+  sections: {
+    hero: { enabled: true, star_tag_text: '⭐ 精选插件', show_star: false, show_meta: true, show_rating: true, show_icon: true },
+    intro: { enabled: true, title: '插件介绍', title_em: '介绍', description: '了解这个插件的核心能力、技术特点与使用场景。', show_features: true, show_screenshots: true, show_parameters: true },
+    docs: { enabled: true, title: '技术文档', title_em: '文档', description: '安装配置、接口说明与使用指南。', show_install: true, show_config: true },
+    demo: { enabled: true, title: 'Demo 体验', title_em: '体验', description: '选择终端体验方式，直接在线感受插件能力。' },
+    changelog: { enabled: true, title: '更新日志', title_em: '日志', description: '插件版本迭代记录与功能变更。' },
+  },
+  tabs: {
+    intro: { label: '📖 介绍', enabled: true, sort: 1 },
+    docs: { label: '📄 文档', enabled: true, sort: 2 },
+    demo: { label: '🖥 Demo 体验', enabled: true, sort: 3 },
+    changelog: { label: '📜 更新日志', enabled: true, sort: 4 },
+  },
+  buttons: {
+    demo: { label: '🖥 立即体验', enabled: true, style: 'ghost' },
+    buy: { label_free: '免费下载', label_paid: '🛒 立即购买', enabled: true, style: 'primary' },
+  },
+  labels: { content: '下载', author: '开发者', rating: '评分', version: '版本', featured: '⭐ 精选插件' },
+  float_actions: {
+    contact: { enabled: true, icon: '💬', title: '客服咨询' },
+    docs: { enabled: true, icon: '📖', title: '帮助文档' },
+    top: { enabled: true, icon: '↑', title: '返回顶部' },
+  },
+})
+const deepMerge = (target: any, source: any) => {
+  if (!source || typeof source !== 'object') return target
+  for (const key of Object.keys(source)) {
+    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+      target[key] = deepMerge(target[key] || {}, source[key])
+    } else if (source[key] !== undefined) {
+      target[key] = source[key]
+    }
+  }
+  return target
+}
+const detailCfg = ref<any>(defaultDetailConfig())
+const sectionNames: Record<string, string> = { hero: '头部 Hero', intro: '插件介绍', docs: '技术文档', demo: 'Demo 体验', changelog: '更新日志' }
+const loadDetailConfig = () => { detailCfg.value = deepMerge(defaultDetailConfig(), form.value.plugin_detail_config || {}) }
+const saveDetailConfig = async () => {
+  saving.value = true
+  try {
+    await updateAdminConfig({ plugin_detail_config: detailCfg.value })
+    form.value.plugin_detail_config = JSON.parse(JSON.stringify(detailCfg.value))
+    ElMessage.success('插件详情页配置已保存')
+  } catch (error: any) {
+    ElMessage.error(error.message || '保存失败')
+  } finally {
+    saving.value = false
+  }
+}
+const resetDetailConfig = () => { detailCfg.value = defaultDetailConfig() }
 const heroImage = computed({ get: () => hero.value?.image || '/apehub-web/assets/screenshot.png', set: (value) => { if (hero.value) hero.value.image = value } })
 const newNav = () => ({ title: '', link: '', icon_url: '', open_mode: 'same', enabled: true, sort: 0 }); const editingNav = ref<any>(newNav())
-const loadConfig = async () => { loading.value = true; try { form.value = { ...form.value, ...(await getAdminConfig()) }; const content = await getAdminContent(); hero.value = content.find((item: any) => item.block_key === 'hero') || null } catch (error: any) { ElMessage.error(error.message || '配置加载失败') } finally { loading.value = false } }
+const loadConfig = async () => { loading.value = true; try { form.value = { ...form.value, ...(await getAdminConfig()) }; loadDetailConfig(); const content = await getAdminContent(); hero.value = content.find((item: any) => item.block_key === 'hero') || null } catch (error: any) { ElMessage.error(error.message || '配置加载失败') } finally { loading.value = false } }
 const loadNavigation = async () => { navLoading.value = true; try { navigation.value = await getAdminNavigation() } catch (error: any) { ElMessage.error(error.message || '导航加载失败') } finally { navLoading.value = false } }
 const saveConfig = async () => { saving.value = true; try { const payload = { ...form.value }; delete payload.mail_configured; delete payload.lempay_configured; delete payload.deepseek_configured; delete payload.currency; await updateAdminConfig(payload); form.value.mail_code = ''; form.value.lempay_key = ''; form.value.deepseek_api_key = ''; await loadConfig(); ElMessage.success('配置已保存') } catch (error: any) { ElMessage.error(error.message || '保存失败') } finally { saving.value = false } }
 const saveAssets = async () => { saving.value = true; try { await updateAdminConfig({ site_logo: form.value.site_logo, site_icon: form.value.site_icon }); if (hero.value) await updateAdminContent(hero.value.id, hero.value); else await createAdminContent({ block_key: 'hero', title: '', subtitle: '', body: '', image: heroImage.value, sort: 0, enabled: true }); ElMessage.success('图片设置已保存') } catch (error: any) { ElMessage.error(error.message || '图片保存失败') } finally { saving.value = false } }
@@ -161,4 +316,9 @@ onMounted(async () => { await Promise.all([loadConfig(), loadNavigation()]) })
 :deep(.asset-upload-btn) { position: relative; display: inline-flex; cursor: pointer; }
 :deep(.asset-file-input) { position: absolute; width: 0; height: 0; opacity: 0; overflow: hidden; pointer-events: none; }
 @media (max-width: 900px) { .form-grid { grid-template-columns: 1fr; } }
+.detail-config { max-width: 1280px; }.cfg-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-bottom: 20px; }
+.cfg-card .el-card__body { padding: 16px; }.cfg-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }.cfg-row:last-child { margin-bottom: 0; }
+.cfg-label { width: 110px; flex: 0 0 110px; color: var(--el-text-color-primary); }.cfg-sub { color: var(--el-text-color-secondary); font-size: 13px; margin-bottom: 8px; }
+.cfg-field { margin-bottom: 14px; }.cfg-field:last-child { margin-bottom: 0; }.flex-1 { flex: 1; }.mt8 { margin-top: 8px; }
+.sort-input { width: 90px; }.icon-input { width: 64px; }.cfg-actions { display: flex; gap: 12px; }
 </style>

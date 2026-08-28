@@ -160,6 +160,8 @@ class ApehubWebSiteConfig(ApehubWebBase):
     deepseek_api_key_enc: Mapped[str] = mapped_column("deepseek_api_key", Text, default="")
     deepseek_base_url: Mapped[str] = mapped_column(String(255), default="https://api.deepseek.com")
     deepseek_model: Mapped[str] = mapped_column(String(64), default="deepseek-chat")
+    # Plugin detail page layout/content configuration (JSON, fully configurable)
+    plugin_detail_config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     # Service fee (platform cut, percent)
     service_fee_rate: Mapped[Decimal] = mapped_column(Numeric(8, 4), default=Decimal("30"))
     currency: Mapped[str] = mapped_column(String(8), default="USDT")
