@@ -117,7 +117,7 @@
       }
       return true;
     } catch {
-      return true;
+      return false;
     }
   };
   const style = document.createElement('style');
