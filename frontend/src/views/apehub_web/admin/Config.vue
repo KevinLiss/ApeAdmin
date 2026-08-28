@@ -99,20 +99,43 @@
 
 <script setup lang="ts">
 import { computed, defineComponent, h, onMounted, ref } from 'vue'
-import { ElButton, ElImage, ElInput, ElMessage, ElMessageBox, ElUpload } from 'element-plus'
+import { ElButton, ElImage, ElInput, ElMessage, ElMessageBox } from 'element-plus'
 import { createAdminContent, createAdminNavigation, deleteAdminNavigation, getAdminConfig, getAdminContent, getAdminNavigation, updateAdminConfig, updateAdminContent, updateAdminNavigation, uploadSiteAsset } from '@/api/apehub_web'
 
 const AssetField = defineComponent({
   props: { modelValue: { type: String, default: '' } }, emits: ['update:modelValue'],
   setup(props, { emit }) {
-    const upload = async (option: any) => {
-      const data = new FormData(); data.append('file', option.file)
-      try { emit('update:modelValue', (await uploadSiteAsset(data)).url); option.onSuccess() } catch (error) { option.onError(error) }
+    const fileInput = ref<HTMLInputElement | null>(null)
+    const uploading = ref(false)
+    const pickFile = () => {
+      // 原生 label 触发 input[type=file]，绕开 ElUpload 的 JS 手势链路，
+      // 避免部分浏览器/扩展拦截 JS 触发的文件选择器导致"点了没反应"
+      fileInput.value?.click()
+    }
+    const onFileChange = async (event: Event) => {
+      const input = event.target as HTMLInputElement
+      const file = input.files?.[0]
+      input.value = '' // 允许重复选择同一文件
+      if (!file) return
+      uploading.value = true
+      try {
+        const data = new FormData(); data.append('file', file)
+        const res = await uploadSiteAsset(data)
+        emit('update:modelValue', res.url)
+        ElMessage.success('图片上传成功')
+      } catch (error: any) {
+        ElMessage.error(error.message || '图片上传失败')
+      } finally {
+        uploading.value = false
+      }
     }
     return () => h('div', { class: 'asset-field' }, [
       props.modelValue ? h(ElImage, { src: props.modelValue, fit: 'contain', class: 'asset-preview' }) : null,
       h(ElInput, { modelValue: props.modelValue, placeholder: '上传图片或输入图片 URL', 'onUpdate:modelValue': (value: string) => emit('update:modelValue', value) }),
-      h(ElUpload, { showFileList: false, accept: 'image/png,image/jpeg,image/gif,image/webp', httpRequest: upload }, { default: () => h(ElButton, { type: 'primary', plain: true }, () => '上传') }),
+      h('label', { class: 'asset-upload-btn' }, [
+        h('input', { ref: fileInput, type: 'file', accept: 'image/png,image/jpeg,image/gif,image/webp', class: 'asset-file-input', onChange: onFileChange }),
+        h(ElButton, { type: 'primary', plain: true, loading: uploading.value, onClick: pickFile }, () => uploading.value ? '上传中' : '上传'),
+      ]),
     ])
   },
 })
@@ -135,5 +158,7 @@ onMounted(async () => { await Promise.all([loadConfig(), loadNavigation()]) })
 <style scoped>
 .card-header { display: flex; justify-content: space-between; align-items: center; }.form-width { max-width: 680px; }.form-wide { max-width: 1060px; }.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 20px; }.asset-tip { margin-bottom: 18px; }.toolbar { margin-bottom: 16px; }.nav-icon { width: 32px; height: 32px; }
 :deep(.asset-field) { display: flex; align-items: center; gap: 10px; width: 100%; }:deep(.asset-field .el-input) { flex: 1; }:deep(.asset-preview) { width: 48px; height: 48px; flex: 0 0 48px; border: 1px solid var(--el-border-color); }
+:deep(.asset-upload-btn) { position: relative; display: inline-flex; cursor: pointer; }
+:deep(.asset-file-input) { position: absolute; width: 0; height: 0; opacity: 0; overflow: hidden; pointer-events: none; }
 @media (max-width: 900px) { .form-grid { grid-template-columns: 1fr; } }
 </style>
