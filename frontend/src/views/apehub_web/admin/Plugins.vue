@@ -2,28 +2,28 @@
   <div class="plugins-admin">
     <!-- 统计卡片 -->
     <div class="stats-row">
-      <div class="stat-card pending">
+      <div class="stat-card pending" style="cursor:pointer" @click="filterByStatus('pending')">
         <div class="stat-icon"><el-icon><Document /></el-icon></div>
         <div class="stat-body">
           <div class="stat-value">{{ stats.pending }}</div>
           <div class="stat-label">待审核</div>
         </div>
       </div>
-      <div class="stat-card approved">
+      <div class="stat-card approved" style="cursor:pointer" @click="filterByStatus('approved')">
         <div class="stat-icon"><el-icon><CircleCheck /></el-icon></div>
         <div class="stat-body">
           <div class="stat-value">{{ stats.approved }}</div>
           <div class="stat-label">已上架</div>
         </div>
       </div>
-      <div class="stat-card rejected">
+      <div class="stat-card rejected" style="cursor:pointer" @click="filterByStatus('rejected')">
         <div class="stat-icon"><el-icon><CircleClose /></el-icon></div>
         <div class="stat-body">
           <div class="stat-value">{{ stats.rejected }}</div>
           <div class="stat-label">已驳回</div>
         </div>
       </div>
-      <div class="stat-card offline">
+      <div class="stat-card offline" style="cursor:pointer" @click="filterByStatus('offline')">
         <div class="stat-icon"><el-icon><Remove /></el-icon></div>
         <div class="stat-body">
           <div class="stat-value">{{ stats.offline }}</div>
@@ -103,9 +103,10 @@
         </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
-            <el-button text type="primary" @click.stop="openDetail(row)">审核</el-button>
+            <el-button v-if="row.status === 'pending'" text type="primary" @click.stop="openDetail(row)">审核</el-button>
             <el-button v-if="row.status === 'approved'" text type="warning" @click.stop="offline(row)">下架</el-button>
             <el-button v-if="['offline', 'rejected'].includes(row.status)" text type="success" @click.stop="online(row)">上架</el-button>
+            <el-button text type="primary" @click.stop="openDetail(row)">详情</el-button>
             <el-button text type="danger" @click.stop="remove(row)">删除</el-button>
           </template>
         </el-table-column>
@@ -407,6 +408,10 @@ const loadList = async () => {
   } finally { loading.value = false }
 }
 const search = () => { query.value.page = 1; loadList() }
+const filterByStatus = (status: string) => {
+  query.value.status = query.value.status === status ? '' : status
+  search()
+}
 
 // 打开详情
 const openDetail = async (row: any) => {

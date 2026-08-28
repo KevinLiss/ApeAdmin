@@ -323,7 +323,9 @@ function updateFeePreview() {
 }
 
 /* ========== Event Bindings ========== */
-$('#logoutBtn').addEventListener('click', () => logout());
+$('#logoutBtn').addEventListener('click', () => {
+  if (confirm('确定退出登录吗？')) logout();
+});
 $$('.tab').forEach(button => button.addEventListener('click', () => {
   $$('.tab').forEach(item => item.classList.toggle('active', item === button));
   $$('.panel').forEach(panel => panel.classList.toggle('active', panel.id === `panel-${button.dataset.tab}`));

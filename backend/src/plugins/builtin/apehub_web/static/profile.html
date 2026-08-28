@@ -54,10 +54,10 @@
       <button class="btn btn-primary" id="openPluginDialog">提交新插件</button>
     </div>
     <section class="stats">
-      <div class="stat"><span>可提现余额</span><strong id="statBalance">0 USDT</strong></div>
-      <div class="stat"><span>提现冻结</span><strong id="statFrozen">0 USDT</strong></div>
-      <div class="stat"><span>累计收益</span><strong id="statIncome">0 USDT</strong></div>
-      <div class="stat"><span>我的插件</span><strong id="statPlugins">0</strong></div>
+      <div class="stat" onclick="document.querySelectorAll('.tab')[3].click()" style="cursor:pointer"><span>可提现余额</span><strong id="statBalance">0 USDT</strong></div>
+      <div class="stat" onclick="document.querySelectorAll('.tab')[3].click()" style="cursor:pointer"><span>提现冻结</span><strong id="statFrozen">0 USDT</strong></div>
+      <div class="stat" onclick="document.querySelectorAll('.tab')[2].click()" style="cursor:pointer"><span>累计收益</span><strong id="statIncome">0 USDT</strong></div>
+      <div class="stat" onclick="document.querySelectorAll('.tab')[1].click()" style="cursor:pointer"><span>我发布的插件</span><strong id="statPlugins">0</strong></div>
     </section>
 
     <div class="tabs" role="tablist">

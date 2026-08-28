@@ -101,7 +101,9 @@
       link.prepend(icon);
     }
     const target = new URL(link.href, window.location.origin);
-    if (target.pathname === window.location.pathname) link.classList.add('active');
+    const currentPath = window.location.pathname.replace(/\/$/, '');
+    const linkPath = target.pathname.replace(/\/$/, '');
+    if (linkPath === currentPath) link.classList.add('active');
     return link;
   };
   const hasValidSession = async () => {

@@ -29,7 +29,7 @@ function renderMarket() {
   const grid = document.getElementById('pluginsGrid');
   const filtered = marketState.items.filter(item => marketState.category === 'all' || categoryKey(item.category) === marketState.category);
   if (!filtered.length) {
-    grid.innerHTML = '<div style="grid-column:1/-1;padding:60px 20px;text-align:center;color:var(--text-3)">暂无已上架插件</div>';
+    grid.innerHTML = '<div style="grid-column:1/-1;padding:80px 20px;text-align:center"><div style="font-size:48px;opacity:.3;margin-bottom:16px">📦</div><p style="color:var(--text-2);font-size:15px;margin-bottom:8px">暂无符合条件的插件</p><p style="color:var(--text-3);font-size:13px">试试切换其他分类或调整搜索关键词</p></div>';
   } else {
     grid.innerHTML = filtered.map(item => {
       const tags = String(item.tags || '').split(',').map(tag => tag.trim()).filter(Boolean).slice(0, 4);

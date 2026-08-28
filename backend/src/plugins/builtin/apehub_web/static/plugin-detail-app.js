@@ -61,7 +61,8 @@ function renderDetail(plugin) {
   const shotRoot = document.querySelector('.shots');
   shotRoot.innerHTML = shots.length ? shots.map(item => `<figure class="shot"><img src="${detailEsc(item.url)}" alt="${detailEsc(item.alt_text)}" style="width:100%;display:block"><figcaption class="cap">${detailEsc(item.alt_text || plugin.display_name)}</figcaption></figure>`).join('') : '<div class="empty" style="color:var(--text-3)">暂无产品截图</div>';
 
-  document.querySelector('.tbl-wrap tbody').innerHTML = `<tr><td>当前版本</td><td>v${detailEsc(plugin.version)}</td></tr><tr><td>兼容性</td><td>${detailEsc(latest.compatibility || 'ApeAdmin / FastAPI')}</td></tr><tr><td>文件数</td><td>${latest.analysis_report?.file_count || '-'}</td></tr><tr><td>静态风险级别</td><td>${detailEsc(latest.analysis_report?.risk_level || '未标记')}</td></tr><tr><td>授权</td><td>购买一次，可下载所有已发布版本</td></tr>`;
+  const isFree = Number(plugin.price) <= 0;
+  document.querySelector('.tbl-wrap tbody').innerHTML = `<tr><td>当前版本</td><td>v${detailEsc(plugin.version)}</td></tr><tr><td>兼容性</td><td>${detailEsc(latest.compatibility || 'ApeAdmin / FastAPI')}</td></tr><tr><td>文件数</td><td>${latest.analysis_report?.file_count || '-'}</td></tr><tr><td>静态风险级别</td><td>${detailEsc(latest.analysis_report?.risk_level || '未标记')}</td></tr><tr><td>授权</td><td>${isFree ? '免费开源，可自由下载使用' : '购买一次，永久获得该插件全部已发布版本'}</td></tr>`;
   document.getElementById('tab-docs').innerHTML = `<h2 class="sec-title">技术<span class="em">文档</span></h2><div style="max-width:920px;white-space:normal" class="doc-markdown">${markdownView(latest.documentation)}</div>`;
   document.querySelector('.changelog').innerHTML = versions.length ? versions.map(version => `<div class="log-item"><div><div class="ver">v${detailEsc(version.version)}</div><div class="date">${version.published_at ? new Date(version.published_at).toLocaleDateString('zh-CN') : '-'}</div></div><div><p>${detailEsc(version.changelog || '无更新说明')}</p></div></div>`).join('') : '<p>暂无版本记录</p>';
   renderDemos(plugin.demos || []);
@@ -100,7 +101,8 @@ async function purchase(plugin, latest) {
   } catch (error) { alert(error.message); }
 }
 
-document.querySelectorAll('.tab-btn').forEach(button => button.addEventListener('click', () => { document.querySelectorAll('.tab-btn').forEach(item => item.classList.toggle('active', item === button)); document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.toggle('active', panel.id === `tab-${button.dataset.tab}`)); }));
+  // Tab switching with empty-content disabling
+  document.querySelectorAll('.tab-btn').forEach(button => button.addEventListener('click', () => { document.querySelectorAll('.tab-btn').forEach(item => item.classList.toggle('active', item === button)); document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.toggle('active', panel.id === `tab-${button.dataset.tab}`)); }));
 const buyModal = document.getElementById('buyModal');
 document.getElementById('buyBtn').addEventListener('click', () => buyModal.classList.add('show'));
 buyModal.addEventListener('click', event => { if (event.target === buyModal) buyModal.classList.remove('show'); });
