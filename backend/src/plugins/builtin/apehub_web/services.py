@@ -5,14 +5,20 @@ Config source: ``apehub_web_site_config`` table (managed in ApeAdmin admin UI).
 
 import hashlib
 import hmac
+import random
 import re
 import secrets
 import smtplib
 import ssl
+import time
+from decimal import Decimal, ROUND_HALF_UP
 from email.header import Header
 from email.mime.text import MIMEText
 from email.utils import formataddr, formatdate
 from typing import Any
+from urllib.parse import urlencode
+
+import httpx
 
 from src.core.config import settings
 
@@ -82,20 +88,28 @@ def send_registration_code(cfg: dict[str, Any], email: str, code: str) -> None:
 # ---------------------------------------------------------------------------
 
 def lempay_md5_sign(params: dict[str, Any], key: str) -> str:
-    """LemPay MD5 signature: sort keys, concat k=v&..., append &key=KEY."""
+    """LemPay MD5 signature using its documented ASCII ordering contract."""
     if not key:
         raise RuntimeError("支付密钥未配置")
     sorted_keys = sorted(params.keys())
-    raw = "&".join(f"{k}={params[k]}" for k in sorted_keys if params[k] != "")
-    raw = f"{raw}&key={key}"
+    raw = "&".join(
+        f"{k}={params[k]}"
+        for k in sorted_keys
+        if k not in ("sign", "sign_type") and str(params[k]) not in ("", "0")
+    )
+    raw = f"{raw}{key}"
     return hashlib.md5(raw.encode("utf-8")).hexdigest()
 
 
-def lepay_verify_notify(params: dict[str, Any], key: str) -> bool:
+def lempay_verify_notify(params: dict[str, Any], key: str) -> bool:
     """Verify LemPay async notify signature."""
     sign = params.get("sign", "")
     payload = {k: v for k, v in params.items() if k not in ("sign", "sign_type")}
     return lempay_md5_sign(payload, key) == sign.lower()
+
+
+# Compatibility for callers from the first marketplace implementation.
+lepay_verify_notify = lempay_verify_notify
 
 
 def build_lepay_submit_url(cfg: dict[str, Any], params: dict[str, Any]) -> str:
@@ -103,12 +117,38 @@ def build_lepay_submit_url(cfg: dict[str, Any], params: dict[str, Any]) -> str:
     base = cfg.get("lempay_submit_url") or ""
     if not base:
         raise RuntimeError("支付提交地址未配置")
-    params["pid"] = cfg.get("lempay_pid")
-    params["sign"] = lempay_md5_sign(params, cfg.get("lempay_key") or "")
-    params["sign_type"] = "MD5"
-    query = "&".join(f"{k}={v}" for k, v in params.items())
+    payload = {**params, "pid": cfg.get("lempay_pid")}
+    payload["sign"] = lempay_md5_sign(payload, cfg.get("lempay_key") or "")
+    payload["sign_type"] = "MD5"
+    query = urlencode(payload)
     sep = "&" if "?" in base else "?"
     return f"{base}{sep}{query}"
+
+
+async def request_lepay_refund(
+    cfg: dict[str, Any], *, trade_no: str, out_trade_no: str, money: Decimal
+) -> dict[str, Any]:
+    """Submit a full refund through LemPay's merchant API."""
+    base = str(cfg.get("lempay_api_url") or "").strip()
+    if not base:
+        raise RuntimeError("支付 API 地址未配置")
+    separator = "&" if "?" in base else "?"
+    url = base if "act=refund" in base else f"{base}{separator}act=refund"
+    payload: dict[str, Any] = {
+        "pid": cfg.get("lempay_pid"),
+        "trade_no": trade_no,
+        "out_trade_no": out_trade_no,
+        "money": format(money.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP), ".2f"),
+    }
+    payload["sign"] = lempay_md5_sign(payload, str(cfg.get("lempay_key") or ""))
+    payload["sign_type"] = "MD5"
+    async with httpx.AsyncClient(timeout=30) as client:
+        response = await client.post(url, data=payload)
+    response.raise_for_status()
+    result = response.json()
+    if int(result.get("code") or 0) != 1:
+        raise RuntimeError(str(result.get("msg") or "支付平台退款失败"))
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -126,7 +166,17 @@ def gen_slug(text: str) -> str:
     return slug or f"item-{int(time.time())}"
 
 
-def calc_split(amount: float, service_fee_rate: float) -> tuple[float, float]:
+def calc_split(amount: Decimal, service_fee_rate: Decimal) -> tuple[Decimal, Decimal]:
     """Return (developer_income, service_fee) for a paid order."""
-    fee = round(amount * service_fee_rate / 100.0, 2)
-    return round(amount - fee, 2), fee
+    quantum = Decimal("0.00000001")
+    fee = (amount * service_fee_rate / Decimal("100")).quantize(quantum, rounding=ROUND_HALF_UP)
+    return (amount - fee).quantize(quantum, rounding=ROUND_HALF_UP), fee
+
+
+def calc_withdrawal_fee(amount: Decimal, fee_type: str, fee_value: Decimal) -> Decimal:
+    quantum = Decimal("0.00000001")
+    if fee_type == "percent":
+        fee = amount * fee_value / Decimal("100")
+    else:
+        fee = fee_value
+    return min(amount, max(Decimal("0"), fee)).quantize(quantum, rounding=ROUND_HALF_UP)

@@ -17,6 +17,7 @@ Tables (all prefixed ``apehub_web_``, linking back to ApeAdmin's ``sys_user``):
 
 import enum
 from datetime import datetime
+from decimal import Decimal
 
 from sqlalchemy import (
     JSON,
@@ -26,6 +27,7 @@ from sqlalchemy import (
     Float,
     ForeignKey,
     Integer,
+    Numeric,
     String,
     Text,
     UniqueConstraint,
@@ -71,6 +73,25 @@ class WithdrawalStatus(str, enum.Enum):
     DONE = "done"                # 已完成
 
 
+class PluginVersionStatus(str, enum.Enum):
+    DRAFT = "draft"
+    ANALYZING = "analyzing"
+    ANALYSIS_FAILED = "analysis_failed"
+    SUBMITTED = "submitted"
+    REVIEWING = "reviewing"
+    APPROVED = "approved"
+    PUBLISHED = "published"
+    REJECTED = "rejected"
+    DEPRECATED = "deprecated"
+
+
+class AnalysisStatus(str, enum.Enum):
+    QUEUED = "queued"
+    RUNNING = "running"
+    SUCCEEDED = "succeeded"
+    FAILED = "failed"
+
+
 class DemoType(str, enum.Enum):
     H5 = "h5"                    # H5 演示（二维码）
     MINIPROGRAM = "miniprogram"  # 小程序（二维码）
@@ -95,10 +116,10 @@ class ApehubWebProfile(ApehubWebBase):
     avatar: Mapped[str] = mapped_column(String(255), default="")
     bio: Mapped[str] = mapped_column(Text, default="")
     is_developer: Mapped[bool] = mapped_column(Boolean, default=False)
-    balance: Mapped[float] = mapped_column(Float, default=0.0)          # 可提现余额
-    frozen_balance: Mapped[float] = mapped_column(Float, default=0.0)   # 提现中冻结
-    total_income: Mapped[float] = mapped_column(Float, default=0.0)     # 累计收入
-    total_withdrawn: Mapped[float] = mapped_column(Float, default=0.0)  # 累计已提现
+    balance: Mapped[Decimal] = mapped_column(Numeric(20, 8), default=Decimal("0"))
+    frozen_balance: Mapped[Decimal] = mapped_column(Numeric(20, 8), default=Decimal("0"))
+    total_income: Mapped[Decimal] = mapped_column(Numeric(20, 8), default=Decimal("0"))
+    total_withdrawn: Mapped[Decimal] = mapped_column(Numeric(20, 8), default=Decimal("0"))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     __table_args__ = (UniqueConstraint("user_id", name="uq_apehub_web_profile_user"),)
@@ -114,6 +135,9 @@ class ApehubWebSiteConfig(ApehubWebBase):
     site_logo: Mapped[str] = mapped_column(
         String(255), default="/apehub-web/assets/logo.png"
     )  # logo URL/路径
+    site_icon: Mapped[str] = mapped_column(
+        String(255), default="/apehub-web/assets/logo.png"
+    )  # 浏览器图标 URL/路径
     site_domain: Mapped[str] = mapped_column(String(255), default="")    # 独立域名（可选）
     site_prefix: Mapped[str] = mapped_column(String(32), default="/apehub-web")  # 入口前缀
     seo_title: Mapped[str] = mapped_column(String(255), default="")
@@ -121,18 +145,29 @@ class ApehubWebSiteConfig(ApehubWebBase):
     seo_keywords: Mapped[str] = mapped_column(String(500), default="")
     # Email (SMTP)
     mail_user: Mapped[str] = mapped_column(String(255), default="")
-    mail_code: Mapped[str] = mapped_column(String(255), default="")     # SMTP 授权码
+    mail_code_enc: Mapped[str] = mapped_column("mail_code", Text, default="")
     mail_host: Mapped[str] = mapped_column(String(128), default="smtp.qq.com")
     mail_port: Mapped[int] = mapped_column(Integer, default=465)
     # LemPay
     lempay_pid: Mapped[int] = mapped_column(Integer, default=0)
-    lempay_key: Mapped[str] = mapped_column(String(255), default="")
+    lempay_key_enc: Mapped[str] = mapped_column("lempay_key", Text, default="")
     lempay_api_url: Mapped[str] = mapped_column(String(255), default="")
     lempay_submit_url: Mapped[str] = mapped_column(String(255), default="")
     lempay_notify_url: Mapped[str] = mapped_column(String(255), default="")
     lempay_return_url: Mapped[str] = mapped_column(String(255), default="")
+    lempay_payment_type: Mapped[str] = mapped_column(String(16), default="usdt")
+    # DeepSeek code analysis
+    deepseek_api_key_enc: Mapped[str] = mapped_column("deepseek_api_key", Text, default="")
+    deepseek_base_url: Mapped[str] = mapped_column(String(255), default="https://api.deepseek.com")
+    deepseek_model: Mapped[str] = mapped_column(String(64), default="deepseek-chat")
     # Service fee (platform cut, percent)
-    service_fee_rate: Mapped[float] = mapped_column(Float, default=30.0)  # 默认 30%
+    service_fee_rate: Mapped[Decimal] = mapped_column(Numeric(8, 4), default=Decimal("30"))
+    currency: Mapped[str] = mapped_column(String(8), default="USDT")
+    settlement_days: Mapped[int] = mapped_column(Integer, default=7)
+    refund_days: Mapped[int] = mapped_column(Integer, default=7)
+    min_withdrawal: Mapped[Decimal] = mapped_column(Numeric(20, 8), default=Decimal("100"))
+    withdrawal_fee_type: Mapped[str] = mapped_column(String(16), default="fixed")
+    withdrawal_fee_value: Mapped[Decimal] = mapped_column(Numeric(20, 8), default=Decimal("0"))
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
@@ -152,6 +187,22 @@ class ApehubWebEmailVerification(ApehubWebBase):
     attempts: Mapped[int] = mapped_column(Integer, default=0)
 
     __table_args__ = (UniqueConstraint("email", "purpose", name="uq_apehub_web_email_verification"),)
+
+
+class ApehubWebNavigationItem(ApehubWebBase):
+    """Configurable public website navigation item."""
+
+    __tablename__ = "apehub_web_navigation_item"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    title: Mapped[str] = mapped_column(String(64))
+    link: Mapped[str] = mapped_column(String(255))
+    icon_url: Mapped[str] = mapped_column(String(255), default="")
+    open_mode: Mapped[str] = mapped_column(String(16), default="same")
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    sort: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
 class ApehubWebSiteContent(ApehubWebBase):
@@ -222,10 +273,11 @@ class ApehubWebPlugin(ApehubWebBase):
     version: Mapped[str] = mapped_column(String(32), default="1.0.0")
     tags: Mapped[str] = mapped_column(String(255), default="")          # 逗号分隔
     icon: Mapped[str] = mapped_column(String(255), default="")
-    price: Mapped[float] = mapped_column(Float, default=0.0)           # 0 = 免费
-    service_fee_rate: Mapped[float] = mapped_column(Float, default=30.0)  # 该插件服务费率 %
+    price: Mapped[Decimal] = mapped_column(Numeric(20, 8), default=Decimal("0"))
+    service_fee_rate: Mapped[Decimal] = mapped_column(Numeric(8, 4), default=Decimal("30"))
     status: Mapped[PluginStatus] = mapped_column(Enum(PluginStatus), default=PluginStatus.PENDING, index=True)
     download_count: Mapped[int] = mapped_column(Integer, default=0)
+    install_count: Mapped[int] = mapped_column(Integer, default=0)
     rating_avg: Mapped[float] = mapped_column(Float, default=5.0)
     rating_count: Mapped[int] = mapped_column(Integer, default=0)
     reject_reason: Mapped[str] = mapped_column(String(500), default="")
@@ -234,6 +286,12 @@ class ApehubWebPlugin(ApehubWebBase):
 
     files: Mapped[list["ApehubWebPluginFile"]] = relationship(back_populates="plugin", cascade="all, delete-orphan", lazy="selectin")
     demos: Mapped[list["ApehubWebPluginDemo"]] = relationship(back_populates="plugin", cascade="all, delete-orphan", lazy="selectin")
+    versions: Mapped[list["ApehubWebPluginVersion"]] = relationship(
+        cascade="all, delete-orphan", lazy="selectin", order_by="ApehubWebPluginVersion.created_at.desc()"
+    )
+    media: Mapped[list["ApehubWebPluginMedia"]] = relationship(
+        cascade="all, delete-orphan", lazy="selectin", order_by="ApehubWebPluginMedia.sort"
+    )
 
 
 class ApehubWebPluginFile(ApehubWebBase):
@@ -243,6 +301,7 @@ class ApehubWebPluginFile(ApehubWebBase):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     plugin_id: Mapped[int] = mapped_column(ForeignKey("apehub_web_plugin.id"), index=True)
+    version_id: Mapped[int | None] = mapped_column(ForeignKey("apehub_web_plugin_version.id"), nullable=True, index=True)
     file_type: Mapped[str] = mapped_column(String(16), default="package")  # package / doc / screenshot
     filename: Mapped[str] = mapped_column(String(255))
     stored_path: Mapped[str] = mapped_column(String(500))   # 服务器存储路径
@@ -251,6 +310,121 @@ class ApehubWebPluginFile(ApehubWebBase):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     plugin: Mapped["ApehubWebPlugin"] = relationship(back_populates="files")
+    version: Mapped["ApehubWebPluginVersion | None"] = relationship(back_populates="files")
+
+
+class ApehubWebPluginVersion(ApehubWebBase):
+    """A reviewable and publishable release belonging to a marketplace plugin."""
+
+    __tablename__ = "apehub_web_plugin_version"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    plugin_id: Mapped[int] = mapped_column(ForeignKey("apehub_web_plugin.id"), index=True)
+    version: Mapped[str] = mapped_column(String(32))
+    status: Mapped[PluginVersionStatus] = mapped_column(
+        Enum(PluginVersionStatus), default=PluginVersionStatus.DRAFT, index=True
+    )
+    compatibility: Mapped[str] = mapped_column(String(255), default="")
+    changelog: Mapped[str] = mapped_column(Text, default="")
+    documentation: Mapped[str] = mapped_column(Text, default="")
+    analysis_report: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    reject_reason: Mapped[str] = mapped_column(String(500), default="")
+    submitted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    published_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint("plugin_id", "version", name="uq_apehub_web_plugin_version"),
+    )
+
+    files: Mapped[list["ApehubWebPluginFile"]] = relationship(back_populates="version", lazy="selectin")
+
+
+class ApehubWebPluginMedia(ApehubWebBase):
+    """Plugin logo and ordered marketplace carousel images."""
+
+    __tablename__ = "apehub_web_plugin_media"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    plugin_id: Mapped[int] = mapped_column(ForeignKey("apehub_web_plugin.id"), index=True)
+    media_type: Mapped[str] = mapped_column(String(16), default="carousel")
+    url: Mapped[str] = mapped_column(String(500))
+    alt_text: Mapped[str] = mapped_column(String(255), default="")
+    sort: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class ApehubWebAnalysisJob(ApehubWebBase):
+    """Durable DeepSeek analysis state for an uploaded plugin version."""
+
+    __tablename__ = "apehub_web_analysis_job"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    plugin_id: Mapped[int] = mapped_column(ForeignKey("apehub_web_plugin.id"), index=True)
+    version_id: Mapped[int] = mapped_column(ForeignKey("apehub_web_plugin_version.id"), index=True)
+    status: Mapped[AnalysisStatus] = mapped_column(Enum(AnalysisStatus), default=AnalysisStatus.QUEUED, index=True)
+    stage: Mapped[str] = mapped_column(String(64), default="queued")
+    progress: Mapped[int] = mapped_column(Integer, default=0)
+    model: Mapped[str] = mapped_column(String(64), default="")
+    prompt_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    completion_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    error: Mapped[str] = mapped_column(Text, default="")
+    result: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class ApehubWebPluginReview(ApehubWebBase):
+    """Immutable review/publish audit history."""
+
+    __tablename__ = "apehub_web_plugin_review"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    plugin_id: Mapped[int] = mapped_column(ForeignKey("apehub_web_plugin.id"), index=True)
+    version_id: Mapped[int | None] = mapped_column(ForeignKey("apehub_web_plugin_version.id"), nullable=True, index=True)
+    reviewer_id: Mapped[int] = mapped_column(ForeignKey("sys_user.id"), index=True)
+    action: Mapped[str] = mapped_column(String(32))
+    comment: Mapped[str] = mapped_column(Text, default="")
+    service_fee_rate: Mapped[Decimal | None] = mapped_column(Numeric(8, 4), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class ApehubWebPurchaseEntitlement(ApehubWebBase):
+    """Permanent access to all published versions of a purchased plugin."""
+
+    __tablename__ = "apehub_web_purchase_entitlement"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("sys_user.id"), index=True)
+    plugin_id: Mapped[int] = mapped_column(ForeignKey("apehub_web_plugin.id"), index=True)
+    order_id: Mapped[int | None] = mapped_column(ForeignKey("apehub_web_order.id"), nullable=True, index=True)
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    granted_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "plugin_id", name="uq_apehub_web_entitlement_user_plugin"),
+    )
+
+
+class ApehubWebPluginInstallation(ApehubWebBase):
+    """One row per user and plugin, used for reliable installation statistics."""
+
+    __tablename__ = "apehub_web_plugin_installation"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    plugin_id: Mapped[int] = mapped_column(ForeignKey("apehub_web_plugin.id"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("sys_user.id"), index=True)
+    download_count: Mapped[int] = mapped_column(Integer, default=1)
+    first_installed_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    last_downloaded_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint("plugin_id", "user_id", name="uq_apehub_web_installation_user_plugin"),
+    )
 
 
 class ApehubWebPluginDemo(ApehubWebBase):
@@ -278,13 +452,16 @@ class ApehubWebOrder(ApehubWebBase):
     order_no: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("sys_user.id"), index=True)
     plugin_id: Mapped[int] = mapped_column(ForeignKey("apehub_web_plugin.id"), index=True)
-    amount: Mapped[float] = mapped_column(Float, default=0.0)          # 订单金额
-    service_fee: Mapped[float] = mapped_column(Float, default=0.0)     # 平台服务费
-    developer_income: Mapped[float] = mapped_column(Float, default=0.0)  # 开发者收入
+    amount: Mapped[Decimal] = mapped_column(Numeric(20, 8), default=Decimal("0"))
+    service_fee: Mapped[Decimal] = mapped_column(Numeric(20, 8), default=Decimal("0"))
+    developer_income: Mapped[Decimal] = mapped_column(Numeric(20, 8), default=Decimal("0"))
+    currency: Mapped[str] = mapped_column(String(8), default="USDT")
     status: Mapped[OrderStatus] = mapped_column(Enum(OrderStatus), default=OrderStatus.PENDING)
     lepay_trade_no: Mapped[str] = mapped_column(String(64), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     paid_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    refunded_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    refund_reason: Mapped[str] = mapped_column(String(500), default="")
 
 
 class ApehubWebIncome(ApehubWebBase):
@@ -296,8 +473,10 @@ class ApehubWebIncome(ApehubWebBase):
     order_id: Mapped[int] = mapped_column(ForeignKey("apehub_web_order.id"), index=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("sys_user.id"), index=True)   # 开发者
     plugin_id: Mapped[int] = mapped_column(ForeignKey("apehub_web_plugin.id"), index=True)
-    amount: Mapped[float] = mapped_column(Float, default=0.0)          # 开发者分成
-    rate: Mapped[float] = mapped_column(Float, default=30.0)           # 服务费率
+    amount: Mapped[Decimal] = mapped_column(Numeric(20, 8), default=Decimal("0"))
+    rate: Mapped[Decimal] = mapped_column(Numeric(8, 4), default=Decimal("30"))
+    available_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    status: Mapped[str] = mapped_column(String(16), default="pending")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
@@ -308,10 +487,68 @@ class ApehubWebWithdrawal(ApehubWebBase):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("sys_user.id"), index=True)
-    amount: Mapped[float] = mapped_column(Float)
-    method: Mapped[str] = mapped_column(String(16), default="alipay")  # alipay / bank
+    amount: Mapped[Decimal] = mapped_column(Numeric(20, 8))
+    fee: Mapped[Decimal] = mapped_column(Numeric(20, 8), default=Decimal("0"))
+    net_amount: Mapped[Decimal] = mapped_column(Numeric(20, 8), default=Decimal("0"))
+    method: Mapped[str] = mapped_column(String(16), default="trc20")
+    network: Mapped[str] = mapped_column(String(16), default="TRC20")
     account: Mapped[str] = mapped_column(String(255))
     status: Mapped[WithdrawalStatus] = mapped_column(Enum(WithdrawalStatus), default=WithdrawalStatus.PENDING)
     remark: Mapped[str] = mapped_column(String(500), default="")
+    tx_hash: Mapped[str] = mapped_column(String(128), default="")
+    reviewer_id: Mapped[int | None] = mapped_column(ForeignKey("sys_user.id"), nullable=True)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class ApehubWebWallet(ApehubWebBase):
+    """One active USDT-TRC20 payout wallet per website user."""
+
+    __tablename__ = "apehub_web_wallet"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("sys_user.id"), unique=True, index=True)
+    network: Mapped[str] = mapped_column(String(16), default="TRC20")
+    address: Mapped[str] = mapped_column(String(128))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class ApehubWebPaymentEvent(ApehubWebBase):
+    """Idempotent raw payment/refund callback record."""
+
+    __tablename__ = "apehub_web_payment_event"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    order_id: Mapped[int | None] = mapped_column(ForeignKey("apehub_web_order.id"), nullable=True, index=True)
+    provider_event_id: Mapped[str] = mapped_column(String(128), unique=True, index=True)
+    event_type: Mapped[str] = mapped_column(String(32), default="payment")
+    signature_valid: Mapped[bool] = mapped_column(Boolean, default=False)
+    payload: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    processed: Mapped[bool] = mapped_column(Boolean, default=False)
+    error: Mapped[str] = mapped_column(Text, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    processed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class ApehubWebLedgerEntry(ApehubWebBase):
+    """Append-only USDT developer balance ledger."""
+
+    __tablename__ = "apehub_web_ledger_entry"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("sys_user.id"), index=True)
+    order_id: Mapped[int | None] = mapped_column(ForeignKey("apehub_web_order.id"), nullable=True, index=True)
+    withdrawal_id: Mapped[int | None] = mapped_column(ForeignKey("apehub_web_withdrawal.id"), nullable=True, index=True)
+    entry_type: Mapped[str] = mapped_column(String(32), index=True)
+    amount: Mapped[Decimal] = mapped_column(Numeric(20, 8))
+    status: Mapped[str] = mapped_column(String(16), default="available", index=True)
+    available_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    note: Mapped[str] = mapped_column(String(500), default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint("order_id", "entry_type", name="uq_apehub_web_ledger_order_type"),
+    )

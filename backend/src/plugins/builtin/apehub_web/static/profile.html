@@ -1,759 +1,104 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>ApeAdmin · 个人中心</title>
-<meta name="description" content="ApeAdmin 个人中心 —— 用户信息、购买的插件、发布的插件、收入明细、钱包提现。" />
-<link rel="icon" type="image/png" href="/apehub-web/assets/logo.png" />
-<style>
-  :root {
-    --bg: #07080f;
-    --bg-soft: #0c0e1a;
-    --panel: rgba(255,255,255,0.04);
-    --panel-2: rgba(255,255,255,0.06);
-    --border: rgba(255,255,255,0.08);
-    --border-2: rgba(255,255,255,0.14);
-    --primary: #6d5cff;
-    --primary-2: #9d6bff;
-    --accent: #22d3ee;
-    --green: #34d399;
-    --orange: #fb923c;
-    --red: #f87171;
-    --text: #eef0ff;
-    --text-2: #a4a9c9;
-    --text-3: #6b7096;
-    --radius: 20px;
-    --maxw: 1200px;
-    --grad: linear-gradient(135deg, #6d5cff 0%, #9d6bff 50%, #d65ef0 100%);
-    --grad-2: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-    --nav-bg: rgba(7,8,15,.8);
-  }
-  :root[data-theme="light"] {
-    --bg: #f8fafc;
-    --bg-soft: #ffffff;
-    --panel: rgba(0,0,0,0.025);
-    --panel-2: rgba(0,0,0,0.04);
-    --border: rgba(0,0,0,0.08);
-    --border-2: rgba(0,0,0,0.14);
-    --text: #1e293b;
-    --text-2: #475569;
-    --text-3: #94a3b8;
-    --nav-bg: rgba(255,255,255,.85);
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-    background: var(--bg); color: var(--text); line-height: 1.6; overflow-x: hidden;
-  }
-  a { color: inherit; text-decoration: none; }
-  ::selection { background: rgba(109,92,255,.4); }
-  ::-webkit-scrollbar { width: 10px; }
-  ::-webkit-scrollbar-thumb { background: #2a2d45; border-radius: 8px; }
-  :root[data-theme="light"] ::-webkit-scrollbar-thumb { background: #cbd5e1; }
-  ::-webkit-scrollbar-track { background: transparent; }
-
-  .bg-glow {
-    position: fixed; inset: 0; z-index: -2; pointer-events: none;
-    background:
-      radial-gradient(700px 500px at 15% -5%, rgba(109,92,255,.16), transparent 60%),
-      radial-gradient(600px 400px at 85% 5%, rgba(214,94,240,.10), transparent 60%);
-  }
-  :root[data-theme="light"] .bg-glow {
-    background:
-      radial-gradient(700px 500px at 15% -5%, rgba(109,92,255,.10), transparent 60%),
-      radial-gradient(600px 400px at 85% 5%, rgba(214,94,240,.06), transparent 60%);
-  }
-  .bg-grid {
-    position: fixed; inset: 0; z-index: -1; pointer-events: none;
-    background-image:
-      linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
-    background-size: 56px 56px;
-    mask-image: radial-gradient(ellipse 80% 50% at 50% 0%, #000 30%, transparent 80%);
-  }
-  :root[data-theme="light"] .bg-grid {
-    background-image:
-      linear-gradient(rgba(0,0,0,.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,0,0,.03) 1px, transparent 1px);
-  }
-  .container { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
-
-  /* 导航 */
-  nav { position: sticky; top: 0; z-index: 100; backdrop-filter: blur(14px); background: var(--nav-bg); border-bottom: 1px solid var(--border); }
-  .nav-inner { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 68px; }
-  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
-  .brand img { width: 30px; height: 30px; border-radius: 8px; }
-  .brand .badge { font-size: 10px; font-weight: 600; color: var(--accent); border: 1px solid rgba(34,211,238,.4); background: rgba(34,211,238,.1); padding: 2px 8px; border-radius: 999px; margin-left: 4px; }
-  .nav-links { display: flex; gap: 26px; align-items: center; }
-  .nav-links a { color: var(--text-2); font-size: 14.5px; transition: color .2s; }
-  .nav-links a:hover, .nav-links a.active { color: var(--text); }
-  .nav-actions { display: flex; gap: 12px; align-items: center; }
-  .btn { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 600; border-radius: 12px; padding: 10px 18px; border: 1px solid transparent; transition: all .22s; font-family: inherit; }
-  .btn-ghost { color: var(--text-2); background: transparent; border-color: var(--border); }
-  .btn-ghost:hover { color: var(--text); border-color: var(--border-2); }
-  .btn-primary { color: #fff; background: var(--grad-2); box-shadow: 0 8px 24px -8px rgba(109,92,255,.7); }
-  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 32px -8px rgba(109,92,255,.9); }
-  .btn-sm { padding: 8px 16px; font-size: 13px; border-radius: 10px; }
-  .menu-toggle { display: none; background: none; border: none; color: var(--text); font-size: 22px; cursor: pointer; }
-
-  /* 用户信息卡 */
-  .profile-header { padding: 60px 0 30px; }
-  .profile-card {
-    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 36px; display: flex; gap: 28px; align-items: center; flex-wrap: wrap;
-  }
-  .profile-avatar {
-    width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0;
-    background: var(--grad); display: flex; align-items: center; justify-content: center;
-    font-size: 32px; font-weight: 800; color: #fff;
-  }
-  .profile-info { flex: 1; min-width: 200px; }
-  .profile-info .name { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
-  .profile-info .email { color: var(--text-2); font-size: 14px; margin-bottom: 12px; }
-  .profile-info .bio { color: var(--text-3); font-size: 14px; }
-  .profile-info .tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-  .profile-info .tag { font-size: 12px; padding: 3px 10px; border-radius: 999px; }
-  .tag-developer { color: var(--green); border: 1px solid rgba(52,211,153,.3); background: rgba(52,211,153,.1); }
-  .tag-user { color: var(--accent); border: 1px solid rgba(34,211,238,.3); background: rgba(34,211,238,.1); }
-  .profile-actions { display: flex; gap: 10px; }
-
-  /* 钱包概览 */
-  .wallet-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
-  .wallet-card {
-    background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
-    padding: 24px; position: relative; overflow: hidden; transition: transform .25s, border-color .25s;
-  }
-  .wallet-card:hover { transform: translateY(-3px); border-color: var(--border-2); }
-  .wallet-card::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 16px 16px 0 0;
-  }
-  .wallet-card.balance::before { background: linear-gradient(90deg, #6d5cff, #9d6bff); }
-  .wallet-card.frozen::before { background: linear-gradient(90deg, #fb923c, #f59e0b); }
-  .wallet-card.income::before { background: linear-gradient(90deg, #34d399, #10b981); }
-  .wallet-card .w-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-  .wallet-card .w-label { font-size: 13px; color: var(--text-3); }
-  .wallet-card .w-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-  .wallet-card.balance .w-icon { background: rgba(109,92,255,.15); color: var(--primary-2); }
-  .wallet-card.frozen .w-icon { background: rgba(251,146,60,.15); color: var(--orange); }
-  .wallet-card.income .w-icon { background: rgba(52,211,153,.15); color: var(--green); }
-  .wallet-card .w-amount { font-size: 30px; font-weight: 800; letter-spacing: -0.5px; }
-  .wallet-card .w-amount .unit { font-size: 14px; color: var(--text-2); margin-left: 4px; font-weight: 500; }
-  .wallet-card .w-foot { font-size: 12px; color: var(--text-3); margin-top: 8px; }
-  .wallet-card.balance .w-amount { color: var(--primary-2); }
-  .wallet-card.frozen .w-amount { color: var(--orange); }
-  .wallet-card.income .w-amount { color: var(--green); }
-
-  /* Tab 导航 */
-  .tab-nav {
-    display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 32px;
-    overflow-x: auto; -webkit-overflow-scrolling: touch;
-  }
-  .tab-nav button {
-    padding: 12px 20px; background: none; border: none; color: var(--text-2);
-    font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit;
-    border-bottom: 2px solid transparent; transition: all .2s; white-space: nowrap;
-  }
-  .tab-nav button:hover { color: var(--text); }
-  .tab-nav button.active { color: var(--primary); border-bottom-color: var(--primary); }
-
-  .tab-panel { display: none; }
-  .tab-panel.active { display: block; }
-
-  /* 表格 */
-  .data-table { width: 100%; border-collapse: collapse; }
-  .data-table th {
-    text-align: left; padding: 12px 16px; font-size: 13px; font-weight: 600;
-    color: var(--text-3); border-bottom: 1px solid var(--border);
-  }
-  .data-table td {
-    padding: 14px 16px; font-size: 14px; border-bottom: 1px solid var(--border);
-  }
-  .data-table tr:hover td { background: var(--panel); }
-  .data-table .plugin-name { font-weight: 600; }
-  .data-table .status { font-size: 12px; padding: 3px 10px; border-radius: 999px; font-weight: 600; }
-  .status-approved { color: var(--green); background: rgba(52,211,153,.12); }
-  .status-pending { color: var(--orange); background: rgba(251,146,60,.12); }
-  .status-rejected { color: var(--red); background: rgba(248,113,113,.12); }
-  .status-offline { color: var(--text-3); background: var(--panel-2); }
-  .status-paid { color: var(--green); background: rgba(52,211,153,.12); }
-  .status-pending-pay { color: var(--orange); background: rgba(251,146,60,.12); }
-
-  /* 提现区域 */
-  .wallet-section { display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; margin-bottom: 32px; }
-  .withdraw-panel {
-    background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 32px;
-  }
-  .withdraw-panel h3 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
-  .withdraw-panel .sub-title { font-size: 13px; color: var(--text-3); margin-bottom: 28px; }
-  .withdraw-panel .field { margin-bottom: 22px; }
-  .withdraw-panel .field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-2); }
-  .withdraw-panel .field input,
-  .withdraw-panel .field select {
-    width: 100%; padding: 12px 16px; border-radius: 12px;
-    border: 1px solid var(--border); background: var(--bg-soft); color: var(--text);
-    font-size: 15px; font-family: inherit; transition: all .2s;
-  }
-  .withdraw-panel .field input:focus,
-  .withdraw-panel .field select:focus {
-    outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(109,92,255,.12);
-  }
-  .withdraw-panel .field .hint { font-size: 12px; color: var(--text-3); margin-top: 6px; }
-
-  /* 金额输入 */
-  .amount-input-wrap { position: relative; }
-  .amount-input-wrap .currency-prefix {
-    position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
-    font-size: 20px; font-weight: 700; color: var(--text-2); pointer-events: none;
-  }
-  .amount-input-wrap input { padding-left: 38px !important; font-size: 22px !important; font-weight: 700 !important; }
-  .amount-quick { display: flex; gap: 8px; margin-top: 10px; }
-  .amount-quick button {
-    flex: 1; padding: 8px; border-radius: 10px; border: 1px solid var(--border);
-    background: var(--bg-soft); color: var(--text-2); font-size: 13px; font-weight: 600;
-    cursor: pointer; font-family: inherit; transition: all .2s;
-  }
-  .amount-quick button:hover { border-color: var(--primary); color: var(--primary); background: rgba(109,92,255,.06); }
-
-  /* 提现方式卡片 */
-  .method-cards { display: flex; gap: 12px; }
-  .method-card {
-    flex: 1; display: flex; align-items: center; gap: 10px; padding: 14px 16px;
-    border-radius: 12px; border: 1.5px solid var(--border); background: var(--bg-soft);
-    cursor: pointer; transition: all .2s; font-family: inherit;
-  }
-  .method-card:hover { border-color: var(--border-2); }
-  .method-card.selected { border-color: var(--primary); background: rgba(109,92,255,.06); }
-  .method-card .m-icon { font-size: 22px; }
-  .method-card .m-info { text-align: left; }
-  .method-card .m-name { font-size: 14px; font-weight: 700; color: var(--text); }
-  .method-card .m-desc { font-size: 12px; color: var(--text-3); }
-
-  /* 提现汇总 */
-  .withdraw-summary {
-    background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
-    padding: 32px; display: flex; flex-direction: column;
-  }
-  .withdraw-summary h3 { font-size: 18px; font-weight: 700; margin-bottom: 24px; }
-  .summary-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 14px 0; border-bottom: 1px solid var(--border);
-  }
-  .summary-row:last-of-type { border-bottom: none; }
-  .summary-row .s-label { font-size: 14px; color: var(--text-2); }
-  .summary-row .s-value { font-size: 15px; font-weight: 700; color: var(--text); }
-  .summary-row .s-value.highlight { font-size: 26px; color: var(--green); }
-  .summary-row .s-value.fee { color: var(--text-3); font-weight: 500; }
-  .withdraw-summary .btn-primary { margin-top: auto; width: 100%; justify-content: center; padding: 14px; }
-  .summary-note { font-size: 12px; color: var(--text-3); margin-top: 16px; text-align: center; line-height: 1.8; }
-
-  /* 提现记录 */
-  .withdraw-records { margin-top: 8px; }
-  .withdraw-records h3 { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
-  .record-card {
-    background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
-    padding: 18px 20px; margin-bottom: 12px; display: flex; align-items: center;
-    gap: 20px; transition: border-color .2s;
-  }
-  .record-card:hover { border-color: var(--border-2); }
-  .record-amount { font-size: 20px; font-weight: 800; min-width: 100px; }
-  .record-amount .r-unit { font-size: 13px; color: var(--text-2); font-weight: 500; margin-left: 2px; }
-  .record-info { flex: 1; }
-  .record-info .r-method { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
-  .record-info .r-meta { font-size: 12px; color: var(--text-3); display: flex; gap: 12px; }
-  .record-status { min-width: 72px; text-align: center; }
-
-  /* 空状态 */
-  .empty-state { text-align: center; padding: 60px 20px; color: var(--text-3); }
-  .empty-state .icon { font-size: 48px; margin-bottom: 16px; opacity: .5; }
-  .empty-state p { font-size: 15px; }
-
-  /* 页脚 */
-  footer { border-top: 1px solid var(--border); padding: 40px 24px; margin-top: 60px; }
-  .foot-inner { max-width: var(--maxw); margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
-  .foot-inner .l { color: var(--text-3); font-size: 13px; }
-  .foot-inner .r { display: flex; gap: 18px; }
-  .foot-inner .r a { color: var(--text-3); font-size: 13px; transition: color .2s; }
-  .foot-inner .r a:hover { color: var(--text); }
-
-  /* 响应式 */
-  @media (max-width: 900px) {
-    .nav-links { display: none; }
-    .menu-toggle { display: block; }
-    .wallet-grid { grid-template-columns: 1fr; }
-    .wallet-section { grid-template-columns: 1fr; }
-    .method-cards { flex-direction: column; }
-    .profile-card { flex-direction: column; text-align: center; }
-    .profile-info .tags { justify-content: center; }
-    .data-table { font-size: 13px; }
-    .data-table th, .data-table td { padding: 10px 12px; }
-  }
-  @media (max-width: 600px) {
-    .data-table { display: block; overflow-x: auto; }
-    .nav-actions .btn-ghost { display: none; }
-    .record-card { flex-direction: column; align-items: flex-start; gap: 10px; }
-    .record-amount { min-width: auto; }
-  }
-</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ApeHub - 个人中心</title>
+<meta name="description" content="ApeHub 开发者中心，管理插件版本、购买授权、USDT 收益与提现。">
+<link rel="icon" href="/apehub-web/assets/logo.png">
+<link rel="stylesheet" href="/apehub-web/profile.css">
 </head>
 <body>
-<div class="bg-glow"></div>
-<div class="bg-grid"></div>
-
-<!-- 导航 -->
-<nav>
-  <div class="nav-inner">
-    <a class="brand" href="/apehub-web/index.html">
-      <img src="/apehub-web/assets/logo.png" alt="ApeAdmin" />
-      <span>ApeAdmin <span class="badge">Profile</span></span>
-    </a>
-    <div class="nav-links">
-      <a href="/apehub-web/index.html">首页</a>
-      <a href="/apehub-web/index.html#features">核心特性</a>
-      <a href="/apehub-web/plugins.html">插件市场</a>
-      <a href="/apehub-web/docs.html">技术文档</a>
-      <a href="/apehub-web/profile.html" class="active">个人中心</a>
-    </div>
-    <div class="nav-actions">
-      <button class="btn btn-ghost theme-toggle" id="themeToggle" aria-label="切换主题" title="切换明暗主题">🌙</button>
-      <a class="btn btn-primary" href="javascript:void(0)" id="navLoginBtn" style="display:none">登录 / 注册</a>
-      <a class="btn btn-ghost" href="javascript:void(0)" id="navLogoutBtn">退出登录</a>
-    </div>
-    <button class="menu-toggle" id="menuToggle" aria-label="菜单">☰</button>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="/apehub-web/index.html"><img src="/apehub-web/assets/logo.png" alt="ApeHub"><span>ApeHub</span></a>
+    <nav class="nav"><a href="/apehub-web/index.html">首页</a><a href="/apehub-web/plugins.html">插件市场</a><a href="/apehub-web/docs-portal/">技术文档</a><a class="active" href="/apehub-web/profile.html">个人中心</a></nav>
+    <div class="top-actions"><span class="user-name" id="userName"></span><button class="btn btn-small" id="logoutBtn">退出</button></div>
   </div>
-</nav>
+</header>
 
-<!-- 用户信息 -->
-<div class="container">
-  <div class="profile-header">
-    <div class="profile-card">
-      <div class="profile-avatar">A</div>
-      <div class="profile-info">
-        <div class="name">ApeAdmin 用户</div>
-        <div class="email">user@apeadmin.com</div>
-        <div class="bio">全栈开发者 · 插件市场贡献者 · AI 应用爱好者</div>
-        <div class="tags">
-          <span class="tag tag-developer">开发者</span>
-          <span class="tag tag-user">注册用户</span>
-        </div>
-      </div>
-      <div class="profile-actions">
-        <button class="btn btn-ghost btn-sm" onclick="alert('编辑资料（演示）')">编辑资料</button>
-      </div>
-    </div>
-  </div>
+<main class="page">
+  <section class="auth-gate" id="authGate" hidden>
+    <img src="/apehub-web/assets/logo.png" alt="">
+    <h1>请先登录 ApeHub</h1>
+    <p>登录后可以购买插件、提交作品并管理 USDT 收益。</p>
+    <a class="btn btn-primary" href="/apehub-web/index.html">前往登录 / 注册</a>
+  </section>
 
-  <!-- 钱包概览 -->
-  <div class="wallet-grid">
-    <div class="wallet-card balance">
-      <div class="w-top">
-        <div class="w-label">可用余额</div>
-        <div class="w-icon">⟰️</div>
-      </div>
-      <div class="w-amount">1,286.50 <span class="unit">元</span></div>
-      <div class="w-foot">可提现金额</div>
-    </div>
-    <div class="wallet-card frozen">
-      <div class="w-top">
-        <div class="w-label">冻结金额</div>
-        <div class="w-icon">🔒</div>
-      </div>
-      <div class="w-amount">320.00 <span class="unit">元</span></div>
-      <div class="w-foot">提现处理中</div>
-    </div>
-    <div class="wallet-card income">
-      <div class="w-top">
-        <div class="w-label">累计收入</div>
-        <div class="w-icon">📈</div>
-      </div>
-      <div class="w-amount">3,580.00 <span class="unit">元</span></div>
-      <div class="w-foot">已到账总收入</div>
-    </div>
-  </div>
+  <div id="app" hidden>
+    <div class="page-title"><div><h1 id="profileName">个人中心</h1><p id="profileMeta"></p></div><button class="btn btn-primary" id="openPluginDialog">提交新插件</button></div>
+    <section class="stats">
+      <div class="stat"><span>可提现余额</span><strong id="statBalance">0 USDT</strong></div>
+      <div class="stat"><span>提现冻结</span><strong id="statFrozen">0 USDT</strong></div>
+      <div class="stat"><span>累计收益</span><strong id="statIncome">0 USDT</strong></div>
+      <div class="stat"><span>我的插件</span><strong id="statPlugins">0</strong></div>
+    </section>
 
-  <!-- Tab 导航 -->
-  <div class="tab-nav">
-    <button class="active" data-tab="purchased">我购买的</button>
-    <button data-tab="published">我发布的</button>
-    <button data-tab="sales">销售明细</button>
-    <button data-tab="wallet">钱包与提现</button>
-  </div>
-</div>
-
-<!-- Tab 内容 -->
-<div class="container">
-
-  <!-- 我购买的 -->
-  <div class="tab-panel active" id="tab-purchased">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>插件名称</th>
-          <th>版本</th>
-          <th>价格</th>
-          <th>购买日期</th>
-          <th>状态</th>
-          <th>操作</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="plugin-name">AI Chat Engine</td>
-          <td>v2.1.0</td>
-          <td>¥0 (免费)</td>
-          <td>2026-08-15</td>
-          <td><span class="status status-paid">已付款</span></td>
-          <td><a href="/apehub-web/plugin-detail.html?name=AI%20Chat%20Engine" style="color:var(--primary)">查看</a></td>
-        </tr>
-        <tr>
-          <td class="plugin-name">Doc Generator</td>
-          <td>v3.0.1</td>
-          <td>¥99</td>
-          <td>2026-08-10</td>
-          <td><span class="status status-paid">已付款</span></td>
-          <td><a href="/apehub-web/plugin-detail.html?name=Doc%20Generator" style="color:var(--primary)">查看</a></td>
-        </tr>
-        <tr>
-          <td class="plugin-name">RAG Knowledge Base</td>
-          <td>v2.0.0</td>
-          <td>¥199</td>
-          <td>2026-07-28</td>
-          <td><span class="status status-paid">已付款</span></td>
-          <td><a href="/apehub-web/plugin-detail.html?name=RAG%20Knowledge%20Base" style="color:var(--primary)">查看</a></td>
-        </tr>
-        <tr>
-          <td class="plugin-name">System Monitor</td>
-          <td>v1.8.0</td>
-          <td>¥0 (免费)</td>
-          <td>2026-07-20</td>
-          <td><span class="status status-paid">已付款</span></td>
-          <td><a href="/apehub-web/plugin-detail.html?name=System%20Monitor" style="color:var(--primary)">查看</a></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- 我发布的 -->
-  <div class="tab-panel" id="tab-published">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>插件名称</th>
-          <th>版本</th>
-          <th>价格</th>
-          <th>下载量</th>
-          <th>评分</th>
-          <th>状态</th>
-          <th>操作</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="plugin-name">Code Graph Analyzer</td>
-          <td>v1.4.2</td>
-          <td>¥0 (免费)</td>
-          <td>8.7k</td>
-          <td>4.7</td>
-          <td><span class="status status-approved">已上架</span></td>
-          <td><a href="/apehub-web/plugin-detail.html?name=Code%20Graph%20Analyzer" style="color:var(--primary)">查看</a></td>
-        </tr>
-        <tr>
-          <td class="plugin-name">Form Designer</td>
-          <td>v1.0.2</td>
-          <td>¥49</td>
-          <td>3.9k</td>
-          <td>4.2</td>
-          <td><span class="status status-approved">已上架</span></td>
-          <td><a href="/apehub-web/plugin-detail.html?name=Form%20Designer" style="color:var(--primary)">查看</a></td>
-        </tr>
-        <tr>
-          <td class="plugin-name">Workflow Engine</td>
-          <td>v2.1.0</td>
-          <td>¥299</td>
-          <td>7.2k</td>
-          <td>4.7</td>
-          <td><span class="status status-pending">审核中</span></td>
-          <td><span style="color:var(--text-3)">—</span></td>
-        </tr>
-        <tr>
-          <td class="plugin-name">API Tester</td>
-          <td>v1.3.0</td>
-          <td>¥0 (免费)</td>
-          <td>4.2k</td>
-          <td>4.1</td>
-          <td><span class="status status-rejected">被驳回</span></td>
-          <td><a href="javascript:void(0)" style="color:var(--primary)" onclick="alert('查看驳回原因（演示）')">原因</a></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- 销售明细 -->
-  <div class="tab-panel" id="tab-sales">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>插件名称</th>
-          <th>购买用户</th>
-          <th>订单金额</th>
-          <th>平台服务费</th>
-          <th>你的收入</th>
-          <th>日期</th>
-          <th>状态</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="plugin-name">Code Graph Analyzer</td>
-          <td>张**</td>
-          <td>¥0 (免费)</td>
-          <td>¥0</td>
-          <td>¥0</td>
-          <td>2026-08-20</td>
-          <td><span class="status status-approved">已完成</span></td>
-        </tr>
-        <tr>
-          <td class="plugin-name">Form Designer</td>
-          <td>李**</td>
-          <td>¥49</td>
-          <td>¥14.70 (30%)</td>
-          <td>¥34.30</td>
-          <td>2026-08-18</td>
-          <td><span class="status status-approved">已到账</span></td>
-        </tr>
-        <tr>
-          <td class="plugin-name">Form Designer</td>
-          <td>王**</td>
-          <td>¥49</td>
-          <td>¥14.70 (30%)</td>
-          <td>¥34.30</td>
-          <td>2026-08-12</td>
-          <td><span class="status status-approved">已到账</span></td>
-        </tr>
-        <tr>
-          <td class="plugin-name">Form Designer</td>
-          <td>赵**</td>
-          <td>¥49</td>
-          <td>¥14.70 (30%)</td>
-          <td>¥34.30</td>
-          <td>2026-08-05</td>
-          <td><span class="status status-approved">已到账</span></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- 钱包与提现 -->
-  <div class="tab-panel" id="tab-wallet">
-    <div class="wallet-section">
-      <!-- 左侧：提现表单 -->
-      <div class="withdraw-panel">
-        <h3>申请提现</h3>
-        <p class="sub-title">填写提现信息，提交后 1-3 个工作日到账</p>
-        <div class="field">
-          <label>提现金额</label>
-          <div class="amount-input-wrap">
-            <span class="currency-prefix">¥</span>
-            <input type="number" id="withdrawAmount" placeholder="0.00" min="100" step="0.01" value="" />
-          </div>
-          <div class="amount-quick">
-            <button type="button" onclick="setAmount(100)">¥100</button>
-            <button type="button" onclick="setAmount(500)">¥500</button>
-            <button type="button" onclick="setAmount(1000)">¥1,000</button>
-            <button type="button" onclick="setAmount('all')">全部</button>
-          </div>
-          <div class="hint">可用余额 ¥1,286.50，提现服务费率 0%</div>
-        </div>
-        <div class="field">
-          <label>提现方式</label>
-          <div class="method-cards">
-            <div class="method-card selected" data-method="alipay" onclick="selectMethod(this)">
-              <span class="m-icon">💳</span>
-              <div class="m-info">
-                <div class="m-name">支付宝</div>
-                <div class="m-desc">即时到账</div>
-              </div>
-            </div>
-            <div class="method-card" data-method="bank" onclick="selectMethod(this)">
-              <span class="m-icon">🏦</span>
-              <div class="m-info">
-                <div class="m-name">银行卡</div>
-                <div class="m-desc">1-3 工作日</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="field">
-          <label>收款账号</label>
-          <input type="text" id="withdrawAccount" placeholder="输入支付宝账号或银行卡号" />
-        </div>
-        <div class="field">
-          <label>真实姓名</label>
-          <input type="text" id="withdrawName" placeholder="输入与账号一致的真实姓名" />
-        </div>
-      </div>
-      <!-- 右侧：提现汇总 -->
-      <div class="withdraw-summary">
-        <h3>提现汇总</h3>
-        <div class="summary-row">
-          <span class="s-label">可用余额</span>
-          <span class="s-value">¥1,286.50</span>
-        </div>
-        <div class="summary-row">
-          <span class="s-label">提现金额</span>
-          <span class="s-value" id="summaryAmount">¥0.00</span>
-        </div>
-        <div class="summary-row">
-          <span class="s-label">服务费 (0%)</span>
-          <span class="s-value fee" id="summaryFee">¥0.00</span>
-        </div>
-        <div class="summary-row">
-          <span class="s-label">预计到账</span>
-          <span class="s-value highlight" id="summaryReceive">¥0.00</span>
-        </div>
-        <button class="btn btn-primary" onclick="submitWithdraw()">提交提现申请</button>
-        <p class="summary-note">提现申请提交后进入审核<br/>预计 1-3 个工作日到账</p>
-      </div>
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-tab="purchased">已购插件</button>
+      <button class="tab" data-tab="developer">开发者工作台</button>
+      <button class="tab" data-tab="income">销售收益</button>
+      <button class="tab" data-tab="wallet">USDT 钱包与提现</button>
     </div>
 
-    <!-- 提现记录 -->
-    <div class="withdraw-records">
-      <h3>提现记录</h3>
-      <div class="record-card">
-        <div class="record-amount" style="color:var(--orange)">500.00<span class="r-unit">元</span></div>
-        <div class="record-info">
-          <div class="r-method">支付宝</div>
-          <div class="r-meta">
-            <span>zha****@163.com</span>
-            <span>2026-08-22</span>
-            <span>预计 1-3 个工作日到账</span>
-          </div>
-        </div>
-        <div class="record-status"><span class="status status-pending-pay">处理中</span></div>
+    <section class="panel active" id="panel-purchased">
+      <div class="section-head"><h2>已购插件</h2></div>
+      <div class="table-wrap"><table><thead><tr><th>插件</th><th>当前版本</th><th>定价</th><th>授权</th><th>历史版本</th></tr></thead><tbody id="purchasedBody"></tbody></table></div>
+    </section>
+
+    <section class="panel" id="panel-developer">
+      <div class="workspace">
+        <aside class="plugin-list"><div class="plugin-list-head"><strong>我的插件</strong></div><div class="plugin-list-items" id="pluginList"></div></aside>
+        <div class="workbench" id="workbench"><div class="workbench-empty">选择左侧插件进入版本工作台</div></div>
       </div>
-      <div class="record-card">
-        <div class="record-amount" style="color:var(--green)">800.00<span class="r-unit">元</span></div>
-        <div class="record-info">
-          <div class="r-method">支付宝</div>
-          <div class="r-meta">
-            <span>zha****@163.com</span>
-            <span>2026-08-10</span>
-            <span>已到账</span>
-          </div>
-        </div>
-        <div class="record-status"><span class="status status-approved">已完成</span></div>
+    </section>
+
+    <section class="panel" id="panel-income">
+      <div class="section-head"><h2>销售收益</h2></div>
+      <div class="table-wrap"><table><thead><tr><th>插件</th><th>收益</th><th>服务费率</th><th>状态</th><th>可提现时间</th></tr></thead><tbody id="incomeBody"></tbody></table></div>
+    </section>
+
+    <section class="panel" id="panel-wallet">
+      <div class="wallet-grid">
+        <form class="form-section" onsubmit="return false"><h2>TRC20 收款钱包</h2><div class="field"><label>USDT-TRC20 地址</label><input id="walletAddress" maxlength="34" placeholder="T 开头的 34 位地址"></div><div class="actions"><button class="btn btn-primary" type="button" id="saveWallet">保存钱包</button></div></form>
+        <form class="form-section" id="withdrawForm"><h2>申请提现</h2><div class="field"><label>提现金额 (USDT)</label><input id="withdrawAmount" type="number" min="0" step="0.00000001" required></div><div class="field" style="margin-top:12px"><label>TRC20 收款地址</label><input id="withdrawAddress" maxlength="34" required></div><div class="fee-preview" id="feePreview"></div><div id="withdrawRule" style="color:var(--muted);font-size:12px"></div><div class="actions"><button class="btn btn-primary" type="submit">提交提现申请</button></div></form>
       </div>
-      <div class="record-card">
-        <div class="record-amount" style="color:var(--green)">1,000.00<span class="r-unit">元</span></div>
-        <div class="record-info">
-          <div class="r-method">银行卡</div>
-          <div class="r-meta">
-            <span>6222****1234</span>
-            <span>2026-07-28</span>
-            <span>已到账</span>
-          </div>
-        </div>
-        <div class="record-status"><span class="status status-approved">已完成</span></div>
-      </div>
-      <div class="record-card">
-        <div class="record-amount" style="color:var(--red)">300.00<span class="r-unit">元</span></div>
-        <div class="record-info">
-          <div class="r-method">支付宝</div>
-          <div class="r-meta">
-            <span>zha****@163.com</span>
-            <span>2026-07-15</span>
-            <span>账号信息不匹配</span>
-          </div>
-        </div>
-        <div class="record-status"><span class="status status-rejected">已驳回</span></div>
-      </div>
-    </div>
+      <div class="section-head" style="margin-top:24px"><h2>提现记录</h2></div>
+      <div class="table-wrap"><table><thead><tr><th>申请</th><th>手续费</th><th>到账</th><th>地址</th><th>状态</th><th>交易哈希</th></tr></thead><tbody id="withdrawBody"></tbody></table></div>
+    </section>
   </div>
+</main>
 
-</div>
+<dialog id="pluginDialog">
+  <form id="pluginForm">
+    <div class="dialog-head"><h2>创建插件草稿</h2><button type="button" class="icon-btn" data-close title="关闭">×</button></div>
+    <div class="dialog-body"><div class="form-grid">
+      <div class="field"><label>插件标识</label><input name="name" required minlength="2" placeholder="my_plugin"></div>
+      <div class="field"><label>插件标题</label><input name="display_name" required minlength="2"></div>
+      <div class="field"><label>首个版本</label><input name="version" value="1.0.0" required></div>
+      <div class="field"><label>期望售价 (USDT)</label><input name="price" type="number" min="0" step="0.01" value="0" required></div>
+      <div class="field"><label>分类</label><select name="category"><option>工具</option><option>AI</option><option>电商</option><option>仪表盘</option><option>系统增强</option></select></div>
+      <div class="field"><label>标签</label><input name="tags" placeholder="FastAPI,ApeAdmin"></div>
+      <div class="field full"><label>插件介绍</label><textarea name="description" required></textarea></div>
+    </div></div>
+    <div class="dialog-foot"><button type="button" class="btn" data-close>取消</button><button class="btn btn-primary" type="submit">创建草稿</button></div>
+  </form>
+</dialog>
 
-<!-- 页脚 -->
-<footer>
-  <div class="foot-inner">
-    <div class="l">© 2026 ApeAdmin · 面向 AI 智能体场景的开发框架</div>
-    <div class="r">
-      <a href="/apehub-web/index.html">首页</a>
-      <a href="/apehub-web/plugins.html">插件市场</a>
-      <a href="/apehub-web/docs.html">技术文档</a>
-      <a href="https://github.com/KevinLiss/ApeAdmin" target="_blank" rel="noopener">GitHub</a>
-    </div>
-  </div>
-</footer>
+<dialog id="versionDialog">
+  <form id="versionForm">
+    <div class="dialog-head"><h2>创建新版本</h2><button type="button" class="icon-btn" data-close title="关闭">×</button></div>
+    <div class="dialog-body"><div class="form-grid">
+      <div class="field"><label>版本号</label><input name="version" required placeholder="1.1.0"></div>
+      <div class="field"><label>兼容性</label><input name="compatibility" placeholder="ApeAdmin >= 0.1.0"></div>
+      <div class="field full"><label>更新说明</label><textarea name="changelog"></textarea></div>
+    </div></div>
+    <div class="dialog-foot"><button type="button" class="btn" data-close>取消</button><button class="btn btn-primary" type="submit">创建版本</button></div>
+  </form>
+</dialog>
 
-<script>
-  // 主题切换
-  const themeToggle = document.getElementById('themeToggle');
-  function applyTheme(t) {
-    document.documentElement.setAttribute('data-theme', t);
-    themeToggle.textContent = t === 'light' ? '☀️' : '🌙';
-  }
-  const saved = localStorage.getItem('ape-theme') || 'dark';
-  applyTheme(saved);
-  themeToggle.addEventListener('click', () => {
-    const cur = document.documentElement.getAttribute('data-theme') || 'dark';
-    const next = cur === 'dark' ? 'light' : 'dark';
-    localStorage.setItem('ape-theme', next);
-    applyTheme(next);
-  });
-
-  // Tab 切换
-  document.querySelectorAll('.tab-nav button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.tab-nav button').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-    });
-  });
-
-  // 钱包与提现交互
-  const BALANCE = 1286.50;
-  const FEE_RATE = 0;
-  const withdrawAmountInput = document.getElementById('withdrawAmount');
-
-  function setAmount(v) {
-    if (v === 'all') {
-      withdrawAmountInput.value = BALANCE.toFixed(2);
-    } else {
-      withdrawAmountInput.value = v.toFixed(2);
-    }
-    updateSummary();
-  }
-
-  function selectMethod(el) {
-    document.querySelectorAll('.method-card').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
-  }
-
-  function updateSummary() {
-    const amt = parseFloat(withdrawAmountInput.value) || 0;
-    const fee = amt * FEE_RATE;
-    const receive = amt - fee;
-    document.getElementById('summaryAmount').textContent = '¥' + amt.toFixed(2);
-    document.getElementById('summaryFee').textContent = '¥' + fee.toFixed(2);
-    document.getElementById('summaryReceive').textContent = '¥' + receive.toFixed(2);
-  }
-
-  function submitWithdraw() {
-    const amt = parseFloat(withdrawAmountInput.value) || 0;
-    if (amt < 100) { alert('最低提现金额为 100 元'); return; }
-    if (amt > BALANCE) { alert('提现金额不能超过可用余额'); return; }
-    const account = document.getElementById('withdrawAccount').value.trim();
-    const name = document.getElementById('withdrawName').value.trim();
-    if (!account) { alert('请输入收款账号'); return; }
-    if (!name) { alert('请输入真实姓名'); return; }
-    alert('提现申请已提交（演示）');
-  }
-
-  if (withdrawAmountInput) {
-    withdrawAmountInput.addEventListener('input', updateSummary);
-  }
-</script>
+<div class="toast" id="toast" role="status"></div>
+<script src="/apehub-web/site-runtime.js?v=1.5.0"></script>
+<script src="/apehub-web/profile-app.js" defer></script>
 </body>
 </html>

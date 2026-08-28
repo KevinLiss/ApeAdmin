@@ -4,7 +4,7 @@ from sqlalchemy import inspect, text
 
 from src.db.engine import Base, engine
 
-SCHEMA_VERSION = 5
+SCHEMA_VERSION = 8
 VERSION_TABLE = "apehub_web_schema_version"
 
 
@@ -19,6 +19,11 @@ def _plugin_tables():
 
 async def apply_migrations() -> None:
     """Create, upgrade, and version the plugin schema without touching host tables."""
+    # Direct upgrades and tests may call this module without going through
+    # plugin.install(), so ensure all plugin tables are registered first.
+    from src.models import User as _User  # noqa: F401
+    from src.plugins.builtin.apehub_web import models as _models  # noqa: F401
+
     async with engine.begin() as connection:
         await connection.execute(
             text(
@@ -70,3 +75,21 @@ async def apply_migrations() -> None:
 
             await replace_legacy_asset_path(connection)
             await connection.execute(text(f"INSERT INTO {VERSION_TABLE} (version) VALUES (5)"))
+            current = 5
+        if current < 6:
+            from .v0006_navigation_and_installations import add_navigation_and_installation_schema
+
+            await add_navigation_and_installation_schema(connection)
+            await connection.execute(text(f"INSERT INTO {VERSION_TABLE} (version) VALUES (6)"))
+            current = 6
+        if current < 7:
+            from .v0007_marketplace_foundation import add_marketplace_foundation
+
+            await add_marketplace_foundation(connection)
+            await connection.execute(text(f"INSERT INTO {VERSION_TABLE} (version) VALUES (7)"))
+            current = 7
+        if current < 8:
+            from .v0008_docs_portal import activate_docs_portal
+
+            await activate_docs_portal(connection)
+            await connection.execute(text(f"INSERT INTO {VERSION_TABLE} (version) VALUES (8)"))

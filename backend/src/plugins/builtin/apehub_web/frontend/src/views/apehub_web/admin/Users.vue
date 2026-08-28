@@ -24,7 +24,7 @@
         </template>
       </el-table-column>
       <el-table-column label="余额" width="100">
-        <template #default="{ row }">¥{{ row.balance?.toFixed(2) }}</template>
+        <template #default="{ row }">{{ row.balance }} USDT</template>
       </el-table-column>
       <el-table-column prop="status" label="状态" width="80" />
       <el-table-column prop="created_at" label="注册时间" width="180">

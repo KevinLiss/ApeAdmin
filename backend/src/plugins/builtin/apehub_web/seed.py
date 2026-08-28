@@ -8,6 +8,7 @@ from loguru import logger
 from src.plugins.builtin.apehub_web.models import (
     ApehubWebDoc,
     ApehubWebDocCategory,
+    ApehubWebNavigationItem,
     ApehubWebPlugin,
     ApehubWebSiteConfig,
     ApehubWebSiteContent,
@@ -28,6 +29,7 @@ async def seed_apehub_web_data() -> None:
             db.add(ApehubWebSiteConfig(
                 site_name="Apehub_web",
                 site_logo="/apehub-web/assets/logo.png",
+                site_icon="/apehub-web/assets/logo.png",
                 site_prefix="/apehub-web",
                 seo_title="Apehub_web - ApeAdmin 官网",
                 seo_description="ApeAdmin 企业级 AI 原生管理底座，插件市场与技术文档",
@@ -49,6 +51,18 @@ async def seed_apehub_web_data() -> None:
             for b in blocks:
                 db.add(ApehubWebSiteContent(**b))
             logger.info("apehub_web: site_content seeded")
+
+        # ---- Public navigation ----
+        nav_count = (await db.execute(select(func.count()).select_from(ApehubWebNavigationItem))).scalar() or 0
+        if nav_count == 0:
+            for item in [
+                ("首页", "/apehub-web/index.html", 1),
+                ("插件市场", "/apehub-web/plugins.html", 2),
+                ("技术文档", "/apehub-web/docs-portal/", 3),
+                ("个人中心", "/apehub-web/profile.html", 4),
+            ]:
+                db.add(ApehubWebNavigationItem(title=item[0], link=item[1], sort=item[2]))
+            logger.info("apehub_web: navigation seeded")
 
         # ---- Doc categories ----
         cat_count = (await db.execute(select(func.count()).select_from(ApehubWebDocCategory))).scalar() or 0
@@ -114,7 +128,7 @@ async def _seed_admin_menus() -> None:
         ("编辑内容", "F", None, None, "apehub_web:content:edit", None, 1),
         ("文档管理", "C", "admin/docs", "apehub_web/admin/Docs", "apehub_web:docs:list", "Notebook", 3),
         ("编辑文档", "F", None, None, "apehub_web:docs:edit", None, 1),
-        ("插件审核", "C", "admin/plugins", "apehub_web/admin/Plugins", "apehub_web:plugins:review", "Box", 4),
+        ("插件管理", "C", "admin/plugins", "apehub_web/admin/Plugins", "apehub_web:plugins:review", "Box", 4),
         ("订单管理", "C", "admin/orders", "apehub_web/admin/Orders", "apehub_web:orders:list", "ShoppingCart", 5),
         ("提现审核", "C", "admin/withdrawals", "apehub_web/admin/Withdrawals", "apehub_web:withdrawals:review", "Money", 6),
         ("用户管理", "C", "admin/users", "apehub_web/admin/Users", "apehub_web:users:list", "User", 7),

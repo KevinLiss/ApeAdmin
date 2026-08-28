@@ -25,7 +25,7 @@ class ApehubWebPlugin(PluginInterface):
     name = "apehub_web"
     display_name = "Apehub_web"
     description = "ApeAdmin 官网门户：产品介绍、插件市场、技术文档和个人中心"
-    version = "1.2.2"
+    version = "1.4.0"
     author = "ApeAdmin"
 
     async def install(self) -> None:
@@ -46,16 +46,26 @@ class ApehubWebPlugin(PluginInterface):
         from src.db import engine
 
         tables = [
+            "apehub_web_ledger_entry",
+            "apehub_web_payment_event",
+            "apehub_web_wallet",
+            "apehub_web_purchase_entitlement",
+            "apehub_web_plugin_review",
+            "apehub_web_analysis_job",
+            "apehub_web_plugin_media",
+            "apehub_web_plugin_version",
             "apehub_web_withdrawal",
             "apehub_web_income",
             "apehub_web_order",
             "apehub_web_plugin_demo",
+            "apehub_web_plugin_installation",
             "apehub_web_plugin_file",
             "apehub_web_plugin",
             "apehub_web_doc",
             "apehub_web_doc_category",
             "apehub_web_site_config",
             "apehub_web_site_content",
+            "apehub_web_navigation_item",
             "apehub_web_profile",
             "apehub_web_schema_version",
         ]
@@ -71,6 +81,13 @@ class ApehubWebPlugin(PluginInterface):
 
         app.include_router(router, prefix=settings.API_PREFIX)
         static_dir = Path(__file__).parent / "static"
+        upload_dir = Path(settings.PLUGINS_UPLOAD_DIR).parent / "apehub_web"
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        app.mount(
+            "/apehub-web/uploads",
+            StaticFiles(directory=upload_dir),
+            name="apehub_web_uploads",
+        )
         if static_dir.exists():
             app.mount(
                 "/apehub-web",

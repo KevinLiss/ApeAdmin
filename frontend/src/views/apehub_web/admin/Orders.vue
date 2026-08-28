@@ -5,7 +5,7 @@
       <el-table-column prop="order_no" label="订单号" min-width="180" />
       <el-table-column prop="username" label="用户" width="120" />
       <el-table-column prop="plugin_name" label="插件" min-width="160" />
-      <el-table-column label="金额" width="100"><template #default="{ row }">¥{{ row.amount?.toFixed(2) }}</template></el-table-column>
+      <el-table-column label="金额" width="130"><template #default="{ row }">{{ row.amount }} USDT</template></el-table-column>
       <el-table-column label="状态" width="100"><template #default="{ row }"><el-tag :type="statusType(row.status)">{{ statusLabel(row.status) }}</el-tag></template></el-table-column>
       <el-table-column label="创建时间" width="170"><template #default="{ row }">{{ formatDate(row.created_at) }}</template></el-table-column>
     </el-table>

@@ -267,13 +267,14 @@
       <a href="/apehub-web/index.html#features">核心特性</a>
       <a href="/apehub-web/index.html#mcp">MCP 网关</a>
       <a class="active" href="/apehub-web/plugins.html">插件市场</a>
-      <a href="/apehub-web/docs.html">技术文档</a>
-      <a href="/apehub-web/profile.html">个人中心</a>
+      <a href="/apehub-web/docs-portal/">技术文档</a>
+      <a href="/apehub-web/profile.html" data-profile-nav style="display:none">个人中心</a>
     </div>
     <div class="nav-actions">
       <button class="btn btn-ghost theme-toggle" id="themeToggle" aria-label="切换主题" title="切换明暗主题">🌙</button>
       <a class="btn btn-ghost gh-link" href="https://github.com/KevinLiss/ApeAdmin" target="_blank" rel="noopener">GitHub</a>
       <a class="btn btn-primary" href="/apehub-web/plugins.html">返回市场</a>
+      <a class="btn btn-primary account-link" href="/apehub-web/profile.html" hidden>个人中心</a>
     </div>
     <button class="menu-toggle" id="menuToggle" aria-label="菜单">☰</button>
   </div>
@@ -507,59 +508,12 @@ AI_STREAM_ENABLED=<span class="c-s">true</span>
     <button class="close-btn" id="buyClose">✕</button>
     <h3>选择授权方案</h3>
     <p class="m-sub">不同授权方案满足个人、团队与企业的使用需求，全部包含完整源码。</p>
-    <div class="price-grid">
-      <div class="price-card">
-        <div class="p-name">开源版</div>
-        <div class="p-price">¥0<span class="unit">/永久</span></div>
-        <div class="p-desc">MIT 开源协议，个人学习使用</div>
-        <ul class="p-features">
-          <li>完整源代码</li>
-          <li>社区技术支持</li>
-          <li>基础 AI 对话功能</li>
-          <li class="no">商业使用授权</li>
-          <li class="no">优先技术支持</li>
-          <li class="no">定制功能开发</li>
-        </ul>
-        <button class="p-btn free" onclick="alert('开源版可通过 GitHub 直接获取')">免费获取</button>
-      </div>
-      <div class="price-card popular">
-        <div class="pop-badge">推荐</div>
-        <div class="p-name">专业版</div>
-        <div class="p-price">¥680<span class="unit">/年</span></div>
-        <div class="p-desc">适合个人开发者与小团队</div>
-        <ul class="p-features">
-          <li>完整源代码</li>
-          <li>商业使用授权</li>
-          <li>全部 AI 对话功能</li>
-          <li>MCP 工具注册</li>
-          <li>邮件技术支持</li>
-          <li class="no">定制功能开发</li>
-        </ul>
-        <button class="p-btn pro" onclick="alert('专业版购买（演示）')">立即购买</button>
-      </div>
-      <div class="price-card">
-        <div class="p-name">企业版</div>
-        <div class="p-price">¥2,800<span class="unit">/年</span></div>
-        <div class="p-desc">适合企业级部署与定制</div>
-        <ul class="p-features">
-          <li>完整源代码</li>
-          <li>商业使用授权</li>
-          <li>全部 AI 对话功能</li>
-          <li>MCP 工具注册</li>
-          <li>专属技术支持</li>
-          <li>定制功能开发（2 次/年）</li>
-        </ul>
-        <button class="p-btn ent" onclick="alert('企业版购买（演示）')">联系销售</button>
-      </div>
-    </div>
-    <div class="agree">购买即表示同意 <a href="#">授权协议</a> · <a href="#">服务条款</a> · <a href="#">免责声明</a></div>
-  </div>
-</div>
+    <div class="price-grid"><div class="price-card"><div class="p-name">\u6b63\u5728\u52a0\u8f7d\u63d2\u4ef6\u6388\u6743\u4fe1\u606f</div></div></div>\n  </div>\n</div>
 
 <!-- 右侧悬浮 -->
 <div class="float-actions">
   <div class="float-btn" title="客服咨询" onclick="alert('客服咨询（演示）')">💬</div>
-  <div class="float-btn" title="帮助文档" onclick="location.href='/apehub-web/docs.html'">📖</div>
+  <div class="float-btn" title="帮助文档" onclick="location.href='/apehub-web/docs-portal/'">📖</div>
   <div class="float-btn" title="返回顶部" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</div>
 </div>
 
@@ -570,110 +524,12 @@ AI_STREAM_ENABLED=<span class="c-s">true</span>
     <div class="r">
       <a href="/apehub-web/index.html">首页</a>
       <a href="/apehub-web/plugins.html">插件市场</a>
-      <a href="/apehub-web/docs.html">技术文档</a>
+      <a href="/apehub-web/docs-portal/">技术文档</a>
       <a href="https://github.com/KevinLiss/ApeAdmin" target="_blank" rel="noopener">GitHub</a>
     </div>
   </div>
 </footer>
 
-<script>
-  // 插件数据（与 plugins.html 共享）
-  const PLUGINS = {
-    'AI Chat Engine': { name:'AI Chat Engine', sub:'多模型对话引擎 · 流式 SSE · Function Calling', icon:'🤖', ver:'v2.1.0', author:'ApeAdmin Team', downloads:'12.3k', rating:4.9, star:true, desc:'多模型对话引擎，支持 DeepSeek / 通义千问 / 智谱 GLM / OpenAI，流式 SSE 输出与 Function Calling 工具调用循环，密钥加密管理。开箱即用，让 AI 对话能力快速接入你的系统。' },
-    'Code Graph Analyzer': { name:'Code Graph Analyzer', sub:'tree-sitter AST 代码图谱 · 多语言解析', icon:'🔍', ver:'v1.4.2', author:'ApeAdmin Team', downloads:'8.7k', rating:4.7, star:false, desc:'基于 tree-sitter AST 解析的代码图谱工具，支持多语言项目结构与依赖分析。可视化展示代码调用关系、模块依赖与函数引用链。' },
-    'Doc Generator': { name:'Doc Generator', sub:'DOCX / PPT / Excel 三件套自动生成', icon:'📄', ver:'v3.0.1', author:'ApeAdmin Team', downloads:'15.2k', rating:4.8, star:true, desc:'一键生成 DOCX / PPT / Excel 三件套，自动从代码注释提取文档结构。支持模板自定义、批量生成与多格式导出。' },
-  };
-
-  // 默认插件（URL ?name=xxx 指定，否则取第一个）
-  function getPlugin() {
-    const params = new URLSearchParams(location.search);
-    const name = params.get('name');
-    if (name && PLUGINS[name]) return PLUGINS[name];
-    return PLUGINS['AI Chat Engine'];
-  }
-
-  const p = getPlugin();
-  document.getElementById('pluginName').textContent = p.name;
-  document.getElementById('pluginSub').textContent = p.sub;
-  document.getElementById('pluginDesc').textContent = p.desc;
-  document.getElementById('pluginVer').textContent = p.ver;
-  document.getElementById('pluginAuthor').textContent = p.author;
-  document.getElementById('pluginDl').textContent = p.downloads;
-  document.getElementById('pluginRate').textContent = p.rating;
-  document.getElementById('heroIcon').textContent = p.icon;
-  document.getElementById('crumbName').textContent = p.name;
-  document.getElementById('starTag').style.display = p.star ? '' : 'none';
-  document.title = 'ApeAdmin · ' + p.name;
-
-  // Tab 切换
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-    });
-  });
-
-  // 立即体验下拉
-  const demoBtn = document.getElementById('demoBtn');
-  const demoDropdown = document.getElementById('demoDropdown');
-  demoBtn.addEventListener('click', e => { e.stopPropagation(); demoDropdown.classList.toggle('show'); });
-  document.addEventListener('click', () => demoDropdown.classList.remove('show'));
-  demoDropdown.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', e => {
-      e.preventDefault();
-      demoDropdown.classList.remove('show');
-      // 切换到 Demo Tab
-      document.querySelector('.tab-btn[data-tab="demo"]').click();
-      const terminal = a.dataset.terminal;
-      const labels = { h5:'H5 对话', pc:'PC 后台', api:'API 调试', mcp:'MCP 工具' };
-      const icons = { h5:'📱', pc:'💻', api:'🔌', mcp:'🤖' };
-      document.getElementById('demoBody').innerHTML = `
-        <div class="big-icon">${icons[terminal]}</div>
-        <p>${labels[terminal]} 体验环境加载中...</p>
-        <p style="font-size:13px;color:var(--text-3);">演示环境，实际使用请安装插件后体验完整功能</p>
-      `;
-    });
-  });
-
-  // 购买弹窗
-  const buyModal = document.getElementById('buyModal');
-  document.getElementById('buyBtn').addEventListener('click', () => buyModal.classList.add('show'));
-  document.getElementById('buyClose').addEventListener('click', () => buyModal.classList.remove('show'));
-  buyModal.addEventListener('click', e => { if (e.target === buyModal) buyModal.classList.remove('show'); });
-
-  // ESC 关闭
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { buyModal.classList.remove('show'); demoDropdown.classList.remove('show'); }
-  });
-
-  // 移动端菜单
-  document.getElementById('menuToggle')?.addEventListener('click', () => {
-    const nl = document.querySelector('.nav-links');
-    const visible = nl.style.display === 'flex';
-    nl.style.display = visible ? 'none' : 'flex';
-    nl.style.flexDirection = 'column'; nl.style.position = 'absolute'; nl.style.top = '64px';
-    nl.style.left = '0'; nl.style.right = '0';     nl.style.background = getComputedStyle(document.documentElement).getPropertyValue('--bg-soft').trim();
-    nl.style.padding = '20px 24px'; nl.style.borderBottom = '1px solid var(--border)';
-    nl.style.gap = '18px'; nl.style.alignItems = 'flex-start';
-  });
-
-  // 主题切换
-  const ttBtn = document.getElementById('themeToggle');
-  const ttRoot = document.documentElement;
-  const ttSaved = localStorage.getItem('ape-theme') || 'dark';
-  ttRoot.setAttribute('data-theme', ttSaved);
-  if (ttBtn) {
-    ttBtn.textContent = ttSaved === 'dark' ? '🌙' : '☀️';
-    ttBtn.addEventListener('click', () => {
-      const cur = ttRoot.getAttribute('data-theme') || 'dark';
-      const nxt = cur === 'dark' ? 'light' : 'dark';
-      ttRoot.setAttribute('data-theme', nxt);
-      localStorage.setItem('ape-theme', nxt);
-      ttBtn.textContent = nxt === 'dark' ? '🌙' : '☀️';
-    });
-  }
-</script>
+<script src="/apehub-web/site-runtime.js?v=1.5.0"></script>\n<script src="/apehub-web/plugin-detail-app.js" defer></script>
 </body>
 </html>

@@ -213,13 +213,14 @@
       <a href="/apehub-web/index.html#features">核心特性</a>
       <a href="/apehub-web/index.html#mcp">MCP 网关</a>
       <a class="active" href="/apehub-web/plugins.html">插件市场</a>
-      <a href="/apehub-web/docs.html">技术文档</a>
-      <a href="/apehub-web/profile.html">个人中心</a>
+      <a href="/apehub-web/docs-portal/">技术文档</a>
+      <a href="/apehub-web/profile.html" data-profile-nav style="display:none">个人中心</a>
     </div>
     <div class="nav-actions">
       <button class="btn btn-ghost theme-toggle" id="themeToggle" aria-label="切换主题" title="切换明暗主题">🌙</button>
       <a class="btn btn-ghost gh-link" href="https://github.com/KevinLiss/ApeAdmin" target="_blank" rel="noopener">GitHub</a>
       <a class="btn btn-primary" href="/apehub-web/index.html#start">开始使用</a>
+      <a class="btn btn-primary account-link" href="/apehub-web/profile.html" hidden>个人中心</a>
     </div>
     <button class="menu-toggle" id="menuToggle" aria-label="菜单">☰</button>
   </div>
@@ -262,147 +263,12 @@
     <div class="l">© 2026 ApeAdmin · 插件市场 · MIT License</div>
     <div class="r">
       <a href="/apehub-web/index.html">首页</a>
-      <a href="/apehub-web/docs.html">技术文档</a>
+      <a href="/apehub-web/docs-portal/">技术文档</a>
       <a href="https://github.com/KevinLiss/ApeAdmin" target="_blank" rel="noopener">GitHub</a>
     </div>
   </div>
 </footer>
 
-<script>
-  // 主题切换
-  const themeToggle = document.getElementById('themeToggle');
-  const root = document.documentElement;
-  const savedTheme = localStorage.getItem('ape-theme') || 'dark';
-  root.setAttribute('data-theme', savedTheme);
-  themeToggle.textContent = savedTheme === 'dark' ? '🌙' : '☀️';
-  themeToggle.addEventListener('click', () => {
-    const current = root.getAttribute('data-theme') || 'dark';
-    const next = current === 'dark' ? 'light' : 'dark';
-    root.setAttribute('data-theme', next);
-    localStorage.setItem('ape-theme', next);
-    themeToggle.textContent = next === 'dark' ? '🌙' : '☀️';
-  });
-
-  // 插件数据
-  const PLUGINS = [
-    { name: 'AI Chat Engine', ver: 'v2.1.0', icon: '🤖', iconBg: 'rgba(109,92,255,.15)', desc: '多模型对话引擎，支持 DeepSeek/通义千问/智谱GLM，流式 SSE 输出与 Function Calling。', tags: ['AI', 'SSE', '多模型'], cat: 'ai', downloads: '12.3k', rating: 4.9, ribbon: 'hot' },
-    { name: 'Code Graph Analyzer', ver: 'v1.4.2', icon: '🔍', iconBg: 'rgba(34,211,238,.15)', desc: '基于 tree-sitter AST 解析的代码图谱工具，支持多语言项目结构与依赖分析。', tags: ['AST', 'tree-sitter', '分析'], cat: 'dev', downloads: '8.7k', rating: 4.7, ribbon: '' },
-    { name: 'Doc Generator', ver: 'v3.0.1', icon: '📄', iconBg: 'rgba(251,146,60,.15)', desc: '一键生成 DOCX/PPT/Excel 三件套，自动从代码注释提取文档结构。', tags: ['DOCX', 'PPT', 'Excel'], cat: 'dev', downloads: '15.2k', rating: 4.8, ribbon: 'hot' },
-    { name: 'RAG Knowledge Base', ver: 'v2.0.0', icon: '📚', iconBg: 'rgba(52,211,153,.15)', desc: 'TF-IDF + 向量索引双引擎 RAG 知识库，支持文档分块、语义检索与引用溯源。', tags: ['RAG', '向量', '检索'], cat: 'ai', downloads: '9.1k', rating: 4.6, ribbon: '' },
-    { name: 'Sandbox Code Runner', ver: 'v1.2.3', icon: '🛡️', iconBg: 'rgba(244,114,182,.15)', desc: '云端 AI 沙盒执行环境，路径隔离 + 命令白/黑名单双重防护，安全运行用户代码。', tags: ['沙盒', '隔离', '安全'], cat: 'dev', downloads: '6.4k', rating: 4.5, ribbon: '' },
-    { name: 'System Monitor', ver: 'v1.8.0', icon: '📊', iconBg: 'rgba(109,92,255,.15)', desc: '基于 psutil 的系统监控面板，实时 CPU/内存/磁盘/网络，支持历史曲线与告警。', tags: ['psutil', '监控', '仪表盘'], cat: 'sys', downloads: '11.0k', rating: 4.7, ribbon: '' },
-    { name: 'Project Preview', ver: 'v1.5.1', icon: '👁️', iconBg: 'rgba(34,211,238,.15)', desc: '项目实时预览，支持 Vite/Webpack 项目自动检测与一键启动预览服务。', tags: ['预览', 'Vite', '实时'], cat: 'dev', downloads: '5.8k', rating: 4.4, ribbon: 'new' },
-    { name: 'Data Masking', ver: 'v1.1.0', icon: '🔐', iconBg: 'rgba(251,146,60,.15)', desc: '数据脱敏规则管理，支持手机号/身份证/邮箱等自动脱敏与自定义规则配置。', tags: ['脱敏', '隐私', '规则'], cat: 'data', downloads: '4.2k', rating: 4.3, ribbon: '' },
-    { name: 'Smart Routing', ver: 'v2.3.0', icon: '🧭', iconBg: 'rgba(52,211,153,.15)', desc: 'AI 引擎按消息内容自动路由模型，根据对话意图智能选择最匹配的大模型。', tags: ['路由', '自动', '意图'], cat: 'ai', downloads: '7.9k', rating: 4.6, ribbon: '' },
-    { name: 'Log Dashboard', ver: 'v1.6.0', icon: '📋', iconBg: 'rgba(244,114,182,.15)', desc: '操作日志可视化面板，按模块/时间/用户多维筛选，支持请求链路追踪。', tags: ['日志', '审计', '追踪'], cat: 'sys', downloads: '6.7k', rating: 4.5, ribbon: '' },
-    { name: 'UI Theme Studio', ver: 'v1.3.0', icon: '🎨', iconBg: 'rgba(109,92,255,.15)', desc: '深色/浅色主题自定义工作室，CSS 变量体系，768px 断点 PC/H5 自适应。', tags: ['主题', 'CSS', '响应式'], cat: 'ui', downloads: '5.1k', rating: 4.4, ribbon: 'new' },
-    { name: 'Plugin Manager Pro', ver: 'v2.0.0', icon: '📦', iconBg: 'rgba(34,211,238,.15)', desc: '插件管理增强版，ZIP 上传导入、生命周期可视化、一键启用禁用与依赖检查。', tags: ['管理', 'ZIP', '生命周期'], cat: 'sys', downloads: '8.3k', rating: 4.8, ribbon: 'hot' },
-    { name: 'Form Designer', ver: 'v1.0.2', icon: '📝', iconBg: 'rgba(251,146,60,.15)', desc: '可视化表单设计器，拖拽生成 Element Plus 表单，支持校验规则与自定义组件。', tags: ['表单', '拖拽', 'EP'], cat: 'ui', downloads: '3.9k', rating: 4.2, ribbon: 'new' },
-    { name: 'API Tester', ver: 'v1.4.0', icon: '🔌', iconBg: 'rgba(52,211,153,.15)', desc: '内置 API 测试工具，支持 REST/GraphQL，自动生成请求模板与断言。', tags: ['API', 'REST', '测试'], cat: 'dev', downloads: '5.5k', rating: 4.3, ribbon: '' },
-    { name: 'Cron Scheduler', ver: 'v1.2.0', icon: '⏰', iconBg: 'rgba(244,114,182,.15)', desc: '定时任务管理插件，支持 cron 表达式与一次性任务，可视化运行日志。', tags: ['定时', 'cron', '调度'], cat: 'sys', downloads: '4.8k', rating: 4.4, ribbon: '' },
-    { name: 'Data Export Kit', ver: 'v1.1.0', icon: '📤', iconBg: 'rgba(109,92,255,.15)', desc: '数据导出工具包，支持 CSV/Excel/JSON 多格式，大数据量分页流式导出。', tags: ['导出', 'Excel', 'CSV'], cat: 'data', downloads: '6.0k', rating: 4.5, ribbon: '' },
-    { name: 'Chat Widget', ver: 'v1.0.0', icon: '💬', iconBg: 'rgba(34,211,238,.15)', desc: '可嵌入的 AI 对话浮窗组件，Markdown 实时渲染 + 代码高亮，支持多会话管理。', tags: ['聊天', '浮窗', 'Markdown'], cat: 'biz', downloads: '3.5k', rating: 4.3, ribbon: 'new' },
-    { name: 'Workflow Engine', ver: 'v2.1.0', icon: '🔄', iconBg: 'rgba(251,146,60,.15)', desc: '可视化工作流编排引擎，节点拖拽连线、条件分支、支持自定义节点与 Webhook 触发。', tags: ['工作流', '编排', '自动化'], cat: 'biz', downloads: '7.2k', rating: 4.7, ribbon: 'hot' },
-  ];
-
-  let currentCat = 'all';
-  let currentSearch = '';
-  let displayCount = 9;
-
-  function renderPlugins() {
-    const grid = document.getElementById('pluginsGrid');
-    let list = PLUGINS.filter(p => {
-      const catMatch = currentCat === 'all' || p.cat === currentCat;
-      const q = currentSearch.toLowerCase().trim();
-      const searchMatch = !q || p.name.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q) || p.tags.some(t => t.toLowerCase().includes(q));
-      return catMatch && searchMatch;
-    });
-    const shown = list.slice(0, displayCount);
-    grid.innerHTML = shown.map((p, i) => {
-      const ribbonHtml = p.ribbon === 'hot' ? '<div class="ribbon hot">热门</div>'
-        : p.ribbon === 'new' ? '<div class="ribbon new">最新</div>' : '';
-      return `
-        <div class="plugin-card" onclick="location.href='/apehub-web/plugin-detail.html?name=${encodeURIComponent(p.name)}'">
-          ${ribbonHtml}
-          <div class="p-head">
-            <div class="p-icon" style="background:${p.iconBg}">${p.icon}</div>
-            <div>
-              <div class="p-name">${p.name}</div>
-              <div class="p-ver">${p.ver}</div>
-            </div>
-          </div>
-          <div class="p-desc">${p.desc}</div>
-          <div class="p-tags">${p.tags.map(t => `<span class="p-tag">${t}</span>`).join('')}</div>
-          <div class="p-meta">
-            <div class="p-stats">
-              <span>⬇ ${p.downloads}</span>
-              <span>★ ${p.rating}</span>
-            </div>
-            <div class="p-actions">
-              <button class="install-btn" data-name="${p.name}" onclick="location.href='/apehub-web/plugin-detail.html?name=${encodeURIComponent(p.name)}'; event.stopPropagation()">
-                详情
-              </button>
-            </div>
-          </div>
-        </div>
-      `;
-    }).join('');
-    // 详情按钮事件
-    grid.querySelectorAll('.install-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const name = btn.dataset.name;
-        location.href = `/apehub-web/plugin-detail.html?name=${encodeURIComponent(name)}`;
-      });
-    });
-    // 加载更多按钮显隐
-    const loadMoreBtn = document.getElementById('loadMore');
-    loadMoreBtn.style.display = list.length > displayCount ? 'inline-flex' : 'none';
-  }
-
-  // 分类切换
-  document.querySelectorAll('.cat-pill').forEach(pill => {
-    pill.addEventListener('click', () => {
-      document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      currentCat = pill.dataset.cat;
-      displayCount = 9;
-      renderPlugins();
-    });
-  });
-  // 搜索
-  document.getElementById('searchInput').addEventListener('input', e => {
-    currentSearch = e.target.value;
-    displayCount = 9;
-    renderPlugins();
-  });
-  document.getElementById('searchBtn').addEventListener('click', () => {
-    currentSearch = document.getElementById('searchInput').value;
-    displayCount = 9;
-    renderPlugins();
-  });
-  // 加载更多
-  document.getElementById('loadMore').addEventListener('click', () => {
-    displayCount += 6;
-    renderPlugins();
-  });
-  // 移动端菜单
-  document.getElementById('menuToggle')?.addEventListener('click', () => {
-    const nl = document.querySelector('.nav-links');
-    const visible = nl.style.display === 'flex';
-    nl.style.display = visible ? 'none' : 'flex';
-    nl.style.flexDirection = 'column';
-    nl.style.position = 'absolute';
-    nl.style.top = '68px'; nl.style.left = '0'; nl.style.right = '0';
-    nl.style.background = getComputedStyle(document.documentElement).getPropertyValue('--bg-soft').trim();
-    nl.style.padding = '20px 24px';
-    nl.style.borderBottom = '1px solid var(--border)';
-    nl.style.gap = '18px';
-    nl.style.alignItems = 'flex-start';
-  });
-
-  // 初始渲染
-  renderPlugins();
-</script>
+<script src="/apehub-web/site-runtime.js?v=1.5.0"></script>\n<script src="/apehub-web/marketplace.js" defer></script>
 </body>
 </html>

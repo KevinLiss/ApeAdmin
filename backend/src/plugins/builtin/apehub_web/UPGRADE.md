@@ -1,5 +1,34 @@
 # Apehub_web Upgrade Notes
 
+## Version 1.4.0
+
+Migrations `v0007_marketplace_foundation.py` and `v0008_docs_portal.py` add the
+closed-loop ApeHub marketplace: developer package uploads, safe ZIP inspection,
+DeepSeek-generated Markdown documentation, versioned review and publishing,
+permanent purchase entitlements, USDT/LemPay callbacks, refund protection,
+settlement ledger, and TRC20 withdrawal requests with administrator approval
+and manual payout.
+
+The admin site configuration now controls encrypted DeepSeek and LemPay
+credentials, service fee percentage, settlement days, refund days, minimum
+withdrawal amount, and withdrawal fee policy. The default minimum withdrawal is
+`100 USDT`; all marketplace amounts use USDT with eight-decimal accounting.
+The documentation entry points to the bundled VitePress portal at
+`/apehub-web/docs-portal/`.
+
+## Version 1.3.0
+
+Migration `v0006_navigation_and_installations.py` adds configurable public
+navigation and reliable installation metrics. The default navigation includes
+Home, Plugin Marketplace, Documentation, and Profile. The management page can
+create, sort, enable, disable, and delete navigation entries, and can upload
+PNG/JPEG/GIF/WebP site images up to 5MB.
+
+Plugin management now includes package-file review, status transitions,
+purchase order count, unique buyer count, unique installer count, download
+count, reviewer file download, and protected deletion. Plugins with paid
+orders cannot be deleted and must be taken offline instead.
+
 ## Version 1.2.2
 
 Migration `v0005_legacy_asset_path.py` replaces the retired default

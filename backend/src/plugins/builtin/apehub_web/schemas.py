@@ -1,6 +1,7 @@
 """ApeHub Pydantic schemas for request/response validation."""
 
 from datetime import datetime
+from decimal import Decimal
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -19,6 +20,7 @@ class ORMModel(BaseModel):
 class SiteConfigIn(BaseModel):
     site_name: str | None = None
     site_logo: str | None = None
+    site_icon: str | None = None
     site_domain: str | None = None
     site_prefix: str | None = None
     seo_title: str | None = None
@@ -34,13 +36,23 @@ class SiteConfigIn(BaseModel):
     lempay_submit_url: str | None = None
     lempay_notify_url: str | None = None
     lempay_return_url: str | None = None
-    service_fee_rate: float | None = None
+    lempay_payment_type: str | None = Field(default=None, pattern="^usdt$")
+    deepseek_api_key: str | None = None
+    deepseek_base_url: str | None = None
+    deepseek_model: str | None = None
+    service_fee_rate: Decimal | None = Field(default=None, ge=0, le=100)
+    settlement_days: int | None = Field(default=None, ge=0, le=365)
+    refund_days: int | None = Field(default=None, ge=0, le=365)
+    min_withdrawal: Decimal | None = Field(default=None, ge=0)
+    withdrawal_fee_type: str | None = Field(default=None, pattern="^(fixed|percent)$")
+    withdrawal_fee_value: Decimal | None = Field(default=None, ge=0)
 
 
 class SiteConfigOut(ORMModel):
     id: int
     site_name: str
     site_logo: str
+    site_icon: str
     site_domain: str
     site_prefix: str
     seo_title: str
@@ -53,8 +65,19 @@ class SiteConfigOut(ORMModel):
     lempay_api_url: str
     lempay_notify_url: str
     lempay_return_url: str
-    service_fee_rate: float
-    # 不返回 mail_code / lempay_key（敏感）
+    lempay_payment_type: str
+    deepseek_base_url: str
+    deepseek_model: str
+    service_fee_rate: Decimal
+    settlement_days: int
+    refund_days: int
+    min_withdrawal: Decimal
+    withdrawal_fee_type: str
+    withdrawal_fee_value: Decimal
+    currency: str
+    mail_configured: bool
+    lempay_configured: bool
+    deepseek_configured: bool
 
 
 class SiteContentIn(BaseModel):
@@ -79,6 +102,15 @@ class SiteContentOut(ORMModel):
     enabled: bool
     extra: dict[str, Any] | None
     updated_at: datetime
+
+
+class NavigationItemIn(BaseModel):
+    title: str = Field(min_length=1, max_length=64)
+    link: str = Field(min_length=1, max_length=255)
+    icon_url: str = Field(default="", max_length=255)
+    open_mode: str = Field(default="same", pattern="^(same|new)$")
+    enabled: bool = True
+    sort: int = Field(default=0, ge=0, le=9999)
 
 
 # ---------------------------------------------------------------------------
@@ -143,14 +175,15 @@ class PluginSubmitIn(BaseModel):
     category: str = "工具"
     version: str = "1.0.0"
     tags: str = ""
-    price: float = 0.0
-    service_fee_rate: float = 30.0
+    price: Decimal = Field(default=Decimal("0"), ge=0)
+    icon: str = ""
     demos: list[PluginDemoIn] = []
 
 
 class PluginReviewIn(BaseModel):
     action: str  # approve / reject
     reason: str = ""
+    service_fee_rate: Decimal | None = Field(default=None, ge=0, le=100)
 
 
 class PluginOut(ORMModel):
@@ -164,8 +197,8 @@ class PluginOut(ORMModel):
     version: str
     tags: str
     icon: str
-    price: float
-    service_fee_rate: float
+    price: Decimal
+    service_fee_rate: Decimal
     status: str
     download_count: int
     rating_avg: float
@@ -185,29 +218,32 @@ class PurchaseIn(BaseModel):
     plugin_id: int
 
 
+class RefundIn(BaseModel):
+    reason: str = Field(min_length=1, max_length=500)
+
+
 class OrderOut(ORMModel):
     id: int
     order_no: str
     user_id: int
     plugin_id: int
-    amount: float
-    service_fee: float
-    developer_income: float
+    amount: Decimal
+    service_fee: Decimal
+    developer_income: Decimal
     status: OrderStatus
     created_at: datetime
     paid_at: datetime | None
 
 
 class WithdrawIn(BaseModel):
-    amount: float = Field(gt=0)
-    method: str = "alipay"
-    account: str = Field(min_length=4)
+    amount: Decimal = Field(gt=0)
+    account: str = Field(min_length=34, max_length=34, pattern="^T[1-9A-HJ-NP-Za-km-z]{33}$")
 
 
 class WithdrawalOut(ORMModel):
     id: int
     user_id: int
-    amount: float
+    amount: Decimal
     method: str
     account: str
     status: str
@@ -237,3 +273,38 @@ class ProfileUpdateIn(BaseModel):
     nickname: str | None = None
     avatar: str | None = None
     bio: str | None = None
+
+
+class WalletIn(BaseModel):
+    address: str = Field(min_length=34, max_length=34, pattern="^T[1-9A-HJ-NP-Za-km-z]{33}$")
+
+
+class PluginVersionCreateIn(BaseModel):
+    version: str = Field(min_length=1, max_length=32, pattern=r"^[0-9A-Za-z][0-9A-Za-z._+-]*$")
+    compatibility: str = Field(default="", max_length=255)
+    changelog: str = ""
+
+
+class PluginVersionUpdateIn(BaseModel):
+    compatibility: str | None = Field(default=None, max_length=255)
+    changelog: str | None = None
+    documentation: str | None = None
+
+
+class PluginMediaIn(BaseModel):
+    media_type: str = Field(pattern="^(logo|carousel)$")
+    url: str = Field(min_length=1, max_length=500)
+    alt_text: str = Field(default="", max_length=255)
+    sort: int = Field(default=0, ge=0, le=9999)
+
+
+class VersionReviewIn(BaseModel):
+    action: str = Field(pattern="^(approve|reject)$")
+    reason: str = Field(default="", max_length=500)
+    service_fee_rate: Decimal | None = Field(default=None, ge=0, le=100)
+
+
+class WithdrawalHandleIn(BaseModel):
+    action: str = Field(pattern="^(approve|reject|done)$")
+    remark: str = Field(default="", max_length=500)
+    tx_hash: str = Field(default="", max_length=128)
