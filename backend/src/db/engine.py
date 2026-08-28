@@ -17,14 +17,11 @@ class Base(DeclarativeBase):
 
 def _create_engine() -> AsyncEngine:
     """Create the async SQLAlchemy engine."""
-    return create_async_engine(
-        settings.database_url,
-        echo=settings.DB_ECHO,
-        pool_pre_ping=True,
-        pool_size=settings.DB_POOL_SIZE if settings.DB_TYPE == "mysql" else 0,
-        max_overflow=settings.DB_MAX_OVERFLOW if settings.DB_TYPE == "mysql" else 0,
-        poolclass=None if settings.DB_TYPE == "mysql" else None,
-    )
+    kwargs = {"echo": settings.DB_ECHO, "pool_pre_ping": True}
+    if settings.DB_TYPE == "mysql":
+        kwargs["pool_size"] = settings.DB_POOL_SIZE
+        kwargs["max_overflow"] = settings.DB_MAX_OVERFLOW
+    return create_async_engine(settings.database_url, **kwargs)
 
 
 engine: AsyncEngine = _create_engine()

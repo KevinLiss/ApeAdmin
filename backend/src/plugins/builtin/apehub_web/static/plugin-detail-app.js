@@ -108,5 +108,4 @@ const demoButton = document.getElementById('demoBtn'), demoDropdown = document.g
 demoButton.addEventListener('click', event => { event.stopPropagation(); demoDropdown.classList.toggle('show'); });
 document.addEventListener('click', () => demoDropdown.classList.remove('show'));
 document.addEventListener('keydown', event => { if (event.key === 'Escape') buyModal.classList.remove('show'); });
-const detailTheme = document.getElementById('themeToggle'); const detailSavedTheme = localStorage.getItem('ape-theme') || 'dark'; document.documentElement.setAttribute('data-theme', detailSavedTheme); detailTheme.textContent = detailSavedTheme === 'dark' ? '☾' : '☀'; detailTheme.addEventListener('click', () => { const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', next); localStorage.setItem('ape-theme', next); detailTheme.textContent = next === 'dark' ? '☾' : '☀'; });
 loadDetail();

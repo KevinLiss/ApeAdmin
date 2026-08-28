@@ -6,16 +6,36 @@
 <title>ApeHub - 个人中心</title>
 <meta name="description" content="ApeHub 开发者中心，管理插件版本、购买授权、USDT 收益与提现。">
 <link rel="icon" href="/apehub-web/assets/logo.png">
-<link rel="stylesheet" href="/apehub-web/profile.css">
+<link rel="stylesheet" href="/apehub-web/profile.css?v=1.6.0">
 </head>
 <body>
-<header class="topbar">
-  <div class="topbar-inner">
-    <a class="brand" href="/apehub-web/index.html"><img src="/apehub-web/assets/logo.png" alt="ApeHub"><span>ApeHub</span></a>
-    <nav class="nav"><a href="/apehub-web/index.html">首页</a><a href="/apehub-web/plugins.html">插件市场</a><a href="/apehub-web/docs-portal/">技术文档</a><a class="active" href="/apehub-web/profile.html">个人中心</a></nav>
-    <div class="top-actions"><span class="user-name" id="userName"></span><button class="btn btn-small" id="logoutBtn">退出</button></div>
+<div class="bg-glow"></div>
+<div class="bg-grid"></div>
+
+<!-- 导航 -->
+<nav>
+  <div class="nav-inner">
+    <a class="brand" href="/apehub-web/index.html">
+      <img src="/apehub-web/assets/logo.png" alt="ApeAdmin" />
+      <span>ApeAdmin <span class="badge">Hub</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="/apehub-web/index.html">首页</a>
+      <a href="/apehub-web/index.html#features">核心特性</a>
+      <a href="/apehub-web/index.html#mcp">MCP 网关</a>
+      <a href="/apehub-web/plugins.html">插件市场</a>
+      <a href="/apehub-web/docs-portal/">技术文档</a>
+      <a class="active" href="/apehub-web/profile.html">个人中心</a>
+    </div>
+    <div class="nav-actions">
+      <button class="btn btn-ghost theme-toggle" id="themeToggle" aria-label="切换主题" title="切换明暗主题">🌙</button>
+      <a class="btn btn-ghost gh-link" href="https://github.com/KevinLiss/ApeAdmin" target="_blank" rel="noopener">GitHub</a>
+      <span class="user-name" id="userName"></span>
+      <button class="btn btn-ghost btn-small" id="logoutBtn" hidden>退出</button>
+    </div>
+    <button class="menu-toggle" id="menuToggle" aria-label="菜单">☰</button>
   </div>
-</header>
+</nav>
 
 <main class="page">
   <section class="auth-gate" id="authGate" hidden>
@@ -26,7 +46,13 @@
   </section>
 
   <div id="app" hidden>
-    <div class="page-title"><div><h1 id="profileName">个人中心</h1><p id="profileMeta"></p></div><button class="btn btn-primary" id="openPluginDialog">提交新插件</button></div>
+    <div class="page-title">
+      <div>
+        <h1 id="profileName">个人中心</h1>
+        <p id="profileMeta"></p>
+      </div>
+      <button class="btn btn-primary" id="openPluginDialog">提交新插件</button>
+    </div>
     <section class="stats">
       <div class="stat"><span>可提现余额</span><strong id="statBalance">0 USDT</strong></div>
       <div class="stat"><span>提现冻结</span><strong id="statFrozen">0 USDT</strong></div>
@@ -61,7 +87,7 @@
     <section class="panel" id="panel-wallet">
       <div class="wallet-grid">
         <form class="form-section" onsubmit="return false"><h2>TRC20 收款钱包</h2><div class="field"><label>USDT-TRC20 地址</label><input id="walletAddress" maxlength="34" placeholder="T 开头的 34 位地址"></div><div class="actions"><button class="btn btn-primary" type="button" id="saveWallet">保存钱包</button></div></form>
-        <form class="form-section" id="withdrawForm"><h2>申请提现</h2><div class="field"><label>提现金额 (USDT)</label><input id="withdrawAmount" type="number" min="0" step="0.00000001" required></div><div class="field" style="margin-top:12px"><label>TRC20 收款地址</label><input id="withdrawAddress" maxlength="34" required></div><div class="fee-preview" id="feePreview"></div><div id="withdrawRule" style="color:var(--muted);font-size:12px"></div><div class="actions"><button class="btn btn-primary" type="submit">提交提现申请</button></div></form>
+        <form class="form-section" id="withdrawForm"><h2>申请提现</h2><div class="field"><label>提现金额 (USDT)</label><input id="withdrawAmount" type="number" min="0" step="0.00000001" required></div><div class="field" style="margin-top:12px"><label>TRC20 收款地址</label><input id="withdrawAddress" maxlength="34" required></div><div class="fee-preview" id="feePreview"></div><div id="withdrawRule" style="color:var(--text-3);font-size:12px"></div><div class="actions"><button class="btn btn-primary" type="submit">提交提现申请</button></div></form>
       </div>
       <div class="section-head" style="margin-top:24px"><h2>提现记录</h2></div>
       <div class="table-wrap"><table><thead><tr><th>申请</th><th>手续费</th><th>到账</th><th>地址</th><th>状态</th><th>交易哈希</th></tr></thead><tbody id="withdrawBody"></tbody></table></div>
@@ -69,17 +95,36 @@
   </div>
 </main>
 
+<!-- 页脚 -->
+<footer>
+  <div class="foot-inner">
+    <div class="l">© 2026 ApeAdmin · 个人中心 · MIT License</div>
+    <div class="r">
+      <a href="/apehub-web/index.html">首页</a>
+      <a href="/apehub-web/plugins.html">插件市场</a>
+      <a href="/apehub-web/docs-portal/">技术文档</a>
+      <a href="https://github.com/KevinLiss/ApeAdmin" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+</footer>
+
 <dialog id="pluginDialog">
   <form id="pluginForm">
-    <div class="dialog-head"><h2>创建插件草稿</h2><button type="button" class="icon-btn" data-close title="关闭">×</button></div>
+    <div class="dialog-head">
+      <div>
+        <h2>发布新插件</h2>
+        <p class="dialog-sub">填写基本信息创建插件草稿，后续可在工作台上传安装包和文档</p>
+      </div>
+      <button type="button" class="icon-btn" data-close title="关闭">×</button>
+    </div>
     <div class="dialog-body"><div class="form-grid">
-      <div class="field"><label>插件标识</label><input name="name" required minlength="2" placeholder="my_plugin"></div>
-      <div class="field"><label>插件标题</label><input name="display_name" required minlength="2"></div>
-      <div class="field"><label>首个版本</label><input name="version" value="1.0.0" required></div>
-      <div class="field"><label>期望售价 (USDT)</label><input name="price" type="number" min="0" step="0.01" value="0" required></div>
+      <div class="field"><label>插件标识</label><input name="name" required minlength="2" placeholder="my_plugin"><div class="field-hint">小写字母+下划线，唯一标识</div></div>
+      <div class="field"><label>插件标题</label><input name="display_name" required minlength="2" placeholder="My Plugin"></div>
+      <div class="field"><label>首个版本号</label><input name="version" value="1.0.0" required><div class="field-hint">遵循 SemVer 规范</div></div>
+      <div class="field"><label>期望售价 (USDT)</label><input name="price" type="number" min="0" step="0.01" value="0" required><div class="field-hint">填 0 表示免费</div></div>
       <div class="field"><label>分类</label><select name="category"><option>工具</option><option>AI</option><option>电商</option><option>仪表盘</option><option>系统增强</option></select></div>
-      <div class="field"><label>标签</label><input name="tags" placeholder="FastAPI,ApeAdmin"></div>
-      <div class="field full"><label>插件介绍</label><textarea name="description" required></textarea></div>
+      <div class="field"><label>标签</label><input name="tags" placeholder="FastAPI,ApeAdmin"><div class="field-hint">逗号分隔，便于搜索</div></div>
+      <div class="field full"><label>插件介绍</label><textarea name="description" required placeholder="描述插件功能、使用场景和核心特性..."></textarea></div>
     </div></div>
     <div class="dialog-foot"><button type="button" class="btn" data-close>取消</button><button class="btn btn-primary" type="submit">创建草稿</button></div>
   </form>
@@ -87,18 +132,24 @@
 
 <dialog id="versionDialog">
   <form id="versionForm">
-    <div class="dialog-head"><h2>创建新版本</h2><button type="button" class="icon-btn" data-close title="关闭">×</button></div>
+    <div class="dialog-head">
+      <div>
+        <h2>创建新版本</h2>
+        <p class="dialog-sub">为新版本填写基本信息，创建后可上传安装包</p>
+      </div>
+      <button type="button" class="icon-btn" data-close title="关闭">×</button>
+    </div>
     <div class="dialog-body"><div class="form-grid">
-      <div class="field"><label>版本号</label><input name="version" required placeholder="1.1.0"></div>
-      <div class="field"><label>兼容性</label><input name="compatibility" placeholder="ApeAdmin >= 0.1.0"></div>
-      <div class="field full"><label>更新说明</label><textarea name="changelog"></textarea></div>
+      <div class="field"><label>版本号</label><input name="version" required placeholder="1.1.0"><div class="field-hint">遵循 SemVer 规范</div></div>
+      <div class="field"><label>兼容性</label><input name="compatibility" placeholder="ApeAdmin >= 0.1.0"><div class="field-hint">支持的底座版本</div></div>
+      <div class="field full"><label>更新说明</label><textarea name="changelog" placeholder="本次版本更新了什么..."></textarea></div>
     </div></div>
     <div class="dialog-foot"><button type="button" class="btn" data-close>取消</button><button class="btn btn-primary" type="submit">创建版本</button></div>
   </form>
 </dialog>
 
 <div class="toast" id="toast" role="status"></div>
-<script src="/apehub-web/site-runtime.js?v=1.5.0"></script>
+<script src="/apehub-web/site-runtime.js?v=1.6.0"></script>
 <script src="/apehub-web/profile-app.js" defer></script>
 </body>
 </html>

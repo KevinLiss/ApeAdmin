@@ -59,10 +59,5 @@ document.getElementById('searchBtn').addEventListener('click', () => loadMarket(
 document.getElementById('loadMore').addEventListener('click', () => { marketState.page += 1; loadMarket(false).catch(showMarketError); });
 function showMarketError(error) { document.getElementById('pluginsGrid').innerHTML = `<div style="grid-column:1/-1;padding:60px 20px;text-align:center;color:var(--red)">${marketEsc(error.message)}</div>`; }
 
-const themeToggle = document.getElementById('themeToggle');
-const savedTheme = localStorage.getItem('ape-theme') || 'dark';
-document.documentElement.setAttribute('data-theme', savedTheme);
-themeToggle.textContent = savedTheme === 'dark' ? '☾' : '☀';
-themeToggle.addEventListener('click', () => { const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', next); localStorage.setItem('ape-theme', next); themeToggle.textContent = next === 'dark' ? '☾' : '☀'; });
 document.getElementById('menuToggle')?.addEventListener('click', () => document.querySelector('.nav-links')?.classList.toggle('open'));
 loadMarket().catch(showMarketError);

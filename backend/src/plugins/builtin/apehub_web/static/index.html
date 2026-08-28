@@ -777,57 +777,6 @@ npm run dev   <span class="c-c"># http://localhost:5173</span>
   </div>
 </footer>
 
-<script>
-  // 主题切换
-  const themeToggle = document.getElementById('themeToggle');
-  const root = document.documentElement;
-  // 读取本地存储
-  const savedTheme = localStorage.getItem('ape-theme') || 'dark';
-  root.setAttribute('data-theme', savedTheme);
-  themeToggle.textContent = savedTheme === 'dark' ? '🌙' : '☀️';
-  themeToggle.addEventListener('click', () => {
-    const current = root.getAttribute('data-theme') || 'dark';
-    const next = current === 'dark' ? 'light' : 'dark';
-    root.setAttribute('data-theme', next);
-    localStorage.setItem('ape-theme', next);
-    themeToggle.textContent = next === 'dark' ? '🌙' : '☀️';
-  });
-
-  // 移动端菜单
-  const toggle = document.getElementById('menuToggle');
-  toggle.addEventListener('click', () => {
-    const links = document.querySelector('.nav-links');
-    const visible = links.style.display === 'flex';
-    links.style.display = visible ? 'none' : 'flex';
-    links.style.flexDirection = 'column';
-    links.style.position = 'absolute';
-    links.style.top = '68px';
-    links.style.left = '0';
-    links.style.right = '0';
-    links.style.background = '#0c0e1a';
-    links.style.padding = '20px 24px';
-    links.style.borderBottom = '1px solid rgba(255,255,255,.08)';
-    links.style.gap = '18px';
-    links.style.alignItems = 'flex-start';
-  });
-  window.addEventListener('resize', () => {
-    if (window.innerWidth > 900) {
-      const links = document.querySelector('.nav-links');
-      links.style.display = 'flex';
-      links.style.flexDirection = '';
-      links.style.position = '';
-      links.style.top = '';
-      links.style.left = '';
-      links.style.right = '';
-      links.style.background = '';
-      links.style.padding = '';
-      links.style.borderBottom = '';
-      links.style.gap = '30px';
-      links.style.alignItems = 'center';
-    }
-  });
-</script>
-
 <!-- 登录/注册弹窗 -->
 <div class="modal-overlay" id="authModal">
   <div class="modal">
@@ -1043,6 +992,6 @@ npm run dev   <span class="c-c"># http://localhost:5173</span>
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 </script>
-<script src="/apehub-web/site-runtime.js?v=1.5.0"></script>
+<script src="/apehub-web/site-runtime.js?v=1.6.0"></script>
 </body>
 </html>
