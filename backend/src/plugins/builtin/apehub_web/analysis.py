@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import stat
 import zipfile
@@ -26,13 +27,17 @@ IGNORED_PARTS = {
     "__pycache__", ".venv", "venv",
 }
 RISK_PATTERNS: tuple[tuple[str, re.Pattern[str], str], ...] = (
-    ("critical", re.compile(r"\b(eval|exec)\s*\("), "动态执行代码"),
+    # 排除 .exec()/.eval() 之类的方法调用（如 RegExp.exec），仅匹配真实的 eval/exec 语句
+    ("critical", re.compile(r"(?<![.\w])(eval|exec)\s*\("), "动态执行代码"),
     ("high", re.compile(r"\bos\.system\s*\("), "调用系统命令"),
     ("high", re.compile(r"subprocess\.[A-Za-z_]+\([^\n]{0,200}shell\s*=\s*True"), "使用 shell=True"),
     ("high", re.compile(r"\b(rm\s+-rf|shutil\.rmtree)\b"), "包含递归删除操作"),
     ("medium", re.compile(r"\b(requests|httpx|urllib3?)\.(get|post|request)\s*\("), "包含外部网络请求"),
     ("medium", re.compile(r"\b(open|Path)\s*\([^\n]{0,120}(/etc/|\.\./)"), "可能访问插件目录外路径"),
-    ("high", re.compile(r"(?i)(api[_-]?key|secret|password|token)\s*[=:]\s*['\"][^'\"]{12,}"), "疑似硬编码凭据"),
+    # 仅匹配赋值语句右侧的硬编码凭据（排除 text_secret 这类列名/SQL 类型定义）
+    ("high", re.compile(
+        r"(?i)\b(?:api[_-]?key|secret(?:_?key|_?token|_?pwd)?|password|token)\s*[=:]\s*['\"]([^'\"]{12,})['\"]"
+    ), "疑似硬编码凭据"),
 )
 
 
@@ -157,6 +162,23 @@ def _documentation_prompt(report: dict[str, Any]) -> list[dict[str, str]]:
     ]
 
 
+def _normalized_proxy() -> str | None:
+    """Return a proxy URL that httpx can parse, normalizing bare-IPv6 hosts.
+
+    部分开发机环境变量形如 http_proxy=http://::1:7890（Clash 仅监听 IPv6 回环），
+    httpx 无法解析裸 IPv6 地址，这里统一规范化为 http://[::1]:7890。
+    """
+    raw = os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy") or os.environ.get("ALL_PROXY")
+    if not raw:
+        return None
+    raw = raw.strip()
+    m = re.match(r"^(?P<scheme>https?://)(?P<host>[0-9a-fA-F:]+?)(?P<port>:\d+)?/?$", raw)
+    if m and ":" in m.group("host") and not m.group("host").startswith("["):
+        port = m.group("port") or ""
+        return f"{m.group('scheme')}[{m.group('host')}]{port}"
+    return raw
+
+
 async def generate_documentation(
     report: dict[str, Any],
     *,
@@ -167,7 +189,11 @@ async def generate_documentation(
     if not api_key:
         raise RuntimeError("DeepSeek API Key 未配置")
     endpoint = base_url.rstrip("/") + "/chat/completions"
-    async with httpx.AsyncClient(timeout=180) as client:
+    client_kwargs: dict[str, Any] = {"timeout": 180}
+    proxy = _normalized_proxy()
+    if proxy:
+        client_kwargs["proxy"] = proxy
+    async with httpx.AsyncClient(**client_kwargs) as client:
         response = await client.post(
             endpoint,
             headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},

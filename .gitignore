@@ -21,6 +21,9 @@ runtimes/
 *.db
 *.sqlite3
 
+# Runtime uploads (plugin packages / media)
+backend/src/uploads/
+
 # Alembic
 backend/alembic/versions/*.py
 !backend/alembic/versions/.gitkeep

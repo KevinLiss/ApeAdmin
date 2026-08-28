@@ -438,7 +438,7 @@ def _plugin_summary(p: ApehubWebPlugin, with_demos: bool = False) -> dict[str, A
             for media in p.media
         ]
         data["versions"] = [
-            _version_summary(version)
+            _version_summary(version, include_report=True)
             for version in p.versions
             if version.status in {
                 PluginVersionStatus.PUBLISHED,
