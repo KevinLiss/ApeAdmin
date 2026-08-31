@@ -6,7 +6,7 @@
 <title>ApeHub - 个人中心</title>
 <meta name="description" content="ApeHub 开发者中心，管理插件版本、购买授权、USDT 收益与提现。">
 <link rel="icon" href="/apehub-web/assets/logo.png">
-<link rel="stylesheet" href="/apehub-web/profile.css?v=2.2.1">
+<link rel="stylesheet" href="/apehub-web/profile.css?v=2.3.0">
 </head>
 <body>
 <div class="bg-glow"></div>
@@ -88,7 +88,13 @@
     <section class="panel" id="panel-wallet">
       <div class="section-head">
         <h2>USDT 钱包</h2>
-        <button class="btn btn-primary btn-small" id="openWalletDialog">+ 新增钱包</button>
+        <div class="section-head-actions">
+          <a class="btn-help-icon" href="https://www.jb51.net/blockchain/1032894ksoj.html" target="_blank" rel="noopener noreferrer" title="如何注册 Web3 钱包？">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span>钱包教程</span>
+          </a>
+          <button class="btn btn-primary btn-small" id="openWalletDialog">+ 新增钱包</button>
+        </div>
       </div>
       <div class="wallet-card-grid" id="walletCardGrid"></div>
 
@@ -169,7 +175,9 @@
   <form id="walletForm">
     <div class="dialog-head">
       <div>
-        <h2>新增钱包</h2>
+        <h2>新增钱包
+          <a class="help-badge" href="https://www.jb51.net/blockchain/1032894ksoj.html" target="_blank" rel="noopener noreferrer" title="如何注册 Web3 钱包？点击查看教程">?</a>
+        </h2>
         <p class="dialog-sub">添加一个 TRC20 收款地址，用于接收插件销售分成</p>
         <p class="dialog-guide">还没有 TRC20 钱包？<a href="https://www.jb51.net/blockchain/1032894ksoj.html" target="_blank" rel="noopener noreferrer">查看如何创建钱包 &rarr;</a></p>
       </div>
@@ -204,6 +212,6 @@
 
 <div class="toast" id="toast" role="status"></div>
 <script src="/apehub-web/site-runtime.js?v=1.7.0"></script>
-<script src="/apehub-web/profile-app.js?v=2.0.0" defer></script>
+<script src="/apehub-web/profile-app.js?v=2.0.1" defer></script>
 </body>
 </html>

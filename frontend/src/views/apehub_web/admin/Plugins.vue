@@ -347,7 +347,13 @@
               <el-input v-model="editForm.description" type="textarea" :rows="3" />
             </el-form-item>
             <el-form-item label="分类">
-              <el-input v-model="editForm.category" />
+              <el-select v-model="editForm.category" placeholder="选择分类">
+                <el-option label="工具" value="工具" />
+                <el-option label="AI" value="AI" />
+                <el-option label="电商" value="电商" />
+                <el-option label="仪表盘" value="仪表盘" />
+                <el-option label="系统增强" value="系统增强" />
+              </el-select>
             </el-form-item>
             <el-form-item label="版本号">
               <el-input v-model="editForm.version" />
@@ -355,8 +361,21 @@
             <el-form-item label="标签">
               <el-input v-model="editForm.tags" placeholder="逗号分隔" />
             </el-form-item>
-            <el-form-item label="图标 URL">
-              <el-input v-model="editForm.icon" placeholder="图标 URL 或文字" />
+            <el-form-item label="图标">
+              <div class="icon-edit-row">
+                <el-upload
+                  :show-file-list="false"
+                  :before-upload="(file: any) => uploadIcon(file)"
+                  accept="image/*">
+                  <el-button text type="primary"><el-icon><Upload /></el-icon> 上传图标</el-button>
+                </el-upload>
+                <div v-if="editForm.icon" class="icon-preview">
+                  <img :src="editForm.icon" alt="icon" class="icon-img" />
+                  <el-button text type="danger" @click="editForm.icon = ''">清除</el-button>
+                </div>
+                <span class="form-hint">或填写 URL</span>
+                <el-input v-model="editForm.icon" placeholder="图标 URL 或文字" style="flex:1;min-width:200px" />
+              </div>
             </el-form-item>
             <el-form-item label="价格 (USDT)">
               <el-input-number v-model="editForm.price" :min="0" :precision="2" :step="1" />
@@ -372,39 +391,68 @@
                 <el-option label="已下架" value="offline" />
               </el-select>
             </el-form-item>
-            <el-form-item label="开发者 ID">
-              <el-input-number v-model="editForm.developer_id" :min="1" :step="1" />
+            <el-form-item label="开发者">
+              <el-select v-model="editForm.developer_id" filterable placeholder="选择开发者" style="width:100%">
+                <el-option v-for="u in developerList" :key="u.id" :label="`${u.username}（${u.nickname || u.email || 'ID:' + u.id}）`" :value="u.id" />
+              </el-select>
             </el-form-item>
-            <el-form-item label="下载次数">
-              <el-input-number v-model="editForm.download_count" :min="0" :step="1" />
-            </el-form-item>
-            <el-form-item label="安装次数">
-              <el-input-number v-model="editForm.install_count" :min="0" :step="1" />
-            </el-form-item>
-            <el-form-item label="评分">
-              <el-input-number v-model="editForm.rating_avg" :min="0" :max="5" :precision="1" :step="0.1" />
-            </el-form-item>
-            <el-form-item label="评分人数">
-              <el-input-number v-model="editForm.rating_count" :min="0" :step="1" />
-            </el-form-item>
+            <el-divider content-position="left">系统统计（只读）</el-divider>
+            <div class="readonly-stats">
+              <div class="stat-item"><span class="stat-lbl">下载次数</span><span class="stat-val">{{ editForm.download_count ?? 0 }}</span></div>
+              <div class="stat-item"><span class="stat-lbl">安装次数</span><span class="stat-val">{{ editForm.install_count ?? 0 }}</span></div>
+              <div class="stat-item"><span class="stat-lbl">评分</span><span class="stat-val">{{ editForm.rating_avg ?? 0 }}</span></div>
+              <div class="stat-item"><span class="stat-lbl">评分人数</span><span class="stat-val">{{ editForm.rating_count ?? 0 }}</span></div>
+            </div>
           </el-form>
         </el-tab-pane>
 
         <!-- Demo 管理 -->
         <el-tab-pane label="Demo 管理" name="demos">
           <div class="demo-edit-list">
-            <div v-for="(demo, idx) in editForm.demos" :key="idx" class="demo-edit-item">
-              <el-select v-model="demo.demo_type" placeholder="类型" style="width:120px">
-                <el-option label="H5" value="h5" />
-                <el-option label="小程序" value="miniprogram" />
-                <el-option label="管理后台" value="admin" />
-                <el-option label="PC" value="pc" />
-                <el-option label="API" value="api" />
-                <el-option label="MCP" value="mcp" />
-              </el-select>
-              <el-input v-model="demo.title" placeholder="Demo 标题" style="flex:1" />
-              <el-input v-model="demo.url" placeholder="Demo URL" style="flex:1" />
-              <el-button text type="danger" @click="editForm.demos.splice(idx, 1)">删除</el-button>
+            <div v-if="!editForm.demos?.length" class="demo-empty-hint">
+              <el-icon><InfoFilled /></el-icon>
+              <span>暂无 Demo。点击下方按钮添加 H5、小程序、后台等演示入口。</span>
+            </div>
+            <div v-for="(demo, idx) in editForm.demos" :key="idx" class="demo-edit-card">
+              <div class="demo-card-header">
+                <el-select v-model="demo.demo_type" placeholder="类型" style="width:140px" @change="onDemoTypeChange(demo)">
+                  <el-option label="H5 网页" value="h5" />
+                  <el-option label="小程序" value="miniprogram" />
+                  <el-option label="管理后台" value="admin" />
+                  <el-option label="PC 客户端" value="pc" />
+                  <el-option label="API 文档" value="api" />
+                  <el-option label="MCP 工具" value="mcp" />
+                </el-select>
+                <el-input v-model="demo.title" placeholder="Demo 标题（如：在线体验）" style="flex:1;margin-left:12px" />
+                <el-button text type="danger" @click="editForm.demos.splice(idx, 1)"><el-icon><Delete /></el-icon> 删除</el-button>
+              </div>
+              <div class="demo-card-body">
+                <!-- 二维码类型：H5 / 小程序 → 上传二维码图片 -->
+                <template v-if="['h5', 'miniprogram'].includes(demo.demo_type)">
+                  <div class="qr-upload-row">
+                    <div class="qr-preview" v-if="demo.qr_image">
+                      <img :src="demo.qr_image" alt="二维码" class="qr-img" />
+                      <el-button text type="danger" @click="demo.qr_image = ''">移除</el-button>
+                    </div>
+                    <el-upload
+                      :show-file-list="false"
+                      :before-upload="(file: any) => uploadDemoQr(file, demo)"
+                      accept="image/*">
+                      <el-button type="primary" plain><el-icon><Upload /></el-icon> 上传{{ demo.demo_type === 'h5' ? ' H5 ' : ' 小程序 ' }}二维码</el-button>
+                    </el-upload>
+                    <span class="form-hint">用户扫码即可访问 Demo</span>
+                  </div>
+                  <el-input v-model="demo.url" placeholder="扫码后跳转的 URL（选填）" style="margin-top:10px">
+                    <template #prepend>URL</template>
+                  </el-input>
+                </template>
+                <!-- 链接类型：管理后台 / PC / API / MCP → 填写链接 -->
+                <template v-else>
+                  <el-input v-model="demo.url" placeholder="请输入 Demo 访问链接（如 https://...）">
+                    <template #prepend>链接</template>
+                  </el-input>
+                </template>
+              </div>
             </div>
             <el-button type="primary" plain @click="editForm.demos.push({ demo_type: 'h5', title: '', url: '', qr_image: '' })">
               <el-icon><Plus /></el-icon> 添加 Demo
@@ -445,20 +493,36 @@
         <!-- 文件管理 -->
         <el-tab-pane label="文件管理" name="files">
           <div class="files-edit-section">
-            <el-upload
-              :show-file-list="false"
-              :before-upload="(file: any) => uploadFile(file, 'package')"
-              accept=".zip">
-              <el-button type="primary" plain><el-icon><Upload /></el-icon> 上传插件包 (ZIP)</el-button>
-            </el-upload>
-            <el-upload
-              :show-file-list="false"
-              :before-upload="(file: any) => uploadFile(file, 'doc')">
-              <el-button type="info" plain><el-icon><Upload /></el-icon> 上传文档</el-button>
-            </el-upload>
+            <div class="files-upload-hint">
+              <el-icon><InfoFilled /></el-icon>
+              <span>插件包(ZIP) 会关联到最新版本，文档可关联指定版本。</span>
+            </div>
+            <div class="files-upload-bar">
+              <el-upload
+                :show-file-list="false"
+                :before-upload="(file: any) => uploadFile(file, 'package')"
+                accept=".zip">
+                <el-button type="primary" plain><el-icon><Upload /></el-icon> 上传插件包 (ZIP)</el-button>
+              </el-upload>
+              <el-upload
+                :show-file-list="false"
+                :before-upload="(file: any) => uploadFile(file, 'doc')">
+                <el-button type="info" plain><el-icon><Upload /></el-icon> 上传文档</el-button>
+              </el-upload>
+            </div>
             <el-table :data="editFileList" size="small" style="margin-top:12px">
               <el-table-column prop="filename" label="文件名" min-width="180" />
-              <el-table-column prop="file_type" label="类型" width="90" />
+              <el-table-column prop="file_type" label="类型" width="90">
+                <template #default="{ row }">
+                  <el-tag size="small" :type="row.file_type === 'package' ? 'primary' : 'info'">{{ row.file_type }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column label="关联版本" width="130">
+                <template #default="{ row }">
+                  <span v-if="row.version_id && versionName(row.version_id)" class="version-link">v{{ versionName(row.version_id) }}</span>
+                  <span v-else class="muted-text">-</span>
+                </template>
+              </el-table-column>
               <el-table-column label="大小" width="100">
                 <template #default="{ row }">{{ formatSize(row.size) }}</template>
               </el-table-column>
@@ -474,19 +538,35 @@
         <!-- 版本文档 -->
         <el-tab-pane label="版本文档" name="version">
           <div class="version-edit-section">
-            <el-select v-model="editVersionId" placeholder="选择版本" style="margin-bottom:12px;width:200px" @change="onVersionSelect" popper-class="version-select-popper">
-              <el-option v-for="v in editVersionList" :key="v.id" :label="`v${v.version} (${v.status})`" :value="v.id" />
+            <el-select v-model="editVersionId" placeholder="选择版本" style="margin-bottom:16px;width:240px" @change="onVersionSelect" popper-class="version-select-popper">
+              <el-option v-for="v in editVersionList" :key="v.id" :label="`v${v.version}（${versionStatusLabel(v.status)}）`" :value="v.id">
+                <span style="float:left">v{{ v.version }}</span>
+                <span style="float:right;color:var(--el-text-color-secondary);font-size:12px">{{ versionStatusLabel(v.status) }}</span>
+              </el-option>
             </el-select>
             <template v-if="editVersionId">
-              <el-form label-width="100px">
+              <!-- 关联文件展示 -->
+              <div v-if="currentVersionFiles.length" class="version-files-box">
+                <div class="version-files-title"><el-icon><Folder /></el-icon> 关联文件</div>
+                <div v-for="f in currentVersionFiles" :key="f.id" class="version-file-row">
+                  <el-tag size="small" :type="f.file_type === 'package' ? 'primary' : 'info'">{{ f.file_type }}</el-tag>
+                  <span class="file-name">{{ f.filename }}</span>
+                  <span class="file-size">{{ formatSize(f.size) }}</span>
+                </div>
+              </div>
+              <div v-else class="version-files-box empty">
+                <el-icon><Warning /></el-icon>
+                <span>该版本暂无关联文件，请在「文件管理」Tab 上传 ZIP 或文档。</span>
+              </div>
+              <el-form label-width="100px" style="margin-top:16px">
                 <el-form-item label="版本号">
                   <el-input v-model="editVersionForm.version" />
                 </el-form-item>
                 <el-form-item label="兼容性">
-                  <el-input v-model="editVersionForm.compatibility" />
+                  <el-input v-model="editVersionForm.compatibility" placeholder="如：ApeAdmin v1.4+" />
                 </el-form-item>
                 <el-form-item label="更新日志">
-                  <el-input v-model="editVersionForm.changelog" type="textarea" :rows="4" />
+                  <el-input v-model="editVersionForm.changelog" type="textarea" :rows="4" placeholder="本次更新内容" />
                 </el-form-item>
                 <el-form-item label="技术文档">
                   <el-input v-model="editVersionForm.documentation" type="textarea" :rows="10" placeholder="Markdown 格式" />
@@ -496,13 +576,13 @@
                 </el-form-item>
               </el-form>
             </template>
-            <el-empty v-else description="请选择版本" :image-size="60" />
+            <el-empty v-else description="请选择版本编辑文档" :image-size="60" />
           </div>
         </el-tab-pane>
       </el-tabs>
       <template #footer>
         <el-button @click="editVisible = false">关闭</el-button>
-        <el-button v-if="editTab === 'basic' || editTab === 'demos'" type="primary" :loading="editSaving" @click="saveEdit">保存</el-button>
+        <el-button v-if="editTab === 'basic' || editTab === 'demos'" type="primary" :loading="editSaving" @click="saveEdit">保存基本信息</el-button>
       </template>
     </el-dialog>
   </div>
@@ -511,13 +591,13 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Document, CircleCheck, CircleClose, Remove, Money, Search, User, PriceTag, Folder, Warning, WarningFilled, InfoFilled, Promotion, Edit, Plus, Upload } from '@element-plus/icons-vue'
+import { Document, CircleCheck, CircleClose, Remove, Money, Search, User, PriceTag, Folder, Warning, WarningFilled, InfoFilled, Promotion, Edit, Plus, Upload, Delete } from '@element-plus/icons-vue'
 import {
   deleteAdminPlugin, getAdminPluginDetail, getAdminPluginFileDownloadUrl,
   getAdminPlugins, getAdminVersionSource, getAdminVersionSourceTree,
   offlinePlugin, onlinePlugin, publishPluginVersion, reviewPluginVersion,
   updateAdminPlugin, adminUploadMedia, adminDeleteMedia, adminUploadFile, adminDeleteFile,
-  updateAdminVersion,
+  updateAdminVersion, adminUploadDemoQr, getAdminUsers,
 } from '@/api/apehub_web'
 
 const pluginList = ref<any[]>([])
@@ -731,6 +811,68 @@ const editVersionList = ref<any[]>([])
 const editVersionId = ref<number>(0)
 const editVersionForm = ref<any>({})
 const versionSaving = ref(false)
+const developerList = ref<any[]>([])
+
+// 加载开发者列表（管理员可筛选绑定）
+const loadDevelopers = async () => {
+  try {
+    const data = await getAdminUsers({ page: 1, page_size: 200 })
+    developerList.value = data.items || data || []
+  } catch {
+    developerList.value = []
+  }
+}
+
+// 上传图标 — 复用 adminUploadMedia 接口，media_type=logo 时后端自动更新 plugin.icon
+const uploadIcon = async (file: any) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  try {
+    const res = await adminUploadMedia(editForm.value.id, formData, { media_type: 'logo' })
+    // 后端已将 plugin.icon 更新为 url，前端同步展示
+    editForm.value.icon = res.url
+    ElMessage.success('图标上传成功')
+  } catch (e: any) {
+    ElMessage.error(e.message || '图标上传失败')
+  }
+  return false
+}
+
+// 上传 Demo 二维码 — 调用 adminUploadDemoQr，拿到 url 后赋值给 demo.qr_image
+const uploadDemoQr = async (file: any, demo: any) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  try {
+    const res = await adminUploadDemoQr(editForm.value.id, formData)
+    demo.qr_image = res.url
+    ElMessage.success('二维码上传成功')
+  } catch (e: any) {
+    ElMessage.error(e.message || '二维码上传失败')
+  }
+  return false
+}
+
+// 切换 Demo 类型时清空不适用字段
+const onDemoTypeChange = (demo: any) => {
+  if (['h5', 'miniprogram'].includes(demo.demo_type)) {
+    // 二维码类型，保留 qr_image，清空 url 是可选的
+  } else {
+    // 链接类型，清空二维码
+    demo.qr_image = ''
+  }
+}
+
+// 根据版本 ID 查找版本号
+const versionName = (versionId: number) => {
+  const v = editVersionList.value.find((x: any) => x.id === versionId)
+  return v ? v.version : ''
+}
+
+// 当前选中版本关联的文件列表
+const currentVersionFiles = computed(() => {
+  const v = editVersionList.value.find((x: any) => x.id === editVersionId.value)
+  return v?.files || []
+})
 
 const openEdit = async (row: any) => {
   editVisible.value = true
@@ -762,6 +904,8 @@ const openEdit = async (row: any) => {
     editMediaList.value = d.media || []
     editFileList.value = d.files || []
     editVersionList.value = d.versions || []
+    // 延迟加载开发者列表（仅在首次打开时）
+    if (!developerList.value.length) await loadDevelopers()
   } catch {
     ElMessage.error('加载插件详情失败')
   }
@@ -845,7 +989,10 @@ const saveVersion = async () => {
   } finally { versionSaving.value = false }
 }
 
-onMounted(loadList)
+onMounted(() => {
+  loadList()
+  loadDevelopers()
+})
 </script>
 
 <style scoped>
@@ -1096,6 +1243,80 @@ onMounted(loadList)
 :global(.version-select-popper) {
   z-index: 3000 !important;
 }
+
+/* ---- 编辑弹窗新增样式 ---- */
+
+/* 图标编辑行 */
+.icon-edit-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.icon-edit-row .icon-preview { display: flex; align-items: center; gap: 6px; }
+.icon-edit-row .icon-img { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; border: 1px solid var(--el-border-color-lighter); }
+.form-hint { font-size: 12px; color: var(--el-text-color-secondary); }
+
+/* 只读统计区 */
+.readonly-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+  margin-bottom: 12px;
+}
+.readonly-stats .stat-item {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 10px 8px; border-radius: 8px;
+  background: var(--el-fill-color-lighter);
+  border: 1px solid var(--el-border-color-lighter);
+}
+.readonly-stats .stat-lbl { font-size: 11px; color: var(--el-text-color-secondary); }
+.readonly-stats .stat-val { font-size: 18px; font-weight: 700; color: var(--el-text-color-primary); }
+
+/* Demo 编辑卡片 */
+.demo-edit-list { display: flex; flex-direction: column; gap: 12px; }
+.demo-empty-hint {
+  display: flex; align-items: center; gap: 8px;
+  padding: 20px; border: 1px dashed var(--el-border-color); border-radius: 8px;
+  color: var(--el-text-color-secondary); font-size: 13px;
+}
+.demo-edit-card {
+  border: 1px solid var(--el-border-color-lighter); border-radius: 10px;
+  padding: 14px; background: var(--el-fill-color-lighter);
+}
+.demo-card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.demo-card-body { display: flex; flex-direction: column; gap: 10px; }
+
+/* 二维码上传 */
+.qr-upload-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.qr-preview { display: flex; align-items: center; gap: 6px; }
+.qr-img { width: 80px; height: 80px; border-radius: 6px; border: 1px solid var(--el-border-color-lighter); object-fit: cover; }
+
+/* 文件管理上传提示 */
+.files-upload-hint {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; margin-bottom: 12px;
+  background: var(--el-fill-color-lighter); border-radius: 8px;
+  font-size: 12px; color: var(--el-text-color-secondary);
+}
+.files-upload-bar { display: flex; gap: 12px; margin-bottom: 8px; }
+.version-link { color: var(--el-color-primary); font-weight: 600; font-size: 12px; }
+.muted-text { color: var(--el-text-color-placeholder); font-size: 12px; }
+
+/* 版本文档关联文件 */
+.version-files-box {
+  border: 1px solid var(--el-border-color-lighter); border-radius: 8px;
+  padding: 12px 14px; margin-bottom: 12px;
+}
+.version-files-box.empty {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--el-fill-color-lighter);
+  color: var(--el-text-color-secondary); font-size: 12px;
+}
+.version-files-title {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 600; color: var(--el-text-color-primary);
+  margin-bottom: 8px;
+}
+.version-file-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 0; font-size: 12px;
+}
+.version-file-row .file-name { flex: 1; color: var(--el-text-color-regular); }
+.version-file-row .file-size { color: var(--el-text-color-secondary); }
 
 /* 响应式 */
 @media (max-width: 768px) {

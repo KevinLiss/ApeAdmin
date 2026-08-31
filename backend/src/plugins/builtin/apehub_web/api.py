@@ -830,6 +830,38 @@ async def update_site_content(
     return success_response(msg="内容已更新")
 
 
+class ContentOrderItem(BaseModel):
+    id: int
+    sort: int
+
+
+class ContentOrderIn(BaseModel):
+    items: list[ContentOrderItem]
+
+
+@router.put("/admin/content/order")
+async def reorder_site_content(
+    body: ContentOrderIn,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
+    """拖拽排序后批量更新各内容块的 sort 值。"""
+    await _require_permission(user, "apehub_web:content:edit")
+    if not body.items:
+        return success_response(msg="排序已更新")
+    ids = [item.id for item in body.items]
+    result = await db.execute(
+        select(ApehubWebSiteContent).where(ApehubWebSiteContent.id.in_(ids))
+    )
+    rows = {c.id: c for c in result.scalars().all()}
+    for item in body.items:
+        row = rows.get(item.id)
+        if row:
+            row.sort = item.sort
+    await db.commit()
+    return success_response(msg="排序已更新")
+
+
 @router.delete("/admin/content/{content_id}")
 async def delete_site_content(
     content_id: int,
@@ -1634,6 +1666,7 @@ async def admin_plugin_detail(
     data["files"] = [
         {
             "id": file.id,
+            "version_id": file.version_id,
             "file_type": file.file_type,
             "filename": file.filename,
             "size": file.size,
@@ -2091,6 +2124,32 @@ async def admin_delete_media(
     await db.delete(media)
     await db.commit()
     return success_response(msg="图片已删除")
+
+
+@router.post("/admin/plugins/{plugin_id}/demo/qr")
+async def admin_upload_demo_qr(
+    plugin_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    file: Annotated[UploadFile, File(...)],
+):
+    """Admin upload QR code image for a plugin demo (H5 / miniprogram)."""
+    await _require_permission(user, "apehub_web:plugins:review")
+    plugin = await db.get(ApehubWebPlugin, plugin_id)
+    if plugin is None:
+        raise NotFoundException("插件不存在")
+    content = await file.read(MAX_SITE_IMAGE_SIZE + 1)
+    if not content or len(content) > MAX_SITE_IMAGE_SIZE:
+        raise ValidationException("二维码图片不能为空且不能超过 5MB")
+    extension = _image_extension(content)
+    if extension is None:
+        raise ValidationException("仅支持 PNG、JPEG、GIF 或 WebP 图片")
+    stored = f"plugin-media/{plugin.id}/qr-{uuid.uuid4().hex}{extension}"
+    destination = _safe_upload_path(stored)
+    _ensure_dir(str(destination.parent))
+    destination.write_bytes(content)
+    url = f"/apehub-web/uploads/{stored}"
+    return success_response(data={"url": url}, msg="二维码上传成功")
 
 
 @router.post("/admin/plugins/{plugin_id}/files")

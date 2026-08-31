@@ -24,7 +24,19 @@
 
     <!-- 数据表格 -->
     <el-card shadow="never" class="table-card">
-      <el-table :data="filteredList" v-loading="loading" stripe row-key="id">
+      <div class="table-tip" v-if="!loading && filteredList.length">
+        <el-icon><Rank /></el-icon>
+        <template v-if="isFiltered">筛选状态下暂不支持拖拽排序，请先清除搜索/筛选</template>
+        <template v-else>拖动 <el-icon class="inline-ic"><Rank /></el-icon> 调整区块在官网首页的显示顺序，松手后自动保存</template>
+      </div>
+      <el-table ref="tableRef" :data="filteredList" v-loading="loading" stripe row-key="id">
+        <!-- 拖拽手柄 -->
+        <el-table-column width="44" align="center" class-name="drag-col">
+          <template #default>
+            <span class="drag-handle" title="拖动排序"><el-icon><Rank /></el-icon></span>
+          </template>
+        </el-table-column>
+
         <!-- 区块标识 -->
         <el-table-column prop="block_key" label="区块标识" width="150">
           <template #default="{ row }">
@@ -171,15 +183,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Plus } from '@element-plus/icons-vue'
-import { getAdminContent, createAdminContent, updateAdminContent, deleteAdminContent } from '@/api/apehub_web'
+import { Search, Plus, Rank } from '@element-plus/icons-vue'
+import Sortable from 'sortablejs'
+import { getAdminContent, createAdminContent, updateAdminContent, reorderAdminContent, deleteAdminContent } from '@/api/apehub_web'
 
 const contentList = ref<any[]>([])
 const loading = ref(false)
 const dialogVisible = ref(false)
 const saving = ref(false)
+const tableRef = ref()
+let sortableInstance: Sortable | null = null
 
 // 搜索与筛选
 const searchQuery = ref('')
@@ -205,6 +220,7 @@ const blockHints: Record<string, string> = {
 const getBlockHint = (key: string) => blockHints[key] || `区块 "${key}"，对应官网展示区域`
 
 // 搜索筛选
+const isFiltered = computed(() => !!searchQuery.value.trim() || !!filterStatus.value)
 const filteredList = computed(() => {
   let list = contentList.value
   // 状态筛选
@@ -229,8 +245,74 @@ const truncate = (str: string, len: number) => str.length > len ? str.slice(0, l
 // 加载列表
 const loadList = async () => {
   loading.value = true
-  try { contentList.value = await getAdminContent() } finally { loading.value = false }
+  try {
+    contentList.value = await getAdminContent()
+    await nextTick()
+    initSortable()
+  } finally { loading.value = false }
 }
+
+// 初始化表格行拖拽（仅全量列表，筛选/搜索时不启用）
+const initSortable = () => {
+  destroySortable()
+  const tableEl = tableRef.value?.$el
+  if (!tableEl || isFiltered.value) return
+  const tbody = tableEl.querySelector('.el-table__body-wrapper tbody')
+  if (!tbody) return
+  sortableInstance = Sortable.create(tbody, {
+    handle: '.drag-handle',
+    animation: 180,
+    ghostClass: 'drag-ghost',
+    chosenClass: 'drag-chosen',
+    onEnd: async (evt: any) => {
+      if (evt.oldIndex === evt.newIndex) return
+      const tbody = evt.from
+      // Sortable 只移动了 DOM 行，需按 DOM 新顺序重排数据
+      const trs = Array.from(tbody.querySelectorAll('tr'))
+      const idMap = new Map(contentList.value.map(r => [String(r.id), r]))
+      const ordered = trs
+        .map(tr => idMap.get(tr.getAttribute('data-row-key')))
+        .filter(Boolean)
+      if (ordered.length !== contentList.value.length) {
+        loadList()
+        return
+      }
+      // 按当前展示顺序重写 sort（10 起步避免与 0 冲突）
+      const items = ordered.map((row, idx) => ({ id: row.id, sort: (idx + 1) * 10 }))
+      try {
+        await reorderAdminContent(items)
+        contentList.value = ordered.map((row, idx) => ({ ...row, sort: (idx + 1) * 10 }))
+        ElMessage.success(`已更新排序，共 ${items.length} 个区块`)
+      } catch {
+        ElMessage.error('排序保存失败')
+        loadList()
+      }
+    },
+  })
+}
+
+const destroySortable = () => {
+  if (sortableInstance) {
+    sortableInstance.destroy()
+    sortableInstance = null
+  }
+}
+
+// 搜索/筛选状态变化后重建拖拽
+watch(isFiltered, async () => {
+  await nextTick()
+  initSortable()
+})
+
+onMounted(() => {
+  loadList()
+  window.addEventListener('resize', destroySortable)
+})
+
+onBeforeUnmount(() => {
+  destroySortable()
+  window.removeEventListener('resize', destroySortable)
+})
 
 // 行内切换启用状态
 const toggleEnabled = async (row: any, val: boolean) => {
@@ -287,7 +369,6 @@ const handleDelete = async (row: any) => {
   loadList()
 }
 
-onMounted(loadList)
 </script>
 
 <style scoped>
@@ -331,6 +412,44 @@ onMounted(loadList)
 }
 .table-card :deep(.el-table) {
   border-radius: 10px;
+}
+
+/* 拖拽排序 */
+.table-tip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--el-text-color-secondary);
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  background: var(--el-fill-color-lighter);
+}
+.inline-ic {
+  vertical-align: -2px;
+}
+.drag-handle {
+  cursor: grab;
+  color: var(--el-text-color-placeholder);
+  display: inline-flex;
+  align-items: center;
+  transition: color .18s;
+}
+.drag-handle:hover {
+  color: var(--el-color-primary);
+}
+.drag-handle:active {
+  cursor: grabbing;
+}
+.table-card :deep(.drag-ghost) {
+  opacity: .45;
+  background: var(--el-color-primary-light-9);
+}
+.table-card :deep(.drag-chosen) {
+  background: var(--el-color-primary-light-8);
+}
+.table-card :deep(.drag-col .cell) {
+  padding: 0;
 }
 
 /* 区块标识 tag */

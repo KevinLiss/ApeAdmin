@@ -541,6 +541,25 @@ footer { border-top: 1px solid var(--panel-border); padding: 40px 24px; }
 .foot-inner .r a { color: var(--text-3); font-size: 13px; transition: color .2s; }
 .foot-inner .r a:hover { color: var(--text); }
 
+/* ========== Wallet Help ========== */
+.section-head-actions { display: flex; align-items: center; gap: 10px; }
+.btn-help-icon {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 13px; font-weight: 500; color: var(--text-2);
+  padding: 6px 12px; border-radius: 8px; text-decoration: none;
+  border: 1px solid var(--panel-border); background: var(--panel-2);
+  transition: all .2s; cursor: pointer;
+}
+.btn-help-icon:hover { color: #a5b4fc; border-color: rgba(109,92,255,.3); background: rgba(109,92,255,.06); }
+.btn-help-icon svg { flex-shrink: 0; }
+.help-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; margin-left: 6px; font-size: 12px; font-weight: 700;
+  border-radius: 50%; background: rgba(109,92,255,.15); color: #a5b4fc;
+  text-decoration: none; vertical-align: middle; transition: all .2s; cursor: pointer;
+}
+.help-badge:hover { background: rgba(109,92,255,.3); color: #c4b5fd; }
+
 /* ========== Responsive ========== */
 @media (max-width: 900px) {
   .nav-links { display: none; }

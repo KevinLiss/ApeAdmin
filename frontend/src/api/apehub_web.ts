@@ -66,6 +66,7 @@ export const deleteAdminNavigation = (id: number) => api.delete(`/apehub-web/adm
 export const getAdminContent = () => api.get('/apehub-web/admin/content')
 export const createAdminContent = (data: any) => api.post('/apehub-web/admin/content', data)
 export const updateAdminContent = (id: number, data: any) => api.put(`/apehub-web/admin/content/${id}`, data)
+export const reorderAdminContent = (items: { id: number; sort: number }[]) => api.put('/apehub-web/admin/content/order', { items })
 export const deleteAdminContent = (id: number) => api.delete(`/apehub-web/admin/content/${id}`)
 
 export const getAdminDocCategories = () => api.get('/apehub-web/admin/doc-categories')
@@ -99,6 +100,8 @@ export const adminUploadMedia = (id: number, formData: FormData, params: any) =>
   api.post(`/apehub-web/admin/plugins/${id}/media/upload`, formData, { params })
 export const adminDeleteMedia = (pluginId: number, mediaId: number) =>
   api.delete(`/apehub-web/admin/plugins/${pluginId}/media/${mediaId}`)
+export const adminUploadDemoQr = (pluginId: number, formData: FormData) =>
+  api.post(`/apehub-web/admin/plugins/${pluginId}/demo/qr`, formData)
 export const adminUploadFile = (id: number, formData: FormData, params: any) =>
   api.post(`/apehub-web/admin/plugins/${id}/files`, formData, { params })
 export const adminDeleteFile = (pluginId: number, fileId: number) =>
