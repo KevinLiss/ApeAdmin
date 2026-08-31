@@ -214,14 +214,29 @@ function renderVersionDetail() {
   if (!root) return;
   if (!version) { root.innerHTML = '<div class="empty">请选择版本</div>'; return; }
   const editable = ['draft', 'rejected', 'analysis_failed'].includes(version.status);
-  const files = (version.files || []).map(file => `<div class="file-chip"><span>${esc(file.filename)}</span><span class="muted">${Math.ceil(file.size / 1024)} KB</span>${editable ? `<button class="file-chip-del" data-file="${file.id}" title="删除文件">×</button>` : ''}</div>`).join('') || '<span class="muted">未上传安装包</span>';
+  const hasPackage = (version.files || []).length > 0;
+  const hasDocs = !!(version.documentation && version.documentation.trim());
   const report = version.analysis_report;
   const aiResult = report?.ai || null;
+  const hasAnalysis = !!report;
+  const files = (version.files || []).map(file => `<div class="file-chip"><span>${esc(file.filename)}</span><span class="muted">${Math.ceil(file.size / 1024)} KB</span>${editable ? `<button class="file-chip-del" data-file="${file.id}" title="删除文件">×</button>` : ''}</div>`).join('') || '<span class="muted">未上传安装包</span>';
   const warnings = report?.warnings || [];
   const riskColors = { critical: 'red', high: 'red', medium: 'amber', low: 'green', none: 'green' };
   const riskColor = riskColors[report?.risk_level] || 'text-3';
+  // Step guide for draft/rejected/analysis_failed versions
+  const showSteps = editable;
+  const steps = [
+    { label: '上传 ZIP', done: hasPackage, icon: '📦' },
+    { label: 'AI 分析', done: hasAnalysis, icon: '🔍', failed: version.status === 'analysis_failed' },
+    { label: '填写文档', done: hasDocs, icon: '📝' },
+    { label: '提交审核', done: !editable, icon: '🚀' },
+  ];
+  const stepsHtml = showSteps ? `<div class="step-guide">${steps.map((s, i) => `<div class="step ${s.done ? 'done' : ''} ${s.failed ? 'failed' : ''}"><span class="step-icon">${s.failed ? '⚠️' : s.done ? '✓' : s.icon}</span><span class="step-label">${esc(s.label)}</span>${i < steps.length - 1 ? '<span class="step-arrow">→</span>' : ''}</div>`).join('')}</div>` : '';
+  const emptyTip = (editable && !hasPackage) ? `<div class="empty-tip">💡 请先上传 ZIP 安装包，再进行 AI 分析或手动填写文档</div>` : '';
   root.innerHTML = `
     <div class="version-head"><h4>${esc(version.version)}</h4><span class="status ${esc(version.status)}">${statusText(version.status)}</span></div>
+    ${stepsHtml}
+    ${emptyTip}
     ${version.compatibility ? `<div class="field" style="margin-bottom:14px"><label>兼容性</label><input id="versionCompat" value="${esc(version.compatibility)}" ${editable ? '' : 'disabled'}></div>` : ''}
     <div class="field"><label>更新说明</label><textarea id="versionChangelog" ${editable ? '' : 'disabled'}>${esc(version.changelog || '')}</textarea></div>
     <div class="field" style="margin-top:14px"><label>技术文档（Markdown）</label><textarea id="versionDocs" style="min-height:260px" ${editable ? '' : 'disabled'}>${esc(version.documentation || '')}</textarea></div>
@@ -232,6 +247,7 @@ function renderVersionDetail() {
       <div class="analysis-row"><span>解压大小</span><span>${report?.uncompressed_size ? Math.ceil(report.uncompressed_size / 1024) + ' KB' : '-'}</span></div>
       ${warnings.length ? `<div class="analysis-warnings">${warnings.map(w => `<div class="warning-item warning-${w.severity}"><span class="severity">${esc(w.severity)}</span>${esc(w.message)} <span class="muted">${esc(w.file)}</span></div>`).join('')}</div>` : ''}
       ${aiResult ? `<div class="ai-result"><div class="ai-summary">${esc(aiResult.summary || '')}</div>${aiResult.features ? `<div class="ai-features">${(Array.isArray(aiResult.features) ? aiResult.features : []).map((f, i) => `<div class="ai-feat"><strong>${i + 1}. ${esc(typeof f === 'string' ? f : f.name || f.title || '')}</strong><p>${esc(typeof f === 'string' ? '' : f.description || '')}</p></div>`).join('')}</div>` : ''}</div>` : ''}
+      ${version.status === 'analysis_failed' ? `<div class="analysis-error"><strong>⚠️ 分析失败</strong><p>AI 分析过程中出错。您可以手动填写文档后直接提交审核，或重试 AI 分析。</p><div class="analysis-error-detail" style="display:none"></div></div>` : ''}
       ${version.reject_reason ? `<div class="reject-reason"><strong>驳回原因：</strong>${esc(version.reject_reason)}</div>` : ''}
       <div id="analysisProgress"></div>
     </div>
@@ -246,6 +262,20 @@ function renderVersionDetail() {
   $('#saveVersion').addEventListener('click', saveVersion);
   $('#analyzeVersion').addEventListener('click', analyzeVersion);
   $('#submitVersion').addEventListener('click', submitVersion);
+  // If analysis failed, try to fetch the error info
+  if (version.status === 'analysis_failed') fetchAnalysisError(state.selectedPlugin.id, version.id);
+}
+
+async function fetchAnalysisError(pluginId, versionId) {
+  try {
+    const data = await api(`/apehub-web/developer/plugins/${pluginId}/versions/${versionId}/analysis`);
+    const job = data.job;
+    const errBox = $('.analysis-error-detail');
+    if (errBox && job?.error) {
+      errBox.textContent = job.error;
+      errBox.style.display = 'block';
+    }
+  } catch (_) { /* silently ignore — UI already has a generic fallback message */ }
 }
 
 async function uploadMedia(file, mediaType) {

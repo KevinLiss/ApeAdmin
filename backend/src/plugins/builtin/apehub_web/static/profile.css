@@ -294,6 +294,74 @@ tbody tr:hover td { background: rgba(109,92,255,.03); }
 .ai-feat strong { font-size: 13px; }
 .ai-feat p { font-size: 12px; color: var(--text-2); margin: 2px 0 0; }
 .reject-reason { margin-top: 8px; padding: 10px; background: rgba(248,113,113,.06); border-radius: 8px; color: var(--red); font-size: 12px; }
+
+/* ========== Step guide (version submission flow) ========== */
+.step-guide {
+  display: flex; align-items: center; gap: 0;
+  margin: 0 0 18px; padding: 16px 20px;
+  background: var(--panel-2); border-radius: 10px;
+  border: 1px solid var(--panel-border);
+}
+.step-guide .step {
+  display: flex; align-items: center; gap: 8px;
+  color: var(--text-3); font-size: 13px; font-weight: 600;
+  transition: color .25s;
+}
+.step-guide .step.done { color: var(--green); }
+.step-guide .step.failed { color: var(--red); }
+.step-guide .step-icon {
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--panel); border: 1px solid var(--panel-border);
+  font-size: 13px; flex-shrink: 0; transition: all .25s;
+}
+.step-guide .step.done .step-icon {
+  background: rgba(52,211,153,.12); border-color: rgba(52,211,153,.3); color: var(--green);
+}
+:root[data-theme="light"] .step-guide .step.done .step-icon {
+  background: rgba(5,150,105,.1); border-color: rgba(5,150,105,.25);
+}
+.step-guide .step.failed .step-icon {
+  background: rgba(248,113,113,.12); border-color: rgba(248,113,113,.3); color: var(--red);
+}
+:root[data-theme="light"] .step-guide .step.failed .step-icon {
+  background: rgba(220,38,38,.08); border-color: rgba(220,38,38,.25);
+}
+.step-guide .step-arrow {
+  margin: 0 10px; color: var(--text-3); font-size: 14px; opacity: .5;
+}
+
+/* ========== Empty tip (no package uploaded yet) ========== */
+.empty-tip {
+  padding: 14px 18px; margin-bottom: 16px;
+  background: rgba(109,92,255,.04); border-radius: 10px;
+  border: 1px dashed rgba(109,92,255,.2);
+  color: var(--text-2); font-size: 13px; line-height: 1.6;
+}
+:root[data-theme="light"] .empty-tip {
+  background: rgba(109,92,255,.03); border-color: rgba(109,92,255,.15);
+}
+
+/* ========== Analysis error (failure detail) ========== */
+.analysis-error {
+  margin-top: 10px; padding: 14px 16px;
+  background: rgba(248,113,113,.06); border-radius: 10px;
+  border: 1px solid rgba(248,113,113,.15);
+}
+:root[data-theme="light"] .analysis-error {
+  background: rgba(220,38,38,.04); border-color: rgba(220,38,38,.12);
+}
+.analysis-error strong { color: var(--red); font-size: 14px; }
+.analysis-error p { margin: 6px 0 0; color: var(--text-2); font-size: 13px; line-height: 1.6; }
+.analysis-error-detail {
+  margin-top: 8px; padding: 10px 12px;
+  background: rgba(248,113,113,.08); border-radius: 6px;
+  color: var(--red); font-size: 12px; font-family: 'SF Mono','Fira Code',monospace;
+  word-break: break-all; line-height: 1.5;
+}
+:root[data-theme="light"] .analysis-error-detail {
+  background: rgba(220,38,38,.06);
+}
 .analysis-job { padding: 12px 0; }
 .job-stage { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
 .job-meta { font-size: 11px; color: var(--text-3); margin-top: 6px; }
