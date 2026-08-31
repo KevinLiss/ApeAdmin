@@ -220,4 +220,48 @@
       anchor.after(frag);
     }
   }
+
+  /* ---------- Admin preview bridge (content manager) ---------- */
+  // 管理后台内容管理页通过 postMessage 与官网预览 iframe 通信：
+  // - ape-highlight / ape-highlight-clear：hover 列表项时高亮对应区块
+  // - ape-refresh：保存/排序/删除后重新拉取公开内容并重排布局
+  const highlightStyle = document.createElement('style');
+  highlightStyle.textContent = [
+    '.ape-block-highlight {',
+    '  outline: 3px dashed var(--accent, #4f46e5) !important;',
+    '  outline-offset: 3px;',
+    '  border-radius: 8px;',
+    '  transition: outline-color .2s;',
+    '}'
+  ].join('\n');
+  document.head.appendChild(highlightStyle);
+
+  const clearHighlight = () => {
+    document.querySelectorAll('.ape-block-highlight').forEach(s => s.classList.remove('ape-block-highlight'));
+  };
+
+  window.addEventListener('message', (event) => {
+    const msg = event.data;
+    if (!msg || typeof msg !== 'object' || msg.source !== 'apehub-admin') return;
+
+    if (msg.type === 'ape-highlight' && msg.blockKey) {
+      clearHighlight();
+      const target = document.querySelector(`[data-block-key="${msg.blockKey}"]`);
+      if (target) {
+        target.classList.add('ape-block-highlight');
+        // 若区块不在视口内，平滑滚动到其顶部（hover 定位）
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } else if (msg.type === 'ape-highlight-clear') {
+      clearHighlight();
+    } else if (msg.type === 'ape-refresh') {
+      (async () => {
+        try {
+          const response = await fetch('/api/v1/apehub-web/site/public/content');
+          const payload = await response.json();
+          if (payload.code === 200) applyContentLayout(payload.data);
+        } catch { /* keep current layout */ }
+      })();
+    }
+  });
 })();

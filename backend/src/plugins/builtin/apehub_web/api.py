@@ -803,7 +803,7 @@ async def list_site_content(
     user: Annotated[User, Depends(get_current_user)],
 ):
     await _require_permission(user, "apehub_web:content:list")
-    result = await db.execute(select(ApehubWebSiteContent).order_by(ApehubWebSiteContent.block_key.asc(), ApehubWebSiteContent.sort.asc()))
+    result = await db.execute(select(ApehubWebSiteContent).order_by(ApehubWebSiteContent.sort.asc(), ApehubWebSiteContent.id.asc()))
     return success_response(data=[
         {
             "id": c.id, "block_key": c.block_key, "title": c.title,
