@@ -283,3 +283,177 @@ async def optimize_changelog(
         raise RuntimeError("AI 服务返回了空内容")
     return content.strip()
 
+
+def _documentation_optimize_prompt(raw_text: str) -> list[dict[str, str]]:
+    system = (
+        "你是技术文档专家，擅长撰写高质量的插件技术文档（Markdown）。"
+        "请对用户提供的文档草稿进行润色和结构化优化。"
+        "要求：\n"
+        "1. 保持原意，不要编造不存在的功能或接口\n"
+        "2. 优化标题层级、段落结构和列表条目，使其更符合 VitePress 文档规范\n"
+        "3. 修正错别字和语病，统一术语和表述风格\n"
+        "4. 必要时补充代码示例的说明文字（但不要新增代码）\n"
+        "5. 直接输出优化后的完整 Markdown，不要包含任何解释、前后缀或 markdown 代码块包裹"
+    )
+    return [
+        {"role": "system", "content": system},
+        {"role": "user", "content": f"请优化以下技术文档：\n\n{raw_text}"},
+    ]
+
+
+async def optimize_documentation(
+    raw_text: str,
+    *,
+    api_key: str,
+    base_url: str,
+    model: str,
+) -> str:
+    """Call AI to polish a documentation draft. Returns the optimized markdown."""
+    if not api_key:
+        raise RuntimeError("AI API Key 未配置")
+    endpoint = base_url.rstrip("/") + "/chat/completions"
+    client_kwargs: dict[str, Any] = {"timeout": httpx.Timeout(120.0, connect=15.0)}
+    proxy = _normalized_proxy()
+    if proxy:
+        client_kwargs["proxy"] = proxy
+    async with httpx.AsyncClient(**client_kwargs) as client:
+        response = await client.post(
+            endpoint,
+            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+            json={
+                "model": model,
+                "messages": _documentation_optimize_prompt(raw_text),
+                "temperature": 0.3,
+                "max_tokens": 6000,
+            },
+        )
+    response.raise_for_status()
+    payload = response.json()
+    content = payload.get("choices", [{}])[0].get("message", {}).get("content", "")
+    if not content:
+        raise RuntimeError("AI 服务返回了空内容")
+    # 剥离 AI 可能包裹的 ```markdown 代码块
+    text = content.strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```[a-zA-Z]*\n?", "", text)
+        text = re.sub(r"\n?```$", "", text)
+    return text.strip()
+
+
+def _package_changelog_prompt(report: dict[str, Any]) -> list[dict[str, str]]:
+    system = (
+        "你是插件版本分析专家。请根据提供的插件代码包静态分析结果，"
+        "撰写一份专业的版本更新说明（changelog）。"
+        "要求：\n"
+        "1. 使用「新增」「修复」「优化」「变更」分类前缀的条目式格式\n"
+        "2. 每个条目一句话，突出关键功能与改进\n"
+        "3. 只根据代码包中实际存在的功能撰写，不得编造\n"
+        "4. 如果能识别出文件结构暗示的模块划分，按模块归纳\n"
+        "5. 直接输出纯文本，不要包含任何解释、前后缀或 markdown 代码块"
+    )
+    payload = {
+        "manifest": report["manifest"],
+        "file_tree": report["file_tree"],
+        "static_warnings": report["warnings"],
+        "source": report["source_context"],
+    }
+    return [
+        {"role": "system", "content": system},
+        {"role": "user", "content": "请根据以下插件代码包内容撰写版本更新说明：\n" + json.dumps(payload, ensure_ascii=False)},
+    ]
+
+
+async def generate_changelog_from_package(
+    report: dict[str, Any],
+    *,
+    api_key: str,
+    base_url: str,
+    model: str,
+) -> str:
+    """Call AI to generate a changelog from an uploaded package. Returns the text."""
+    if not api_key:
+        raise RuntimeError("AI API Key 未配置")
+    endpoint = base_url.rstrip("/") + "/chat/completions"
+    client_kwargs: dict[str, Any] = {"timeout": httpx.Timeout(120.0, connect=15.0)}
+    proxy = _normalized_proxy()
+    if proxy:
+        client_kwargs["proxy"] = proxy
+    async with httpx.AsyncClient(**client_kwargs) as client:
+        response = await client.post(
+            endpoint,
+            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+            json={
+                "model": model,
+                "messages": _package_changelog_prompt(report),
+                "temperature": 0.3,
+                "max_tokens": 2000,
+            },
+        )
+    response.raise_for_status()
+    payload = response.json()
+    content = payload.get("choices", [{}])[0].get("message", {}).get("content", "")
+    if not content:
+        raise RuntimeError("AI 服务返回了空内容")
+    return content.strip()
+
+
+def _package_documentation_prompt(report: dict[str, Any]) -> list[dict[str, str]]:
+    system = (
+        "你是插件技术文档专家。请根据提供的插件代码包静态分析结果，"
+        "撰写一份完整的中文技术文档（Markdown）。"
+        "要求：\n"
+        "1. 只根据代码包中实际存在的功能撰写，不得编造接口\n"
+        "2. 结构包括：插件简介、功能特性、安装步骤、配置说明、使用方法、"
+        "目录结构、注意事项\n"
+        "3. 文档必须是完整中文 Markdown，适合直接进入 VitePress\n"
+        "4. 直接输出 Markdown，不要包含任何解释、前后缀，不要用代码块包裹整个文档"
+    )
+    payload = {
+        "manifest": report["manifest"],
+        "file_tree": report["file_tree"],
+        "static_warnings": report["warnings"],
+        "source": report["source_context"],
+    }
+    return [
+        {"role": "system", "content": system},
+        {"role": "user", "content": "请根据以下插件代码包内容撰写技术文档：\n" + json.dumps(payload, ensure_ascii=False)},
+    ]
+
+
+async def generate_documentation_from_package(
+    report: dict[str, Any],
+    *,
+    api_key: str,
+    base_url: str,
+    model: str,
+) -> str:
+    """Call AI to generate full documentation from an uploaded package. Returns markdown."""
+    if not api_key:
+        raise RuntimeError("AI API Key 未配置")
+    endpoint = base_url.rstrip("/") + "/chat/completions"
+    client_kwargs: dict[str, Any] = {"timeout": httpx.Timeout(120.0, connect=15.0)}
+    proxy = _normalized_proxy()
+    if proxy:
+        client_kwargs["proxy"] = proxy
+    async with httpx.AsyncClient(**client_kwargs) as client:
+        response = await client.post(
+            endpoint,
+            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+            json={
+                "model": model,
+                "messages": _package_documentation_prompt(report),
+                "temperature": 0.2,
+                "max_tokens": 8000,
+            },
+        )
+    response.raise_for_status()
+    payload = response.json()
+    content = payload.get("choices", [{}])[0].get("message", {}).get("content", "")
+    if not content:
+        raise RuntimeError("AI 服务返回了空内容")
+    text = content.strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```[a-zA-Z]*\n?", "", text)
+        text = re.sub(r"\n?```$", "", text)
+    return text.strip()
+

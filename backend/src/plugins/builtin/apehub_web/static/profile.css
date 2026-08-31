@@ -398,6 +398,9 @@ progress { accent-color: var(--primary); }
 .btn-ai-optimize:disabled { opacity: .5; cursor: not-allowed; }
 :root[data-theme="light"] .btn-ai-optimize { background: rgba(109,92,255,.06); border-color: rgba(109,92,255,.25); color: #7c3aed; }
 :root[data-theme="light"] .btn-ai-optimize:hover:not(:disabled) { background: rgba(109,92,255,.12); }
+.label-actions { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.label-actions .btn-ai-optimize { display: inline-flex; align-items: center; }
+.label-actions label.btn-ai-optimize { margin: 0; }
 .field input, .field textarea, .field select {
   width: 100%; padding: 12px 14px; border: 1px solid var(--panel-border);
   border-radius: 12px; background: var(--bg); color: var(--text);

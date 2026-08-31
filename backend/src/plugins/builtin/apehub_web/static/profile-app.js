@@ -244,8 +244,8 @@ function renderVersionDetail() {
     ${reReviewBanner}
     ${emptyTip}
     ${version.compatibility ? `<div class="field" style="margin-bottom:14px"><label>兼容性</label><input id="versionCompat" value="${esc(version.compatibility)}" ${canEdit ? '' : 'disabled'}></div>` : ''}
-    <div class="field"><label>更新说明${canEdit ? '<button class="btn btn-small btn-ai-optimize" id="optimizeChangelogBtn" title="使用 AI 润色更新说明">AI 优化</button>' : ''}</label><textarea id="versionChangelog" ${canEdit ? '' : 'disabled'}>${esc(version.changelog || '')}</textarea></div>
-    <div class="field" style="margin-top:14px"><label>技术文档（Markdown）</label><textarea id="versionDocs" style="min-height:260px" ${canEdit ? '' : 'disabled'}>${esc(version.documentation || '')}</textarea></div>
+    <div class="field"><label>更新说明${canEdit ? `<span class="label-actions"><button class="btn btn-small btn-ai-optimize" id="optimizeChangelogBtn" title="使用 AI 润色更新说明">AI 优化</button><button class="btn btn-small btn-ai-optimize" id="generateChangelogBtn" title="分析已上传的代码包，用 AI 生成更新说明">AI 补全</button></span>` : ''}</label><textarea id="versionChangelog" ${canEdit ? '' : 'disabled'}>${esc(version.changelog || '')}</textarea></div>
+    <div class="field" style="margin-top:14px"><label>技术文档（Markdown）${canEdit ? `<span class="label-actions"><button class="btn btn-small btn-ai-optimize" id="optimizeDocsBtn" title="使用 AI 润色技术文档">AI 优化</button><button class="btn btn-small btn-ai-optimize" id="generateDocsBtn" title="分析已上传的代码包，用 AI 生成技术文档">AI 补全</button><label class="btn btn-small btn-ai-optimize" title="上传本地 .md 文档">上传 md<input id="docsFile" type="file" accept=".md,.markdown,text/markdown" hidden></label></span>` : ''}</label><textarea id="versionDocs" style="min-height:260px" ${canEdit ? '' : 'disabled'}>${esc(version.documentation || '')}</textarea></div>
     <div class="analysis-panel">
       <div class="analysis-header"><strong>安装包</strong>${files}</div>
       <div class="analysis-row"><span>静态风险</span><span class="status ${riskColor}">${esc(report?.risk_level || '尚未分析')}</span></div>
@@ -272,6 +272,14 @@ function renderVersionDetail() {
   $('#submitVersion').addEventListener('click', submitVersion);
   const optimizeBtn = $('#optimizeChangelogBtn');
   if (optimizeBtn) optimizeBtn.addEventListener('click', optimizeChangelog);
+  const generateChangelogBtn = $('#generateChangelogBtn');
+  if (generateChangelogBtn) generateChangelogBtn.addEventListener('click', generateChangelog);
+  const optimizeDocsBtn = $('#optimizeDocsBtn');
+  if (optimizeDocsBtn) optimizeDocsBtn.addEventListener('click', optimizeDocumentation);
+  const generateDocsBtn = $('#generateDocsBtn');
+  if (generateDocsBtn) generateDocsBtn.addEventListener('click', generateDocumentation);
+  const docsFileInput = $('#docsFile');
+  if (docsFileInput) docsFileInput.addEventListener('change', event => loadDocsFile(event.target.files[0]));
   // If analysis failed, try to fetch the error info
   if (version.status === 'analysis_failed') fetchAnalysisError(state.selectedPlugin.id, version.id);
 }
@@ -329,8 +337,69 @@ async function optimizeChangelog() {
     const data = await api(`/apehub-web/developer/plugins/${plugin.id}/versions/${version.id}/optimize-changelog`, { method: 'POST', body: JSON.stringify({ changelog: raw }) });
     if (textarea && data.changelog) { textarea.value = data.changelog; toast('AI 优化完成，请确认后保存'); }
     else { toast('AI 返回为空', true); }
+  }   catch (error) { toast(error.message, true); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = 'AI 优化'; } }
+}
+
+/* ========== AI Generate (from uploaded package) & Docs upload ========== */
+async function generateChangelog() {
+  const plugin = state.selectedPlugin, version = state.selectedVersion;
+  if (!(version.files || []).length) { toast('请先上传 ZIP 安装包，AI 补全需要代码包内容', true); return; }
+  const btn = $('#generateChangelogBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'AI 补全中...'; }
+  try {
+    const data = await api(`/apehub-web/developer/plugins/${plugin.id}/versions/${version.id}/generate-changelog`, { method: 'POST' });
+    const textarea = $('#versionChangelog');
+    if (textarea && data.changelog) { textarea.value = data.changelog; toast('AI 补全完成，请确认后保存'); }
+    else { toast('AI 返回为空', true); }
+  } catch (error) { toast(error.message, true); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = 'AI 补全'; } }
+}
+
+async function optimizeDocumentation() {
+  const plugin = state.selectedPlugin, version = state.selectedVersion;
+  const textarea = $('#versionDocs');
+  const raw = (textarea?.value || '').trim();
+  if (!raw) { toast('请先输入技术文档草稿', true); return; }
+  const btn = $('#optimizeDocsBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'AI 优化中...'; }
+  try {
+    const data = await api(`/apehub-web/developer/plugins/${plugin.id}/versions/${version.id}/optimize-documentation`, { method: 'POST', body: JSON.stringify({ documentation: raw }) });
+    if (textarea && data.documentation) { textarea.value = data.documentation; toast('AI 优化完成，请确认后保存'); }
+    else { toast('AI 返回为空', true); }
   } catch (error) { toast(error.message, true); }
   finally { if (btn) { btn.disabled = false; btn.textContent = 'AI 优化'; } }
+}
+
+async function generateDocumentation() {
+  const plugin = state.selectedPlugin, version = state.selectedVersion;
+  if (!(version.files || []).length) { toast('请先上传 ZIP 安装包，AI 补全需要代码包内容', true); return; }
+  const btn = $('#generateDocsBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'AI 补全中...'; }
+  try {
+    const data = await api(`/apehub-web/developer/plugins/${plugin.id}/versions/${version.id}/generate-documentation`, { method: 'POST' });
+    const textarea = $('#versionDocs');
+    if (textarea && data.documentation) { textarea.value = data.documentation; toast('AI 补全完成，请确认后保存'); }
+    else { toast('AI 返回为空', true); }
+  } catch (error) { toast(error.message, true); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = 'AI 补全'; } }
+}
+
+function loadDocsFile(file) {
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { toast('文档文件不能超过 5 MB', true); return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const content = String(reader.result || '');
+    if (!content.trim()) { toast('文档内容为空', true); return; }
+    const textarea = $('#versionDocs');
+    if (textarea) {
+      textarea.value = content;
+      toast('文档已载入，请确认后点击「保存文档」');
+    }
+  };
+  reader.onerror = () => toast('读取文件失败', true);
+  reader.readAsText(file, 'utf-8');
 }
 
 async function saveVersion() {

@@ -373,3 +373,8 @@ class ChangelogOptimizeIn(BaseModel):
     """Developer submits a changelog draft for AI polishing."""
     changelog: str = Field(min_length=1, max_length=5000)
 
+
+class DocumentationOptimizeIn(BaseModel):
+    """Developer submits a documentation draft for AI polishing."""
+    documentation: str = Field(min_length=1, max_length=50000)
+

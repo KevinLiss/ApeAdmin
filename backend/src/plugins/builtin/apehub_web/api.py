@@ -45,9 +45,12 @@ from src.plugins.builtin.apehub_web import services
 from src.plugins.builtin.apehub_web.analysis import (
     MAX_PACKAGE_SIZE,
     PackageValidationError,
+    generate_changelog_from_package,
     generate_documentation,
+    generate_documentation_from_package,
     inspect_package,
     optimize_changelog,
+    optimize_documentation,
 
 )
 from src.plugins.builtin.apehub_web.models import (
@@ -85,6 +88,7 @@ from src.plugins.builtin.apehub_web.schemas import (
     AdminVersionUpdateIn,
     ChangelogOptimizeIn,
     DocCategoryIn,
+    DocumentationOptimizeIn,
     DocIn,
     NavigationItemIn,
     PluginMediaIn,
@@ -271,6 +275,36 @@ async def _owned_version(
     if version is None or version.plugin_id != plugin.id:
         raise NotFoundException("插件版本不存在")
     return plugin, version
+
+
+async def _ai_provider_config(db: AsyncSession) -> tuple[str, str, str]:
+    """Resolve AI provider (base_url, model, api_key) from site config."""
+    cfg = await _get_site_config(db)
+    if cfg.ai_provider == "qwen":
+        if not cfg.qwen_api_key_enc:
+            raise ValidationException("请先在官网配置中设置千问（Qwen）API Key")
+        return cfg.qwen_base_url, cfg.qwen_model, _decrypt_secret(cfg.qwen_api_key_enc)
+    if not cfg.deepseek_api_key_enc:
+        raise ValidationException("请先在官网配置中设置 DeepSeek API Key")
+    return cfg.deepseek_base_url, cfg.deepseek_model, _decrypt_secret(cfg.deepseek_api_key_enc)
+
+
+async def _package_report(db: AsyncSession, version: ApehubWebPluginVersion) -> dict[str, Any]:
+    """Inspect the latest uploaded package of a version and return the static report."""
+    package = (
+        await db.execute(
+            select(ApehubWebPluginFile)
+            .where(
+                ApehubWebPluginFile.version_id == version.id,
+                ApehubWebPluginFile.file_type == "package",
+            )
+            .order_by(ApehubWebPluginFile.id.desc())
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    if package is None:
+        raise ValidationException("请先上传 ZIP 安装包，AI 补全需要代码包内容")
+    return await asyncio.to_thread(inspect_package, _safe_upload_path(package.stored_path))
 
 
 def _editable_version(version: ApehubWebPluginVersion) -> bool:
@@ -1585,19 +1619,7 @@ async def optimize_version_changelog(
     """Use AI to polish a changelog draft. AI Key stays server-side; never exposed to frontend."""
     plugin, version = await _owned_version(db, plugin_id, version_id, user.id)
     _editable_version(version)
-    cfg = await _get_site_config(db)
-    if cfg.ai_provider == "qwen":
-        if not cfg.qwen_api_key_enc:
-            raise ValidationException("请先在官网配置中设置千问（Qwen）API Key")
-        provider_base_url = cfg.qwen_base_url
-        provider_model = cfg.qwen_model
-        provider_api_key = _decrypt_secret(cfg.qwen_api_key_enc)
-    else:
-        if not cfg.deepseek_api_key_enc:
-            raise ValidationException("请先在官网配置中设置 DeepSeek API Key")
-        provider_base_url = cfg.deepseek_base_url
-        provider_model = cfg.deepseek_model
-        provider_api_key = _decrypt_secret(cfg.deepseek_api_key_enc)
+    provider_base_url, provider_model, provider_api_key = await _ai_provider_config(db)
     try:
         optimized = await optimize_changelog(
             body.changelog,
@@ -1610,6 +1632,84 @@ async def optimize_version_changelog(
     except Exception as exc:
         raise ValidationException(f"AI 优化失败：{exc}")
     return success_response(data={"changelog": optimized}, msg="AI 优化完成")
+
+
+@router.post("/developer/plugins/{plugin_id}/versions/{version_id}/optimize-documentation")
+async def optimize_version_documentation(
+    plugin_id: int,
+    version_id: int,
+    body: DocumentationOptimizeIn,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
+    """Use AI to polish a documentation draft. AI Key stays server-side."""
+    plugin, version = await _owned_version(db, plugin_id, version_id, user.id)
+    _editable_version(version)
+    provider_base_url, provider_model, provider_api_key = await _ai_provider_config(db)
+    try:
+        optimized = await optimize_documentation(
+            body.documentation,
+            api_key=provider_api_key,
+            base_url=provider_base_url,
+            model=provider_model,
+        )
+    except RuntimeError as exc:
+        raise ValidationException(str(exc))
+    except Exception as exc:
+        raise ValidationException(f"AI 优化失败：{exc}")
+    return success_response(data={"documentation": optimized}, msg="AI 优化完成")
+
+
+@router.post("/developer/plugins/{plugin_id}/versions/{version_id}/generate-changelog")
+async def generate_version_changelog(
+    plugin_id: int,
+    version_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
+    """Analyze the uploaded package and generate a changelog via AI (AI completion)."""
+    plugin, version = await _owned_version(db, plugin_id, version_id, user.id)
+    _editable_version(version)
+    report = await _package_report(db, version)
+    provider_base_url, provider_model, provider_api_key = await _ai_provider_config(db)
+    try:
+        generated = await generate_changelog_from_package(
+            report,
+            api_key=provider_api_key,
+            base_url=provider_base_url,
+            model=provider_model,
+        )
+    except RuntimeError as exc:
+        raise ValidationException(str(exc))
+    except Exception as exc:
+        raise ValidationException(f"AI 补全失败：{exc}")
+    return success_response(data={"changelog": generated}, msg="AI 补全完成")
+
+
+@router.post("/developer/plugins/{plugin_id}/versions/{version_id}/generate-documentation")
+async def generate_version_documentation(
+    plugin_id: int,
+    version_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
+    """Analyze the uploaded package and generate documentation via AI (AI completion)."""
+    plugin, version = await _owned_version(db, plugin_id, version_id, user.id)
+    _editable_version(version)
+    report = await _package_report(db, version)
+    provider_base_url, provider_model, provider_api_key = await _ai_provider_config(db)
+    try:
+        generated = await generate_documentation_from_package(
+            report,
+            api_key=provider_api_key,
+            base_url=provider_base_url,
+            model=provider_model,
+        )
+    except RuntimeError as exc:
+        raise ValidationException(str(exc))
+    except Exception as exc:
+        raise ValidationException(f"AI 补全失败：{exc}")
+    return success_response(data={"documentation": generated}, msg="AI 补全完成")
 
 
 # ---------------------------------------------------------------------------
