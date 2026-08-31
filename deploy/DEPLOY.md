@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '27ad8917-65cb-4eab-ad29-84a363227925'
-  PropagateID: '27ad8917-65cb-4eab-ad29-84a363227925'
-  ReservedCode1: '22582987-fa82-4f2d-ac00-6dea01e07969'
-  ReservedCode2: '22582987-fa82-4f2d-ac00-6dea01e07969'
+  ProduceID: 'a80eb638-f488-4705-82fc-d62f53a2938f'
+  PropagateID: 'a80eb638-f488-4705-82fc-d62f53a2938f'
+  ReservedCode1: 'df1fcf4c-f544-4f07-8373-d06381cfff0f'
+  ReservedCode2: 'df1fcf4c-f544-4f07-8373-d06381cfff0f'
 ---
 
 # ApeAdmin 宝塔部署指南（安装向导版 · 80 端口直连）
@@ -14,19 +14,22 @@ AIGC:
 > **部署目标**：服务器 118.89.55.247（宝塔面板）· 域名 `apehub.finecv.cn`
 > **部署方式**：上传部署包 → 宝塔建 Python 项目（**直接绑 80 端口，无需 Nginx 反代**）→ 浏览器打开自动进入**安装向导**（3 步完成）
 
-## 部署包内容（底座版）
+## 部署包内容（底座版 · 扁平结构）
 
 ```
-apeadmin-deploy-base-<date>.tar.gz
-├── backend/            后端底座源码 + frontend_dist/（管理后台构建产物）
-│   └── requirements.txt  生产依赖锁定版本
-├── nginx/apeadmin.conf Nginx 配置模板（仅以后需要 HTTPS 时才用到）
+apeadmin-base-<date>.tar.gz 解压后:
+apeadmin/
+├── src/                后端底座源码 + frontend_dist/（管理后台构建产物）
+├── requirements.txt      生产依赖锁定版本
 ├── scripts/
 │   ├── deploy.sh       备选：纯命令行部署（不用宝塔 Python 项目时）
 │   └── manage.sh       日常运维（状态/重启/日志/更新/备份）
-├── .env.example        环境变量参考模板（向导会自动生成 .env，无需手工配）
-└── DEPLOY.md           本文档
+├── nginx/apeadmin.conf Nginx 配置模板（仅以后上 HTTPS 时才用到）
+└── .env.example        环境变量参考模板（向导会自动生成 .env，无需手工配）
 ```
+
+> **扁平化设计**：解压出来直接就是 `apeadmin/`，无版本号目录、无 backend 子层。
+> 宝塔 Python 项目「项目路径」直接选 `/www/wwwroot/apeadmin` 即可，不用再钻子目录。
 
 底座包含：RBAC 权限、菜单、用户/角色/部门管理、插件框架、MCP 工具、AI 供应商配置、日志审计。
 不含 apehub_web 官网插件（后续在后台插件管理里按需安装）。
@@ -54,19 +57,21 @@ bash build_deploy_package.sh --with-apehub
 
 MySQL **不用提前建库**——向导第 1 步可以直接创建（用宝塔数据库页建的账号），或选 SQLite 完全免配置。
 
-## 三、上传并解压
+## 三、上传并解压（解压即用，无需重命名）
 
-宝塔「文件」→ 进入 `/www/wwwroot/` → 上传 `apeadmin-deploy-base-*.tar.gz` → 右键解压 → 把解压出的目录**重命名为 `apeadmin`**。
+宝塔「文件」→ 进入 `/www/wwwroot/` → 上传 `apeadmin-base-*.tar.gz` → 右键解压。
+
+解压出来直接就是 `apeadmin/` 目录（扁平结构，已无版本号目录和 backend 层，**不用重命名**）。
 
 命令行等价操作：
 
 ```bash
-scp deploy/dist/apeadmin-deploy-base-*.tar.gz root@118.89.55.247:/www/wwwroot/
+scp deploy/dist/apeadmin-base-*.tar.gz root@118.89.55.247:/www/wwwroot/
 # 服务器上:
-cd /www/wwwroot && tar xzf apeadmin-deploy-base-*.tar.gz && mv apeadmin-deploy-base-* apeadmin
+cd /www/wwwroot && tar xzf apeadmin-base-*.tar.gz
 ```
 
-**自检**：`/www/wwwroot/apeadmin/backend/src/main.py` 必须存在。如果找不到 `backend` 目录，说明解压层级错了。
+**自检**：`/www/wwwroot/apeadmin/src/main.py` 必须存在（注意是 `src/main.py`，不再是 `backend/src/main.py`）。
 
 ## 四、创建 Python 项目（对应宝塔表单逐项填）
 
@@ -75,7 +80,7 @@ cd /www/wwwroot && tar xzf apeadmin-deploy-base-*.tar.gz && mv apeadmin-deploy-b
 | 表单项 | 填写值 | 说明 |
 |---|---|---|
 | 项目名称 | `apeadmin` | |
-| **项目路径** | `/www/wwwroot/apeadmin/backend` | **必须选到 backend 这一层**，不是上一层 apeadmin！最常见错误 |
+| **项目路径** | `/www/wwwroot/apeadmin` | 解压即此目录，直接选，**不用进子目录** |
 | Python版本 | 3.11.6 | |
 | 启动方式 | **命令行启动** | |
 | 启动命令 | `python -m uvicorn src.main:app --host 0.0.0.0 --port 80 --workers 1` | 端口写 80 |
@@ -83,7 +88,7 @@ cd /www/wwwroot && tar xzf apeadmin-deploy-base-*.tar.gz && mv apeadmin-deploy-b
 | 通讯协议 | **asgi** | FastAPI 必须，别用默认 wsgi |
 | 环境变量 | 留空 | |
 | **启动用户** | **root** | 默认 www 绑不了 80，必须改 |
-| 安装依赖包路径 | `/www/wwwroot/apeadmin/backend/requirements.txt` | 勾选让面板自动装 |
+| 安装依赖包路径 | `/www/wwwroot/apeadmin/requirements.txt` | 勾选让面板自动装 |
 
 > ⚠️ **单 worker**：插件热拔插运行态是进程本地的，多 worker 会状态错乱。
 > ⚠️ **不要**提前创建 `.env`——没有 `.env` 才会触发安装向导。
@@ -146,7 +151,12 @@ cd /www/wwwroot && tar xzf apeadmin-deploy-base-*.tar.gz && mv apeadmin-deploy-b
 bash /www/wwwroot/apeadmin/scripts/manage.sh status|logs|restart|backup
 ```
 
-**重装/重置**：删除 `backend/setup.lock` 和 `backend/.env` → 重启 → 重新进入安装向导（数据表会保留，向导会重新建缺失的表）。
+**重装/重置**：删除 `setup.lock` 和 `.env` → 重启 → 重新进入安装向导（数据表会保留，向导会重新建缺失的表）。
+
+```bash
+rm /www/wwwroot/apeadmin/setup.lock /www/wwwroot/apeadmin/.env
+bash /www/wwwroot/apeadmin/scripts/manage.sh restart
+```
 
 ## 十、以后要 HTTPS 怎么办（可选）
 
@@ -167,6 +177,6 @@ bash /www/wwwroot/apeadmin/scripts/manage.sh status|logs|restart|backup
 | **无 .env 才有向导** | 手工放了 .env 则直接按 .env 启动，不走向导 |
 | **JWT_SECRET** | 向导自动生成；生成后不可改（API Key 加密依赖） |
 | **SQLite 够用吗** | 2000 用户量级写并发足够；上量后后台导出再切 MySQL |
-| **uploads** | `backend/src/uploads/` 运行时写入，备份别漏 |
+| **uploads** | `src/uploads/` 运行时写入，备份别漏 |
 
 > AI生成

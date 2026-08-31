@@ -3,6 +3,7 @@
 # ApeAdmin 日常运维脚本（服务器上运行）
 # 用法: bash manage.sh <命令>   （不带参数查看帮助）
 #
+# 包结构为扁平化（项目根即原 backend/）: INSTALL_DIR 直接就是源码根。
 # 服务名自动探测: 先找 apeadmin，再找宝塔常用的 pyproject_apeadmin；
 # 都找不到时提示用宝塔面板操作。
 # =============================================================================
@@ -10,7 +11,7 @@ set -euo pipefail
 
 APP_NAME="${APP_NAME:-apeadmin}"
 INSTALL_DIR="${INSTALL_DIR:-/www/wwwroot/${APP_NAME}}"
-BACKEND="$INSTALL_DIR/backend"
+BACKEND="$INSTALL_DIR"              # 扁平结构：项目根即源码根（原 backend/）
 ENV_FILE="$BACKEND/.env"
 
 # ---- 工具函数 ----
@@ -47,6 +48,7 @@ usage() {
   backup    备份数据库(MySQL/SQLite 自动识别) + .env + uploads 到 $INSTALL_DIR/backup/
   restore   从备份恢复: bash $0 restore <备份目录>   如 restore /www/wwwroot/apeadmin/backup/20260901-0300
   shell     进入后端虚拟环境 Python shell
+  pwd       显示项目根路径（宝塔项目路径应填的值）
 EOF
   exit 1
 }
@@ -83,13 +85,15 @@ case "$cmd" in
 
   update)
     SRC="/tmp/apeadmin-update"
-    [[ -d "$SRC/backend" ]] || { echo "请先把新版部署包解压到 $SRC/（保证 $SRC/backend 存在）"; exit 1; }
+    # 兼容两种结构: 新版扁平包（$SRC/apeadmin/）与旧版（$SRC/backend/）
+    if [[ -d "$SRC/apeadmin" ]]; then SRC="$SRC/apeadmin"; fi
+    [[ -d "$SRC/src" ]] || { echo "请先把新版部署包解压到 /tmp/apeadmin-update/（应含 src/ 目录）"; exit 1; }
     echo "==> 停服更新（自动保留: .env / setup.lock / 数据库文件 / uploads）"
     if detect_service; then systemctl stop "$SYSTEMD_NAME" || true; fi
     rsync -a --delete \
       --exclude='.env' --exclude='setup.lock' --exclude='.venv' \
       --exclude='apeadmin.db*' --exclude='src/uploads/' \
-      "$SRC/backend/" "$BACKEND/"
+      "$SRC/" "$BACKEND/"
     if detect_service; then systemctl start "$SYSTEMD_NAME"; fi
     echo "==> 完成，查看日志: bash $0 logs"
     ;;
@@ -145,6 +149,11 @@ case "$cmd" in
 
   shell)
     cd "$BACKEND" && ./.venv/bin/python
+    ;;
+
+  pwd)
+    echo "项目根: $BACKEND"
+    echo "（宝塔 Python 项目路径应填: $BACKEND）"
     ;;
 
   *)
