@@ -1,3 +1,13 @@
+---
+AIGC:
+  ContentProducer: '001191110102MAD55U9H0F10002'
+  ContentPropagator: '001191110102MAD55U9H0F10002'
+  Label: '1'
+  ProduceID: '57938917-aeb3-4a58-b1bc-9374aaa33696'
+  PropagateID: '57938917-aeb3-4a58-b1bc-9374aaa33696'
+  ReservedCode1: 'dfe6e195-b9fe-4b59-ba4d-9b32c0bd16a7'
+  ReservedCode2: 'dfe6e195-b9fe-4b59-ba4d-9b32c0bd16a7'
+---
 
 <div align="center">
   <br/>
@@ -16,7 +26,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.1.0-blue" alt="version">
+  <img src="https://img.shields.io/badge/version-0.2.0-blue" alt="version">
   <img src="https://img.shields.io/badge/python-3.11%2B-orange" alt="python">
   <img src="https://img.shields.io/badge/vue-3.5-brightgreen" alt="vue">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="license">
@@ -37,6 +47,16 @@ ApeAdmin 是新时代面向 AI 应用打造的后台开发框架，基于 FastAP
 
 ## 功能特性
 
+### 安装向导
+
+WordPress 式开箱体验，无需手工编辑配置文件：
+
+- **自动检测** —— 首次访问自动跳转 `/setup` 安装向导，已完成安装的系统直接进入后台
+- **三步安装** —— 配置数据库 → 配置站点与管理员账号 → 完成安装
+- **自动建库** —— MySQL 连接自动检测，数据库不存在时自动创建（utf8mb4）
+- **密钥自动生成** —— JWT_SECRET 随机生成并写入 `.env`，无需手工处理
+- **安装锁保护** —— 安装完成后写入 `setup.lock`，防止向导被重复执行
+
 ### RBAC 权限体系
 
 - **五表模型** —— 用户 / 角色 / 菜单 / 部门 + 关联表，标准 RBAC 基础设施
@@ -52,6 +72,7 @@ ApeAdmin 是新时代面向 AI 应用打造的后台开发框架，基于 FastAP
 - **完整生命周期** —— `load → install → register → uninstall`，支持热启用禁用
 - **事件总线** —— EventBus 支持 7 种内置事件（APP_STARTUP / DB_READY / USER_LOGIN 等），插件间松耦合通信
 - **ZIP 安装** —— 支持上传 ZIP 包导入插件，无需手动放置文件
+- **插件市场** —— 在线浏览、搜索、下载社区插件，开发者发布插件与安装包
 - **能力注册** —— 插件可注册自有路由、MCP 工具、事件监听器
 
 ### MCP-SSE 网关
@@ -61,6 +82,8 @@ ApeAdmin 是新时代面向 AI 应用打造的后台开发框架，基于 FastAP
 - **三原语** —— Tools（工具调用）/ Resources（资源读取）/ Prompts（模板渲染）
 - **自动 Schema** —— 工具注册时自动从函数签名推断 JSON Schema，无需手写
 - **RBAC 过滤** —— AI Agent 只能看到当前用户有权限调用的工具
+- **安全传输** —— SSE 一次性 ticket 认证（替代 URL 裸 JWT），工具调用 30s 超时保护
+- **持久化恢复** —— 插件注册信息持久化，服务重启后自动恢复 MCP 工具注册
 - **审计日志** —— 每次工具调用自动记录请求、响应、耗时、调用者
 - **插件扩展** —— 插件可向 MCP 网关注册工具，实现能力级对外开放
 
@@ -79,25 +102,13 @@ ApeAdmin 是新时代面向 AI 应用打造的后台开发框架，基于 FastAP
 - **多模型支持** —— DeepSeek / 通义千问 / 智谱 GLM / OpenAI / 自定义端点，OpenAI 兼容接口
 - **流式 SSE** —— 流式输出 + Markdown 实时渲染 + 代码高亮
 - **Function Calling** —— AI 可调用 MCP 工具完成管理操作，最多 5 轮工具调用循环
-- **密钥管理** —— 后台管理 AI 供应商密钥，加密存储
+- **密钥管理** —— 后台管理 AI 供应商密钥，Fernet 加密存储（密钥派生自 JWT_SECRET）
 
 ### 审计日志
 
 - **请求链路追踪** —— RequestContextMiddleware 全局唯一请求 ID
 - **操作日志** —— 记录用户操作行为，支持按模块、时间、用户筛选
 - **请求耗时监控** —— 自动记录每个 API 请求耗时
-
-### 73 页 UI 组件库
-
-内置 73 个完整 UI 展示页面，涵盖仪表盘、电商、应用、用户中心、组件示例五大模块，全部基于 Element Plus 重写：
-
-| 模块 | 页面数 | 示例 |
-|------|--------|------|
-| 仪表盘 | 3 | 默认看板、电商看板、系统监控 |
-| 应用中心 | 13 | 项目管理、看板、文件管理、日历、聊天、视频通话 |
-| 电商模块 | 11 | 商品详情、购物车、结算、订单历史、发票模板 |
-| 用户中心 | 3 | 用户资料、编辑资料、用户卡片 |
-| 组件示例 | 45 | 按钮、模态框、图表（Apex/Google/Chart.js）、图标库、时间线等 |
 
 ## 技术栈
 
@@ -115,51 +126,52 @@ ApeAdmin 是新时代面向 AI 应用打造的后台开发框架，基于 FastAP
 
 ## 快速开始
 
-### 前置条件
+### 方式一：安装向导（推荐）
 
-- **Python 3.11+**
-- **Node.js 18+**
-- **Git**
-
-### 后端
+无需手工配置，浏览器里点几下即可完成安装：
 
 ```bash
+# 1. 启动后端
 cd backend
-python -m venv .venv
-.venv\Scripts\activate          # Windows
-# source .venv/bin/activate     # Linux / macOS
+python -m venv .venv && .venv/bin/activate    # Windows: .venv\Scripts\activate
 pip install -e .
 uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
-```
 
-默认使用 SQLite，无需额外安装数据库。访问 `http://localhost:8000/docs` 查看 API 文档。
-
-### 前端
-
-```bash
+# 2. 启动前端（开发模式）
 cd frontend
 npm install --legacy-peer-deps
-npm run dev                     # http://localhost:5173
+npm run dev
 ```
 
-### 默认账号
+打开 `http://localhost:5173`，系统检测到未安装会自动进入安装向导：
 
-```
-用户名: admin
-密码:   admin123
-```
+1. **配置数据库** —— 选择 SQLite（零配置）或 MySQL（填连接信息，可自动建库）
+2. **配置站点** —— 站点名称、管理员账号密码、访问地址
+3. **完成安装** —— 写入配置并建表，按提示重启后端，重启后自动初始化管理员账号与基础数据
 
-### 开始使用
+> SQLite 适合本地开发和轻量部署；MySQL 适合生产环境与多服务场景。
 
-1. 访问 `http://localhost:5173` 进入登录页
-2. 使用默认账号登录
-3. 系统管理 → 用户/角色/菜单/部门/插件管理
-4. MCP 管理 → 工具/资源/提示词/调用日志
-5. AI 助手 → 配置模型密钥后即可对话
+### 方式二：生产部署
+
+服务器（宝塔面板 / Docker / 裸机 Nginx）一键部署方案、部署包构建、SQLite→MySQL 数据迁移，见 **[deploy/DEPLOY.md](deploy/DEPLOY.md)**。
+
+部署包分两种模式（`deploy/build_deploy_package.sh`）：
+
+| 模式 | 命令 | 内容 |
+|------|------|------|
+| 底座版（默认） | `bash build_deploy_package.sh` | 管理后台底座，不含业务插件，首次启动进安装向导 |
+| 完整版 | `bash build_deploy_package.sh --with-apehub` | 底座 + apehub_web 官网插件 |
+
+### 默认体验路径
+
+1. 登录后台（安装向导中设置的管理员账号）
+2. 系统管理 → 用户 / 角色 / 菜单 / 部门 / 插件管理
+3. MCP 管理 → 工具 / 资源 / 提示词 / 调用日志
+4. AI 助手 → 配置模型密钥后即可对话
 
 ## 架构
 
-ApeAdmin 是一个前后端分离的单体应用，后端插件化扩展：
+ApeAdmin 是一个前后端分离的单体应用，后端插件化扩展，内置安装向导：
 
 ```
 apeadmin/
@@ -171,7 +183,7 @@ apeadmin/
         role.py                  # 角色管理
         menu.py                  # 菜单管理（树形）
         dept.py                  # 部门管理（树形）
-        plugin.py               # 插件管理
+        plugin.py                # 插件管理
         ai_provider.py           # AI 模型密钥管理
         chat.py                  # AI 对话（流式 SSE）
         dashboard.py             # 仪表盘统计
@@ -180,7 +192,7 @@ apeadmin/
         config.py                # 配置（pydantic-settings）
         security.py              # 密码哈希 + JWT
         deps.py                  # 依赖注入
-        middleware.py             # 中间件（CORS / 请求追踪）
+        middleware.py            # 中间件（CORS / 请求追踪）
         seed.py                  # 种子数据初始化
         crypto.py                # API Key 加密
       crud/                      # 泛型 CRUD 基类 + RBAC CRUD
@@ -199,11 +211,17 @@ apeadmin/
         base.py                  # PluginInterface + EventBus
         manager.py               # 插件发现/加载/安装/卸载
         builtin/                 # 内置插件
+          apehub_web/            # 官网插件（可选）
+          login_captcha/         # 登录验证码
+      setup_wizard/              # 安装向导（未安装时挂载）
+        state.py                 # 安装状态（setup.lock / .env 读写）
+        api.py                   # 向导 API（状态/测试连接/执行安装）
+        setup.html               # 向导页面
       ai/                        # AI 智能体
         agent.py                 # 多模型对话 + 工具调用循环
         tools.py                 # MCP 工具列表构建
       schemas/                   # Pydantic 请求/响应模型
-      main.py                    # 应用入口（lifespan）
+      main.py                    # 应用入口（lifespan + setup 模式切换）
       cli.py                     # 命令行工具
     alembic/                     # 数据库迁移
     pyproject.toml
@@ -220,26 +238,26 @@ apeadmin/
       styles/                    # 全局样式
       views/                     # 页面
         login/                   # 登录
-        system/                  # 系统管理（用户/角色/菜单/部门/插件/日志/设置/个人中心）
+        system/                  # 系统管理（用户/角色/菜单/部门/文件/插件/日志/设置/个人中心）
         mcp/                     # MCP 管理（工具/资源/提示词/审计日志）
-        ai/                      # AI 助手（对话/密钥管理）
-        apeui/                   # 73 页 UI 组件库
-          dashboard/             # 仪表盘（3 页）
-          applications/           # 应用中心（13 页）
-          ecommerce/             # 电商模块（11 页）
-          users/                 # 用户中心（3 页）
-          components/             # 组件示例（45 页）
-    vite.config.ts
-    package.json
+        ai/                      # AI 助手（对话/模型密钥管理）
+        error/                   # 异常页（404 等）
+
+  deploy/                        # 部署物料
+    DEPLOY.md                    # 生产部署文档（宝塔/Docker/Nginx）
+    build_deploy_package.sh      # 部署包构建脚本（底座版/完整版）
+    nginx/                       # Nginx 站点配置模板
+    scripts/                     # 服务器端部署/管理脚本
 ```
 
 ### 设计原则
 
-1. **底座与插件解耦** —— 底座提供 RBAC、日志、MCP 网关等基础设施，业务功能全部以插件形式开发，互不依赖
-2. **双数据库驱动** —— 开发用 SQLite 零配置启动，生产用 MySQL，通过 `DB_TYPE` 环境变量切换
-3. **Redis 可选** —— 缓存层缺失时自动降级为内存字典，不影响功能
-4. **权限贯穿 AI** —— MCP 工具调用和 AI Function Calling 均受 RBAC 权限控制，AI Agent 只能操作有权限的资源
-5. **动态路由** —— 前端路由从后端菜单树动态生成，菜单增减无需改前端代码
+1. **安装即用** —— 未安装时自动进入 `/setup` 向导，配置写 `.env`、建表自动完成，安装锁防止重复执行；安装阶段只建表不跑种子数据，种子在重启后以新密钥执行，避免加密密钥不一致
+2. **底座与插件解耦** —— 底座提供 RBAC、日志、MCP 网关等基础设施，业务功能全部以插件形式开发，互不依赖
+3. **双数据库驱动** —— 开发用 SQLite 零配置启动，生产用 MySQL，通过 `DB_TYPE` 环境变量切换
+4. **Redis 可选** —— 缓存层缺失时自动降级为内存字典，不影响功能
+5. **权限贯穿 AI** —— MCP 工具调用和 AI Function Calling 均受 RBAC 权限控制，AI Agent 只能操作有权限的资源
+6. **动态路由** —— 前端路由从后端菜单树动态生成，菜单增减无需改前端代码
 
 ## 插件开发
 
@@ -251,9 +269,9 @@ apeadmin/
 my_plugin/
   __init__.py
   plugin.py          # 插件入口（实现 PluginInterface）
-  models.py           # ORM 模型（可选）
-  api.py              # 路由（可选）
-  services.py         # 业务逻辑（可选）
+  models.py          # ORM 模型（可选）
+  api.py             # 路由（可选）
+  services.py        # 业务逻辑（可选）
 ```
 
 ### 插件接口
@@ -312,7 +330,7 @@ class MyPlugin(PluginInterface):
 
 ## 配置说明
 
-后端配置通过 `.env` 文件或环境变量：
+通过安装向导可自动生成 `.env`；手工配置时参考下表（后端目录 `.env` 文件或环境变量）：
 
 | 配置项 | 默认值 | 说明 |
 |--------|--------|------|
@@ -323,9 +341,11 @@ class MyPlugin(PluginInterface):
 | `DB_PASSWORD` | — | MySQL 密码 |
 | `DB_NAME` | apeadmin | 数据库名 |
 | `REDIS_URL` | redis://localhost:6379/1 | Redis 连接（可选） |
-| `JWT_SECRET` | change-me-in-production... | JWT 签名密钥 |
+| `JWT_SECRET` | change-me-in-production... | JWT 签名密钥（向导安装时自动生成） |
 | `JWT_EXPIRE_MINUTES` | 1440 | Token 有效期（分钟） |
 | `CORS_ORIGINS` | localhost:5173,localhost:8000 | CORS 白名单 |
+| `ADMIN_PATH` | /admin | 管理后台访问路径 |
+| `SITE_URL` | — | 站点对外访问地址 |
 | `MCP_ENABLED` | true | 是否启用 MCP 网关 |
 | `PLUGINS_ENABLED` | true | 是否启用插件系统 |
 | `SUPER_ADMIN_USERNAME` | admin | 超管用户名 |
@@ -400,4 +420,4 @@ class MyPlugin(PluginInterface):
   <img src="assets/aa4f8c941d68d25fe00fb679b62d923b.jpg" alt="微信用户群二维码" width="220">
 </p>
 
-
+> AI生成
