@@ -12,6 +12,8 @@ from typing import Any
 
 import httpx
 
+from src.core.exceptions import ValidationException
+
 MAX_PACKAGE_SIZE = 50 * 1024 * 1024
 MAX_ARCHIVE_ENTRIES = 5000
 MAX_UNCOMPRESSED_SIZE = 200 * 1024 * 1024
@@ -41,8 +43,11 @@ RISK_PATTERNS: tuple[tuple[str, re.Pattern[str], str], ...] = (
 )
 
 
-class PackageValidationError(ValueError):
-    pass
+class PackageValidationError(ValidationException):
+    """插件包校验错误，继承 ValidationException 以被全局异常处理器捕获并返回 422。"""
+
+    def __init__(self, msg: str = "插件包校验失败"):
+        super().__init__(msg=msg)
 
 
 def _safe_member(info: zipfile.ZipInfo) -> PurePosixPath:

@@ -10,6 +10,13 @@
           <el-form-item label="SEO 标题"><el-input v-model="form.seo_title" /></el-form-item>
           <el-form-item label="SEO 描述"><el-input v-model="form.seo_description" type="textarea" :rows="2" /></el-form-item>
           <el-form-item label="SEO 关键词"><el-input v-model="form.seo_keywords" /></el-form-item>
+          <el-form-item label="官网默认主题">
+            <el-radio-group v-model="form.theme_mode">
+              <el-radio value="light">浅色</el-radio>
+              <el-radio value="dark">深色</el-radio>
+            </el-radio-group>
+            <div class="field-tip">官网访问者首次打开时的默认主题，访问者可在页面上手动切换（仅影响当前浏览器）。</div>
+          </el-form-item>
           <el-form-item label="服务费率"><el-input-number v-model="form.service_fee_rate" :precision="1" :min="0" :max="100" />%</el-form-item>
           <el-form-item><el-button type="primary" :loading="saving" @click="saveConfig">保存配置</el-button></el-form-item>
         </el-form>
@@ -243,7 +250,7 @@ const AssetField = defineComponent({
 
 const activeTab = ref('basic'); const loading = ref(false); const saving = ref(false)
 const navLoading = ref(false); const navSaving = ref(false); const navigation = ref<any[]>([]); const navDialog = ref(false); const hero = ref<any>(null)
-const form = ref<any>({ site_name: '', site_logo: '/apehub-web/assets/logo.png', site_icon: '/apehub-web/assets/logo.png', site_domain: '', site_prefix: '/apehub-web', seo_title: '', seo_description: '', seo_keywords: '', service_fee_rate: 30, mail_user: '', mail_code: '', mail_host: 'smtp.qq.com', mail_port: 465, lempay_pid: 0, lempay_key: '', lempay_submit_url: '', lempay_api_url: '', lempay_notify_url: '', lempay_return_url: '', lempay_payment_type: 'usdt', deepseek_api_key: '', deepseek_base_url: 'https://api.deepseek.com', deepseek_model: 'deepseek-chat', settlement_days: 7, refund_days: 7, min_withdrawal: 100, withdrawal_fee_type: 'fixed', withdrawal_fee_value: 0 })
+const form = ref<any>({ site_name: '', site_logo: '/apehub-web/assets/logo.png', site_icon: '/apehub-web/assets/logo.png', site_domain: '', site_prefix: '/apehub-web', seo_title: '', seo_description: '', seo_keywords: '', theme_mode: 'light', service_fee_rate: 30, mail_user: '', mail_code: '', mail_host: 'smtp.qq.com', mail_port: 465, lempay_pid: 0, lempay_key: '', lempay_submit_url: '', lempay_api_url: '', lempay_notify_url: '', lempay_return_url: '', lempay_payment_type: 'usdt', deepseek_api_key: '', deepseek_base_url: 'https://api.deepseek.com', deepseek_model: 'deepseek-chat', settlement_days: 7, refund_days: 7, min_withdrawal: 100, withdrawal_fee_type: 'fixed', withdrawal_fee_value: 0 })
 
 /* ---------------- 插件详情页配置 ---------------- */
 const defaultDetailConfig = () => ({
@@ -311,7 +318,7 @@ onMounted(async () => { await Promise.all([loadConfig(), loadNavigation()]) })
 </script>
 
 <style scoped>
-.card-header { display: flex; justify-content: space-between; align-items: center; }.form-width { max-width: 680px; }.form-wide { max-width: 1060px; }.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 20px; }.asset-tip { margin-bottom: 18px; }.toolbar { margin-bottom: 16px; }.nav-icon { width: 32px; height: 32px; }
+.card-header { display: flex; justify-content: space-between; align-items: center; }.form-width { max-width: 680px; }.form-wide { max-width: 1060px; }.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 20px; }.asset-tip { margin-bottom: 18px; }.toolbar { margin-bottom: 16px; }.nav-icon { width: 32px; height: 32px; }.field-tip { font-size: 12px; color: var(--el-text-color-secondary); line-height: 1.5; margin-top: 4px; width: 100%; }
 :deep(.asset-field) { display: flex; align-items: center; gap: 10px; width: 100%; }:deep(.asset-field .el-input) { flex: 1; }:deep(.asset-preview) { width: 48px; height: 48px; flex: 0 0 48px; border: 1px solid var(--el-border-color); }
 :deep(.asset-upload-btn) { position: relative; display: inline-flex; cursor: pointer; }
 :deep(.asset-file-input) { position: absolute; width: 0; height: 0; opacity: 0; overflow: hidden; pointer-events: none; }
