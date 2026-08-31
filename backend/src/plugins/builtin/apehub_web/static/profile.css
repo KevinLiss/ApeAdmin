@@ -342,6 +342,17 @@ tbody tr:hover td { background: rgba(109,92,255,.03); }
   background: rgba(109,92,255,.03); border-color: rgba(109,92,255,.15);
 }
 
+/* ========== Re-review banner (published version being edited) ========== */
+.re-review-banner {
+  padding: 12px 16px; margin-bottom: 16px;
+  background: rgba(245,158,11,.06); border-radius: 10px;
+  border: 1px solid rgba(245,158,11,.2);
+  color: var(--amber, #f59e0b); font-size: 13px; line-height: 1.6;
+}
+:root[data-theme="light"] .re-review-banner {
+  background: rgba(245,158,11,.04); border-color: rgba(245,158,11,.15);
+}
+
 /* ========== Analysis error (failure detail) ========== */
 .analysis-error {
   margin-top: 10px; padding: 14px 16px;

@@ -214,17 +214,21 @@ function renderVersionDetail() {
   if (!root) return;
   if (!version) { root.innerHTML = '<div class="empty">请选择版本</div>'; return; }
   const editable = ['draft', 'rejected', 'analysis_failed'].includes(version.status);
+  const isPublished = version.status === 'published';
+  const canEdit = editable || isPublished;
   const hasPackage = (version.files || []).length > 0;
   const hasDocs = !!(version.documentation && version.documentation.trim());
   const report = version.analysis_report;
   const aiResult = report?.ai || null;
   const hasAnalysis = !!report;
-  const files = (version.files || []).map(file => `<div class="file-chip"><span>${esc(file.filename)}</span><span class="muted">${Math.ceil(file.size / 1024)} KB</span>${editable ? `<button class="file-chip-del" data-file="${file.id}" title="删除文件">×</button>` : ''}</div>`).join('') || '<span class="muted">未上传安装包</span>';
+  const files = (version.files || []).map(file => `<div class="file-chip"><span>${esc(file.filename)}</span><span class="muted">${Math.ceil(file.size / 1024)} KB</span>${canEdit ? `<button class="file-chip-del" data-file="${file.id}" title="删除文件">×</button>` : ''}</div>`).join('') || '<span class="muted">未上传安装包</span>';
   const warnings = report?.warnings || [];
   const riskColors = { critical: 'red', high: 'red', medium: 'amber', low: 'green', none: 'green' };
   const riskColor = riskColors[report?.risk_level] || 'text-3';
   // Step guide for draft/rejected/analysis_failed versions
   const showSteps = editable;
+  // Re-review banner for published versions being edited
+  const reReviewBanner = isPublished ? `<div class="re-review-banner">⚠️ 此版本已发布。修改内容或替换安装包后，版本将重新进入审核队列。</div>` : '';
   const steps = [
     { label: '上传 ZIP', done: hasPackage, icon: '📦' },
     { label: 'AI 分析', done: hasAnalysis, icon: '🔍', failed: version.status === 'analysis_failed' },
@@ -232,14 +236,15 @@ function renderVersionDetail() {
     { label: '提交审核', done: !editable, icon: '🚀' },
   ];
   const stepsHtml = showSteps ? `<div class="step-guide">${steps.map((s, i) => `<div class="step ${s.done ? 'done' : ''} ${s.failed ? 'failed' : ''}"><span class="step-icon">${s.failed ? '⚠️' : s.done ? '✓' : s.icon}</span><span class="step-label">${esc(s.label)}</span>${i < steps.length - 1 ? '<span class="step-arrow">→</span>' : ''}</div>`).join('')}</div>` : '';
-  const emptyTip = (editable && !hasPackage) ? `<div class="empty-tip">💡 请先上传 ZIP 安装包，再进行 AI 分析或手动填写文档</div>` : '';
+  const emptyTip = (canEdit && !hasPackage) ? `<div class="empty-tip">💡 请先上传 ZIP 安装包，再进行 AI 分析或手动填写文档</div>` : '';
   root.innerHTML = `
     <div class="version-head"><h4>${esc(version.version)}</h4><span class="status ${esc(version.status)}">${statusText(version.status)}</span></div>
     ${stepsHtml}
+    ${reReviewBanner}
     ${emptyTip}
-    ${version.compatibility ? `<div class="field" style="margin-bottom:14px"><label>兼容性</label><input id="versionCompat" value="${esc(version.compatibility)}" ${editable ? '' : 'disabled'}></div>` : ''}
-    <div class="field"><label>更新说明${editable ? '<button class="btn btn-small btn-ai-optimize" id="optimizeChangelogBtn" title="使用 AI 润色更新说明">AI 优化</button>' : ''}</label><textarea id="versionChangelog" ${editable ? '' : 'disabled'}>${esc(version.changelog || '')}</textarea></div>
-    <div class="field" style="margin-top:14px"><label>技术文档（Markdown）</label><textarea id="versionDocs" style="min-height:260px" ${editable ? '' : 'disabled'}>${esc(version.documentation || '')}</textarea></div>
+    ${version.compatibility ? `<div class="field" style="margin-bottom:14px"><label>兼容性</label><input id="versionCompat" value="${esc(version.compatibility)}" ${canEdit ? '' : 'disabled'}></div>` : ''}
+    <div class="field"><label>更新说明${canEdit ? '<button class="btn btn-small btn-ai-optimize" id="optimizeChangelogBtn" title="使用 AI 润色更新说明">AI 优化</button>' : ''}</label><textarea id="versionChangelog" ${canEdit ? '' : 'disabled'}>${esc(version.changelog || '')}</textarea></div>
+    <div class="field" style="margin-top:14px"><label>技术文档（Markdown）</label><textarea id="versionDocs" style="min-height:260px" ${canEdit ? '' : 'disabled'}>${esc(version.documentation || '')}</textarea></div>
     <div class="analysis-panel">
       <div class="analysis-header"><strong>安装包</strong>${files}</div>
       <div class="analysis-row"><span>静态风险</span><span class="status ${riskColor}">${esc(report?.risk_level || '尚未分析')}</span></div>
@@ -251,13 +256,13 @@ function renderVersionDetail() {
       ${version.reject_reason ? `<div class="reject-reason"><strong>驳回原因：</strong>${esc(version.reject_reason)}</div>` : ''}
       <div id="analysisProgress"></div>
     </div>
-    <div class="actions">${editable ? `<label class="btn btn-small">上传 ZIP<input id="packageFile" type="file" accept=".zip,application/zip" hidden></label><button class="btn btn-small" id="saveVersion">保存文档</button><button class="btn btn-small" id="analyzeVersion">AI 自动分析</button><button class="btn btn-primary btn-small" id="submitVersion">提交审核</button>` : ''}</div>`;
+    <div class="actions">${canEdit ? `<label class="btn btn-small">上传 ZIP<input id="packageFile" type="file" accept=".zip,application/zip" hidden></label><button class="btn btn-small" id="saveVersion">保存文档</button><button class="btn btn-small" id="analyzeVersion">AI 自动分析</button><button class="btn btn-primary btn-small" id="submitVersion">${isPublished ? '重新提交审核' : '提交审核'}</button>` : ''}</div>`;
   // Bind file delete
-  if (editable) $$('[data-file]').forEach(btn => btn.addEventListener('click', async () => {
+  if (canEdit) $$('[data-file]').forEach(btn => btn.addEventListener('click', async () => {
     if (!confirm('确定删除此安装包吗？')) return;
     try { await api(`/apehub-web/developer/plugins/${state.selectedPlugin.id}/files/${btn.dataset.file}`, { method: 'DELETE' }); toast('文件已删除'); await selectPlugin(state.selectedPlugin.id); } catch (error) { toast(error.message, true); }
   }));
-  if (!editable) return;
+  if (!canEdit) return;
   $('#packageFile').addEventListener('change', event => uploadPackage(event.target.files[0]));
   $('#saveVersion').addEventListener('click', saveVersion);
   $('#analyzeVersion').addEventListener('click', analyzeVersion);
@@ -302,10 +307,11 @@ async function uploadCarousel(files) {
 
 async function uploadPackage(file) {
   if (!file || !state.selectedPlugin || !state.selectedVersion) return;
+  const wasPublished = state.selectedVersion.status === 'published';
   const form = new FormData(); form.append('file', file);
   try {
     await api(`/apehub-web/developer/plugins/${state.selectedPlugin.id}/files?file_type=package&version_id=${state.selectedVersion.id}`, { method: 'POST', body: form });
-    toast('安装包校验并上传成功'); await selectPlugin(state.selectedPlugin.id);
+    toast(wasPublished ? '安装包已替换，版本重新提交审核' : '安装包校验并上传成功'); await selectPlugin(state.selectedPlugin.id);
   } catch (error) { toast(error.message, true); }
 }
 
@@ -327,8 +333,9 @@ async function optimizeChangelog() {
 async function saveVersion() {
   const plugin = state.selectedPlugin, version = state.selectedVersion;
   try {
+    const wasPublished = version.status === 'published';
     await api(`/apehub-web/developer/plugins/${plugin.id}/versions/${version.id}`, { method: 'PUT', body: JSON.stringify({ changelog: $('#versionChangelog').value, documentation: $('#versionDocs').value }) });
-    toast('版本资料已保存'); await selectPlugin(plugin.id);
+    toast(wasPublished ? '版本已保存并重新提交审核' : '版本资料已保存'); await selectPlugin(plugin.id);
   } catch (error) { toast(error.message, true); }
 }
 

@@ -273,13 +273,19 @@ async def _owned_version(
     return plugin, version
 
 
-def _editable_version(version: ApehubWebPluginVersion) -> None:
-    if version.status not in {
+def _editable_version(version: ApehubWebPluginVersion) -> bool:
+    """Check if a version can be edited. Returns True if this is a published version
+    being re-edited (which triggers re-review), False otherwise.
+    Raises ConflictException for truly locked statuses (submitted, reviewing, approved, deprecated).
+    """
+    if version.status in {
         PluginVersionStatus.DRAFT,
         PluginVersionStatus.REJECTED,
         PluginVersionStatus.ANALYSIS_FAILED,
+        PluginVersionStatus.PUBLISHED,
     }:
-        raise ConflictException("当前版本状态不允许修改")
+        return version.status == PluginVersionStatus.PUBLISHED
+    raise ConflictException("当前版本状态不允许修改")
 
 
 def _safe_upload_path(stored_path: str) -> Path:
@@ -1246,11 +1252,15 @@ async def update_plugin_version(
     user: Annotated[User, Depends(get_current_user)],
 ):
     _, version = await _owned_version(db, plugin_id, version_id, user.id)
-    _editable_version(version)
+    was_published = _editable_version(version)
     for key, value in body.model_dump(exclude_unset=True).items():
         setattr(version, key, value)
+    if was_published:
+        version.status = PluginVersionStatus.SUBMITTED
+        version.submitted_at = datetime.utcnow()
+        version.reject_reason = ""
     await db.commit()
-    return success_response(msg="版本资料已保存")
+    return success_response(msg="版本已提交重审" if was_published else "版本资料已保存")
 
 
 @router.post("/developer/plugins/{plugin_id}/media")
@@ -1353,7 +1363,7 @@ async def upload_plugin_file(
         _, version = await _owned_version(db, plugin_id, version_id, user.id)
     if version is None:
         raise ValidationException("请先创建插件版本")
-    _editable_version(version)
+    was_published = _editable_version(version)
     if file_type == "package" and not (file.filename or "").lower().endswith(".zip"):
         raise ValidationException("插件安装包必须是 ZIP 文件")
     extension = Path(file.filename or "").suffix.lower() or ".bin"
@@ -1396,7 +1406,8 @@ async def upload_plugin_file(
             await db.delete(old_file)
         version.analysis_report = None
         version.documentation = ""
-        version.status = PluginVersionStatus.DRAFT
+        # Published version re-upload → re-review; draft/other → stays draft
+        version.status = PluginVersionStatus.SUBMITTED if was_published else PluginVersionStatus.DRAFT
     row = ApehubWebPluginFile(
         plugin_id=plugin_id, version_id=version.id, file_type=file_type,
         filename=file.filename or stored, stored_path=stored, size=size, md5=md5,
@@ -1420,7 +1431,11 @@ async def delete_plugin_file(
     if not f or f.plugin_id != plugin_id:
         raise NotFoundException("文件不存在")
     if f.version:
-        _editable_version(f.version)
+        was_published = _editable_version(f.version)
+        if was_published:
+            f.version.status = PluginVersionStatus.SUBMITTED
+            f.version.submitted_at = datetime.utcnow()
+            f.version.reject_reason = ""
     path = _safe_upload_path(f.stored_path)
     if path.is_file():
         path.unlink()
@@ -1438,7 +1453,7 @@ async def analyze_plugin_version(
     user: Annotated[User, Depends(get_current_user)],
 ):
     _, version = await _owned_version(db, plugin_id, version_id, user.id)
-    _editable_version(version)
+    was_published = _editable_version(version)
     package = (
         await db.execute(
             select(ApehubWebPluginFile.id).where(
@@ -1523,7 +1538,7 @@ async def submit_plugin_version_for_review(
     user: Annotated[User, Depends(get_current_user)],
 ):
     plugin, version = await _owned_version(db, plugin_id, version_id, user.id)
-    _editable_version(version)
+    _editable_version(version)  # published is allowed → re-submit for review
     package = (
         await db.execute(
             select(ApehubWebPluginFile.id).where(
