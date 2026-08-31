@@ -4,7 +4,7 @@ from sqlalchemy import inspect, text
 
 from src.db.engine import Base, engine
 
-SCHEMA_VERSION = 9
+SCHEMA_VERSION = 10
 VERSION_TABLE = "apehub_web_schema_version"
 
 
@@ -100,3 +100,9 @@ async def apply_migrations() -> None:
             await add_plugin_detail_config(connection)
             await connection.execute(text(f"INSERT INTO {VERSION_TABLE} (version) VALUES (9)"))
             current = 9
+        if current < 10:
+            from .v0010_multi_wallet import upgrade_multi_wallet
+
+            await upgrade_multi_wallet(connection)
+            await connection.execute(text(f"INSERT INTO {VERSION_TABLE} (version) VALUES (10)"))
+            current = 10

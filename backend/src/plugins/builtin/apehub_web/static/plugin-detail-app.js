@@ -217,14 +217,27 @@ function renderDemos(demos) {
   const dropdown = document.getElementById('demoDropdown');
   dropdown.innerHTML = demos.length ? demos.map(item => `<a href="${detailEsc(item.url || '#')}" target="${item.url ? '_blank' : '_self'}" rel="noopener">${detailEsc(item.title || item.demo_type)}</a>`).join('') : '<a href="#">暂无在线 Demo</a>';
   document.getElementById('demoBtn').disabled = !demos.length;
-  document.getElementById('demoBody').innerHTML = demos.length ? `<div class="big-icon">演</div><p>可用 Demo：${demos.map(item => detailEsc(item.title || item.demo_type)).join(' · ')}</p>` : '<div class="big-icon">—</div><p>当前版本未提供在线 Demo</p>';
+  const demoBody = document.getElementById('demoBody');
+  demoBody.innerHTML = demos.length ? `<div class="big-icon">演</div><p>可用 Demo：${demos.map(item => detailEsc(item.title || item.demo_type)).join(' · ')}</p>` : '<div class="big-icon">—</div><p>当前版本未提供在线 Demo</p>';
+  // Update the demo URL display to match the first available demo
+  const demoUrlEl = document.getElementById('demoUrl');
+  if (demoUrlEl) {
+    const firstUrl = demos.length ? (demos[0].url || '—') : '—';
+    demoUrlEl.textContent = firstUrl;
+    if (demoUrlEl.tagName === 'A') demoUrlEl.href = firstUrl === '—' ? '#' : firstUrl;
+  }
 }
 
 function renderBuy(plugin, latest) {
   const button = document.getElementById('buyBtn');
-  button.textContent = Number(plugin.price) > 0 ? `购买 ${detailPrice(plugin.price)} USDT` : '免费下载';
+  const isPaid = Number(plugin.price) > 0;
+  button.textContent = isPaid ? `购买 ${detailPrice(plugin.price)} USDT` : '免费下载';
+  const buyCfg = pageConfig.buttons?.buy || {};
+  const subText = buyCfg.subtitle || '购买一次，永久获得该插件全部已发布版本。';
+  const features = buyCfg.features || ['当前已发布版本', '后续发布版本', '完整技术文档'];
+  const ctaText = isPaid ? (buyCfg.cta_paid || '前往 USDT 支付') : (buyCfg.cta_free || '下载当前版本');
   const modal = document.querySelector('#buyModal .modal');
-  modal.innerHTML = `<button class="close-btn" id="buyClose">×</button><h3>${detailEsc(plugin.display_name)}</h3><p class="m-sub">购买一次，永久获得该插件全部已发布版本。</p><div class="price-grid" style="grid-template-columns:1fr"><div class="price-card popular"><div class="p-name">完整插件授权</div><div class="p-price">${Number(plugin.price) > 0 ? detailPrice(plugin.price) : '0.00'}<span class="unit"> USDT / 永久</span></div><ul class="p-features"><li>当前已发布版本 v${detailEsc(plugin.version)}</li><li>后续发布版本</li><li>完整技术文档</li></ul><button class="p-btn pro" id="confirmBuy">${Number(plugin.price) > 0 ? '前往 USDT 支付' : '下载当前版本'}</button></div></div>`;
+  modal.innerHTML = `<button class="close-btn" id="buyClose">×</button><h3>${detailEsc(plugin.display_name)}</h3><p class="m-sub">${detailEsc(subText)}</p><div class="price-grid" style="grid-template-columns:1fr"><div class="price-card popular"><div class="p-name">完整插件授权</div><div class="p-price">${isPaid ? detailPrice(plugin.price) : '0.00'}<span class="unit"> USDT / 永久</span></div><ul class="p-features">${features.map(f => `<li>${detailEsc(f)}</li>`).join('')}</ul><button class="p-btn pro" id="confirmBuy">${detailEsc(ctaText)}</button></div></div>`;
   document.getElementById('buyClose').addEventListener('click', () => document.getElementById('buyModal').classList.remove('show'));
   document.getElementById('confirmBuy').addEventListener('click', () => purchase(plugin, latest));
 }

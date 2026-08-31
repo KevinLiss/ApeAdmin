@@ -101,12 +101,12 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="250" fixed="right">
           <template #default="{ row }">
+            <el-button text type="primary" @click.stop="openEdit(row)">编辑</el-button>
             <el-button v-if="row.status === 'pending'" text type="primary" @click.stop="openDetail(row)">审核</el-button>
             <el-button v-if="row.status === 'approved'" text type="warning" @click.stop="offline(row)">下架</el-button>
             <el-button v-if="['offline', 'rejected'].includes(row.status)" text type="success" @click.stop="online(row)">上架</el-button>
-            <el-button text type="primary" @click.stop="openDetail(row)">详情</el-button>
             <el-button text type="danger" @click.stop="remove(row)">删除</el-button>
           </template>
         </el-table-column>
@@ -280,6 +280,9 @@
 
         <!-- 底部操作 -->
         <div class="drawer-actions">
+          <el-button type="primary" @click="openEdit(detail)">
+            <el-icon><Edit /></el-icon> 编辑插件
+          </el-button>
           <el-button v-if="detail.status === 'approved'" type="warning" plain @click="offline(detail)">
             <el-icon><Remove /></el-icon> 下架插件
           </el-button>
@@ -324,17 +327,197 @@
         <el-button type="danger" :loading="actionLoading" @click="confirmReject">确认驳回</el-button>
       </template>
     </el-dialog>
+
+    <!-- 编辑弹窗 -->
+    <el-dialog v-model="editVisible" title="编辑插件" width="860px" destroy-on-close class="edit-dialog">
+      <el-tabs v-model="editTab" class="edit-tabs">
+        <!-- 基本信息 -->
+        <el-tab-pane label="基本信息" name="basic">
+          <el-form :model="editForm" label-width="120px" class="edit-form">
+            <el-form-item label="显示名称">
+              <el-input v-model="editForm.display_name" />
+            </el-form-item>
+            <el-form-item label="插件标识">
+              <el-input v-model="editForm.name" />
+            </el-form-item>
+            <el-form-item label="Slug">
+              <el-input v-model="editForm.slug" />
+            </el-form-item>
+            <el-form-item label="描述">
+              <el-input v-model="editForm.description" type="textarea" :rows="3" />
+            </el-form-item>
+            <el-form-item label="分类">
+              <el-input v-model="editForm.category" />
+            </el-form-item>
+            <el-form-item label="版本号">
+              <el-input v-model="editForm.version" />
+            </el-form-item>
+            <el-form-item label="标签">
+              <el-input v-model="editForm.tags" placeholder="逗号分隔" />
+            </el-form-item>
+            <el-form-item label="图标 URL">
+              <el-input v-model="editForm.icon" placeholder="图标 URL 或文字" />
+            </el-form-item>
+            <el-form-item label="价格 (USDT)">
+              <el-input-number v-model="editForm.price" :min="0" :precision="2" :step="1" />
+            </el-form-item>
+            <el-form-item label="服务费率 %">
+              <el-input-number v-model="editForm.service_fee_rate" :min="0" :max="100" :precision="2" :step="5" />
+            </el-form-item>
+            <el-form-item label="状态">
+              <el-select v-model="editForm.status">
+                <el-option label="待审核" value="pending" />
+                <el-option label="已上架" value="approved" />
+                <el-option label="已驳回" value="rejected" />
+                <el-option label="已下架" value="offline" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="开发者 ID">
+              <el-input-number v-model="editForm.developer_id" :min="1" :step="1" />
+            </el-form-item>
+            <el-form-item label="下载次数">
+              <el-input-number v-model="editForm.download_count" :min="0" :step="1" />
+            </el-form-item>
+            <el-form-item label="安装次数">
+              <el-input-number v-model="editForm.install_count" :min="0" :step="1" />
+            </el-form-item>
+            <el-form-item label="评分">
+              <el-input-number v-model="editForm.rating_avg" :min="0" :max="5" :precision="1" :step="0.1" />
+            </el-form-item>
+            <el-form-item label="评分人数">
+              <el-input-number v-model="editForm.rating_count" :min="0" :step="1" />
+            </el-form-item>
+          </el-form>
+        </el-tab-pane>
+
+        <!-- Demo 管理 -->
+        <el-tab-pane label="Demo 管理" name="demos">
+          <div class="demo-edit-list">
+            <div v-for="(demo, idx) in editForm.demos" :key="idx" class="demo-edit-item">
+              <el-select v-model="demo.demo_type" placeholder="类型" style="width:120px">
+                <el-option label="H5" value="h5" />
+                <el-option label="小程序" value="miniprogram" />
+                <el-option label="管理后台" value="admin" />
+                <el-option label="PC" value="pc" />
+                <el-option label="API" value="api" />
+                <el-option label="MCP" value="mcp" />
+              </el-select>
+              <el-input v-model="demo.title" placeholder="Demo 标题" style="flex:1" />
+              <el-input v-model="demo.url" placeholder="Demo URL" style="flex:1" />
+              <el-button text type="danger" @click="editForm.demos.splice(idx, 1)">删除</el-button>
+            </div>
+            <el-button type="primary" plain @click="editForm.demos.push({ demo_type: 'h5', title: '', url: '', qr_image: '' })">
+              <el-icon><Plus /></el-icon> 添加 Demo
+            </el-button>
+          </div>
+        </el-tab-pane>
+
+        <!-- 截图/Logo -->
+        <el-tab-pane label="截图/Logo" name="media">
+          <div class="media-edit-section">
+            <div class="media-upload-bar">
+              <el-upload
+                :show-file-list="false"
+                :before-upload="(file: any) => uploadMedia(file, 'carousel')"
+                accept="image/*">
+                <el-button type="primary" plain><el-icon><Upload /></el-icon> 上传截图</el-button>
+              </el-upload>
+              <el-upload
+                :show-file-list="false"
+                :before-upload="(file: any) => uploadMedia(file, 'logo')"
+                accept="image/*">
+                <el-button type="success" plain><el-icon><Upload /></el-icon> 上传 Logo</el-button>
+              </el-upload>
+            </div>
+            <div class="media-grid">
+              <div v-for="m in editMediaList" :key="m.id" class="media-card">
+                <img :src="m.url" :alt="m.alt_text" />
+                <div class="media-card-info">
+                  <el-tag size="small" :type="m.media_type === 'logo' ? 'success' : 'info'">{{ m.media_type }}</el-tag>
+                  <el-button text type="danger" @click="deleteMedia(m)">删除</el-button>
+                </div>
+              </div>
+              <el-empty v-if="!editMediaList.length" description="暂无截图" :image-size="60" />
+            </div>
+          </div>
+        </el-tab-pane>
+
+        <!-- 文件管理 -->
+        <el-tab-pane label="文件管理" name="files">
+          <div class="files-edit-section">
+            <el-upload
+              :show-file-list="false"
+              :before-upload="(file: any) => uploadFile(file, 'package')"
+              accept=".zip">
+              <el-button type="primary" plain><el-icon><Upload /></el-icon> 上传插件包 (ZIP)</el-button>
+            </el-upload>
+            <el-upload
+              :show-file-list="false"
+              :before-upload="(file: any) => uploadFile(file, 'doc')">
+              <el-button type="info" plain><el-icon><Upload /></el-icon> 上传文档</el-button>
+            </el-upload>
+            <el-table :data="editFileList" size="small" style="margin-top:12px">
+              <el-table-column prop="filename" label="文件名" min-width="180" />
+              <el-table-column prop="file_type" label="类型" width="90" />
+              <el-table-column label="大小" width="100">
+                <template #default="{ row }">{{ formatSize(row.size) }}</template>
+              </el-table-column>
+              <el-table-column label="操作" width="90">
+                <template #default="{ row }">
+                  <el-button text type="danger" @click="deleteFile(row)">删除</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </el-tab-pane>
+
+        <!-- 版本文档 -->
+        <el-tab-pane label="版本文档" name="version">
+          <div class="version-edit-section">
+            <el-select v-model="editVersionId" placeholder="选择版本" style="margin-bottom:12px;width:200px" @change="onVersionSelect" popper-class="version-select-popper">
+              <el-option v-for="v in editVersionList" :key="v.id" :label="`v${v.version} (${v.status})`" :value="v.id" />
+            </el-select>
+            <template v-if="editVersionId">
+              <el-form label-width="100px">
+                <el-form-item label="版本号">
+                  <el-input v-model="editVersionForm.version" />
+                </el-form-item>
+                <el-form-item label="兼容性">
+                  <el-input v-model="editVersionForm.compatibility" />
+                </el-form-item>
+                <el-form-item label="更新日志">
+                  <el-input v-model="editVersionForm.changelog" type="textarea" :rows="4" />
+                </el-form-item>
+                <el-form-item label="技术文档">
+                  <el-input v-model="editVersionForm.documentation" type="textarea" :rows="10" placeholder="Markdown 格式" />
+                </el-form-item>
+                <el-form-item>
+                  <el-button type="primary" :loading="versionSaving" @click="saveVersion">保存版本文档</el-button>
+                </el-form-item>
+              </el-form>
+            </template>
+            <el-empty v-else description="请选择版本" :image-size="60" />
+          </div>
+        </el-tab-pane>
+      </el-tabs>
+      <template #footer>
+        <el-button @click="editVisible = false">关闭</el-button>
+        <el-button v-if="editTab === 'basic' || editTab === 'demos'" type="primary" :loading="editSaving" @click="saveEdit">保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Document, CircleCheck, CircleClose, Remove, Money, Search, User, PriceTag, Folder, Warning, WarningFilled, InfoFilled, Promotion } from '@element-plus/icons-vue'
+import { Document, CircleCheck, CircleClose, Remove, Money, Search, User, PriceTag, Folder, Warning, WarningFilled, InfoFilled, Promotion, Edit, Plus, Upload } from '@element-plus/icons-vue'
 import {
   deleteAdminPlugin, getAdminPluginDetail, getAdminPluginFileDownloadUrl,
   getAdminPlugins, getAdminVersionSource, getAdminVersionSourceTree,
   offlinePlugin, onlinePlugin, publishPluginVersion, reviewPluginVersion,
+  updateAdminPlugin, adminUploadMedia, adminDeleteMedia, adminUploadFile, adminDeleteFile,
+  updateAdminVersion,
 } from '@/api/apehub_web'
 
 const pluginList = ref<any[]>([])
@@ -528,6 +711,131 @@ const downloadFile = async (file: any) => {
   link.download = file.filename
   link.click()
   URL.revokeObjectURL(url)
+}
+
+// ---- 编辑弹窗 ----
+const editVisible = ref(false)
+const editTab = ref('basic')
+const editSaving = ref(false)
+const editForm = ref<any>({})
+const editMediaList = ref<any[]>([])
+const editFileList = ref<any[]>([])
+const editVersionList = ref<any[]>([])
+const editVersionId = ref<number>(0)
+const editVersionForm = ref<any>({})
+const versionSaving = ref(false)
+
+const openEdit = async (row: any) => {
+  editVisible.value = true
+  editTab.value = 'basic'
+  editVersionId.value = 0
+  editVersionForm.value = {}
+  try {
+    const d = await getAdminPluginDetail(row.id)
+    editForm.value = {
+      id: d.id,
+      display_name: d.display_name,
+      name: d.name,
+      slug: d.slug,
+      description: d.description,
+      category: d.category,
+      version: d.version,
+      tags: d.tags,
+      icon: d.icon,
+      price: Number(d.price),
+      service_fee_rate: Number(d.service_fee_rate),
+      status: d.status,
+      developer_id: d.developer_id,
+      download_count: d.download_count,
+      install_count: d.install_count || 0,
+      rating_avg: d.rating_avg,
+      rating_count: d.rating_count,
+      demos: (d.demos || []).map((x: any) => ({ demo_type: x.demo_type, title: x.title, url: x.url, qr_image: x.qr_image })),
+    }
+    editMediaList.value = d.media || []
+    editFileList.value = d.files || []
+    editVersionList.value = d.versions || []
+  } catch {
+    ElMessage.error('加载插件详情失败')
+  }
+}
+
+const saveEdit = async () => {
+  editSaving.value = true
+  try {
+    await updateAdminPlugin(editForm.value.id, editForm.value)
+    ElMessage.success('插件信息已保存')
+    await refresh(editForm.value.id)
+  } catch (e: any) {
+    ElMessage.error(e.message || '保存失败')
+  } finally { editSaving.value = false }
+}
+
+const uploadMedia = async (file: any, mediaType: string) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  try {
+    await adminUploadMedia(editForm.value.id, formData, { media_type: mediaType })
+    ElMessage.success('图片上传成功')
+    // 刷新 media 列表
+    const d = await getAdminPluginDetail(editForm.value.id)
+    editMediaList.value = d.media || []
+  } catch (e: any) {
+    ElMessage.error(e.message || '上传失败')
+  }
+  return false // 阻止 el-upload 默认上传
+}
+
+const deleteMedia = async (m: any) => {
+  await ElMessageBox.confirm(`确认删除图片「${m.alt_text || m.url}」？`, '删除图片', { type: 'warning' })
+  await adminDeleteMedia(editForm.value.id, m.id)
+  ElMessage.success('图片已删除')
+  editMediaList.value = editMediaList.value.filter((x: any) => x.id !== m.id)
+}
+
+const uploadFile = async (file: any, fileType: string) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  try {
+    await adminUploadFile(editForm.value.id, formData, { file_type: fileType })
+    ElMessage.success('文件上传成功')
+    const d = await getAdminPluginDetail(editForm.value.id)
+    editFileList.value = d.files || []
+    editVersionList.value = d.versions || []
+  } catch (e: any) {
+    ElMessage.error(e.message || '上传失败')
+  }
+  return false
+}
+
+const deleteFile = async (f: any) => {
+  await ElMessageBox.confirm(`确认删除文件「${f.filename}」？`, '删除文件', { type: 'warning' })
+  await adminDeleteFile(editForm.value.id, f.id)
+  ElMessage.success('文件已删除')
+  editFileList.value = editFileList.value.filter((x: any) => x.id !== f.id)
+}
+
+const onVersionSelect = () => {
+  const v = editVersionList.value.find((x: any) => x.id === editVersionId.value)
+  if (v) {
+    editVersionForm.value = {
+      version: v.version,
+      compatibility: v.compatibility || '',
+      changelog: v.changelog || '',
+      documentation: v.documentation || '',
+    }
+  }
+}
+
+const saveVersion = async () => {
+  versionSaving.value = true
+  try {
+    await updateAdminVersion(editForm.value.id, editVersionId.value, editVersionForm.value)
+    ElMessage.success('版本文档已保存')
+    await refresh(editForm.value.id)
+  } catch (e: any) {
+    ElMessage.error(e.message || '保存失败')
+  } finally { versionSaving.value = false }
 }
 
 onMounted(loadList)
@@ -744,6 +1052,43 @@ onMounted(loadList)
 /* Tabs */
 .review-tabs :deep(.el-tabs__nav) { padding-left: 4px; }
 .review-tabs :deep(.el-tabs__header) { margin-bottom: 16px; }
+
+/* 编辑弹窗 */
+.edit-dialog :deep(.el-dialog__body) { padding: 0 20px; }
+.edit-tabs :deep(.el-tabs__header) { margin-bottom: 16px; }
+.edit-form { max-width: 640px; }
+.edit-form :deep(.el-form-item) { margin-bottom: 16px; }
+
+.demo-edit-list { display: flex; flex-direction: column; gap: 10px; }
+.demo-edit-item {
+  display: flex; gap: 8px; align-items: center;
+  padding: 10px; border: 1px solid var(--el-border-color-lighter); border-radius: 8px;
+}
+
+.media-edit-section { }
+.media-upload-bar { display: flex; gap: 12px; margin-bottom: 16px; }
+.media-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+.media-card {
+  border: 1px solid var(--el-border-color-lighter); border-radius: 8px; overflow: hidden;
+}
+.media-card img { width: 100%; height: 140px; object-fit: cover; display: block; }
+.media-card-info {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px;
+}
+
+.files-edit-section { }
+.files-edit-section .el-upload { display: inline-block; margin-right: 12px; }
+
+.version-edit-section { }
+
+/* 版本选择下拉在 dialog 之上显示 */
+:global(.version-select-popper) {
+  z-index: 3000 !important;
+}
 
 /* 响应式 */
 @media (max-width: 768px) {

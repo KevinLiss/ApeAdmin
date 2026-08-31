@@ -96,7 +96,8 @@ from src.plugins.builtin.apehub_web.schemas import (
     SiteContentIn,
     WithdrawIn,
     VersionReviewIn,
-    WalletIn,
+    WalletCreateIn,
+    WalletUpdateIn,
     WithdrawalHandleIn,
 )
 
@@ -2736,39 +2737,133 @@ async def update_profile(
     return success_response(msg="资料已更新")
 
 
-@router.get("/wallet")
-async def get_wallet(
+@router.get("/wallets")
+async def list_wallets(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ):
-    wallet = (
-        await db.execute(select(ApehubWebWallet).where(ApehubWebWallet.user_id == user.id))
-    ).scalar_one_or_none()
-    return success_response(data=None if wallet is None else {
+    """List all TRC20 wallets for the current user."""
+    result = await db.execute(
+        select(ApehubWebWallet)
+        .where(ApehubWebWallet.user_id == user.id)
+        .order_by(ApehubWebWallet.is_default.desc(), ApehubWebWallet.id.asc())
+    )
+    wallets = result.scalars().all()
+    return success_response(data=[
+        {
+            "id": w.id,
+            "network": w.network,
+            "address": w.address,
+            "label": w.label,
+            "is_default": w.is_default,
+            "created_at": w.created_at.isoformat() if w.created_at else None,
+            "updated_at": w.updated_at.isoformat() if w.updated_at else None,
+        }
+        for w in wallets
+    ])
+
+
+@router.post("/wallets")
+async def create_wallet(
+    body: WalletCreateIn,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
+    """Add a new TRC20 wallet for the current user."""
+    # Check duplicate address per user
+    existing = await db.execute(
+        select(ApehubWebWallet).where(
+            ApehubWebWallet.user_id == user.id,
+            ApehubWebWallet.address == body.address,
+        )
+    )
+    if existing.scalar_one_or_none():
+        raise ValidationException("该钱包地址已存在")
+    wallet = ApehubWebWallet(
+        user_id=user.id,
+        network="TRC20",
+        address=body.address,
+        label=body.label,
+        is_default=body.is_default,
+    )
+    # If setting as default, clear previous default
+    if body.is_default:
+        await db.execute(
+            ApehubWebWallet.__table__.update()
+            .where(ApehubWebWallet.__table__.c.user_id == user.id)
+            .values(is_default=False)
+        )
+    db.add(wallet)
+    await db.commit()
+    await db.refresh(wallet)
+    return success_response(data={
         "id": wallet.id,
         "network": wallet.network,
         "address": wallet.address,
-        "updated_at": wallet.updated_at.isoformat() if wallet.updated_at else None,
-    })
+        "label": wallet.label,
+        "is_default": wallet.is_default,
+    }, msg="钱包已添加")
 
 
-@router.put("/wallet")
+@router.put("/wallets/{wallet_id}")
 async def update_wallet(
-    body: WalletIn,
+    wallet_id: int,
+    body: WalletUpdateIn,
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ):
-    wallet = (
-        await db.execute(select(ApehubWebWallet).where(ApehubWebWallet.user_id == user.id))
-    ).scalar_one_or_none()
-    if wallet is None:
-        wallet = ApehubWebWallet(user_id=user.id, network="TRC20", address=body.address)
-        db.add(wallet)
-    else:
-        wallet.address = body.address
-        wallet.network = "TRC20"
+    """Update a wallet's label, address, or default flag."""
+    wallet = await db.get(ApehubWebWallet, wallet_id)
+    if not wallet or wallet.user_id != user.id:
+        raise NotFoundException("钱包不存在")
+    payload = body.model_dump(exclude_unset=True)
+    if "address" in payload and payload["address"]:
+        # Check duplicate excluding self
+        dup = await db.execute(
+            select(ApehubWebWallet).where(
+                ApehubWebWallet.user_id == user.id,
+                ApehubWebWallet.address == payload["address"],
+                ApehubWebWallet.id != wallet_id,
+            )
+        )
+        if dup.scalar_one_or_none():
+            raise ValidationException("该钱包地址已存在")
+        wallet.address = payload["address"]
+    if "label" in payload:
+        wallet.label = payload["label"]
+    if "is_default" in payload and payload["is_default"]:
+        await db.execute(
+            ApehubWebWallet.__table__.update()
+            .where(ApehubWebWallet.__table__.c.user_id == user.id)
+            .values(is_default=False)
+        )
+        wallet.is_default = True
+    elif "is_default" in payload:
+        wallet.is_default = payload["is_default"]
     await db.commit()
-    return success_response(data={"network": "TRC20", "address": body.address}, msg="收款钱包已保存")
+    await db.refresh(wallet)
+    return success_response(data={
+        "id": wallet.id,
+        "network": wallet.network,
+        "address": wallet.address,
+        "label": wallet.label,
+        "is_default": wallet.is_default,
+    }, msg="钱包已更新")
+
+
+@router.delete("/wallets/{wallet_id}")
+async def delete_wallet(
+    wallet_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
+    """Delete a wallet. Cannot delete if it's the only one and there are pending withdrawals."""
+    wallet = await db.get(ApehubWebWallet, wallet_id)
+    if not wallet or wallet.user_id != user.id:
+        raise NotFoundException("钱包不存在")
+    await db.delete(wallet)
+    await db.commit()
+    return success_response(msg="钱包已删除")
 
 
 @router.post("/withdrawals")
@@ -2783,20 +2878,15 @@ async def create_withdrawal(
     amount = Decimal(body.amount)
     if amount < Decimal(cfg.min_withdrawal):
         raise ValidationException(f"最低提现金额为 {_money(cfg.min_withdrawal)} USDT")
-    if body.amount > prof.balance:
+    if amount > prof.balance:
         raise ValidationException("余额不足")
+    wallet = await db.get(ApehubWebWallet, body.wallet_id)
+    if not wallet or wallet.user_id != user.id:
+        raise ValidationException("收款钱包不存在")
     fee = services.calc_withdrawal_fee(amount, cfg.withdrawal_fee_type, Decimal(cfg.withdrawal_fee_value))
     net_amount = amount - fee
     if net_amount <= 0:
         raise ValidationException("扣除提现手续费后的到账金额必须大于 0")
-    wallet = (
-        await db.execute(select(ApehubWebWallet).where(ApehubWebWallet.user_id == user.id))
-    ).scalar_one_or_none()
-    if wallet is None:
-        wallet = ApehubWebWallet(user_id=user.id, network="TRC20", address=body.account)
-        db.add(wallet)
-    else:
-        wallet.address = body.account
     prof.balance = Decimal(prof.balance) - amount
     prof.frozen_balance = Decimal(prof.frozen_balance) + amount
     wd = ApehubWebWithdrawal(
@@ -2806,7 +2896,7 @@ async def create_withdrawal(
         net_amount=net_amount,
         method="trc20",
         network="TRC20",
-        account=body.account,
+        account=wallet.address,
     )
     db.add(wd)
     await db.flush()
@@ -2816,7 +2906,7 @@ async def create_withdrawal(
         entry_type="withdrawal_hold",
         amount=-amount,
         status="frozen",
-        note=f"提现冻结，手续费 {_money(fee)} USDT",
+        note=f"提现冻结至 {wallet.address[:8]}...{wallet.address[-4:]}，手续费 {_money(fee)} USDT",
     ))
     await db.commit()
     await db.refresh(wd)
@@ -2827,6 +2917,8 @@ async def create_withdrawal(
         "net_amount": _money(wd.net_amount),
         "currency": "USDT",
         "network": "TRC20",
+        "wallet_label": wallet.label or "未命名钱包",
+        "account": wallet.address,
         "status": wd.status.value,
     }, msg="提现申请已提交")
 
@@ -2835,31 +2927,41 @@ async def create_withdrawal(
 async def my_withdrawals(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, ge=1, le=100),
 ):
+    stmt = select(ApehubWebWithdrawal).where(ApehubWebWithdrawal.user_id == user.id)
+    total = (await db.execute(select(func.count()).select_from(stmt.subquery()))).scalar() or 0
     result = await db.execute(
-        select(ApehubWebWithdrawal).where(ApehubWebWithdrawal.user_id == user.id).order_by(ApehubWebWithdrawal.id.desc()).limit(100)
+        stmt.order_by(ApehubWebWithdrawal.id.desc())
+        .offset((page - 1) * page_size).limit(page_size)
     )
-    return success_response(data=[
-        {
+    items = []
+    for w in result.scalars().all():
+        items.append({
             "id": w.id, "amount": _money(w.amount), "fee": _money(w.fee),
             "net_amount": _money(w.net_amount), "currency": "USDT",
             "method": w.method, "network": w.network, "account": w.account,
             "status": w.status.value, "remark": w.remark, "tx_hash": w.tx_hash,
             "created_at": w.created_at.isoformat() if w.created_at else None,
-        }
-        for w in result.scalars().all()
-    ])
+        })
+    return success_response(data={"total": total, "page": page, "page_size": page_size, "items": items})
 
 
 @router.get("/incomes")
 async def my_incomes(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, ge=1, le=100),
 ):
     await _settle_due_incomes(db, user.id)
     await db.commit()
+    stmt = select(ApehubWebIncome).where(ApehubWebIncome.user_id == user.id)
+    total = (await db.execute(select(func.count()).select_from(stmt.subquery()))).scalar() or 0
     result = await db.execute(
-        select(ApehubWebIncome).where(ApehubWebIncome.user_id == user.id).order_by(ApehubWebIncome.id.desc()).limit(100)
+        stmt.order_by(ApehubWebIncome.id.desc())
+        .offset((page - 1) * page_size).limit(page_size)
     )
     items = []
     for inc in result.scalars().all():
@@ -2872,7 +2974,50 @@ async def my_incomes(
             "available_at": inc.available_at.isoformat() if inc.available_at else None,
             "created_at": inc.created_at.isoformat() if inc.created_at else None,
         })
-    return success_response(data=items)
+    return success_response(data={"total": total, "page": page, "page_size": page_size, "items": items})
+
+
+@router.get("/ledger")
+async def my_ledger(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, ge=1, le=100),
+    entry_type: str | None = Query(None),
+):
+    """Paginated USDT balance ledger for the current user."""
+    stmt = select(ApehubWebLedgerEntry).where(ApehubWebLedgerEntry.user_id == user.id)
+    if entry_type:
+        stmt = stmt.where(ApehubWebLedgerEntry.entry_type == entry_type)
+    total = (await db.execute(select(func.count()).select_from(stmt.subquery()))).scalar() or 0
+    result = await db.execute(
+        stmt.order_by(ApehubWebLedgerEntry.id.desc())
+        .offset((page - 1) * page_size).limit(page_size)
+    )
+    type_labels = {
+        "sale_income": "插件销售分成",
+        "withdrawal_hold": "提现冻结",
+        "withdrawal_complete": "提现完成",
+        "withdrawal_cancel": "提现退回",
+        "refund_deduction": "退款扣回",
+    }
+    items = []
+    for e in result.scalars().all():
+        items.append({
+            "id": e.id,
+            "entry_type": e.entry_type,
+            "type_label": type_labels.get(e.entry_type, e.entry_type),
+            "amount": _money(e.amount),
+            "amount_display": ("+" if e.amount > 0 else "") + _money(e.amount),
+            "is_income": e.amount > 0,
+            "status": e.status,
+            "note": e.note,
+            "order_id": e.order_id,
+            "withdrawal_id": e.withdrawal_id,
+            "available_at": e.available_at.isoformat() if e.available_at else None,
+            "created_at": e.created_at.isoformat() if e.created_at else None,
+        })
+    return success_response(data={"total": total, "page": page, "page_size": page_size, "items": items})
 
 
 # ---------------------------------------------------------------------------

@@ -506,14 +506,16 @@ class ApehubWebWithdrawal(ApehubWebBase):
 
 
 class ApehubWebWallet(ApehubWebBase):
-    """One active USDT-TRC20 payout wallet per website user."""
+    """Multiple USDT-TRC20 payout wallets per website user."""
 
     __tablename__ = "apehub_web_wallet"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("sys_user.id"), unique=True, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("sys_user.id"), index=True)
     network: Mapped[str] = mapped_column(String(16), default="TRC20")
     address: Mapped[str] = mapped_column(String(128))
+    label: Mapped[str] = mapped_column(String(64), default="")
+    is_default: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

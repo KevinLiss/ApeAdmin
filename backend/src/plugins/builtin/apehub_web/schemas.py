@@ -238,6 +238,12 @@ class OrderOut(ORMModel):
 
 class WithdrawIn(BaseModel):
     amount: Decimal = Field(gt=0)
+    wallet_id: int = Field(gt=0)
+
+
+# Backward-compatible alias (deprecated, kept for transition)
+class WithdrawLegacyIn(BaseModel):
+    amount: Decimal = Field(gt=0)
     account: str = Field(min_length=34, max_length=34, pattern="^T[1-9A-HJ-NP-Za-km-z]{33}$")
 
 
@@ -276,8 +282,16 @@ class ProfileUpdateIn(BaseModel):
     bio: str | None = None
 
 
-class WalletIn(BaseModel):
+class WalletCreateIn(BaseModel):
     address: str = Field(min_length=34, max_length=34, pattern="^T[1-9A-HJ-NP-Za-km-z]{33}$")
+    label: str = Field(default="", max_length=64)
+    is_default: bool = False
+
+
+class WalletUpdateIn(BaseModel):
+    address: str | None = Field(default=None, min_length=34, max_length=34, pattern="^T[1-9A-HJ-NP-Za-km-z]{33}$")
+    label: str | None = Field(default=None, max_length=64)
+    is_default: bool | None = None
 
 
 class PluginVersionCreateIn(BaseModel):
