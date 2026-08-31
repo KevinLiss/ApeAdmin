@@ -20,6 +20,7 @@ runtimes/
 # Database
 *.db
 *.sqlite3
+*.db.bak_*
 
 # Runtime uploads (plugin packages / media)
 backend/src/uploads/

@@ -221,7 +221,6 @@ function renderVersionDetail() {
   const hasDocs = !!(version.documentation && version.documentation.trim());
   const report = version.analysis_report;
   const aiResult = report?.ai || null;
-  const hasAnalysis = !!report;
   const files = (version.files || []).map(file => `<div class="file-chip"><span>${esc(file.filename)}</span><span class="muted">${Math.ceil(file.size / 1024)} KB</span>${canEdit ? `<button class="file-chip-del" data-file="${file.id}" title="删除文件">×</button>` : ''}</div>`).join('') || '<span class="muted">未上传安装包</span>';
   const warnings = report?.warnings || [];
   const riskColors = { critical: 'red', high: 'red', medium: 'amber', low: 'green', none: 'green' };
@@ -232,12 +231,11 @@ function renderVersionDetail() {
   const reReviewBanner = isPublished ? `<div class="re-review-banner">⚠️ 此版本已发布。修改内容或替换安装包后，版本将重新进入审核队列。</div>` : '';
   const steps = [
     { label: '上传 ZIP', done: hasPackage, icon: '📦' },
-    { label: 'AI 分析', done: hasAnalysis, icon: '🔍', failed: version.status === 'analysis_failed' },
     { label: '填写文档', done: hasDocs, icon: '📝' },
     { label: '提交审核', done: !editable, icon: '🚀' },
   ];
   const stepsHtml = showSteps ? `<div class="step-guide">${steps.map((s, i) => `<div class="step ${s.done ? 'done' : ''} ${s.failed ? 'failed' : ''}"><span class="step-icon">${s.failed ? '⚠️' : s.done ? '✓' : s.icon}</span><span class="step-label">${esc(s.label)}</span>${i < steps.length - 1 ? '<span class="step-arrow">→</span>' : ''}</div>`).join('')}</div>` : '';
-  const emptyTip = (canEdit && !hasPackage) ? `<div class="empty-tip">💡 请先上传 ZIP 安装包，再进行 AI 分析或手动填写文档</div>` : '';
+  const emptyTip = (canEdit && !hasPackage) ? `<div class="empty-tip">💡 请先上传 ZIP 安装包，可使用「AI 补全」生成文档，或手动填写文档</div>` : '';
   root.innerHTML = `
     <div class="version-head"><h4>${esc(version.version)}</h4><span class="status ${esc(version.status)}">${statusText(version.status)}</span></div>
     ${stepsHtml}
@@ -253,11 +251,11 @@ function renderVersionDetail() {
       <div class="analysis-row"><span>解压大小</span><span>${report?.uncompressed_size ? Math.ceil(report.uncompressed_size / 1024) + ' KB' : '-'}</span></div>
       ${warnings.length ? `<div class="analysis-warnings">${warnings.map(w => `<div class="warning-item warning-${w.severity}"><span class="severity">${esc(w.severity)}</span>${esc(w.message)} <span class="muted">${esc(w.file)}</span></div>`).join('')}</div>` : ''}
       ${aiResult ? `<div class="ai-result"><div class="ai-summary">${esc(aiResult.summary || '')}</div>${aiResult.features ? `<div class="ai-features">${(Array.isArray(aiResult.features) ? aiResult.features : []).map((f, i) => `<div class="ai-feat"><strong>${i + 1}. ${esc(typeof f === 'string' ? f : f.name || f.title || '')}</strong><p>${esc(typeof f === 'string' ? '' : f.description || '')}</p></div>`).join('')}</div>` : ''}</div>` : ''}
-      ${version.status === 'analysis_failed' ? `<div class="analysis-error"><strong>⚠️ 分析失败</strong><p>AI 分析过程中出错。您可以手动填写文档后直接提交审核，或重试 AI 分析。</p><div class="analysis-error-detail" style="display:none"></div></div>` : ''}
+      ${version.status === 'analysis_failed' ? `<div class="analysis-error"><strong>⚠️ 分析失败</strong><p>AI 分析过程中出错。您可以手动填写文档后直接提交审核，或使用「AI 补全」重新生成。</p><div class="analysis-error-detail" style="display:none"></div></div>` : ''}
       ${version.reject_reason ? `<div class="reject-reason"><strong>驳回原因：</strong>${esc(version.reject_reason)}</div>` : ''}
       <div id="analysisProgress"></div>
     </div>
-    <div class="actions">${canEdit ? `<label class="btn btn-small">上传 ZIP<input id="packageFile" type="file" accept=".zip,application/zip" hidden></label><button class="btn btn-small" id="saveVersion">保存文档</button><button class="btn btn-small" id="analyzeVersion" ${hasPackage ? '' : 'disabled title="请先上传 ZIP 安装包"'}${version.status === 'analyzing' ? ' disabled' : ''}>AI 自动分析</button><button class="btn btn-primary btn-small" id="submitVersion" ${hasPackage ? '' : 'disabled title="请先上传 ZIP 安装包"'}${!hasDocs ? ' disabled title="请先填写技术文档"' : ''}>${isPublished ? '重新提交审核' : '提交审核'}</button>` : ''}</div>`;
+    <div class="actions">${canEdit ? `<button class="btn btn-small" id="uploadPackageBtn" type="button">上传 ZIP</button><input id="packageFile" type="file" accept=".zip,application/zip" hidden><button class="btn btn-small" id="saveVersion">保存文档</button><button class="btn btn-primary btn-small" id="submitVersion" ${hasPackage ? '' : 'disabled title="请先上传 ZIP 安装包"'}${!hasDocs ? ' disabled title="请先填写技术文档"' : ''}>${isPublished ? '重新提交审核' : '提交审核'}</button>` : ''}</div>`;
   // Bind file delete
   if (canEdit) $$('[data-file]').forEach(btn => btn.addEventListener('click', async () => {
     if (!confirm('确定删除此安装包吗？')) return;
@@ -266,9 +264,9 @@ function renderVersionDetail() {
   // Resume progress polling if a job is still running for this version
   if (isAnalyzing) pollAnalysis(state.selectedPlugin.id, version.id);
   if (!canEdit) return;
+  $('#uploadPackageBtn').addEventListener('click', () => $('#packageFile').click());
   $('#packageFile').addEventListener('change', event => uploadPackage(event.target.files[0]));
   $('#saveVersion').addEventListener('click', saveVersion);
-  $('#analyzeVersion').addEventListener('click', analyzeVersion);
   $('#submitVersion').addEventListener('click', submitVersion);
   const optimizeBtn = $('#optimizeChangelogBtn');
   if (optimizeBtn) optimizeBtn.addEventListener('click', optimizeChangelog);
@@ -412,18 +410,6 @@ async function saveVersion() {
 }
 
 /* ========== AI Analysis with progress visualization ========== */
-async function analyzeVersion() {
-  const plugin = state.selectedPlugin, version = state.selectedVersion;
-  if (!(version.files || []).length) { toast('请先上传 ZIP 安装包，再进行 AI 分析', true); return; }
-  const btn = $('#analyzeVersion');
-  if (btn) { btn.disabled = true; btn.textContent = 'AI 分析中...'; }
-  try {
-    await api(`/apehub-web/developer/plugins/${plugin.id}/versions/${version.id}/analyze`, { method: 'POST' });
-    toast('AI 分析已开始，请稍候...');
-    pollAnalysis(plugin.id, version.id);
-  } catch (error) { toast(error.message, true); if (btn) { btn.disabled = false; btn.textContent = 'AI 自动分析'; } }
-}
-
 async function pollAnalysis(pluginId, versionId) {
   clearTimeout(state.analysisTimer);
   try {
@@ -448,7 +434,7 @@ async function pollAnalysis(pluginId, versionId) {
       const elapsedMs = Date.now() - started;
       if (elapsedMs > 5 * 60 * 1000) {
         const box = $('#analysisProgress');
-        if (box) box.innerHTML = '<div class="analysis-job"><div class="job-stage">AI 分析超时</div><div class="job-error">分析耗时过长，可能是 AI 服务暂时不可用。请稍后点击「AI 自动分析」重试，或手动填写文档后提交审核。</div></div>';
+        if (box) box.innerHTML = '<div class="analysis-job"><div class="job-stage">AI 分析超时</div><div class="job-error">分析耗时过长，可能是 AI 服务暂时不可用。请稍后重试，或手动填写文档后提交审核。</div></div>';
         await selectPlugin(pluginId);
         toast('AI 分析超时，请稍后重试', true);
         return;
