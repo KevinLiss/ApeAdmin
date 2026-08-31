@@ -5,6 +5,11 @@
 # 在服务器上以 root 或 sudo 用户运行:
 #   bash deploy.sh
 #
+# 适用场景（两条路线二选一）:
+#   路线A（主推）: 宝塔面板「Python项目」可视化创建（见 DEPLOY.md）
+#   路线B（本脚本）: 命令行直接部署，不依赖宝塔 Python 项目管理器
+#                   —— 当面板「环境准备失败」（如 uwsgi 编译失败）时的保底方案
+#
 # 前置要求:
 #   1. 部署包已解压到任意目录（扁平结构：包内直接是 src/ nginx/ scripts/）
 #   2. 已安装 Python 3.11+（宝塔: 软件商店 → Python 项目管理器 2.0 可装）
@@ -22,6 +27,7 @@
 set -euo pipefail
 
 # ---- 可调参数（可用环境变量覆盖） ----
+# 例: RUN_USER=root PORT=80 bash deploy.sh   ← 80 端口直连模式（同宝塔主推方案）
 APP_NAME="${APP_NAME:-apeadmin}"
 INSTALL_DIR="${INSTALL_DIR:-/www/wwwroot/${APP_NAME}}"
 RUN_USER="${RUN_USER:-www}"
@@ -49,7 +55,9 @@ log "检测到 Python $PY_VER"
 # ---------------------------------------------------------------- 1. 目录与用户
 log "部署目录: $INSTALL_DIR"
 id "$RUN_USER" >/dev/null 2>&1 || RUN_USER=root
-[[ "$RUN_USER" == "root" ]] && warn "使用 root 运行服务，建议用宝塔 www 用户"
+if [[ "$RUN_USER" == "www" && "$PORT" -lt 1024 ]]; then
+  die "端口 ${PORT} < 1024 只有 root 能绑，请改: RUN_USER=root PORT=${PORT} bash $0"
+fi
 
 mkdir -p "$INSTALL_DIR"
 log "复制代码到 $INSTALL_DIR（扁平结构，项目根即源码根）"
@@ -107,7 +115,7 @@ Type=simple
 User=${RUN_USER}
 WorkingDirectory=${INSTALL_DIR}
 # 单 worker（插件热拔插运行态为进程本地，多 worker 不支持）
-ExecStart=${INSTALL_DIR}/.venv/bin/uvicorn src.main:app --host 127.0.0.1 --port ${PORT} --workers 1
+ExecStart=${INSTALL_DIR}/.venv/bin/uvicorn src.main:app --host 0.0.0.0 --port ${PORT} --workers 1
 Restart=always
 RestartSec=5
 Environment=PYTHONUNBUFFERED=1
@@ -143,11 +151,13 @@ cat <<EOF
    journalctl -u ${APP_NAME} -f     # 实时日志
 
   接下来:
-    1. 浏览器打开 http://服务器IP:${PORT}/ 或 http://域名/ → 自动进入安装向导
-       （三步：选数据库 → 配账号/域名 → 完成；完成后重启服务）
-    2. Nginx:     参考包内 nginx/apeadmin.conf，
-                 在宝塔站点配置中反代到 127.0.0.1:${PORT}
-    3. 放行端口:  宝塔安全组只需放行 80/443，8000 不对外
-    4. 已有数据迁移（如需）: 见上方 migrate_sqlite_to_mysql 提示
+     1. 浏览器打开 http://服务器IP:${PORT}/ 或 http://域名/ → 自动进入安装向导
+        （三步：选数据库 → 配账号/域名 → 完成；完成后重启服务）
+     2. Nginx:     参考包内 nginx/apeadmin.conf，
+                  在宝塔站点配置中反代到 127.0.0.1:${PORT}
+     3. 放行端口:  宝塔安全组只需放行 80/443，8000 不对外
+     4. 已有数据迁移（如需）: 见上方 migrate_sqlite_to_mysql 提示
+     5. 注意: 本脚本路线与宝塔 Python 项目二选一，勿同时建，
+              否则两个服务会抢同一目录/端口
 ============================================================
 EOF
