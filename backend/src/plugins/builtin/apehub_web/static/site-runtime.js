@@ -194,7 +194,7 @@
       if (!sel) return;
       if (item.title && sel.title) {
         const el = section.querySelector(sel.title);
-        if (!el) continue;
+        if (!el) return;
         if (key === 'hero') {
           // hero 标题保留渐变色高亮：逗号后换行，「AI 智能体」加 grad 样式
           el.innerHTML = item.title
