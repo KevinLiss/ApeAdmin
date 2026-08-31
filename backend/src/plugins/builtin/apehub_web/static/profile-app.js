@@ -8,6 +8,8 @@ const state = {
   selectedPlugin: null,
   selectedVersion: null,
   analysisTimer: null,
+  wallets: [],
+  pager: { income: { page: 1, total: 0 }, withdraw: { page: 1, total: 0 }, ledger: { page: 1, total: 0, type: '' } },
   // wizard state
   wizard: { step: 1, plugin: null, version: null, packageFile: null, logoFile: null, carouselFiles: [] },
 };
@@ -67,21 +69,17 @@ async function init() {
 
 async function refreshAll() {
   try {
-    const [profile, purchased, plugins, incomes, withdrawals, wallet] = await Promise.all([
+    const [profile, purchased, plugins] = await Promise.all([
       api('/apehub-web/profile'),
       api('/apehub-web/orders/my/paid'),
       api('/apehub-web/developer/plugins'),
-      api('/apehub-web/incomes'),
-      api('/apehub-web/withdrawals'),
-      api('/apehub-web/wallet'),
     ]);
     state.profile = profile;
     state.plugins = plugins || [];
     renderProfile();
     renderPurchased(purchased || []);
     renderPlugins();
-    renderIncomes(incomes || []);
-    renderWallet(wallet, withdrawals || []);
+    await Promise.all([loadWallets(), loadIncomes(), loadWithdrawals(), loadLedger()]);
   } catch (error) { toast(error.message, true); }
 }
 
@@ -298,16 +296,34 @@ async function refreshPlugins() {
   state.plugins = await api('/apehub-web/developer/plugins'); renderPlugins();
 }
 
-/* ========== Incomes ========== */
+/* ========== Incomes (paginated) ========== */
+async function loadIncomes(page = state.pager.income.page) {
+  state.pager.income.page = page;
+  try {
+    const data = await api(`/apehub-web/incomes?page=${page}&page_size=10`);
+    renderIncomes(data.items || []);
+    renderPager('#incomePager', data, loadIncomes);
+    const total = Number(data.total || 0);
+    $('#incomeSummary').textContent = total ? `共 ${total} 条` : '';
+  } catch (error) { toast(error.message, true); }
+}
+
 function renderIncomes(items) {
   $('#incomeBody').innerHTML = items.length ? items.map(item => `<tr><td>${esc(item.plugin_name)}</td><td>${money(item.amount)} USDT</td><td>${money(item.rate)}%</td><td><span class="status ${esc(item.status)}">${statusText(item.status)}</span></td><td>${date(item.available_at)}</td></tr>`).join('') : '<tr><td colspan="5" class="empty">暂无销售收益</td></tr>';
 }
 
-/* ========== Wallet & Withdrawal ========== */
+/* ========== Wallets (multi-wallet CRUD) ========== */
 const TRC20_RE = /^T[1-9A-HJ-NP-Za-km-z]{33}$/;
 
-function isTrc20Address(value) {
-  return TRC20_RE.test(String(value || '').trim());
+function isTrc20Address(value) { return TRC20_RE.test(String(value || '').trim()); }
+
+function validateAddress(address, fieldName) {
+  const value = String(address || '').trim();
+  if (!value) return `${fieldName}不能为空`;
+  if (value.length !== 34) return `${fieldName}需为 34 位（当前 ${value.length} 位）`;
+  if (!value.startsWith('T')) return `${fieldName}需以 T 开头`;
+  if (!TRC20_RE.test(value)) return `${fieldName}包含无效字符，请检查后重试`;
+  return '';
 }
 
 function feeFor(amount) {
@@ -326,28 +342,119 @@ function withdrawHintText() {
   return `最低提现 ${money(state.config?.min_withdrawal || 100)} USDT · ${feeRateText()}`;
 }
 
-function renderWallet(wallet, withdrawals) {
-  $('#walletAddress').value = wallet?.address || '';
-  $('#withdrawAddress').value = wallet?.address || '';
-  $('#withdrawRule').textContent = withdrawHintText();
-  $('#withdrawBody').innerHTML = withdrawals.length ? withdrawals.map(item => `<tr><td>${money(item.amount)} USDT</td><td>${money(item.fee)} USDT</td><td>${money(item.net_amount)} USDT</td><td title="${esc(item.account)}">${esc(item.account.slice(0, 8))}...${esc(item.account.slice(-6))}</td><td><span class="status ${esc(item.status)}">${statusText(item.status)}</span></td><td>${esc(item.tx_hash || '-')}</td></tr>`).join('') : '<tr><td colspan="6" class="empty">暂无提现记录</td></tr>';
-  updateFeePreview();
+async function loadWallets() {
+  try {
+    state.wallets = await api('/apehub-web/wallets');
+    renderWalletCards();
+  } catch (error) { toast(error.message, true); }
 }
 
-function updateFeePreview() {
+function renderWalletCards() {
+  const grid = $('#walletCardGrid');
+  if (!grid) return;
+  const wallets = state.wallets || [];
+  grid.innerHTML = wallets.length ? wallets.map(w => `
+    <div class="wallet-card${w.is_default ? ' default' : ''}" data-wallet="${w.id}">
+      <div class="wallet-card-head">
+        <span class="wallet-label">${esc(w.label || '未命名钱包')}</span>
+        ${w.is_default ? '<span class="wallet-badge">默认</span>' : ''}
+      </div>
+      <div class="wallet-address" title="${esc(w.address)}">${esc(w.address.slice(0, 12))}...${esc(w.address.slice(-8))}</div>
+      <div class="wallet-meta"><span class="muted">TRC20</span><span class="muted">${w.updated_at ? date(w.updated_at) : ''}</span></div>
+      <div class="wallet-card-actions">
+        ${w.is_default ? '' : `<button class="btn btn-small" data-wallet-default="${w.id}">设为默认</button>`}
+        <button class="btn btn-primary btn-small" data-wallet-withdraw="${w.id}">提现</button>
+        <button class="btn btn-small btn-danger" data-wallet-delete="${w.id}">删除</button>
+      </div>
+    </div>
+  `).join('') : '<div class="wallet-empty">还没有钱包，点击右上角"新增钱包"添加</div>';
+
+  // Bind card actions
+  $$('[data-wallet-default]').forEach(btn => btn.addEventListener('click', async () => {
+    try { await api(`/apehub-web/wallets/${btn.dataset.walletDefault}`, { method: 'PUT', body: JSON.stringify({ is_default: true }) }); toast('已设为默认钱包'); await loadWallets(); } catch (error) { toast(error.message, true); }
+  }));
+  $$('[data-wallet-withdraw]').forEach(btn => btn.addEventListener('click', () => openWithdrawDialog(Number(btn.dataset.walletWithdraw))));
+  $$('[data-wallet-delete]').forEach(btn => btn.addEventListener('click', async () => {
+    if (!confirm('确定删除此钱包吗？')) return;
+    try { await api(`/apehub-web/wallets/${btn.dataset.walletDelete}`, { method: 'DELETE' }); toast('钱包已删除'); await loadWallets(); } catch (error) { toast(error.message, true); }
+  }));
+}
+
+function openWalletDialog() {
+  const form = $('#walletForm');
+  form.reset();
+  form.dataset.walletId = '';
+  $('#walletDialog').showModal();
+}
+
+function openWithdrawDialog(walletId) {
+  const form = $('#withdrawForm');
+  const select = $('#withdrawWalletSelect');
+  if (!select) return;
+  select.innerHTML = (state.wallets || []).map(w => `<option value="${w.id}" ${w.id === walletId ? 'selected' : ''}>${esc(w.label || '未命名钱包')} — ${esc(w.address.slice(0, 10))}...${esc(w.address.slice(-6))}</option>`).join('');
+  if (!state.wallets.length) { toast('请先添加钱包', true); return; }
+  $('#withdrawRule').textContent = withdrawHintText();
+  $('#withdrawDialogSub').textContent = `当前余额 ${money(state.profile?.balance || 0)} USDT`;
+  form.reset();
+  if (walletId) select.value = walletId;
+  form.amount = '';
+  updateWithdrawFeePreview();
+  $('#withdrawDialog').showModal();
+}
+
+/* ========== Withdrawals (paginated) ========== */
+async function loadWithdrawals(page = state.pager.withdraw.page) {
+  state.pager.withdraw.page = page;
+  try {
+    const data = await api(`/apehub-web/withdrawals?page=${page}&page_size=10`);
+    $('#withdrawBody').innerHTML = (data.items || []).length ? (data.items || []).map(item => `<tr><td>${money(item.amount)} USDT</td><td>${money(item.fee)} USDT</td><td>${money(item.net_amount)} USDT</td><td title="${esc(item.account)}">${esc(item.account.slice(0, 8))}...${esc(item.account.slice(-6))}</td><td><span class="status ${esc(item.status)}">${statusText(item.status)}</span></td><td>${esc(item.tx_hash || '-')}</td></tr>`).join('') : '<tr><td colspan="6" class="empty">暂无提现记录</td></tr>';
+    renderPager('#withdrawPager', data, loadWithdrawals);
+  } catch (error) { toast(error.message, true); }
+}
+
+function updateWithdrawFeePreview() {
   const el = $('#feePreview');
   if (!el) return;
-  const amount = Number($('#withdrawAmount')?.value || 0);
+  const amountEl = $('#withdrawForm [name="amount"]');
+  const amount = Number(amountEl?.value || 0);
   if (amount <= 0) { el.textContent = '输入提现金额后将实时显示手续费与到账金额'; el.classList.add('fee-preview-muted'); return; }
   el.classList.remove('fee-preview-muted');
   const fee = Math.min(amount, feeFor(amount));
   el.textContent = `手续费 ${money(fee)} USDT，预计到账 ${money(Math.max(0, amount - fee))} USDT`;
 }
 
+/* ========== Ledger (paginated) ========== */
+async function loadLedger(page = state.pager.ledger.page) {
+  state.pager.ledger.page = page;
+  const entryType = state.pager.ledger.type || '';
+  try {
+    const data = await api(`/apehub-web/ledger?page=${page}&page_size=10${entryType ? `&entry_type=${entryType}` : ''}`);
+    $('#ledgerBody').innerHTML = (data.items || []).length ? (data.items || []).map(item => `<tr><td>${esc(item.type_label)}</td><td class="${item.is_income ? 'ledger-income' : 'ledger-expense'}">${esc(item.amount_display)} USDT</td><td><span class="status ${esc(item.status)}">${statusText(item.status)}</span></td><td class="muted">${esc(item.note || '-')}</td><td>${date(item.created_at)}</td></tr>`).join('') : '<tr><td colspan="5" class="empty">暂无流水记录</td></tr>';
+    renderPager('#ledgerPager', data, loadLedger);
+  } catch (error) { toast(error.message, true); }
+}
+
+/* ========== Pagination helper ========== */
+function renderPager(container, data, loadFn) {
+  const el = $(container);
+  if (!el) return;
+  const { total, page, page_size } = data;
+  const pages = Math.ceil(total / page_size) || 1;
+  if (pages <= 1) { el.innerHTML = total ? `<span class="muted pager-info">共 ${total} 条</span>` : ''; return; }
+  const btns = [];
+  if (page > 1) btns.push(`<button class="btn btn-small pager-btn" data-page="${page - 1}">上一页</button>`);
+  // page number buttons
+  const start = Math.max(1, page - 2), end = Math.min(pages, page + 2);
+  if (start > 1) { btns.push(`<button class="btn btn-small pager-btn" data-page="1">1</button>`); if (start > 2) btns.push('<span class="muted">…</span>'); }
+  for (let i = start; i <= end; i++) btns.push(`<button class="btn btn-small pager-btn${i === page ? ' active' : ''}" data-page="${i}">${i}</button>`);
+  if (end < pages) { if (end < pages - 1) btns.push('<span class="muted">…</span>'); btns.push(`<button class="btn btn-small pager-btn" data-page="${pages}">${pages}</button>`); }
+  if (page < pages) btns.push(`<button class="btn btn-small pager-btn" data-page="${page + 1}">下一页</button>`);
+  el.innerHTML = `<div class="pager"><span class="muted pager-info">共 ${total} 条 / ${pages} 页</span><div class="pager-btns">${btns.join('')}</div></div>`;
+  el.querySelectorAll('[data-page]').forEach(btn => btn.addEventListener('click', () => loadFn(Number(btn.dataset.page))));
+}
+
 /* ========== Event Bindings ========== */
-$('#logoutBtn').addEventListener('click', () => {
-  if (confirm('确定退出登录吗？')) logout();
-});
+$('#logoutBtn').addEventListener('click', () => { if (confirm('确定退出登录吗？')) logout(); });
 $$('.tab').forEach(button => button.addEventListener('click', () => {
   $$('.tab').forEach(item => item.classList.toggle('active', item === button));
   $$('.panel').forEach(panel => panel.classList.toggle('active', panel.id === `panel-${button.dataset.tab}`));
@@ -372,83 +479,50 @@ $('#versionForm').addEventListener('submit', async event => {
     event.target.reset(); $('#versionDialog').close(); toast('新版本草稿已创建'); await selectPlugin(plugin.id); state.selectedVersion = state.selectedPlugin.versions.find(item => item.id === created.id) || state.selectedPlugin.versions[0]; renderWorkbench();
   } catch (error) { toast(error.message, true); }
 });
-function validateAddress(address, fieldName) {
-  const value = String(address || '').trim();
-  if (!value) return `${fieldName}不能为空`;
-  if (value.length !== 34) return `${fieldName}需为 34 位（当前 ${value.length} 位）`;
-  if (!value.startsWith('T')) return `${fieldName}需以 T 开头`;
-  if (!TRC20_RE.test(value)) return `${fieldName}包含无效字符，请检查后重试`;
-  return '';
-}
 
-function setAddressError(input, hint, error) {
-  const target = input.closest('.field') || input.parentElement;
-  if (error) {
-    target.classList.add('field-error');
-    hint.textContent = error;
-    hint.classList.add('error-text');
-  } else {
-    target.classList.remove('field-error');
-    hint.textContent = hint.dataset.default || '';
-    hint.classList.remove('error-text');
-  }
-}
-
-function bindAddressInput(input, hint, options = {}) {
-  input.addEventListener('input', () => {
-    if (!input.value.trim()) { setAddressError(input, hint, ''); return; }
-    const error = validateAddress(input.value, options.label || 'TRC20 地址');
-    setAddressError(input, hint, error);
-  });
-}
-
-const $walletAddress = $('#walletAddress');
-const $walletAddressHint = $('#walletAddressHint');
-const $withdrawAddress = $('#withdrawAddress');
-const $withdrawRule = $('#withdrawRule');
-const $feePreview = $('#feePreview');
-
-if ($walletAddress && $walletAddressHint) {
-  $walletAddressHint.dataset.default = $walletAddressHint.textContent;
-  bindAddressInput($walletAddress, $walletAddressHint, { label: '钱包地址' });
-}
-if ($withdrawAddress) {
-  bindAddressInput($withdrawAddress, $withdrawRule, { label: '收款地址' });
-}
-
-$('#saveWallet').addEventListener('click', async () => {
-  const address = $('#walletAddress').value.trim();
+// Wallet dialog
+$('#openWalletDialog').addEventListener('click', openWalletDialog);
+$('#walletForm').addEventListener('submit', async event => {
+  event.preventDefault();
+  const fd = new FormData(event.target);
+  const address = fd.get('address')?.trim() || '';
   const error = validateAddress(address, '钱包地址');
-  if (error) {
-    setAddressError($('#walletAddress'), $('#walletAddressHint'), error);
-    toast(error, true);
-    $('#walletAddress').focus();
-    return;
-  }
+  if (error) { toast(error, true); return; }
   try {
-    await api('/apehub-web/wallet', { method: 'PUT', body: JSON.stringify({ address }) });
-    $('#withdrawAddress').value = address;
-    toast('TRC20 钱包已保存');
+    await api('/apehub-web/wallets', { method: 'POST', body: JSON.stringify({ address, label: fd.get('label') || '', is_default: fd.get('is_default') === 'on' }) });
+    event.target.reset(); $('#walletDialog').close(); toast('钱包已添加'); await loadWallets();
   } catch (error) { toast(error.message, true); }
 });
-$('#withdrawAmount').addEventListener('input', updateFeePreview);
+
+// Wallet dialog address validation
+$('#walletForm [name="address"]')?.addEventListener('input', function () {
+  if (!this.value.trim()) { $('#walletDialogHint').textContent = '仅支持 TRC20 网络，地址以 T 开头共 34 位'; $('#walletDialogHint').classList.remove('error-text'); return; }
+  const error = validateAddress(this.value, '钱包地址');
+  if (error) { $('#walletDialogHint').textContent = error; $('#walletDialogHint').classList.add('error-text'); }
+  else { $('#walletDialogHint').textContent = '地址格式正确'; $('#walletDialogHint').classList.remove('error-text'); }
+});
+
+// Withdraw dialog
+$('#withdrawForm [name="amount"]')?.addEventListener('input', updateWithdrawFeePreview);
 $('#withdrawForm').addEventListener('submit', async event => {
   event.preventDefault();
-  const amount = $('#withdrawAmount').value.trim();
-  const address = $('#withdrawAddress').value.trim();
-  const amountError = !Number(amount) || Number(amount) <= 0 ? '请输入有效的提现金额' : '';
-  const addressError = validateAddress(address, '收款地址');
-  if (amountError) { toast(amountError, true); $('#withdrawAmount').focus(); return; }
-  if (addressError) {
-    setAddressError($('#withdrawAddress'), $('#withdrawRule'), addressError);
-    toast(addressError, true);
-    $('#withdrawAddress').focus();
-    return;
-  }
+  const fd = new FormData(event.target);
+  const walletId = Number(fd.get('wallet_id'));
+  const amount = fd.get('amount')?.trim();
+  if (!walletId) { toast('请选择收款钱包', true); return; }
+  if (!amount || Number(amount) <= 0) { toast('请输入有效的提现金额', true); return; }
   try {
-    await api('/apehub-web/withdrawals', { method: 'POST', body: JSON.stringify({ amount, account: address }) });
-    toast('提现申请已提交'); event.target.reset(); await refreshAll();
+    await api('/apehub-web/withdrawals', { method: 'POST', body: JSON.stringify({ amount, wallet_id: walletId }) });
+    $('#withdrawDialog').close(); toast('提现申请已提交'); await refreshAll();
   } catch (error) { toast(error.message, true); }
 });
+
+// Ledger filter buttons
+$$('.ledger-filter-btn').forEach(btn => btn.addEventListener('click', () => {
+  $$('.ledger-filter-btn').forEach(b => b.classList.toggle('active', b === btn));
+  state.pager.ledger.type = btn.dataset.ledgerFilter || '';
+  state.pager.ledger.page = 1;
+  loadLedger();
+}));
 
 init();

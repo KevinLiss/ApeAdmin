@@ -6,7 +6,7 @@
 <title>ApeHub - 个人中心</title>
 <meta name="description" content="ApeHub 开发者中心，管理插件版本、购买授权、USDT 收益与提现。">
 <link rel="icon" href="/apehub-web/assets/logo.png">
-<link rel="stylesheet" href="/apehub-web/profile.css?v=1.7.1">
+<link rel="stylesheet" href="/apehub-web/profile.css?v=2.0.1">
 </head>
 <body>
 <div class="bg-glow"></div>
@@ -80,40 +80,34 @@
     </section>
 
     <section class="panel" id="panel-income">
-      <div class="section-head"><h2>销售收益</h2></div>
+      <div class="section-head"><h2>销售收益</h2><span class="muted" id="incomeSummary"></span></div>
       <div class="table-wrap"><table><thead><tr><th>插件</th><th>收益</th><th>服务费率</th><th>状态</th><th>可提现时间</th></tr></thead><tbody id="incomeBody"></tbody></table></div>
+      <div id="incomePager"></div>
     </section>
 
     <section class="panel" id="panel-wallet">
-      <div class="wallet-grid">
-        <form class="form-section" onsubmit="return false">
-          <h2>TRC20 收款钱包</h2>
-          <p class="form-desc">保存后提现表单将自动带出，无需重复填写。</p>
-          <div class="field">
-            <label>USDT-TRC20 地址</label>
-            <input id="walletAddress" maxlength="34" placeholder="T 开头的 34 位地址" autocomplete="off">
-            <div class="field-hint" id="walletAddressHint">仅支持 TRC20 网络，地址以 T 开头共 34 位</div>
-          </div>
-          <div class="actions"><button class="btn btn-primary" type="button" id="saveWallet">保存钱包</button></div>
-        </form>
-        <form class="form-section" id="withdrawForm">
-          <h2>申请提现</h2>
-          <div class="field">
-            <label>提现金额 (USDT)</label>
-            <input id="withdrawAmount" type="number" min="0" step="0.00000001" placeholder="输入提现金额" required>
-            <div class="field-hint" id="withdrawRule">最低提现金额与手续费率请以页面提示为准</div>
-          </div>
-          <div class="field" style="margin-top:16px">
-            <label>TRC20 收款地址</label>
-            <input id="withdrawAddress" maxlength="34" placeholder="T 开头的 34 位地址" autocomplete="off" required>
-            <div class="field-hint">默认使用上方保存的钱包地址，可手动修改</div>
-          </div>
-          <div class="fee-preview" id="feePreview"></div>
-          <div class="actions"><button class="btn btn-primary" type="submit">提交提现申请</button></div>
-        </form>
+      <div class="section-head">
+        <h2>USDT 钱包</h2>
+        <button class="btn btn-primary btn-small" id="openWalletDialog">+ 新增钱包</button>
       </div>
-      <div class="section-head" style="margin-top:24px"><h2>提现记录</h2></div>
+      <div class="wallet-card-grid" id="walletCardGrid"></div>
+
+      <div class="section-head" style="margin-top:28px">
+        <h2>资金流水</h2>
+        <div class="ledger-filter">
+          <button class="btn btn-small ledger-filter-btn active" data-ledger-filter="">全部</button>
+          <button class="btn btn-small ledger-filter-btn" data-ledger-filter="sale_income">销售分成</button>
+          <button class="btn btn-small ledger-filter-btn" data-ledger-filter="withdrawal_hold">提现冻结</button>
+          <button class="btn btn-small ledger-filter-btn" data-ledger-filter="withdrawal_complete">提现完成</button>
+          <button class="btn btn-small ledger-filter-btn" data-ledger-filter="withdrawal_cancel">提现退回</button>
+        </div>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>类型</th><th>金额</th><th>状态</th><th>备注</th><th>时间</th></tr></thead><tbody id="ledgerBody"></tbody></table></div>
+      <div id="ledgerPager"></div>
+
+      <div class="section-head" style="margin-top:28px"><h2>提现记录</h2></div>
       <div class="table-wrap"><table><thead><tr><th>申请</th><th>手续费</th><th>到账</th><th>地址</th><th>状态</th><th>交易哈希</th></tr></thead><tbody id="withdrawBody"></tbody></table></div>
+      <div id="withdrawPager"></div>
     </section>
   </div>
 </main>
@@ -171,8 +165,44 @@
   </form>
 </dialog>
 
+<dialog id="walletDialog">
+  <form id="walletForm">
+    <div class="dialog-head">
+      <div>
+        <h2>新增钱包</h2>
+        <p class="dialog-sub">添加一个 TRC20 收款地址，用于接收插件销售分成</p>
+      </div>
+      <button type="button" class="icon-btn" data-close title="关闭">×</button>
+    </div>
+    <div class="dialog-body">
+      <div class="field"><label>钱包备注</label><input name="label" placeholder="如：主钱包、备用钱包" maxlength="64"><div class="field-hint">方便区分多个钱包</div></div>
+      <div class="field" style="margin-top:16px"><label>TRC20 地址</label><input name="address" required maxlength="34" placeholder="T 开头的 34 位地址" autocomplete="off"><div class="field-hint" id="walletDialogHint">仅支持 TRC20 网络，地址以 T 开头共 34 位</div></div>
+      <div class="field" style="margin-top:16px"><label class="checkbox-row"><input type="checkbox" name="is_default"> 设为默认钱包</label></div>
+    </div>
+    <div class="dialog-foot"><button type="button" class="btn" data-close>取消</button><button class="btn btn-primary" type="submit">添加钱包</button></div>
+  </form>
+</dialog>
+
+<dialog id="withdrawDialog">
+  <form id="withdrawForm">
+    <div class="dialog-head">
+      <div>
+        <h2>申请提现</h2>
+        <p class="dialog-sub" id="withdrawDialogSub">从余额中提取 USDT 到指定钱包</p>
+      </div>
+      <button type="button" class="icon-btn" data-close title="关闭">×</button>
+    </div>
+    <div class="dialog-body">
+      <div class="field"><label>选择收款钱包</label><select name="wallet_id" id="withdrawWalletSelect" required></select></div>
+      <div class="field" style="margin-top:16px"><label>提现金额 (USDT)</label><input name="amount" type="number" min="0" step="0.00000001" placeholder="输入提现金额" required><div class="field-hint" id="withdrawRule"></div></div>
+      <div class="fee-preview" id="feePreview"></div>
+    </div>
+    <div class="dialog-foot"><button type="button" class="btn" data-close>取消</button><button class="btn btn-primary" type="submit">提交提现申请</button></div>
+  </form>
+</dialog>
+
 <div class="toast" id="toast" role="status"></div>
 <script src="/apehub-web/site-runtime.js?v=1.6.1"></script>
-<script src="/apehub-web/profile-app.js?v=1.7.0" defer></script>
+<script src="/apehub-web/profile-app.js?v=2.0.0" defer></script>
 </body>
 </html>

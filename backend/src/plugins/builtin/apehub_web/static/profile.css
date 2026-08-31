@@ -309,15 +309,52 @@ progress { accent-color: var(--primary); }
 }
 .field-hint { margin-top: 6px; font-size: 12px; color: var(--text-3); line-height: 1.5; }
 
-/* ========== Wallet ========== */
-.wallet-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(340px,.8fr); gap: 18px; align-items: stretch; }
-.form-section {
-  padding: 24px; border: 1px solid var(--panel-border);
-  background: var(--panel); border-radius: 16px;
-  display: flex; flex-direction: column;
+/* ========== Wallet card grid ========== */
+.wallet-card-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;
+  margin-bottom: 24px;
 }
-.form-section h2 { margin: 0 0 6px; font-size: 17px; font-weight: 700; }
-.form-desc { margin: 0 0 18px; color: var(--text-3); font-size: 12.5px; line-height: 1.5; }
+.wallet-card {
+  position: relative; padding: 20px;
+  border: 1px solid var(--panel-border); border-radius: 16px;
+  background: var(--panel); transition: all .25s; overflow: hidden;
+}
+.wallet-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--panel-border); transition: background .25s;
+}
+.wallet-card:hover {
+  border-color: rgba(109,92,255,.3); transform: translateY(-2px);
+  box-shadow: 0 12px 36px -12px rgba(109,92,255,.2);
+}
+.wallet-card.default { border-color: rgba(109,92,255,.4); }
+.wallet-card.default::before { background: var(--grad-2); }
+.wallet-card-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px;
+}
+.wallet-label { font-size: 15px; font-weight: 700; color: var(--text); }
+.wallet-badge {
+  font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
+  background: rgba(109,92,255,.15); color: #a5b4fc;
+}
+.wallet-address {
+  font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; color: var(--text-2);
+  padding: 8px 12px; background: var(--panel-2); border-radius: 8px; margin-bottom: 12px;
+  word-break: break-all; letter-spacing: -.02em;
+}
+.wallet-meta {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+}
+.wallet-meta .muted { font-size: 11px; }
+.wallet-card-actions {
+  display: flex; flex-wrap: wrap; gap: 8px; padding-top: 12px; border-top: 1px solid var(--panel-border);
+}
+.wallet-empty {
+  grid-column: 1 / -1; padding: 48px 20px; text-align: center; color: var(--text-3); font-size: 14px;
+  border: 1px dashed var(--panel-border); border-radius: 14px; background: var(--panel);
+}
+
+/* ========== Fee preview (shared in dialogs) ========== */
 .fee-preview {
   padding: 14px 16px; margin: 16px 0 4px; background: var(--panel-2);
   border-radius: 10px; color: var(--text-2); font-size: 13px;
@@ -328,10 +365,49 @@ progress { accent-color: var(--primary); }
 .fee-preview-muted { color: var(--text-3); }
 .fee-preview-muted::before { content: '📝'; }
 .fee-preview strong { color: var(--text); }
-.form-section .actions { margin-top: auto; padding-top: 18px; }
 .field-error input { border-color: var(--red) !important; }
 .field-error input:focus { box-shadow: 0 0 0 3px rgba(248,113,113,.18) !important; }
 .error-text { color: var(--red) !important; }
+
+/* ========== Ledger filter buttons ========== */
+.ledger-filter {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;
+}
+.ledger-filter-btn {
+  border: 1px solid var(--panel-border); background: var(--panel); color: var(--text-2);
+}
+.ledger-filter-btn:hover { color: var(--text); border-color: rgba(109,92,255,.3); }
+.ledger-filter-btn.active {
+  border-color: var(--primary); background: rgba(109,92,255,.1); color: #c7d2fe;
+}
+
+/* ========== Ledger amount colors ========== */
+.ledger-income { color: var(--green); font-weight: 600; }
+.ledger-expense { color: var(--red); font-weight: 600; }
+
+/* ========== Pager ========== */
+.pager {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 14px 0; flex-wrap: wrap;
+}
+.pager-info { font-size: 12px; }
+.pager-btns { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.pager-btn {
+  min-width: 36px; padding: 6px 12px; border-radius: 8px;
+  border: 1px solid var(--panel-border); background: var(--panel); color: var(--text-2);
+  font-size: 13px; font-weight: 600; transition: all .2s;
+}
+.pager-btn:hover { border-color: rgba(109,92,255,.35); color: var(--text); }
+.pager-btn.active { background: var(--grad-2); color: #fff; border-color: transparent; }
+
+/* ========== Checkbox row ========== */
+.checkbox-row {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  font-size: 14px; color: var(--text-2); user-select: none;
+}
+.checkbox-row input[type="checkbox"] {
+  width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer;
+}
 
 /* ========== Withdraw table column widths ========== */
 #withdrawBody td:nth-child(1), #withdrawBody td:nth-child(2), #withdrawBody td:nth-child(3) { white-space: nowrap; }
@@ -390,7 +466,10 @@ footer { border-top: 1px solid var(--panel-border); padding: 40px 24px; }
   .workspace { grid-template-columns: 1fr; }
   .plugin-list { border-right: 0; border-bottom: 1px solid var(--panel-border); }
   .plugin-list-items { max-height: 260px; }
-  .wallet-grid, .media-grid { grid-template-columns: 1fr; }
+  .wallet-card-grid { grid-template-columns: 1fr; }
+  .ledger-filter { gap: 6px; }
+  .ledger-filter-btn { font-size: 12px; padding: 6px 12px; }
+  .pager { justify-content: center; }
   .page { padding: 24px 16px 50px; }
 }
 @media (max-width: 620px) {
