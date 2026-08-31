@@ -211,13 +211,13 @@
       return originalIndex.get(a) - originalIndex.get(b);
     });
 
-    // 3) 重插：把重排后的区块整体移到原第一个区块的位置（锚点保持在原首区块之前）
+    // 3) 重插：用 DocumentFragment 保持 sorted 顺序，一次性插入到原首个区块的位置
     const firstBlock = blocks[0];
     const anchor = firstBlock && firstBlock.previousElementSibling;
     if (firstBlock && anchor) {
-      // 先把所有区块从原位置移除（保持引用），再依次插回锚点之后
-      sorted.forEach(section => section.remove());
-      sorted.forEach(section => anchor.after(section));
+      const frag = document.createDocumentFragment();
+      sorted.forEach(section => frag.appendChild(section));
+      anchor.after(frag);
     }
   }
 })();

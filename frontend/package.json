@@ -27,6 +27,7 @@
     "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
+    "@types/sortablejs": "^1.15.9",
     "@vitejs/plugin-vue": "^5.2.1",
     "typescript": "^5.7.2",
     "vite": "^6.0.7",
