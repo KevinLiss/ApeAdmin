@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '57938917-aeb3-4a58-b1bc-9374aaa33696'
-  PropagateID: '57938917-aeb3-4a58-b1bc-9374aaa33696'
-  ReservedCode1: 'dfe6e195-b9fe-4b59-ba4d-9b32c0bd16a7'
-  ReservedCode2: 'dfe6e195-b9fe-4b59-ba4d-9b32c0bd16a7'
+  ProduceID: 'd0eefd64-a83a-4e66-a173-607c9c4fbc9f'
+  PropagateID: 'd0eefd64-a83a-4e66-a173-607c9c4fbc9f'
+  ReservedCode1: '14220988-f25b-4387-81c8-32ee995fd5fb'
+  ReservedCode2: '14220988-f25b-4387-81c8-32ee995fd5fb'
 ---
 
 <div align="center">
@@ -155,12 +155,7 @@ npm run dev
 
 服务器（宝塔面板 / Docker / 裸机 Nginx）一键部署方案、部署包构建、SQLite→MySQL 数据迁移，见 **[deploy/DEPLOY.md](deploy/DEPLOY.md)**。
 
-部署包分两种模式（`deploy/build_deploy_package.sh`）：
-
-| 模式 | 命令 | 内容 |
-|------|------|------|
-| 底座版（默认） | `bash build_deploy_package.sh` | 管理后台底座，不含业务插件，首次启动进安装向导 |
-| 完整版 | `bash build_deploy_package.sh --with-apehub` | 底座 + apehub_web 官网插件 |
+部署包只包含管理后台底座（RBAC / 菜单 / 插件框架 / MCP 网关），不含业务插件，首次启动进入安装向导。业务插件通过后台的插件导入机制按需安装（上传 ZIP 包 / 插件市场在线安装），与部署包解耦：
 
 ### 默认体验路径
 
