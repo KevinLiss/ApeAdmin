@@ -67,6 +67,10 @@ desktop.ini
 *.log
 *.tmp
 
+# Deploy package staging / artifacts
+deploy/.stage/
+deploy/dist/
+
 # ========================================
 # docs-site build dependencies
 # ========================================

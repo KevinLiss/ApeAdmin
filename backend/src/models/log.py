@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import Integer, String, Text
+from sqlalchemy import DateTime, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.db import Base
@@ -26,5 +26,5 @@ class SysLog(IDMixin, Base):
     user_agent: Mapped[str | None] = mapped_column(String(500), nullable=True)
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
-        default=datetime.utcnow, server_default="CURRENT_TIMESTAMP",
+        DateTime, default=datetime.utcnow, server_default=func.now(),
     )
