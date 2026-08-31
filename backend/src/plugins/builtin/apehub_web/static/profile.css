@@ -441,6 +441,9 @@ dialog::backdrop { background: rgba(7,8,15,.65); backdrop-filter: blur(8px); }
 }
 .dialog-head h2 { margin: 0; font-size: 20px; font-weight: 800; }
 .dialog-head .dialog-sub { margin: 5px 0 0; font-size: 13px; color: var(--text-2); }
+.dialog-guide { margin: 8px 0 0; font-size: 13px; color: var(--text-2); }
+.dialog-guide a { color: var(--primary); text-decoration: none; font-weight: 600; }
+.dialog-guide a:hover { text-decoration: underline; }
 .dialog-body { padding: 28px; }
 .dialog-foot {
   padding: 18px 28px; border-top: 1px solid var(--panel-border);
