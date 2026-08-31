@@ -15,6 +15,7 @@ from src.api.plugin import router as plugin_router
 from src.api.dashboard import router as dashboard_router
 from src.api.log import router as log_router
 from src.api.files import router as files_router
+from src.api.setting import router as setting_router
 from src.core.config import settings
 from src.core.exceptions import success_response
 
@@ -43,5 +44,6 @@ api_router.include_router(plugin_router)
 api_router.include_router(dashboard_router)
 api_router.include_router(log_router)
 api_router.include_router(files_router)
+api_router.include_router(setting_router)
 
 __all__ = ["api_router"]

@@ -10,9 +10,10 @@
     <!-- Logo + toggle -->
     <div class="logo-wrapper" :class="{ 'logo-collapsed': collapsed && !isMobile }" @click="(collapsed && !isMobile) && $emit('toggle')">
       <div class="logo-inner">
-        <img src="/assets/images/logo-icon.png" alt="Logo" class="brand-logo" />
-        <span class="brand-text">ApeAdmin</span>
-      </div>
+         <img v-if="settingsStore.logo_url" :src="settingsStore.logo_url" alt="Logo" class="brand-logo" />
+         <img v-else src="/assets/images/logo-icon.png" alt="Logo" class="brand-logo" />
+         <span class="brand-text">{{ settingsStore.site_name }}</span>
+       </div>
       <!-- Desktop: toggle button -->
       <div v-if="!isMobile" class="toggle-sidebar" @click.stop="$emit('toggle')">
         <el-icon :size="18"><Expand v-if="collapsed" /><Fold v-else /></el-icon>
@@ -108,6 +109,7 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { useSettingsStore } from '@/stores/settings'
 
 const props = defineProps<{
   collapsed: boolean
@@ -123,6 +125,7 @@ defineEmits<{
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+const settingsStore = useSettingsStore()
 const activeMenu = computed(() => route.path)
 const openedSub = ref<string | number | null>(null)
 const hoverSub = ref<string | number | null>(null)

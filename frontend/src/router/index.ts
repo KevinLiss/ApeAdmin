@@ -42,7 +42,6 @@ const staticRoutes: RouteRecordRaw[] = [
   { path: '/404', name: 'NotFound', component: () => import('@/views/error/404.vue'), meta: { title: '404' } },
   { path: '/', name: 'Layout', component: () => import('@/layout/index.vue'), redirect: '/dashboard-monitor', children: [
     { path: 'profile', name: 'Profile', component: () => import('@/views/system/profile/index.vue'), meta: { title: '个人中心', icon: 'User' } },
-    { path: 'system/settings', name: 'SystemSettings', component: () => import('@/views/system/settings/index.vue'), meta: { title: '系统设置', icon: 'Setting' } },
   ] },
   { path: '/:pathMatch(.*)*', name: 'CatchAll', component: () => import('@/views/error/404.vue'), meta: { title: '404' } },
 ]
@@ -75,7 +74,7 @@ router.beforeEach(async (to, _from, next) => {
 
 export function resetRouter() {
   dynamicRoutesLoaded = false
-  const staticNames = new Set(['Login', 'NotFound', 'CatchAll', 'Layout', 'Profile', 'SystemSettings'])
+  const staticNames = new Set(['Login', 'NotFound', 'CatchAll', 'Layout', 'Profile'])
   router.getRoutes().forEach((route) => { if (route.name && !staticNames.has(route.name as string)) router.removeRoute(route.name) })
 }
 

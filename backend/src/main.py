@@ -37,6 +37,39 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     from src.core.seed import seed_initial_data
     await seed_initial_data()
 
+    # Load system settings (admin_path, etc.)
+    from src.crud.setting import crud_setting
+    from src.db import SessionLocal
+    async with SessionLocal() as sdb:
+        admin_path = await crud_setting.get_value(sdb, "admin_path", "/admin")
+    # Normalize: ensure starts with /
+    if not admin_path.startswith("/"):
+        admin_path = "/" + admin_path
+    admin_path = admin_path.rstrip("/")
+    if not admin_path:
+        admin_path = "/admin"
+    app.state.admin_path = admin_path
+    logger.info(f"Admin panel path: {admin_path}")
+
+    # Mount admin SPA if built frontend exists
+    from pathlib import Path
+    frontend_dist = Path(__file__).resolve().parent.parent / "frontend_dist"
+    if frontend_dist.exists():
+        from fastapi.staticfiles import StaticFiles
+        app.mount(admin_path, StaticFiles(directory=str(frontend_dist), html=True), name="admin_spa")
+        logger.info(f"Admin SPA mounted at {admin_path}")
+
+        # Fallback: serve index.html for all admin sub-routes (SPA history mode)
+        @app.get(f"{admin_path}/{{path:path}}", include_in_schema=False)
+        async def admin_spa_fallback(path: str):
+            from fastapi.responses import FileResponse
+            index = frontend_dist / "index.html"
+            if index.exists():
+                return FileResponse(str(index))
+            return {"detail": "Not Found"}
+    else:
+        logger.info("Frontend dist not found, admin SPA not mounted (dev mode: use Vite)")
+
     # Discover and install plugins
     if settings.PLUGINS_ENABLED:
         from src.plugins import plugin_manager

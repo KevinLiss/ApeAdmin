@@ -7,6 +7,7 @@ from src.models.plugin import Plugin
 from src.models.mcp import McpAuditLog
 from src.models.log import SysLog
 from src.models.file import FileFolder, SystemFile
+from src.models.setting import Setting
 
 __all__ = [
     "IDMixin",
@@ -24,4 +25,5 @@ __all__ = [
     "SysLog",
     "FileFolder",
     "SystemFile",
+    "Setting",
 ]

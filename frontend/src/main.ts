@@ -10,6 +10,7 @@ import App from './App.vue'
 import router from './router'
 import { permissionDirective } from './directives/permission'
 import { initTheme } from './composables/useTheme'
+import { useSettingsStore } from './stores/settings'
 
 const app = createApp(App)
 
@@ -21,11 +22,16 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component)
 }
 
-app.use(createPinia())
+const pinia = createPinia()
+app.use(pinia)
 app.use(router)
 app.use(ElementPlus, { locale: zhCn })
 
 // Register global directives
 app.directive('permission', permissionDirective)
 
-app.mount('#app')
+// Fetch public settings and apply theme color before mount
+const settingsStore = useSettingsStore()
+settingsStore.fetchPublicSettings().finally(() => {
+  app.mount('#app')
+})

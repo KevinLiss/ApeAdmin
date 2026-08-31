@@ -105,6 +105,12 @@ export const uploadSystemFile = (file: File, folderId: number) => {
 export const deleteSystemFile = (id: number) => request.delete(`/files/${id}`)
 export const downloadSystemFileUrl = (id: number) => `/api/v1/files/${id}/download`
 
+// ---- 系统设置 ----
+export const getPublicSettings = () => request.get('/settings/public')
+export const getSettings = () => request.get('/settings')
+export const updateSettings = (items: Record<string, string>) => request.put('/settings', { items })
+export const updateSetting = (key: string, value: string) => request.put(`/settings/${key}`, { value })
+
 /**
  * SSE 流式对话 —— 使用 fetch + ReadableStream 解析 SSE
  * @param data  ChatStreamRequest body

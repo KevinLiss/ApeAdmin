@@ -17,6 +17,7 @@ from src.db import SessionLocal
 from src.models import Dept, Menu, Role, User
 from src.models.rbac import role_menu
 from src.models.ai import AiProvider
+from src.models.setting import Setting
 
 
 _REMOVED_COMPONENT_PREFIX = "apeui/components/pages/"
@@ -36,6 +37,7 @@ async def seed_initial_data() -> None:
         await _seed_developer_role(db)
         await _seed_super_admin(db)
         await _seed_ai_provider(db)
+        await _seed_settings(db)
         await db.commit()
     logger.info("Initial data seeded")
 
@@ -94,6 +96,9 @@ async def _seed_menus(db: AsyncSession) -> None:
         ("新增部门", "部门管理", "F", None, None, "system:dept:add", None, 1),
         ("编辑部门", "部门管理", "F", None, None, "system:dept:edit", None, 2),
         ("删除部门", "部门管理", "F", None, None, "system:dept:delete", None, 3),
+        # System settings
+        ("系统设置", "系统管理", "C", "settings", "system/settings/index", "system:setting:list", "Tools", 5),
+        ("编辑设置", "系统设置", "F", None, None, "system:setting:edit", None, 1),
         # Plugin management is a top-level operational page. Its action
         # permissions remain nested below it, but it is not part of the system
         # settings directory.
@@ -205,6 +210,9 @@ async def _seed_missing_menus(db: AsyncSession) -> None:
         # System log menu (incremental)
         ("系统日志", "系统管理", "C", "log", "system/log/index", "system:log:list", "Document", 6),
         ("删除日志", "系统日志", "F", None, None, "system:log:delete", None, 1),
+        # System settings (incremental)
+        ("系统设置", "系统管理", "C", "settings", "system/settings/index", "system:setting:list", "Tools", 5),
+        ("编辑设置", "系统设置", "F", None, None, "system:setting:edit", None, 1),
         # Plugin management additions (incremental)
         ("导入插件", "插件管理", "F", None, None, "system:plugin:upload", None, 3),
         ("删除插件", "插件管理", "F", None, None, "system:plugin:delete", None, 4),
@@ -484,3 +492,33 @@ async def _seed_ai_provider(db: AsyncSession) -> None:
     db.add(provider)
     await db.flush()
     logger.info("Created default AI provider 'DeepSeek-V4Pro'")
+
+
+async def _seed_settings(db: AsyncSession) -> None:
+    """Seed default system settings if not present."""
+    defaults = [
+        # (key, value, description, is_public, category)
+        ("site_name", "ApeAdmin", "站点名称", True, "brand"),
+        ("logo_url", "", "Logo URL（留空使用默认图标）", True, "brand"),
+        ("primary_color", "#5A67F5", "主题色（十六进制）", True, "brand"),
+        ("admin_path", "/admin", "管理后台访问路径（修改后需重启后端）", False, "system"),
+        ("footer_text", "ApeAdmin © 2026", "页脚文字", True, "brand"),
+        ("login_bg", "", "登录页背景图URL（留空使用默认）", True, "brand"),
+        ("sidebar_theme", "light", "侧边栏主题（light/dark）", False, "ui"),
+        ("theme_mode", "light", "官网默认主题（light/dark）", True, "ui"),
+    ]
+
+    for key, value, desc, is_public, category in defaults:
+        result = await db.execute(select(Setting).where(Setting.key == key))
+        if result.scalars().first():
+            continue
+        setting = Setting(
+            key=key,
+            value=value,
+            description=desc,
+            is_public=is_public,
+            category=category,
+        )
+        db.add(setting)
+        await db.flush()
+    logger.info("Default settings seeded")

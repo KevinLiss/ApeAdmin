@@ -32,6 +32,7 @@ from src.schemas.ai import (
 )
 from src.schemas.plugin import PluginOut, PluginToggle, PluginConfigUpdate
 from src.schemas.log import LogOut
+from src.schemas.setting import SettingOut, SettingUpdate, SettingsBatchUpdate, PublicSettingsOut
 
 __all__ = [
     "LoginSchema",
@@ -64,4 +65,8 @@ __all__ = [
     "PluginToggle",
     "PluginConfigUpdate",
     "LogOut",
+    "SettingOut",
+    "SettingUpdate",
+    "SettingsBatchUpdate",
+    "PublicSettingsOut",
 ]
