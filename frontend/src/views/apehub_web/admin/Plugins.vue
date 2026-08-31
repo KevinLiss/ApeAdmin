@@ -234,7 +234,7 @@
               </div>
               <div v-if="currentAIReport.file_count" class="ai-section">
                 <h4>文件统计</h4>
-                <p>共 {{ currentAIReport.file_count }} 个文件，总大小 {{ formatSize(currentAIReport.total_size || 0) }}</p>
+                <p>共 {{ currentAIReport.file_count }} 个文件，总大小 {{ formatSize(currentAIReport.uncompressed_size || currentAIReport.total_size || 0) }}</p>
               </div>
             </div>
             <el-empty v-else description="请从版本列表点击「AI 报告」查看分析结果" :image-size="80" />
@@ -535,51 +535,78 @@
           </div>
         </el-tab-pane>
 
-        <!-- 版本文档 -->
-        <el-tab-pane label="版本文档" name="version">
-          <div class="version-edit-section">
-            <el-select v-model="editVersionId" placeholder="选择版本" style="margin-bottom:16px;width:240px" @change="onVersionSelect" popper-class="version-select-popper">
-              <el-option v-for="v in editVersionList" :key="v.id" :label="`v${v.version}（${versionStatusLabel(v.status)}）`" :value="v.id">
-                <span style="float:left">v{{ v.version }}</span>
-                <span style="float:right;color:var(--el-text-color-secondary);font-size:12px">{{ versionStatusLabel(v.status) }}</span>
-              </el-option>
-            </el-select>
-            <template v-if="editVersionId">
-              <!-- 关联文件展示 -->
-              <div v-if="currentVersionFiles.length" class="version-files-box">
-                <div class="version-files-title"><el-icon><Folder /></el-icon> 关联文件</div>
-                <div v-for="f in currentVersionFiles" :key="f.id" class="version-file-row">
-                  <el-tag size="small" :type="f.file_type === 'package' ? 'primary' : 'info'">{{ f.file_type }}</el-tag>
-                  <span class="file-name">{{ f.filename }}</span>
-                  <span class="file-size">{{ formatSize(f.size) }}</span>
+          <!-- 版本文档 -->
+          <el-tab-pane label="版本文档" name="version">
+            <div class="version-edit-section">
+              <el-select v-model="editVersionId" placeholder="选择版本" style="margin-bottom:16px;width:240px" @change="onVersionSelect" popper-class="version-select-popper">
+                <el-option v-for="v in editVersionList" :key="v.id" :label="`v${v.version}（${versionStatusLabel(v.status)}）`" :value="v.id">
+                  <span style="float:left">v{{ v.version }}</span>
+                  <span style="float:right;color:var(--el-text-color-secondary);font-size:12px">{{ versionStatusLabel(v.status) }}</span>
+                </el-option>
+              </el-select>
+              <template v-if="editVersionId">
+                <!-- 关联文件展示 -->
+                <div v-if="currentVersionFiles.length" class="version-files-box">
+                  <div class="version-files-title">
+                    <el-icon><Folder /></el-icon> 关联文件
+                    <el-button text size="small" type="primary" style="margin-left:auto" @click="triggerVersionUpload">更换文件</el-button>
+                  </div>
+                  <div v-for="f in currentVersionFiles" :key="f.id" class="version-file-row">
+                    <el-tag size="small" :type="f.file_type === 'package' ? 'primary' : 'info'">{{ f.file_type }}</el-tag>
+                    <span class="file-name">{{ f.filename }}</span>
+                    <span class="file-size">{{ formatSize(f.size) }}</span>
+                    <el-button text size="small" type="danger" :icon="Delete" @click="removeVersionFile(f)">删除</el-button>
+                  </div>
+                  <input v-show="false" ref="versionUploadInput" type="file" accept=".zip,.gz" @change="handleVersionUpload($event)" />
                 </div>
+                <div v-else class="version-files-box empty">
+                  <el-icon><Warning /></el-icon>
+                  <span>该版本暂无关联文件，请在「文件管理」Tab 上传 ZIP 或文档。</span>
+                  <el-button text size="small" type="primary" @click="triggerVersionUpload">上传文件</el-button>
+                  <input v-show="false" ref="versionUploadInput" type="file" accept=".zip,.gz" @change="handleVersionUpload($event)" />
+                </div>
+                <el-form label-width="100px" style="margin-top:16px">
+                  <el-form-item label="版本号">
+                    <el-input v-model="editVersionForm.version" />
+                  </el-form-item>
+                  <el-form-item label="兼容性">
+                    <el-input v-model="editVersionForm.compatibility" placeholder="如：ApeAdmin v1.4+" />
+                  </el-form-item>
+                  <el-form-item label="更新日志">
+                    <el-input v-model="editVersionForm.changelog" type="textarea" :rows="4" placeholder="本次更新内容" />
+                  </el-form-item>
+                  <el-form-item label="技术文档">
+                    <el-input v-model="editVersionForm.documentation" type="textarea" :rows="10" placeholder="Markdown 格式" />
+                  </el-form-item>
+                  <el-form-item>
+                    <el-button type="primary" :loading="versionSaving" @click="saveVersion">保存版本文档</el-button>
+                  </el-form-item>
+                </el-form>
+              </template>
+              <el-empty v-else description="请选择版本编辑文档" :image-size="60" />
+            </div>
+          </el-tab-pane>
+
+          <!-- MCP 工具 -->
+          <el-tab-pane label="MCP 工具" name="mcp">
+            <div class="mcp-edit-section">
+              <div class="mcp-edit-hint">
+                <el-icon><InfoFilled /></el-icon>
+                <span>配置该插件对外暴露的 MCP 工具元数据（JSON 格式）。AI 助手可通过这些工具调用插件能力。运行时注册由插件代码自动完成，此字段用于记录和展示。</span>
               </div>
-              <div v-else class="version-files-box empty">
-                <el-icon><Warning /></el-icon>
-                <span>该版本暂无关联文件，请在「文件管理」Tab 上传 ZIP 或文档。</span>
+              <el-input
+                v-model="mcpToolsJson"
+                type="textarea"
+                :rows="16"
+                placeholder='例如：[{"name":"market_search","description":"搜索市场插件","category":"apehub_web","permissions":[]}]'
+                style="font-family: monospace; font-size: 12px;" />
+              <div class="mcp-edit-actions">
+                <el-button type="primary" :loading="editSaving" @click="saveMcpTools">保存 MCP 配置</el-button>
+                <el-button @click="formatMcpJson">格式化 JSON</el-button>
               </div>
-              <el-form label-width="100px" style="margin-top:16px">
-                <el-form-item label="版本号">
-                  <el-input v-model="editVersionForm.version" />
-                </el-form-item>
-                <el-form-item label="兼容性">
-                  <el-input v-model="editVersionForm.compatibility" placeholder="如：ApeAdmin v1.4+" />
-                </el-form-item>
-                <el-form-item label="更新日志">
-                  <el-input v-model="editVersionForm.changelog" type="textarea" :rows="4" placeholder="本次更新内容" />
-                </el-form-item>
-                <el-form-item label="技术文档">
-                  <el-input v-model="editVersionForm.documentation" type="textarea" :rows="10" placeholder="Markdown 格式" />
-                </el-form-item>
-                <el-form-item>
-                  <el-button type="primary" :loading="versionSaving" @click="saveVersion">保存版本文档</el-button>
-                </el-form-item>
-              </el-form>
-            </template>
-            <el-empty v-else description="请选择版本编辑文档" :image-size="60" />
-          </div>
-        </el-tab-pane>
-      </el-tabs>
+            </div>
+          </el-tab-pane>
+        </el-tabs>
       <template #footer>
         <el-button @click="editVisible = false">关闭</el-button>
         <el-button v-if="editTab === 'basic' || editTab === 'demos'" type="primary" :loading="editSaving" @click="saveEdit">保存基本信息</el-button>
@@ -812,6 +839,7 @@ const editVersionId = ref<number>(0)
 const editVersionForm = ref<any>({})
 const versionSaving = ref(false)
 const developerList = ref<any[]>([])
+const mcpToolsJson = ref('')
 
 // 加载开发者列表（管理员可筛选绑定）
 const loadDevelopers = async () => {
@@ -904,6 +932,7 @@ const openEdit = async (row: any) => {
     editMediaList.value = d.media || []
     editFileList.value = d.files || []
     editVersionList.value = d.versions || []
+    mcpToolsJson.value = d.mcp_tools ? JSON.stringify(d.mcp_tools, null, 2) : '[]'
     // 延迟加载开发者列表（仅在首次打开时）
     if (!developerList.value.length) await loadDevelopers()
   } catch {
@@ -978,6 +1007,33 @@ const onVersionSelect = () => {
   }
 }
 
+// 版本文档 Tab：关联文件的上传/删除
+const versionUploadInput = ref<HTMLInputElement | null>(null)
+const triggerVersionUpload = () => versionUploadInput.value?.click()
+const handleVersionUpload = async (e: Event) => {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file || !editForm.value.id || !editVersionId.value) return
+  const formData = new FormData()
+  formData.append('file', file)
+  try {
+    await adminUploadFile(editForm.value.id, formData, { file_type: 'package', version_id: editVersionId.value })
+    ElMessage.success('文件上传成功')
+    const d = await getAdminPluginDetail(editForm.value.id)
+    editVersionList.value = d.versions || []
+  } catch (err: any) {
+    ElMessage.error(err.message || '上传失败')
+  }
+  input.value = ''
+}
+const removeVersionFile = async (f: any) => {
+  await ElMessageBox.confirm(`确认删除文件「${f.filename}」？`, '删除文件', { type: 'warning' })
+  await adminDeleteFile(editForm.value.id, f.id)
+  ElMessage.success('文件已删除')
+  const d = await getAdminPluginDetail(editForm.value.id)
+  editVersionList.value = d.versions || []
+}
+
 const saveVersion = async () => {
   versionSaving.value = true
   try {
@@ -987,6 +1043,34 @@ const saveVersion = async () => {
   } catch (e: any) {
     ElMessage.error(e.message || '保存失败')
   } finally { versionSaving.value = false }
+}
+
+// MCP 工具配置
+const saveMcpTools = async () => {
+  let parsed: any
+  try {
+    parsed = JSON.parse(mcpToolsJson.value || '[]')
+  } catch {
+    return ElMessage.error('JSON 格式错误，请检查')
+  }
+  editSaving.value = true
+  try {
+    await updateAdminPlugin(editForm.value.id, { mcp_tools: parsed })
+    ElMessage.success('MCP 工具配置已保存')
+    await refresh(editForm.value.id)
+  } catch (e: any) {
+    ElMessage.error(e.message || '保存失败')
+  } finally { editSaving.value = false }
+}
+
+const formatMcpJson = () => {
+  try {
+    const parsed = JSON.parse(mcpToolsJson.value || '[]')
+    mcpToolsJson.value = JSON.stringify(parsed, null, 2)
+    ElMessage.success('JSON 格式化完成')
+  } catch {
+    ElMessage.error('JSON 格式错误，无法格式化')
+  }
 }
 
 onMounted(() => {
@@ -1239,6 +1323,16 @@ onMounted(() => {
 
 .version-edit-section { }
 
+/* MCP 工具编辑 */
+.mcp-edit-section { }
+.mcp-edit-hint {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 10px 14px; margin-bottom: 12px;
+  background: var(--el-fill-color-lighter); border-radius: 8px;
+  font-size: 12px; color: var(--el-text-color-secondary); line-height: 1.6;
+}
+.mcp-edit-actions { display: flex; gap: 10px; margin-top: 12px; }
+
 /* 版本选择下拉在 dialog 之上显示 */
 :global(.version-select-popper) {
   z-index: 3000 !important;
@@ -1309,7 +1403,7 @@ onMounted(() => {
 .version-files-title {
   display: flex; align-items: center; gap: 6px;
   font-size: 13px; font-weight: 600; color: var(--el-text-color-primary);
-  margin-bottom: 8px;
+  margin-bottom: 8px; white-space: nowrap;
 }
 .version-file-row {
   display: flex; align-items: center; gap: 8px;
