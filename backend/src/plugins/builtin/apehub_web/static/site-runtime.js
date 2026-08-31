@@ -196,10 +196,13 @@
         const el = section.querySelector(sel.title);
         if (!el) return;
         if (key === 'hero') {
-          // hero 标题保留渐变色高亮：逗号后换行，「AI 智能体」加 grad 样式
-          el.innerHTML = item.title
-            .replace(/，/g, '，<br>')
-            .replace(/AI 智能体/g, '<span class="grad">AI 智能体</span>');
+          // hero 标题：逗号后换行，第二行整体加渐变色高亮
+          const parts = item.title.split('，');
+          if (parts.length >= 2) {
+            el.innerHTML = parts[0] + '，<br><span class="grad">' + parts.slice(1).join('，') + '</span>';
+          } else {
+            el.textContent = item.title;
+          }
         } else {
           el.textContent = item.title;
         }
