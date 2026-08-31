@@ -194,7 +194,15 @@
       if (!sel) return;
       if (item.title && sel.title) {
         const el = section.querySelector(sel.title);
-        if (el) el.textContent = item.title;
+        if (!el) continue;
+        if (key === 'hero') {
+          // hero 标题保留渐变色高亮：逗号后换行，「AI 智能体」加 grad 样式
+          el.innerHTML = item.title
+            .replace(/，/g, '，<br>')
+            .replace(/AI 智能体/g, '<span class="grad">AI 智能体</span>');
+        } else {
+          el.textContent = item.title;
+        }
       }
       if (item.subtitle && sel.subtitle) {
         const el = section.querySelector(sel.subtitle);
