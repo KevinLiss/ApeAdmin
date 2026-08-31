@@ -23,6 +23,104 @@ if TYPE_CHECKING:
 
 
 # ---------------------------------------------------------------------------
+# Persistence helpers (sys_mcp_tool table)
+# ---------------------------------------------------------------------------
+
+TOOL_CALL_TIMEOUT = 30.0  # default timeout for tool execution (seconds)
+
+
+def _derive_registration_path(handler: Callable) -> tuple[str, str]:
+    """Derive (module, attr) for re-importing a tool handler on restart.
+
+    Supports:
+    - plain functions / bound methods → (module, function_name)
+    - class methods decorated via decorators.py → the wrapper carries
+      ``__mcp_decorator__`` pointing at the original function
+    """
+    fn = getattr(handler, "__mcp_decorator__", handler)
+    module = getattr(fn, "__module__", "") or ""
+    qualname = getattr(fn, "__qualname__", getattr(fn, "__name__", "")) or ""
+    # Bound class methods: qualify with the owner class name, e.g. "MyPlugin.my_tool"
+    if "<locals>" in qualname:
+        qualname = getattr(fn, "__name__", "")
+    if not module or not qualname:
+        return "", ""
+    return module, qualname
+
+
+def _persist_tool_registration(
+    name: str,
+    description: str,
+    plugin_name: str,
+    category: str,
+    required_permissions: list[str],
+    handler: Callable,
+) -> None:
+    """Upsert a row into sys_mcp_tool (fire-and-forget, never blocks registration).
+
+    Runs only inside a running event loop; silently skips otherwise (e.g.
+    tools registered before app startup).
+    """
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        return  # no running loop — persistence unavailable, registration still OK
+
+    handler_module, handler_attr = _derive_registration_path(handler)
+
+    async def _upsert() -> None:
+        try:
+            from sqlalchemy import select
+            from src.db import SessionLocal
+            from src.models import McpToolRegistration
+
+            async with SessionLocal() as db:
+                stmt = select(McpToolRegistration).where(McpToolRegistration.name == name)
+                row = (await db.execute(stmt)).scalar_one_or_none()
+                if row is None:
+                    row = McpToolRegistration(name=name)
+                    db.add(row)
+                row.description = description[:500]
+                row.plugin_name = plugin_name
+                row.category = category or plugin_name or "system"
+                row.required_permissions = required_permissions or []
+                row.handler_module = handler_module
+                row.handler_attr = handler_attr
+                row.enabled = True
+                await db.commit()
+        except Exception as exc:
+            logger.debug(f"MCP persist skipped for '{name}': {exc}")
+
+    loop.create_task(_upsert())
+
+
+def _mark_tool_disabled(name: str) -> None:
+    """Mark a tool row disabled in sys_mcp_tool (fire-and-forget)."""
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        return
+
+    async def _disable() -> None:
+        try:
+            from sqlalchemy import update
+            from src.db import SessionLocal
+            from src.models import McpToolRegistration
+
+            async with SessionLocal() as db:
+                await db.execute(
+                    update(McpToolRegistration)
+                    .where(McpToolRegistration.name == name)
+                    .values(enabled=False)
+                )
+                await db.commit()
+        except Exception as exc:
+            logger.debug(f"MCP disable persist skipped for '{name}': {exc}")
+
+    loop.create_task(_disable())
+
+
+# ---------------------------------------------------------------------------
 # Type mapping helpers
 # ---------------------------------------------------------------------------
 
@@ -54,17 +152,32 @@ def _strip_optional(annotation: Any) -> tuple[Any, bool]:
 
 
 def _docstring_param_descriptions(doc: str | None) -> dict[str, str]:
-    """Parse Google-style or NumPy-style docstring parameter descriptions."""
+    """Parse Google-style or NumPy-style docstring parameter descriptions.
+
+    Only the ``Args:`` / ``Arguments:`` / ``Parameters:`` section is scanned,
+    so free-text lines elsewhere in the docstring (e.g. ``Usage: do X``)
+    can't be mistaken for parameter descriptions.
+    """
     if not doc:
         return {}
+    # Extract the parameter section, if present
+    section = re.search(
+        r"^(?:Args|Arguments|Parameters)\s*:\s*$\n(.*?)(?=^\w[\w \t]*\s*:\s*$|\Z)",
+        doc,
+        re.MULTILINE | re.DOTALL,
+    )
+    if not section:
+        return {}
+    body = section.group(1)
+
     result: dict[str, str] = {}
     # Match:    param_name (optional type hint) : description
     # Also:     param_name: description
     pattern = re.compile(
-        r"^\s*(\w+)\s*(?:\(.*?\))?\s*[:：]\s*(.+)$",
+        r"^\s+(\w+)\s*(?:\(.*?\))?\s*[:：]\s*(.+)$",
         re.MULTILINE,
     )
-    for match in pattern.finditer(doc):
+    for match in pattern.finditer(body):
         param_name = match.group(1).strip()
         desc = match.group(2).strip()
         # Skip common false positives like "Returns:" or "Raises:"
@@ -146,8 +259,14 @@ class McpManager:
         required_permissions: list[str] | None = None,
         plugin_name: str = "",
         category: str = "",
+        persist: bool = True,
     ) -> None:
-        """Register an MCP tool (sync method — callers should hold the lock in async contexts)."""
+        """Register an MCP tool (sync method — callers should hold the lock in async contexts).
+
+        When ``persist`` is True and an event loop is running, the registration
+        is also upserted into the ``sys_mcp_tool`` table so it can be restored
+        after a process restart.
+        """
         input_schema = self._infer_schema(handler)
         is_async = asyncio.iscoroutinefunction(handler)
         self._tools[name] = McpTool(
@@ -161,16 +280,29 @@ class McpManager:
             is_async=is_async,
         )
         logger.info(f"MCP tool registered: {name} (category={category or plugin_name or 'system'})")
+        if persist:
+            _persist_tool_registration(
+                name=name,
+                description=description,
+                plugin_name=plugin_name,
+                category=category,
+                required_permissions=required_permissions or [],
+                handler=handler,
+            )
 
     def unregister_tool(self, name: str) -> bool:
-        """Remove a registered tool."""
-        return self._tools.pop(name, None) is not None
+        """Remove a registered tool and mark its DB row disabled."""
+        removed = self._tools.pop(name, None) is not None
+        if removed:
+            _mark_tool_disabled(name)
+        return removed
 
     def unregister_plugin_tools(self, plugin_name: str) -> list[str]:
         """Remove all tools owned by a plugin and return their names."""
         names = [name for name, tool in self._tools.items() if tool.plugin_name == plugin_name]
         for name in names:
             self._tools.pop(name, None)
+            _mark_tool_disabled(name)
         return names
 
     def get_tool(self, name: str) -> McpTool | None:
@@ -205,16 +337,23 @@ class McpManager:
             counts[cat] = counts.get(cat, 0) + 1
         return [{"name": k, "count": v} for k, v in sorted(counts.items())]
 
-    async def call_tool(self, name: str, arguments: dict[str, Any]) -> Any:
-        """Execute an MCP tool by name with the given arguments."""
+    async def call_tool(self, name: str, arguments: dict[str, Any], timeout: float = 30.0) -> Any:
+        """Execute an MCP tool by name with the given arguments.
+
+        A timeout guards against hung plugin handlers blocking the caller
+        (AI agent turns, SSE sessions, HTTP requests).
+        """
         tool = self._tools.get(name)
         if not tool:
             raise ValueError(f"Unknown MCP tool: {name}")
 
-        result = tool.handler(**arguments)
-        if inspect.isawaitable(result):
-            result = await result
-        return result
+        async def _invoke() -> Any:
+            result = tool.handler(**arguments)
+            if inspect.isawaitable(result):
+                result = await result
+            return result
+
+        return await asyncio.wait_for(_invoke(), timeout=timeout)
 
     # ---- Resources ----
 

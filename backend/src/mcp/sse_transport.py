@@ -4,17 +4,22 @@ This module provides a standard MCP-compatible SSE endpoint that can be
 connected to by any MCP client (e.g., Claude Desktop, Cursor, etc.).
 
 Protocol flow:
-1. Client connects to GET /mcp/sse → server returns SSE stream
-2. Client sends JSON-RPC messages via POST /mcp/messages
-3. Server processes: initialize → tools/list → tools/call
-4. Responses are pushed back via the SSE stream
+1. Client obtains a short-lived ticket: POST /mcp/sse/ticket (JWT auth)
+2. Client connects to GET /mcp/sse?ticket=xxx → server returns SSE stream
+3. Client sends JSON-RPC messages via POST /mcp/sse/messages?session_id=xxx
+4. Server processes: initialize → tools/list → tools/call
+5. Responses are pushed back via the SSE stream
 
-The SSE endpoint also serves as a fallback for clients that only need
-the REST API.
+Auth notes:
+- Tickets are one-time, expire in 30s, and avoid leaking JWTs into
+  Nginx access logs via URL query strings.
+- JWT ``sub`` carries the **user id** (not username).
 """
 
 import asyncio
 import json
+import secrets
+import time
 import uuid
 from typing import Annotated, Any
 
@@ -33,6 +38,46 @@ from src.mcp.routes import _write_audit_log
 from src.models import User
 
 router = APIRouter(prefix="/mcp/sse", tags=["MCP SSE 传输"])
+
+# ---------------------------------------------------------------------------
+# Short-lived ticket auth (avoids JWT in URL / access logs)
+# ---------------------------------------------------------------------------
+
+TICKET_TTL_SECONDS = 30
+TOOL_CALL_TIMEOUT = 30  # seconds; guards against hung plugin handlers
+
+# ticket -> {"user_id": int, "expires_at": float}
+_tickets: dict[str, dict[str, Any]] = {}
+
+
+def _create_ticket(user: User) -> str:
+    ticket = secrets.token_urlsafe(24)
+    # Prune expired tickets opportunistically
+    now = time.time()
+    for k in [k for k, v in _tickets.items() if v["expires_at"] < now]:
+        _tickets.pop(k, None)
+    _tickets[ticket] = {"user_id": user.id, "expires_at": now + TICKET_TTL_SECONDS}
+    return ticket
+
+
+def _consume_ticket(ticket: str) -> int | None:
+    """Validate and remove a ticket; return user_id if valid."""
+    entry = _tickets.pop(ticket, None)
+    if not entry or entry["expires_at"] < time.time():
+        return None
+    return entry["user_id"]
+
+
+@router.post("/ticket")
+async def create_sse_ticket(
+    user: Annotated[User, Depends(get_current_user)],
+):
+    """Exchange a valid JWT for a one-time, 30s SSE connection ticket.
+
+    Clients use the ticket in the SSE URL instead of the raw JWT so the
+    long-lived token never appears in access logs.
+    """
+    return success_response(data={"ticket": _create_ticket(user), "expires_in": TICKET_TTL_SECONDS})
 
 
 # ---------------------------------------------------------------------------
@@ -74,27 +119,45 @@ def _get_or_create_session(session_id: str | None = None, user: User | None = No
 @router.get("")
 async def mcp_sse_endpoint(
     request: Request,
-    token: str | None = Query(None, description="JWT token for auth (query param for SSE)"),
+    ticket: str | None = Query(None, description="One-time ticket from POST /mcp/sse/ticket (preferred)"),
+    token: str | None = Query(None, description="JWT token (legacy fallback, discouraged)"),
 ):
     """Establish an SSE connection for MCP JSON-RPC communication.
 
     The client connects here and receives a session ID. Messages are
     exchanged via POST /mcp/sse/messages?session_id=xxx.
     """
-    # Auth: try to resolve user from token
-    user = None
-    if token:
+    # Resolve user_id from ticket (preferred) or JWT fallback
+    user_id: int | None = None
+    if ticket:
+        user_id = _consume_ticket(ticket)
+        if user_id is None:
+            return StreamingResponse(
+                iter(["event: error\ndata: {\"message\": \"invalid or expired ticket\"}\n\n"]),
+                media_type="text/event-stream",
+                status_code=401,
+            )
+    elif token:
         try:
             from src.core.security import decode_token
-            from src.crud import crud_user
-            from src.db import SessionLocal
 
             payload = decode_token(token)
             if payload and payload.get("sub"):
-                async with SessionLocal() as db:
-                    user = await crud_user.get_by_username(db, username=payload["sub"])
+                # JWT ``sub`` stores the user **id** (see auth router)
+                user_id = int(payload["sub"])
         except Exception:
-            pass
+            user_id = None
+
+    user = None
+    if user_id is not None:
+        try:
+            from src.crud import crud_user
+            from src.db import SessionLocal
+
+            async with SessionLocal() as db:
+                user = await crud_user.get(db, user_id)
+        except Exception:
+            user = None
 
     session_id = str(uuid.uuid4())
     session = _get_or_create_session(session_id, user)
@@ -158,7 +221,7 @@ async def mcp_sse_message(
     - resources/list: list resources
     - resources/read: read a resource
     - prompts/list: list prompts
-    - prompts/render: render a prompt
+    - prompts/get: get a prompt (MCP standard; prompts/render kept as alias)
     """
     session = _sessions.get(session_id)
     if not session:
@@ -236,12 +299,19 @@ async def mcp_sse_message(
                 return {"status": "ok"}
 
             try:
-                result = await mcp_manager.call_tool(tool_name, arguments)
+                result = await asyncio.wait_for(
+                    mcp_manager.call_tool(tool_name, arguments),
+                    timeout=TOOL_CALL_TIMEOUT,
+                )
                 if user:
                     await _write_audit_log(db, "tool", tool_name, user, arguments, result)
                 await send_result({
                     "content": [{"type": "text", "text": str(result)}],
                 })
+            except asyncio.TimeoutError:
+                if user:
+                    await _write_audit_log(db, "tool", tool_name, user, arguments, status="failed")
+                await send_error(-32603, f"Tool execution timed out after {TOOL_CALL_TIMEOUT}s: {tool_name}")
             except Exception as exc:
                 if user:
                     await _write_audit_log(db, "tool", tool_name, user, arguments, status="failed")
@@ -293,8 +363,8 @@ async def mcp_sse_message(
                 ]
             })
 
-        # ---- prompts/render ----
-        elif method == "prompts/render":
+        # ---- prompts/get (MCP standard) / prompts/render (legacy alias) ----
+        elif method in ("prompts/get", "prompts/render"):
             prompt_name = body.params.get("name")
             prompt_args = body.params.get("arguments", {})
             if not prompt_name:

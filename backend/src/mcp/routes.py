@@ -119,19 +119,25 @@ async def call_tool(
 ):
     """Call an MCP tool by name with the given arguments."""
     permissions = get_user_permissions(user)
-    available_tools = mcp_manager.list_tools(permissions)
-    tool_names = {t.name for t in available_tools}
 
-    if body.name not in tool_names:
-        raise AppException(f"Tool '{body.name}' not found or not permitted", code=403)
-
-    # Button-level permission: mcp:tools:call
-    # Super admin gets "*" so this passes automatically.
+    # Button-level permission first (super admin has "*")
     if "mcp:tools:call" not in permissions and "*" not in permissions:
         raise AppException("Missing permission: mcp:tools:call", code=403)
 
+    # Then tool existence / visibility for this user
+    available_tools = mcp_manager.list_tools(permissions)
+    tool_names = {t.name for t in available_tools}
+    if body.name not in tool_names:
+        # Distinguish "does not exist" from "exists but not permitted"
+        if mcp_manager.get_tool(body.name) is None:
+            raise AppException(f"Tool '{body.name}' not found", code=404)
+        raise AppException(f"Tool '{body.name}' not permitted for current user", code=403)
+
     try:
         result = await mcp_manager.call_tool(body.name, body.arguments)
+    except TimeoutError:
+        await _write_audit_log(db, "tool", body.name, user, body.arguments, status="failed")
+        raise AppException(f"Tool execution timed out: {body.name}", code=504)
     except Exception as exc:
         await _write_audit_log(db, "tool", body.name, user, body.arguments, status="failed")
         raise AppException(f"Tool execution failed: {exc}")

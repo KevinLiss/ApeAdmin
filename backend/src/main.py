@@ -119,11 +119,17 @@ async def _restore_mcp_tools_from_db() -> None:
     For each enabled entry, dynamically import ``handler_module`` and call
     its ``handler_attr`` (a callable) to re-register the tool(s) into the
     in-memory McpManager.
+
+    Runs **after** plugin registration, so a tool already registered by its
+    owning plugin (via register_mcp_tools hook) is skipped — the DB row is
+    mainly a fallback for tools whose owner plugin failed to load, and a
+    record of what *was* enabled.
     """
     try:
         from sqlalchemy import select
         from src.db import SessionLocal
         from src.models import McpToolRegistration
+        from src.mcp.manager import mcp_manager
 
         async with SessionLocal() as db:
             stmt = select(McpToolRegistration).where(McpToolRegistration.enabled == True)
@@ -135,20 +141,29 @@ async def _restore_mcp_tools_from_db() -> None:
 
         import importlib
 
-        restored = 0
+        # Group rows by (handler_module, handler_attr) so registration
+        # callables (which register several tools each) run only once.
+        entrypoints: dict[tuple[str, str], list[str]] = {}
         for row in rows:
             if not row.handler_module or not row.handler_attr:
                 continue
+            entrypoints.setdefault((row.handler_module, row.handler_attr), []).append(row.name)
+
+        restored = 0
+        for (module_path, attr), names in entrypoints.items():
             try:
-                mod = importlib.import_module(row.handler_module)
-                fn = getattr(mod, row.handler_attr, None)
+                mod = importlib.import_module(module_path)
+                fn = getattr(mod, attr, None)
                 if fn is None:
-                    logger.warning(f"MCP restore: {row.handler_module}.{row.handler_attr} not found")
+                    logger.warning(f"MCP restore: {module_path}.{attr} not found")
                     continue
+                before = set(mcp_manager._tools)
                 fn()
-                restored += 1
+                registered = set(mcp_manager._tools) - before
+                restored += len(registered)
+                logger.info(f"MCP restore: {module_path}.{attr} re-registered {sorted(registered)}")
             except Exception as exc:
-                logger.error(f"MCP restore failed for '{row.name}': {exc}")
+                logger.error(f"MCP restore failed for {names}: {exc}")
 
         if restored:
             logger.info(f"Restored {restored} MCP tool registration(s) from DB")

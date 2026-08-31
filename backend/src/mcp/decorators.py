@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import functools
 import inspect
+import weakref
 from typing import Any, Callable
 
 from src.mcp.manager import mcp_manager
@@ -37,10 +38,14 @@ from src.mcp.manager import mcp_manager
 # ---------------------------------------------------------------------------
 # Internal registry: stores decorated functions until they are collected
 # by register_decorated_tools() during plugin startup.
+#
+# Weak keys: entries vanish automatically when a plugin module is reloaded
+# and the old function objects are garbage-collected, so repeated plugin
+# reloads don't leak memory.
 # ---------------------------------------------------------------------------
 
 # Key: function -> dict of attributes set by the decorator
-_pending: dict[Callable, dict[str, Any]] = {}
+_pending: "weakref.WeakKeyDictionary[Callable, dict[str, Any]]" = weakref.WeakKeyDictionary()
 
 
 def _make_pending():
