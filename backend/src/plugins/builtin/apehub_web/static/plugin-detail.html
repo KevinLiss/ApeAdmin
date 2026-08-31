@@ -106,7 +106,7 @@
   .breadcrumb .current { color: var(--text-2); font-size: 13px; }
 
   /* Hero 区 */
-  .hero { padding: 36px 0 40px; position: relative; overflow: hidden; border-bottom: 1px solid var(--border); }
+  .hero { padding: 36px 0 40px; position: relative; z-index: 100; border-bottom: 1px solid var(--border); }
   .hero-bg { position: absolute; inset: 0; z-index: -1; background: linear-gradient(135deg, rgba(109,92,255,.12) 0%, rgba(214,94,240,.08) 50%, rgba(34,211,238,.05) 100%); }
   .hero-inner { display: grid; grid-template-columns: 1.4fr 1fr; gap: 40px; align-items: center; }
   .hero-left .star-tag { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: #fbbf24; background: rgba(251,191,36,.12); border: 1px solid rgba(251,191,36,.25); padding: 5px 14px; border-radius: 999px; margin-bottom: 18px; }
@@ -116,9 +116,9 @@
   .hero-left .meta { display: flex; gap: 24px; margin-bottom: 28px; font-size: 14px; color: var(--text-3); }
   .hero-left .meta span { display: flex; align-items: center; gap: 4px; }
   .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; position: relative; }
-  .demo-dropdown { position: absolute; top: 56px; left: 0; min-width: 220px; background: #11131f; border: 1px solid var(--border-2); border-radius: 14px; padding: 8px; display: none; z-index: 120; box-shadow: 0 20px 40px rgba(0,0,0,.5); }
+  .demo-dropdown { position: absolute; bottom: 56px; left: 0; min-width: 220px; background: #11131f; border: 1px solid var(--border-2); border-radius: 14px; padding: 8px; display: none; z-index: 200; box-shadow: 0 20px 40px rgba(0,0,0,.5); }
   .demo-dropdown.show { display: block; animation: fadeIn .2s ease; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
   .demo-dropdown a { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 10px; font-size: 14px; color: var(--text-2); transition: all .18s; }
   .demo-dropdown a:hover { background: var(--panel-2); color: var(--text); }
   .hero-right { text-align: center; }
@@ -126,7 +126,7 @@
   .hero-icon-box::before { content: ''; position: absolute; inset: -20px; border-radius: 50px; background: var(--grad); opacity: .15; filter: blur(30px); z-index: -1; }
 
   /* Tab 栏 */
-  .tabs-bar { position: sticky; top: 68px; z-index: 90; background: rgba(7,8,15,.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+  .tabs-bar { position: sticky; top: 68px; z-index: 50; background: rgba(7,8,15,.98); border-bottom: 1px solid var(--border); }
   .tabs-inner { display: flex; gap: 6px; max-width: var(--maxw); margin: 0 auto; padding: 0 24px; overflow-x: auto; }
   .tab-btn { padding: 14px 20px; font-size: 14.5px; font-weight: 600; color: var(--text-3); cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; transition: all .2s; font-family: inherit; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
   .tab-btn:hover { color: var(--text-2); }
@@ -530,6 +530,6 @@ AI_STREAM_ENABLED=<span class="c-s">true</span>
   </div>
 </footer>
 
-<script src="/apehub-web/site-runtime.js?v=1.6.1"></script>\n<script src="/apehub-web/plugin-detail-app.js?v=1.4.1" defer></script>
+<script src="/apehub-web/site-runtime.js?v=1.6.1"></script>\n<script src="/apehub-web/auth-shell.js?v=1.0.0" defer></script>\n<script src="/apehub-web/plugin-detail-app.js?v=1.4.1" defer></script>
 </body>
 </html>
