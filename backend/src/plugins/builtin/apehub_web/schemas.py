@@ -40,6 +40,10 @@ class SiteConfigIn(BaseModel):
     deepseek_api_key: str | None = None
     deepseek_base_url: str | None = None
     deepseek_model: str | None = None
+    ai_provider: str | None = Field(default=None, pattern="^(deepseek|qwen)$")
+    qwen_api_key: str | None = None
+    qwen_base_url: str | None = None
+    qwen_model: str | None = None
     plugin_detail_config: dict[str, Any] | None = None
     theme_mode: str | None = Field(default=None, pattern="^(light|dark)$")
     service_fee_rate: Decimal | None = Field(default=None, ge=0, le=100)
@@ -70,6 +74,9 @@ class SiteConfigOut(ORMModel):
     lempay_payment_type: str
     deepseek_base_url: str
     deepseek_model: str
+    ai_provider: str
+    qwen_base_url: str
+    qwen_model: str
     theme_mode: str
     service_fee_rate: Decimal
     settlement_days: int
@@ -81,6 +88,7 @@ class SiteConfigOut(ORMModel):
     mail_configured: bool
     lempay_configured: bool
     deepseek_configured: bool
+    qwen_configured: bool
 
 
 class SiteContentIn(BaseModel):

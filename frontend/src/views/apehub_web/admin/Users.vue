@@ -19,7 +19,7 @@
       <div class="stat-card balance">
         <div class="stat-icon">💼</div>
         <div class="stat-body">
-          <div class="stat-value">{{ stats.totalBalance }} <small>USDT</small></div>
+          <div class="stat-value">{{ fmtMoney(stats.totalBalance) }} <small>USDT</small></div>
           <div class="stat-label">用户余额合计</div>
         </div>
       </div>
@@ -54,7 +54,7 @@
         </el-table-column>
         <el-table-column label="余额" width="120">
           <template #default="{ row }">
-            <span class="balance-text">{{ row.balance }} USDT</span>
+            <span class="balance-text">{{ fmtMoney(row.balance) }} USDT</span>
           </template>
         </el-table-column>
         <el-table-column label="状态" width="80">
@@ -87,6 +87,13 @@ const query = ref({ keyword: '', page: 1, page_size: 20 })
 const stats = ref({ total: 0, developers: 0, totalBalance: 0 })
 
 const formatDate = (d: string) => d ? d.replace('T', ' ').slice(0, 16) : '-'
+
+// 金额格式化：最多 2 位小数，去除多余尾零
+const fmtMoney = (v: any) => {
+  const n = Number(v || 0)
+  if (!isFinite(n)) return '0'
+  return n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
+}
 
 const loadList = async () => {
   loading.value = true

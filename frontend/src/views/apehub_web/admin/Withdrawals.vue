@@ -26,7 +26,7 @@
       <div class="stat-card amount">
         <div class="stat-icon">📥</div>
         <div class="stat-body">
-          <div class="stat-value">{{ stats.totalAmount }} <small>USDT</small></div>
+          <div class="stat-value">{{ fmtMoney(stats.totalAmount) }} <small>USDT</small></div>
           <div class="stat-label">待处理总额</div>
         </div>
       </div>
@@ -55,14 +55,14 @@
         <el-table-column prop="username" label="用户" width="120" />
         <el-table-column label="申请金额" width="120">
           <template #default="{ row }">
-            <span class="amount-text">{{ row.amount }} USDT</span>
+            <span class="amount-text">{{ fmtMoney(row.amount) }} USDT</span>
           </template>
         </el-table-column>
         <el-table-column label="手续费 / 到账" width="160">
           <template #default="{ row }">
             <div class="fee-cell">
-              <span class="fee-text">{{ row.fee }} USDT</span>
-              <small>到账 {{ row.net_amount }} USDT</small>
+              <span class="fee-text">{{ fmtMoney(row.fee) }} USDT</span>
+              <small>到账 {{ fmtMoney(row.net_amount) }} USDT</small>
             </div>
           </template>
         </el-table-column>
@@ -127,15 +127,15 @@
           </div>
           <div class="info-row">
             <span class="info-label">申请金额</span>
-            <span class="info-val amount">{{ pendingRow?.amount }} USDT</span>
+            <span class="info-val amount">{{ fmtMoney(pendingRow?.amount) }} USDT</span>
           </div>
           <div class="info-row">
             <span class="info-label">手续费</span>
-            <span class="info-val">{{ pendingRow?.fee }} USDT</span>
+            <span class="info-val">{{ fmtMoney(pendingRow?.fee) }} USDT</span>
           </div>
           <div class="info-row">
             <span class="info-label">实际到账</span>
-            <span class="info-val amount">{{ pendingRow?.net_amount }} USDT</span>
+            <span class="info-val amount">{{ fmtMoney(pendingRow?.net_amount) }} USDT</span>
           </div>
           <div class="info-row">
             <span class="info-label">收款地址</span>
@@ -218,6 +218,13 @@ const statusType = (s: string) =>
   ({ pending: 'warning', approved: 'success', rejected: 'danger', done: 'info' } as any)[s] || 'info'
 
 const formatDate = (d: string) => d ? d.replace('T', ' ').slice(0, 16) : '-'
+
+// 金额格式化：最多 2 位小数，去除多余尾零
+const fmtMoney = (v: any) => {
+  const n = Number(v || 0)
+  if (!isFinite(n)) return '0'
+  return n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
+}
 
 const dialogTitle = computed(() => {
   const titles: Record<string, string> = {

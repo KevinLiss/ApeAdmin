@@ -33,7 +33,7 @@
       <div class="stat-card revenue">
         <div class="stat-icon">💰</div>
         <div class="stat-body">
-          <div class="stat-value">{{ stats.revenue }} <small>USDT</small></div>
+          <div class="stat-value">{{ fmtMoney(stats.revenue) }} <small>USDT</small></div>
           <div class="stat-label">已收总额</div>
         </div>
       </div>
@@ -63,14 +63,14 @@
         <el-table-column prop="plugin_name" label="插件" min-width="150" show-overflow-tooltip />
         <el-table-column label="金额" width="100">
           <template #default="{ row }">
-            <span class="amount-text">{{ row.amount }} USDT</span>
+            <span class="amount-text">{{ fmtMoney(row.amount) }} USDT</span>
           </template>
         </el-table-column>
         <el-table-column label="服务费 / 开发者收益" width="160">
           <template #default="{ row }">
             <div class="fee-cell">
-              <span>服务费 {{ row.service_fee }} USDT</span>
-              <small>收益 {{ row.developer_income }} USDT</small>
+              <span>服务费 {{ fmtMoney(row.service_fee) }} USDT</span>
+              <small>收益 {{ fmtMoney(row.developer_income) }} USDT</small>
             </div>
           </template>
         </el-table-column>
@@ -112,7 +112,7 @@
           </div>
           <div class="info-row">
             <span class="info-label">金额</span>
-            <span class="info-val amount">{{ refundRow?.amount }} USDT</span>
+            <span class="info-val amount">{{ fmtMoney(refundRow?.amount) }} USDT</span>
           </div>
           <div class="info-row">
             <span class="info-label">用户</span>
@@ -154,6 +154,13 @@ const stats = ref({ total: 0, paid: 0, pending: 0, refunded: 0, revenue: 0 })
 const statusLabel = (s: string) => ({ pending: '待支付', paid: '已支付', cancelled: '已取消', refunded: '已退款' }[s] || s)
 const statusType = (s: string) => ({ pending: 'warning', paid: 'success', cancelled: 'info', refunded: 'danger' } as any)[s] || 'info'
 const formatDate = (v: string) => v ? v.replace('T', ' ').slice(0, 16) : '-'
+
+// 金额格式化：最多 2 位小数，去除多余尾零
+const fmtMoney = (v: any) => {
+  const n = Number(v || 0)
+  if (!isFinite(n)) return '0'
+  return n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
+}
 
 // 前端筛选（后端暂不支持 status 参数）
 const filteredOrders = computed(() => {

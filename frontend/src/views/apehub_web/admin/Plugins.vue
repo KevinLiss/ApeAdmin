@@ -33,7 +33,7 @@
       <div class="stat-card revenue">
         <div class="stat-icon"><el-icon><Money /></el-icon></div>
         <div class="stat-body">
-          <div class="stat-value">{{ stats.totalRevenue }} <small>USDT</small></div>
+          <div class="stat-value">{{ fmtMoney(stats.totalRevenue) }} <small>USDT</small></div>
           <div class="stat-label">总成交额</div>
         </div>
       </div>
@@ -77,7 +77,7 @@
         <el-table-column prop="category" label="分类" width="90" />
         <el-table-column label="价格" width="100">
           <template #default="{ row }">
-            <span v-if="Number(row.price) > 0" class="price-tag">{{ row.price }} USDT</span>
+            <span v-if="Number(row.price) > 0" class="price-tag">{{ fmtMoney(row.price) }} USDT</span>
             <span v-else class="free-tag">免费</span>
           </template>
         </el-table-column>
@@ -128,9 +128,9 @@
             <p>{{ detail.description || '暂无描述' }}</p>
             <div class="plugin-meta">
               <span><el-icon><User /></el-icon> {{ detail.developer?.username || '-' }}</span>
-              <span><el-icon><PriceTag /></el-icon> {{ Number(detail.price) > 0 ? `${detail.price} USDT` : '免费' }}</span>
+              <span><el-icon><PriceTag /></el-icon> {{ Number(detail.price) > 0 ? `${fmtMoney(detail.price)} USDT` : '免费' }}</span>
               <span><el-icon><Folder /></el-icon> {{ detail.category }}</span>
-              <span>📊 服务费 {{ detail.service_fee_rate }}%</span>
+              <span>📊 服务费 {{ fmtMoney(detail.service_fee_rate) }}%</span>
             </div>
           </div>
           <el-tag :type="statusType(detail.status)" effect="dark" size="large" round>{{ statusLabel(detail.status) }}</el-tag>
@@ -140,7 +140,7 @@
         <div class="metrics-bar">
           <div class="metric-item"><span class="metric-val">{{ detail.metrics?.buyer_count || 0 }}</span><span class="metric-lbl">购买人数</span></div>
           <div class="metric-item"><span class="metric-val">{{ detail.metrics?.paid_order_count || 0 }}</span><span class="metric-lbl">成交订单</span></div>
-          <div class="metric-item"><span class="metric-val">{{ detail.metrics?.paid_amount || 0 }}</span><span class="metric-lbl">成交额 USDT</span></div>
+          <div class="metric-item"><span class="metric-val">{{ fmtMoney(detail.metrics?.paid_amount) }}</span><span class="metric-lbl">成交额 USDT</span></div>
           <div class="metric-item"><span class="metric-val">{{ detail.metrics?.install_users || 0 }}</span><span class="metric-lbl">安装人数</span></div>
         </div>
 
@@ -269,7 +269,7 @@
                 placement="top">
                 <div class="review-item">
                   <span :class="['review-action', `review-${review.action}`]">{{ reviewActionLabel(review.action) }}</span>
-                  <span v-if="review.service_fee_rate" class="review-fee">服务费 {{ review.service_fee_rate }}%</span>
+                  <span v-if="review.service_fee_rate" class="review-fee">服务费 {{ fmtMoney(review.service_fee_rate) }}%</span>
                   <p v-if="review.comment" class="review-comment">{{ review.comment }}</p>
                 </div>
               </el-timeline-item>
@@ -572,6 +572,13 @@ const formatSize = (size: number) =>
   size >= 1024 * 1024 ? `${(size / 1024 / 1024).toFixed(2)} MB` : `${Math.ceil((size || 0) / 1024)} KB`
 
 const formatDate = (d: string) => d ? d.replace('T', ' ').slice(0, 16) : '-'
+
+// 金额统一格式化：最多 2 位小数，去除多余的 0（如 10.00000000 → 10，10.50000000 → 10.5）
+const fmtMoney = (v: any) => {
+  const n = Number(v || 0)
+  if (!isFinite(n)) return '0'
+  return n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
+}
 
 // 加载列表
 const loadList = async () => {

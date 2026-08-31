@@ -327,11 +327,19 @@ async def _run_analysis_job(job_id: int) -> None:
             await db.commit()
 
             cfg = await _get_site_config(db)
+            if cfg.ai_provider == "qwen":
+                provider_base_url = cfg.qwen_base_url
+                provider_model = cfg.qwen_model
+                provider_api_key = _decrypt_secret(cfg.qwen_api_key_enc)
+            else:
+                provider_base_url = cfg.deepseek_base_url
+                provider_model = cfg.deepseek_model
+                provider_api_key = _decrypt_secret(cfg.deepseek_api_key_enc)
             result, usage = await generate_documentation(
                 report,
-                api_key=_decrypt_secret(cfg.deepseek_api_key_enc),
-                base_url=cfg.deepseek_base_url,
-                model=cfg.deepseek_model,
+                api_key=provider_api_key,
+                base_url=provider_base_url,
+                model=provider_model,
             )
             stored_report = {key: value for key, value in report.items() if key != "source_context"}
             version.analysis_report = {**stored_report, "ai": result}
@@ -625,6 +633,9 @@ async def get_site_config(
         "lempay_payment_type": cfg.lempay_payment_type,
         "deepseek_base_url": cfg.deepseek_base_url,
         "deepseek_model": cfg.deepseek_model,
+        "ai_provider": cfg.ai_provider or "deepseek",
+        "qwen_base_url": cfg.qwen_base_url,
+        "qwen_model": cfg.qwen_model,
         "plugin_detail_config": cfg.plugin_detail_config or {},
         "theme_mode": cfg.theme_mode or "light",
         "service_fee_rate": cfg.service_fee_rate,
@@ -637,6 +648,7 @@ async def get_site_config(
         "mail_configured": bool(cfg.mail_code_enc),
         "lempay_configured": bool(cfg.lempay_key_enc and cfg.lempay_pid),
         "deepseek_configured": bool(cfg.deepseek_api_key_enc),
+        "qwen_configured": bool(cfg.qwen_api_key_enc),
     })
 
 
@@ -653,6 +665,7 @@ async def update_site_config(
         "mail_code": "mail_code_enc",
         "lempay_key": "lempay_key_enc",
         "deepseek_api_key": "deepseek_api_key_enc",
+        "qwen_api_key": "qwen_api_key_enc",
     }
     for input_name, model_name in secret_fields.items():
         if input_name not in payload:
@@ -1404,13 +1417,19 @@ async def analyze_plugin_version(
     if running:
         raise ConflictException("该版本正在分析")
     cfg = await _get_site_config(db)
-    if not cfg.deepseek_api_key_enc:
-        raise ValidationException("请先在官网配置中设置 DeepSeek API Key")
+    if cfg.ai_provider == "qwen":
+        if not cfg.qwen_api_key_enc:
+            raise ValidationException("请先在官网配置中设置千问（Qwen）API Key")
+        job_model = cfg.qwen_model
+    else:
+        if not cfg.deepseek_api_key_enc:
+            raise ValidationException("请先在官网配置中设置 DeepSeek API Key")
+        job_model = cfg.deepseek_model
     job = ApehubWebAnalysisJob(
         plugin_id=plugin_id,
         version_id=version.id,
         status=AnalysisStatus.QUEUED,
-        model=cfg.deepseek_model,
+        model=job_model,
     )
     db.add(job)
     version.status = PluginVersionStatus.ANALYZING

@@ -173,7 +173,14 @@ def _normalized_proxy() -> str | None:
     部分开发机环境变量形如 http_proxy=http://::1:7890（Clash 仅监听 IPv6 回环），
     httpx 无法解析裸 IPv6 地址，这里统一规范化为 http://[::1]:7890。
     """
-    raw = os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy") or os.environ.get("ALL_PROXY")
+    raw = (
+        os.environ.get("HTTPS_PROXY")
+        or os.environ.get("https_proxy")
+        or os.environ.get("ALL_PROXY")
+        or os.environ.get("all_proxy")
+        or os.environ.get("HTTP_PROXY")
+        or os.environ.get("http_proxy")
+    )
     if not raw:
         return None
     raw = raw.strip()
@@ -192,9 +199,9 @@ async def generate_documentation(
     model: str,
 ) -> tuple[dict[str, Any], dict[str, int]]:
     if not api_key:
-        raise RuntimeError("DeepSeek API Key 未配置")
+        raise RuntimeError("AI API Key 未配置")
     endpoint = base_url.rstrip("/") + "/chat/completions"
-    client_kwargs: dict[str, Any] = {"timeout": 180}
+    client_kwargs: dict[str, Any] = {"timeout": 300}
     proxy = _normalized_proxy()
     if proxy:
         client_kwargs["proxy"] = proxy
@@ -214,11 +221,11 @@ async def generate_documentation(
     payload = response.json()
     content = payload.get("choices", [{}])[0].get("message", {}).get("content", "")
     if not content:
-        raise RuntimeError("DeepSeek 返回了空内容")
+        raise RuntimeError("AI 服务返回了空内容")
     try:
         result = json.loads(content)
     except json.JSONDecodeError as exc:
-        raise RuntimeError("DeepSeek 未返回有效 JSON") from exc
+        raise RuntimeError("AI 服务未返回有效 JSON") from exc
     usage = payload.get("usage") or {}
     return result, {
         "prompt_tokens": int(usage.get("prompt_tokens") or 0),

@@ -156,10 +156,16 @@ class ApehubWebSiteConfig(ApehubWebBase):
     lempay_notify_url: Mapped[str] = mapped_column(String(255), default="")
     lempay_return_url: Mapped[str] = mapped_column(String(255), default="")
     lempay_payment_type: Mapped[str] = mapped_column(String(16), default="usdt")
+    # AI code documentation provider (deepseek / qwen)
+    ai_provider: Mapped[str] = mapped_column(String(16), default="deepseek")
     # DeepSeek code analysis
     deepseek_api_key_enc: Mapped[str] = mapped_column("deepseek_api_key", Text, default="")
     deepseek_base_url: Mapped[str] = mapped_column(String(255), default="https://api.deepseek.com")
     deepseek_model: Mapped[str] = mapped_column(String(64), default="deepseek-chat")
+    # Qwen (DashScope OpenAI-compatible mode) code analysis
+    qwen_api_key_enc: Mapped[str] = mapped_column("qwen_api_key", Text, default="")
+    qwen_base_url: Mapped[str] = mapped_column(String(255), default="https://dashscope.aliyuncs.com/compatible-mode/v1")
+    qwen_model: Mapped[str] = mapped_column(String(64), default="qwen3.7-plus")
     # Plugin detail page layout/content configuration (JSON, fully configurable)
     plugin_detail_config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     # Site default theme (light/dark), public site reads this as fallback

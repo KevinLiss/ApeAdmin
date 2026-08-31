@@ -80,11 +80,24 @@
       </el-tab-pane>
 
       <el-tab-pane label="AI 文档" name="ai">
-        <el-alert :title="form.deepseek_configured ? 'DeepSeek API Key 已配置' : 'DeepSeek API Key 尚未配置'" :type="form.deepseek_configured ? 'success' : 'warning'" :closable="false" show-icon class="asset-tip" />
+        <el-alert :title="aiConfigured ? 'AI API Key 已配置' : 'AI API Key 尚未配置'" :type="aiConfigured ? 'success' : 'warning'" :closable="false" show-icon class="asset-tip" />
         <el-form :model="form" label-width="140px" class="form-width" v-loading="loading">
-          <el-form-item label="API 地址"><el-input v-model="form.deepseek_base_url" /></el-form-item>
-          <el-form-item label="分析模型"><el-input v-model="form.deepseek_model" /></el-form-item>
-          <el-form-item label="API Key"><el-input v-model="form.deepseek_api_key" type="password" show-password :placeholder="form.deepseek_configured ? '已配置，留空保持不变' : '请输入 DeepSeek API Key'" /></el-form-item>
+          <el-form-item label="模型供应商">
+            <el-radio-group v-model="form.ai_provider">
+              <el-radio value="deepseek">DeepSeek</el-radio>
+              <el-radio value="qwen">千问（Qwen）</el-radio>
+            </el-radio-group>
+          </el-form-item>
+          <template v-if="form.ai_provider === 'deepseek'">
+            <el-form-item label="API 地址"><el-input v-model="form.deepseek_base_url" /></el-form-item>
+            <el-form-item label="分析模型"><el-input v-model="form.deepseek_model" /></el-form-item>
+            <el-form-item label="API Key"><el-input v-model="form.deepseek_api_key" type="password" show-password :placeholder="form.deepseek_configured ? '已配置，留空保持不变' : '请输入 DeepSeek API Key'" /></el-form-item>
+          </template>
+          <template v-else>
+            <el-form-item label="API 地址"><el-input v-model="form.qwen_base_url" /></el-form-item>
+            <el-form-item label="分析模型"><el-input v-model="form.qwen_model" placeholder="qwen3.7-plus / qwen3.8-max / qwen3.8-flash" /></el-form-item>
+            <el-form-item label="API Key"><el-input v-model="form.qwen_api_key" type="password" show-password :placeholder="form.qwen_configured ? '已配置，留空保持不变' : '请输入千问 API Key（DashScope 兼容模式）'" /></el-form-item>
+          </template>
           <el-form-item><el-button type="primary" :loading="saving" @click="saveConfig">保存 AI 配置</el-button></el-form-item>
         </el-form>
       </el-tab-pane>
@@ -250,7 +263,7 @@ const AssetField = defineComponent({
 
 const activeTab = ref('basic'); const loading = ref(false); const saving = ref(false)
 const navLoading = ref(false); const navSaving = ref(false); const navigation = ref<any[]>([]); const navDialog = ref(false); const hero = ref<any>(null)
-const form = ref<any>({ site_name: '', site_logo: '/apehub-web/assets/logo.png', site_icon: '/apehub-web/assets/logo.png', site_domain: '', site_prefix: '/apehub-web', seo_title: '', seo_description: '', seo_keywords: '', theme_mode: 'light', service_fee_rate: 30, mail_user: '', mail_code: '', mail_host: 'smtp.qq.com', mail_port: 465, lempay_pid: 0, lempay_key: '', lempay_submit_url: '', lempay_api_url: '', lempay_notify_url: '', lempay_return_url: '', lempay_payment_type: 'usdt', deepseek_api_key: '', deepseek_base_url: 'https://api.deepseek.com', deepseek_model: 'deepseek-chat', settlement_days: 7, refund_days: 7, min_withdrawal: 100, withdrawal_fee_type: 'fixed', withdrawal_fee_value: 0 })
+const form = ref<any>({ site_name: '', site_logo: '/apehub-web/assets/logo.png', site_icon: '/apehub-web/assets/logo.png', site_domain: '', site_prefix: '/apehub-web', seo_title: '', seo_description: '', seo_keywords: '', theme_mode: 'light', service_fee_rate: 30, mail_user: '', mail_code: '', mail_host: 'smtp.qq.com', mail_port: 465, lempay_pid: 0, lempay_key: '', lempay_submit_url: '', lempay_api_url: '', lempay_notify_url: '', lempay_return_url: '', lempay_payment_type: 'usdt', deepseek_api_key: '', deepseek_base_url: 'https://api.deepseek.com', deepseek_model: 'deepseek-chat', ai_provider: 'deepseek', qwen_api_key: '', qwen_base_url: 'https://dashscope.aliyuncs.com/compatible-mode/v1', qwen_model: 'qwen3.7-plus', settlement_days: 7, refund_days: 7, min_withdrawal: 100, withdrawal_fee_type: 'fixed', withdrawal_fee_value: 0 })
 
 /* ---------------- 插件详情页配置 ---------------- */
 const defaultDetailConfig = () => ({
@@ -306,10 +319,11 @@ const saveDetailConfig = async () => {
 }
 const resetDetailConfig = () => { detailCfg.value = defaultDetailConfig() }
 const heroImage = computed({ get: () => hero.value?.image || '/apehub-web/assets/screenshot.png', set: (value) => { if (hero.value) hero.value.image = value } })
+const aiConfigured = computed(() => (form.value.ai_provider === 'qwen' ? form.value.qwen_configured : form.value.deepseek_configured))
 const newNav = () => ({ title: '', link: '', icon_url: '', open_mode: 'same', enabled: true, sort: 0 }); const editingNav = ref<any>(newNav())
 const loadConfig = async () => { loading.value = true; try { form.value = { ...form.value, ...(await getAdminConfig()) }; loadDetailConfig(); const content = await getAdminContent(); hero.value = content.find((item: any) => item.block_key === 'hero') || null } catch (error: any) { ElMessage.error(error.message || '配置加载失败') } finally { loading.value = false } }
 const loadNavigation = async () => { navLoading.value = true; try { navigation.value = await getAdminNavigation() } catch (error: any) { ElMessage.error(error.message || '导航加载失败') } finally { navLoading.value = false } }
-const saveConfig = async () => { saving.value = true; try { const payload = { ...form.value }; delete payload.mail_configured; delete payload.lempay_configured; delete payload.deepseek_configured; delete payload.currency; await updateAdminConfig(payload); form.value.mail_code = ''; form.value.lempay_key = ''; form.value.deepseek_api_key = ''; await loadConfig(); ElMessage.success('配置已保存') } catch (error: any) { ElMessage.error(error.message || '保存失败') } finally { saving.value = false } }
+const saveConfig = async () => { saving.value = true; try { const payload = { ...form.value }; delete payload.mail_configured; delete payload.lempay_configured; delete payload.deepseek_configured; delete payload.qwen_configured; delete payload.currency; await updateAdminConfig(payload); form.value.mail_code = ''; form.value.lempay_key = ''; form.value.deepseek_api_key = ''; form.value.qwen_api_key = ''; await loadConfig(); ElMessage.success('配置已保存') } catch (error: any) { ElMessage.error(error.message || '保存失败') } finally { saving.value = false } }
 const saveAssets = async () => { saving.value = true; try { await updateAdminConfig({ site_logo: form.value.site_logo, site_icon: form.value.site_icon }); if (hero.value) await updateAdminContent(hero.value.id, hero.value); else await createAdminContent({ block_key: 'hero', title: '', subtitle: '', body: '', image: heroImage.value, sort: 0, enabled: true }); ElMessage.success('图片设置已保存') } catch (error: any) { ElMessage.error(error.message || '图片保存失败') } finally { saving.value = false } }
 const openNavDialog = (item?: any) => { editingNav.value = item ? { ...item } : newNav(); navDialog.value = true }
 const saveNavigation = async () => { if (!editingNav.value.title || !editingNav.value.link) return ElMessage.warning('请填写导航名称和链接'); navSaving.value = true; try { if (editingNav.value.id) await updateAdminNavigation(editingNav.value.id, editingNav.value); else await createAdminNavigation(editingNav.value); navDialog.value = false; await loadNavigation(); ElMessage.success('导航已保存') } catch (error: any) { ElMessage.error(error.message || '导航保存失败') } finally { navSaving.value = false } }

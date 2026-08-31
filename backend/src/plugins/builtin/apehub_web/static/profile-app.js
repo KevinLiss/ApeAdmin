@@ -145,7 +145,7 @@ function renderWorkbench() {
       <div class="info-grid">
         <div class="field"><label>插件标题</label><input id="editDisplayName" value="${esc(plugin.display_name)}"></div>
         <div class="field"><label>插件标识</label><input id="editName" value="${esc(plugin.name)}"><div class="field-hint">小写字母+下划线</div></div>
-        <div class="field"><label>售价 (USDT)</label><input id="editPrice" type="number" min="0" step="0.01" value="${plugin.price}"><div class="field-hint">填 0 表示免费</div></div>
+        <div class="field"><label>售价 (USDT)</label><input id="editPrice" type="number" min="0" step="0.01" value="${money(plugin.price)}"><div class="field-hint">填 0 表示免费</div></div>
         <div class="field"><label>分类</label><select id="editCategory"><option ${plugin.category === '工具' ? 'selected' : ''}>工具</option><option ${plugin.category === 'AI' ? 'selected' : ''}>AI</option><option ${plugin.category === '电商' ? 'selected' : ''}>电商</option><option ${plugin.category === '仪表盘' ? 'selected' : ''}>仪表盘</option><option ${plugin.category === '系统增强' ? 'selected' : ''}>系统增强</option></select></div>
         <div class="field"><label>标签</label><input id="editTags" value="${esc(plugin.tags)}"><div class="field-hint">逗号分隔</div></div>
         <div class="field full"><label>插件介绍</label><textarea id="editDescription" style="min-height:100px">${esc(plugin.description || '')}</textarea></div>
@@ -499,7 +499,7 @@ async function loadLedger(page = state.pager.ledger.page) {
   const entryType = state.pager.ledger.type || '';
   try {
     const data = await api(`/apehub-web/ledger?page=${page}&page_size=10${entryType ? `&entry_type=${entryType}` : ''}`);
-    $('#ledgerBody').innerHTML = (data.items || []).length ? (data.items || []).map(item => `<tr><td>${esc(item.type_label)}</td><td class="${item.is_income ? 'ledger-income' : 'ledger-expense'}">${esc(item.amount_display)} USDT</td><td><span class="status ${esc(item.status)}">${statusText(item.status)}</span></td><td class="muted">${esc(item.note || '-')}</td><td>${date(item.created_at)}</td></tr>`).join('') : '<tr><td colspan="5" class="empty">暂无流水记录</td></tr>';
+    $('#ledgerBody').innerHTML = (data.items || []).length ? (data.items || []).map(item => `<tr><td>${esc(item.type_label)}</td><td class="${item.is_income ? 'ledger-income' : 'ledger-expense'}">${item.is_income ? '+' : ''}${money(item.amount)} USDT</td><td><span class="status ${esc(item.status)}">${statusText(item.status)}</span></td><td class="muted">${esc(item.note || '-')}</td><td>${date(item.created_at)}</td></tr>`).join('') : '<tr><td colspan="5" class="empty">暂无流水记录</td></tr>';
     renderPager('#ledgerPager', data, loadLedger);
   } catch (error) { toast(error.message, true); }
 }
