@@ -8,19 +8,23 @@ Assembles:
 5. MCP routes (tools, resources, prompts)
 6. Plugin system (discover, install, register)
 7. Seed initial data (super admin, default menus)
+
+When the app is NOT yet installed (no setup.lock), it runs in
+"setup mode": database/plugins/MCP are skipped, and only the
+installation wizard (/setup) + minimal health routes are served.
 """
 
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from loguru import logger
 
 from src.core.config import settings
 from src.core.exceptions import register_exception_handlers
 from src.core.logging import setup_logging
 from src.core.middleware import register_middleware
-from src.db import close_db, init_db
 
 
 @asynccontextmanager
@@ -28,6 +32,19 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan: startup and shutdown events."""
     # ---- Startup ----
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}...")
+
+    # ---- Setup mode (un-installed) ----
+    from src.setup_wizard import is_installed
+
+    if not is_installed():
+        logger.warning(">>> 系统未安装，进入安装向导模式（/setup）<<<")
+        _register_setup_routes(app)
+        yield
+        logger.info("Setup mode shutdown")
+        return
+
+    # ---- Normal mode ----
+    from src.db import close_db, init_db
 
     # Init database (create tables for dev/first run)
     logger.info("Initializing database...")
@@ -113,6 +130,18 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("Goodbye!")
 
 
+def _register_setup_routes(app: FastAPI) -> None:
+    """Mount the installation wizard UI + API (setup mode only).
+
+    The wizard router carries both the page (/setup) and its JSON API
+    (/setup/api/*). Health stays available for panel probes.
+    """
+    from src.setup_wizard.api import router as setup_router
+
+    app.include_router(setup_router)
+    logger.info("Setup wizard mounted at /setup (API: /setup/api/*)")
+
+
 async def _restore_mcp_tools_from_db() -> None:
     """Restore MCP tool registrations persisted in ``sys_mcp_tool`` table.
 
@@ -195,7 +224,9 @@ def create_app() -> FastAPI:
     # Register exception handlers
     register_exception_handlers(app)
 
-    # Register core API routes
+    # Register core API routes (they only touch the DB per-request via get_db,
+    # so mounting them in setup mode is safe — requests will simply fail with
+    # 500 until installation finishes, while /setup keeps working)
     from src.api import api_router
     app.include_router(api_router, prefix=settings.API_PREFIX)
 
@@ -203,11 +234,26 @@ def create_app() -> FastAPI:
     @app.get("/health")
     async def health():
         from src.core.exceptions import success_response
+        from src.setup_wizard import is_installed
         return success_response(data={
             "app": settings.APP_NAME,
             "version": settings.APP_VERSION,
-            "status": "healthy",
+            "status": "setup" if not is_installed() else "healthy",
         })
+
+    # Root redirect: setup mode → wizard; normal → admin (base) or site (plugin)
+    from src.setup_wizard import is_installed
+
+    @app.get("/", include_in_schema=False)
+    async def root_redirect():
+        if not is_installed():
+            return RedirectResponse(url="/setup")
+        # apehub_web plugin serves the official site at /apehub-web when present
+        from pathlib import Path
+        site_dir = Path(__file__).resolve().parent / "plugins" / "builtin" / "apehub_web" / "static"
+        if site_dir.exists():
+            return RedirectResponse(url="/apehub-web/")
+        return RedirectResponse(url=settings.ADMIN_PATH + "/")
 
     return app
 

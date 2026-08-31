@@ -495,13 +495,24 @@ async def _seed_ai_provider(db: AsyncSession) -> None:
 
 
 async def _seed_settings(db: AsyncSession) -> None:
-    """Seed default system settings if not present."""
+    """Seed default system settings if not present.
+
+    Values from .env (written by the setup wizard) take priority for the
+    site identity keys, so the wizard's domain/name choices survive the
+    first boot after installation.
+    """
+    # env overrides set by the setup wizard (empty → fall back to defaults)
+    env_site_name = getattr(settings, "APP_NAME", "") or ""
+    env_admin_path = (getattr(settings, "ADMIN_PATH", "") or "").strip()
+    env_site_url = (getattr(settings, "SITE_URL", "") or "").strip()
+
     defaults = [
         # (key, value, description, is_public, category)
-        ("site_name", "ApeAdmin", "站点名称", True, "brand"),
+        ("site_name", env_site_name or "ApeAdmin", "站点名称", True, "brand"),
         ("logo_url", "", "Logo URL（留空使用默认图标）", True, "brand"),
         ("primary_color", "#5A67F5", "主题色（十六进制）", True, "brand"),
-        ("admin_path", "/admin", "管理后台访问路径（修改后需重启后端）", False, "system"),
+        ("admin_path", env_admin_path or "/admin", "管理后台访问路径（修改后需重启后端）", False, "system"),
+        ("site_url", env_site_url, "站点对外访问地址", True, "brand"),
         ("footer_text", "ApeAdmin © 2026", "页脚文字", True, "brand"),
         ("login_bg", "", "登录页背景图URL（留空使用默认）", True, "brand"),
         ("sidebar_theme", "light", "侧边栏主题（light/dark）", False, "ui"),

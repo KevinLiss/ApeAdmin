@@ -3,15 +3,16 @@
 # ApeAdmin 生产部署包打包脚本（在开发机 macOS 上运行）
 #
 # 用法:
-#   bash build_deploy_package.sh [--with-db] [--with-uploads]
+#   bash build_deploy_package.sh                     # 底座模式（默认）
+#   bash build_deploy_package.sh --with-apehub       # 底座 + apehub_web 官网插件
 #
-# 选项:
-#   --with-db        额外打包当前开发数据库 apeadmin.db（含种子数据+官网内容）
-#   --with-uploads   额外打包 uploads 素材目录（插件 ZIP、官网图片）
+# 底座模式（默认）:
+#   只打包管理后台底座（RBAC/菜单/插件框架/MCP），不含 apehub_web 官网插件。
+#   首次启动进入 /setup 安装向导：选数据库 → 配账号/域名 → 完成。
 #
 # 产物: dist/apeadmin-deploy-<date>.tar.gz
 # 内容:
-#   backend/            后端源码（剔 .venv/__pycache__/docs-site node_modules）
+#   backend/            后端源码（剔 .venv/__pycache__/插件官网源码）
 #   frontend_dist/      管理后台构建产物（已同步进包内 backend/frontend_dist/）
 #   nginx/              Nginx 站点配置模板
 #   scripts/            服务器端部署/管理脚本
@@ -26,17 +27,20 @@ BACKEND="$PROJECT_ROOT/backend"
 OUT_DIR="$SCRIPT_DIR/dist"
 STAGE="$SCRIPT_DIR/.stage"
 
-WITH_DB=0
-WITH_UPLOADS=0
+WITH_APEHUB=0
 for arg in "$@"; do
   case "$arg" in
-    --with-db) WITH_DB=1 ;;
-    --with-uploads) WITH_UPLOADS=1 ;;
+    --with-apehub) WITH_APEHUB=1 ;;
+    *) echo "[忽略] 未知参数: $arg" ;;
   esac
 done
 
 DATE_TAG=$(date +%Y%m%d-%H%M)
-PKG_NAME="apeadmin-deploy-${DATE_TAG}"
+if [[ $WITH_APEHUB -eq 1 ]]; then
+  PKG_NAME="apeadmin-deploy-full-${DATE_TAG}"
+else
+  PKG_NAME="apeadmin-deploy-base-${DATE_TAG}"
+fi
 PKG_FILE="$OUT_DIR/${PKG_NAME}.tar.gz"
 
 # ---------------------------------------------------------------- 检查前置
@@ -73,21 +77,19 @@ if [[ -d "$BACKEND/scripts" && ! -d "$STAGE_PKG/backend/scripts" ]]; then
   cp "$BACKEND/scripts/"*.py "$STAGE_PKG/backend/scripts/" 2>/dev/null || true
 fi
 
+# 底座模式：剔除 apehub_web 官网插件（含源码、静态页、迁移链）
+if [[ $WITH_APEHUB -eq 0 ]]; then
+  echo "    - 底座模式：剔除 apehub_web 插件"
+  rm -rf "$STAGE_PKG/backend/src/plugins/builtin/apehub_web"
+  # 插件相关测试与前端构建残留（无运行时硬依赖，纯粹不误导用户）
+  rm -f  "$STAGE_PKG/backend/tests/test_apehub_web_marketplace.py"
+  find "$STAGE_PKG/backend/frontend_dist" -name "apehub_web*" -delete 2>/dev/null || true
+fi
+
 # docs-site 产物已在 static/docs-portal，源码+node_modules 不进包
 rm -rf "$STAGE_PKG/backend/src/plugins/builtin/apehub_web/docs-site"
 # 官网前端源码备份不进包（产物已在 static/）
 rm -rf "$STAGE_PKG/backend/apehub_web"
-
-# 可选: 素材与数据库
-if [[ $WITH_DB -eq 1 ]]; then
-  echo "    - 附带开发数据库 apeadmin.db"
-  cp "$BACKEND/apeadmin.db" "$STAGE_PKG/backend/apeadmin.db"
-fi
-if [[ $WITH_UPLOADS -eq 1 ]]; then
-  echo "    - 附带 uploads 素材目录"
-  mkdir -p "$STAGE_PKG/backend/src/uploads"
-  cp -R "$BACKEND/src/uploads/apehub_web" "$STAGE_PKG/backend/src/uploads/" 2>/dev/null || true
-fi
 
 echo "==> [3/6] 复制部署配套文件（nginx/脚本/模板/文档）"
 cp -R "$SCRIPT_DIR/nginx" "$STAGE_PKG/nginx"
@@ -132,11 +134,13 @@ tar -czf "$PKG_FILE" -C "$STAGE" "$PKG_NAME"
 
 echo ""
 echo "============================================"
-echo " 打包完成"
+echo " 打包完成（$([[ $WITH_APEHUB -eq 1 ]] && echo 完整版 || echo 底座版)）"
 echo " 文件: $PKG_FILE"
 echo " 大小: $(du -h "$PKG_FILE" | cut -f1)"
 echo " 结构:"
 tar -tzf "$PKG_FILE" | awk -F/ '{print $1"/"$2}' | sort -u | head -20
 echo "============================================"
-echo "提示: 若开发数据库里有官网内容/插件市场数据想一并带过去，"
-echo "      重新运行并加 --with-db --with-uploads"
+if [[ $WITH_APEHUB -eq 0 ]]; then
+  echo "提示: 底座包首次启动自动进入 /setup 安装向导"
+  echo "      如需连带 apehub_web 官网插件: bash build_deploy_package.sh --with-apehub"
+fi

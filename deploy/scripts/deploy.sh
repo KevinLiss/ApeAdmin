@@ -74,45 +74,21 @@ fi
 log "依赖安装完成"
 
 # ---------------------------------------------------------------- 3. 环境变量
-if [[ ! -f "$INSTALL_DIR/backend/.env" ]]; then
-  if [[ -f "$PKG_ROOT/.env.example" ]]; then
-    cp "$PKG_ROOT/.env.example" "$INSTALL_DIR/backend/.env"
-    # 生成随机 JWT_SECRET 写入
-    SECRET=$(openssl rand -hex 32 2>/dev/null || head -c 64 /dev/urandom | od -An -tx1 | tr -d ' \n')
-    sed -i.bak "s|^JWT_SECRET=.*|JWT_SECRET=${SECRET}|" "$INSTALL_DIR/backend/.env" && rm -f "$INSTALL_DIR/backend/.env.bak"
-    chown "$RUN_USER":"$RUN_USER" "$INSTALL_DIR/backend/.env" 2>/dev/null || true
-    chmod 600 "$INSTALL_DIR/backend/.env"
-    log "已生成 .env（随机 JWT_SECRET）"
-    warn "请编辑 $INSTALL_DIR/backend/.env 修改:"
-    warn "  - SUPER_ADMIN_PASSWORD（管理后台初始密码）"
-    warn "  - CORS_ORIGINS（你的域名）"
-    warn "  - 如用 MySQL: DB_TYPE=mysql 及 DB_* 五项"
-  else
-    warn "未找到 .env.example，请手工创建 $INSTALL_DIR/backend/.env"
-  fi
+# 不再自动生成 .env —— 首次启动无 .env 会进入 /setup 安装向导，
+# 由向导统一生成配置（数据库/账号/域名/密钥），避免配置分散在两处。
+if [[ -f "$INSTALL_DIR/backend/.env" ]]; then
+  log "检测到已有 .env，跳过安装向导（直接按现有配置启动）"
 else
-  log "检测到已有 .env，跳过生成"
+  log "未检测到 .env，服务启动后将进入安装向导（http://127.0.0.1:${PORT}/setup）"
 fi
 
-# ---------------------------------------------------------------- 4. 数据迁移（可选）
-# 检测到包内/目录里的 apeadmin.db 且目标库为空时，引导执行 SQLite → MySQL 迁移
-MIGRATE_HINT=0
+# ---------------------------------------------------------------- 4. 数据迁移提示（可选，仅当包内带 apeadmin.db）
 if [[ -f "$INSTALL_DIR/backend/apeadmin.db" ]]; then
-  # 读取 .env 的 DB_TYPE
-  ENV_DB_TYPE=$(grep -E '^DB_TYPE=' "$INSTALL_DIR/backend/.env" 2>/dev/null | tail -1 | cut -d= -f2 | tr -d ' "' || true)
-  if [[ "$ENV_DB_TYPE" == "mysql" ]]; then
-    MIGRATE_HINT=1
-  fi
-fi
-if [[ $MIGRATE_HINT -eq 1 ]]; then
   echo ""
-  warn "检测到 apeadmin.db 且 .env 已配 MySQL。若需把开发库数据迁到 MySQL，运行:"
+  warn "检测到包内 apeadmin.db。若需把开发库数据迁到 MySQL（装完向导后执行）:"
   warn "  cd $INSTALL_DIR/backend"
   warn "  ./.venv/bin/python -m scripts.migrate_sqlite_to_mysql \\"
   warn "      --source apeadmin.db --old-jwt-secret '<本地开发用的JWT_SECRET>'"
-  warn "  （旧 JWT_SECRET 指开发库加密数据所用的密钥；不带 --old-jwt-secret 则不轮换密钥，"
-  warn "   会导致开发库中已存的 AI Key/邮箱码等密文在新密钥下解不开）"
-  warn "  迁移完成后可删除 apeadmin.db 避免误用。"
   echo ""
 fi
 
@@ -164,14 +140,12 @@ cat <<EOF
    systemctl restart ${APP_NAME}    # 重启
    journalctl -u ${APP_NAME} -f     # 实时日志
 
-  接下来手工完成:
-    1. 编辑配置:  vim ${INSTALL_DIR}/backend/.env
-                 （改完 systemctl restart ${APP_NAME}）
-    2. 迁移数据:  若从开发库迁移，见上方提示（scripts.migrate_sqlite_to_mysql）
-    3. Nginx:     参考包内 nginx/apeadmin.conf，
+  接下来:
+    1. 浏览器打开 http://服务器IP:${PORT}/ 或 http://域名/ → 自动进入安装向导
+       （三步：选数据库 → 配账号/域名 → 完成；完成后重启服务）
+    2. Nginx:     参考包内 nginx/apeadmin.conf，
                  在宝塔站点配置中反代到 127.0.0.1:${PORT}
-    4. 访问:      http://域名/admin/  （初始账号见 .env 中 SUPER_ADMIN_*）
-                 http://域名/         （官网首页）
-    5. 放行端口:  宝塔安全组只需放行 80/443，8000 不对外
+    3. 放行端口:  宝塔安全组只需放行 80/443，8000 不对外
+    4. 已有数据迁移（如需）: 见上方 migrate_sqlite_to_mysql 提示
 ============================================================
 EOF

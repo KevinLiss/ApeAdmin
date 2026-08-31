@@ -47,6 +47,10 @@ class Settings(BaseSettings):
     # ---- CORS ----
     CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:8000"]
 
+    # ---- Site (set by setup wizard; consumed by seed on first boot) ----
+    ADMIN_PATH: str = "/admin"
+    SITE_URL: str = ""
+
     # ---- MCP ----
     MCP_ENABLED: bool = True
     MCP_PREFIX: str = "/mcp"

@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ApeAdmin 安装向导</title>
+<style>
+  :root {
+    --primary: #4f46e5;
+    --primary-light: #6366f1;
+    --bg: #f5f6fa;
+    --card: #ffffff;
+    --text: #1f2937;
+    --text-secondary: #6b7280;
+    --border: #e5e7eb;
+    --success: #10b981;
+    --error: #ef4444;
+    --warning: #f59e0b;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 40px 16px;
+  }
+  .container { width: 100%; max-width: 640px; }
+
+  .logo { text-align: center; margin-bottom: 24px; }
+  .logo-icon {
+    width: 56px; height: 56px; border-radius: 14px;
+    background: linear-gradient(135deg, var(--primary), #7c3aed);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 26px; font-weight: 700; margin-bottom: 12px;
+  }
+  .logo h1 { font-size: 22px; font-weight: 600; }
+  .logo p { color: var(--text-secondary); font-size: 14px; margin-top: 4px; }
+
+  .card {
+    background: var(--card); border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.04);
+    padding: 32px;
+  }
+
+  /* 步骤条 */
+  .steps { display: flex; align-items: center; margin-bottom: 32px; }
+  .step { display: flex; align-items: center; flex: 1; }
+  .step:last-child { flex: 0; }
+  .step-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--border); color: var(--text-secondary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600; transition: all .2s;
+  }
+  .step.active .step-num { background: var(--primary); color: #fff; }
+  .step.done .step-num { background: var(--success); color: #fff; }
+  .step-label { margin-left: 8px; font-size: 13px; color: var(--text-secondary); }
+  .step.active .step-label { color: var(--text); font-weight: 600; }
+  .step-line { flex: 1; height: 2px; background: var(--border); margin: 0 12px; }
+  .step.done + .step-line, .step-line.done { background: var(--success); }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .panel h2 { font-size: 18px; margin-bottom: 6px; }
+  .panel .desc { color: var(--text-secondary); font-size: 13px; margin-bottom: 24px; line-height: 1.6; }
+
+  /* 表单 */
+  .form-row { margin-bottom: 18px; }
+  .form-row label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .form-row label .req { color: var(--error); }
+  .form-row input, .form-row select {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 14px; outline: none; transition: border .15s;
+    background: #fff;
+  }
+  .form-row input:focus, .form-row select:focus { border-color: var(--primary); }
+  .form-row .hint { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* 数据库类型选择 */
+  .db-type-selector { display: flex; gap: 12px; margin-bottom: 20px; }
+  .db-type-option {
+    flex: 1; padding: 14px; border: 2px solid var(--border); border-radius: 10px;
+    cursor: pointer; text-align: center; transition: all .15s;
+  }
+  .db-type-option:hover { border-color: var(--primary-light); }
+  .db-type-option.selected { border-color: var(--primary); background: rgba(79,70,229,.04); }
+  .db-type-option .t { font-weight: 600; font-size: 14px; }
+  .db-type-option .d { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+  /* 按钮 */
+  .actions { display: flex; justify-content: space-between; margin-top: 28px; }
+  .btn {
+    padding: 11px 28px; border-radius: 8px; font-size: 14px; font-weight: 600;
+    border: none; cursor: pointer; transition: all .15s;
+  }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-light); }
+  .btn-primary:disabled { background: var(--border); color: var(--text-secondary); cursor: not-allowed; }
+  .btn-ghost { background: transparent; color: var(--text-secondary); }
+  .btn-ghost:hover { color: var(--text); }
+  .btn-block { width: 100%; }
+
+  /* 测试连接结果 */
+  .test-result {
+    display: none; padding: 10px 12px; border-radius: 8px; font-size: 13px;
+    margin-top: 8px; margin-bottom: 4px;
+  }
+  .test-result.ok { display: block; background: rgba(16,185,129,.08); color: var(--success); }
+  .test-result.fail { display: block; background: rgba(239,68,68,.08); color: var(--error); }
+
+  /* 安装进度 */
+  .install-log {
+    background: #111827; color: #d1d5db; border-radius: 8px;
+    padding: 16px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px; line-height: 1.8; max-height: 260px; overflow-y: auto;
+    margin: 16px 0;
+  }
+  .install-log .ok { color: #34d399; }
+  .install-log .err { color: #f87171; }
+
+  /* 成功页 */
+  .success-icon {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: rgba(16,185,129,.1); color: var(--success);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; margin: 0 auto 16px;
+  }
+  .result-list { margin: 20px 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .result-item { display: flex; padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 14px; align-items: center; }
+  .result-item:last-child { border-bottom: none; }
+  .result-item .k { width: 130px; color: var(--text-secondary); flex-shrink: 0; }
+  .result-item .v { font-weight: 600; word-break: break-all; }
+  .result-item .v a { color: var(--primary); text-decoration: none; }
+  .result-item .v a:hover { text-decoration: underline; }
+  .result-item.password .v { font-family: ui-monospace, Menlo, monospace; background: #fef3c7; padding: 2px 8px; border-radius: 4px; }
+
+  .notice {
+    background: rgba(245,158,11,.08); border: 1px solid rgba(245,158,11,.3);
+    color: #92400e; padding: 12px 14px; border-radius: 8px; font-size: 13px;
+    line-height: 1.6; margin-bottom: 20px;
+  }
+  .spinner {
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,.4); border-top-color: #fff;
+    border-radius: 50%; animation: spin .7s linear infinite;
+    vertical-align: -2px; margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .footer { text-align: center; color: var(--text-secondary); font-size: 12px; margin-top: 24px; }
+
+  @media (max-width: 480px) {
+    .grid-2 { grid-template-columns: 1fr; }
+    .card { padding: 24px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="logo">
+    <div class="logo-icon">A</div>
+    <h1 id="siteTitle">ApeAdmin 安装向导</h1>
+    <p>检测到系统尚未初始化，请完成以下配置</p>
+  </div>
+
+  <div class="card">
+    <!-- 步骤条 -->
+    <div class="steps" id="stepsBar">
+      <div class="step active" data-step="1">
+        <div class="step-num">1</div><div class="step-label">数据库配置</div>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" data-step="2">
+        <div class="step-num">2</div><div class="step-label">站点与管理员</div>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" data-step="3">
+        <div class="step-num">3</div><div class="step-label">安装完成</div>
+      </div>
+    </div>
+
+    <!-- 第 1 步：数据库 -->
+    <div class="panel active" id="panel1">
+      <h2>配置数据库</h2>
+      <p class="desc">填写服务器上已创建的 MySQL 数据库信息（宝塔面板 → 数据库 可查看）。系统会自动建表和初始化数据。</p>
+
+      <div class="db-type-selector">
+        <div class="db-type-option selected" data-dbtype="mysql">
+          <div class="t">MySQL</div>
+          <div class="d">生产环境推荐</div>
+        </div>
+        <div class="db-type-option" data-dbtype="sqlite">
+          <div class="t">SQLite</div>
+          <div class="d">轻量免配置</div>
+        </div>
+      </div>
+
+      <div id="mysqlFields">
+        <div class="grid-2">
+          <div class="form-row">
+            <label>数据库地址</label>
+            <input id="dbHost" value="127.0.0.1" placeholder="127.0.0.1">
+          </div>
+          <div class="form-row">
+            <label>端口</label>
+            <input id="dbPort" value="3306" placeholder="3306">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-row">
+            <label>用户名</label>
+            <input id="dbUser" value="apeadmin" placeholder="apeadmin">
+          </div>
+          <div class="form-row">
+            <label>密码</label>
+            <input id="dbPassword" type="password" placeholder="数据库密码">
+          </div>
+        </div>
+        <div class="form-row">
+          <label>数据库名</label>
+          <input id="dbName" value="apeadmin" placeholder="apeadmin">
+          <div class="hint">不存在时会自动创建（需账号有建库权限）</div>
+        </div>
+      </div>
+
+      <div class="form-row" id="sqliteFields" style="display:none">
+        <label>SQLite 文件</label>
+        <input id="sqliteName" value="apeadmin" placeholder="apeadmin">
+        <div class="hint">数据文件将创建在 backend 目录下（apeadmin.db）</div>
+      </div>
+
+      <div class="test-result" id="testResult"></div>
+
+      <div class="actions">
+        <button class="btn btn-ghost" style="visibility:hidden">上一步</button>
+        <div>
+          <button class="btn btn-primary" id="btnTestDb" style="margin-right:10px" onclick="testDb()">测试连接</button>
+          <button class="btn btn-primary" onclick="gotoStep(2)">下一步</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 第 2 步：站点与管理员 -->
+    <div class="panel" id="panel2">
+      <h2>站点与管理员配置</h2>
+      <p class="desc">设置站点基本信息与超级管理员账号。安装完成后可在后台修改。</p>
+
+      <div class="form-row">
+        <label>站点名称</label>
+        <input id="siteName" value="ApeAdmin" placeholder="站点名称">
+      </div>
+
+      <div class="form-row">
+        <label>站点访问地址 <span class="req">*</span></label>
+        <input id="siteUrl" placeholder="http://apehub.finecv.cn">
+        <div class="hint">部署的对外域名，用于跨域配置与后台链接跳转</div>
+      </div>
+
+      <div class="form-row">
+        <label>管理后台路径</label>
+        <input id="adminPath" value="/admin" placeholder="/admin">
+        <div class="hint">后台访问路径前缀，默认 /admin（修改后需重启后端）</div>
+      </div>
+
+      <div class="grid-2">
+        <div class="form-row">
+          <label>管理员账号 <span class="req">*</span></label>
+          <input id="adminUsername" value="admin" placeholder="admin">
+        </div>
+        <div class="form-row">
+          <label>管理员密码 <span class="req">*</span></label>
+          <input id="adminPassword" type="text" placeholder="至少 6 位">
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-ghost" onclick="gotoStep(1)">上一步</button>
+        <button class="btn btn-primary" id="btnInstall" onclick="doInstall()">开始安装</button>
+      </div>
+    </div>
+
+    <!-- 第 3 步：安装中/完成 -->
+    <div class="panel" id="panel3">
+      <div id="installing">
+        <h2>正在安装</h2>
+        <p class="desc">正在创建数据表并初始化数据，请勿关闭页面…</p>
+        <div class="install-log" id="installLog"></div>
+      </div>
+
+      <div id="installDone" style="display:none">
+        <div class="success-icon">✓</div>
+        <h2 style="text-align:center">安装完成</h2>
+        <p class="desc" style="text-align:center">站点已成功初始化，请保存以下信息</p>
+
+        <div class="notice">
+          ⚠️ 请立即保存管理员账号密码！密码仅此一次完整显示，关闭页面后将无法找回（只能重置数据库重新安装）。
+        </div>
+
+        <div class="result-list" id="resultList"></div>
+
+        <div id="restartTip" class="notice" style="background:rgba(79,70,229,.06); border-color:rgba(79,70,229,.25); color:#4338ca">
+          🔄 <b>重要：</b>请重启后端服务使配置生效（宝塔 Python 项目里点「重启」，或命令行 systemctl restart apeadmin）。重启后本页自动跳转到首页。
+        </div>
+
+        <div class="actions" style="justify-content:center">
+          <button class="btn btn-primary" id="btnGoHome" onclick="checkAndGo()" style="display:none">进入站点</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">ApeAdmin · 安装向导 v1.0</div>
+</div>
+
+<script>
+let dbType = 'mysql';
+let installResult = null;
+let checkTimer = null;
+
+// ---------- 步骤切换 ----------
+function gotoStep(n) {
+  if (n === 2 && !validateStep1()) return;
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel' + n).classList.add('active');
+  document.querySelectorAll('.step').forEach(s => {
+    const sn = parseInt(s.dataset.step);
+    s.classList.toggle('active', sn === n);
+    s.classList.toggle('done', sn < n);
+  });
+  document.querySelectorAll('.step-line').forEach((l, i) => {
+    l.classList.toggle('done', i < n - 1);
+  });
+}
+
+function validateStep1() {
+  if (dbType === 'mysql') {
+    const host = document.getElementById('dbHost').value.trim();
+    const user = document.getElementById('dbUser').value.trim();
+    const name = document.getElementById('dbName').value.trim();
+    if (!host || !user || !name) { alert('请填写完整的数据库信息'); return false; }
+  }
+  return true;
+}
+
+// ---------- 数据库类型 ----------
+document.querySelectorAll('.db-type-option').forEach(opt => {
+  opt.addEventListener('click', () => {
+    document.querySelectorAll('.db-type-option').forEach(o => o.classList.remove('selected'));
+    opt.classList.add('selected');
+    dbType = opt.dataset.dbtype;
+    document.getElementById('mysqlFields').style.display = dbType === 'mysql' ? '' : 'none';
+    document.getElementById('sqliteFields').style.display = dbType === 'sqlite' ? '' : 'none';
+  });
+});
+
+// ---------- 测试连接 ----------
+async function testDb() {
+  const btn = document.getElementById('btnTestDb');
+  const result = document.getElementById('testResult');
+  btn.disabled = true; btn.textContent = '测试中…';
+  result.className = 'test-result'; result.style.display = 'none';
+  try {
+    const res = await fetch('/setup/api/test-db', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(collectDbConfig())
+    });
+    const json = await res.json();
+    if (json.code === 200 && json.data.ok) {
+      result.className = 'test-result ok';
+      result.textContent = '✓ ' + json.data.message;
+    } else {
+      result.className = 'test-result fail';
+      result.textContent = '✗ ' + (json.msg || json.data?.message || '连接失败');
+    }
+  } catch (e) {
+    result.className = 'test-result fail';
+    result.textContent = '✗ 请求失败: ' + e.message;
+  } finally {
+    btn.disabled = false; btn.textContent = '测试连接';
+  }
+}
+
+function collectDbConfig() {
+  return {
+    db_type: dbType,
+    db_host: document.getElementById('dbHost').value.trim() || '127.0.0.1',
+    db_port: parseInt(document.getElementById('dbPort').value) || 3306,
+    db_user: document.getElementById('dbUser').value.trim() || 'apeadmin',
+    db_password: document.getElementById('dbPassword').value,
+    db_name: dbType === 'sqlite'
+      ? (document.getElementById('sqliteName').value.trim() || 'apeadmin')
+      : (document.getElementById('dbName').value.trim() || 'apeadmin')
+  };
+}
+
+// ---------- 执行安装 ----------
+async function doInstall() {
+  const siteUrl = document.getElementById('siteUrl').value.trim();
+  const username = document.getElementById('adminUsername').value.trim();
+  const password = document.getElementById('adminPassword').value;
+  if (!siteUrl) { alert('请填写站点访问地址'); return; }
+  if (!username || username.length < 3) { alert('管理员账号至少 3 个字符'); return; }
+  if (!password || password.length < 6) { alert('管理员密码至少 6 位'); return; }
+
+  if (!confirm('确认开始安装？将写入配置文件并初始化数据库。')) return;
+
+  gotoStep(3);
+  const log = document.getElementById('installLog');
+  const addLog = (msg, cls = '') => {
+    const div = document.createElement('div');
+    if (cls) div.className = cls;
+    div.textContent = msg;
+    log.appendChild(div);
+    log.scrollTop = log.scrollHeight;
+  };
+
+  addLog('$ 开始安装 ApeAdmin...');
+  addLog(`> 数据库类型: ${dbType === 'mysql' ? 'MySQL' : 'SQLite'}`);
+  if (dbType === 'mysql') addLog(`> 目标库: ${collectDbConfig().db_host}/${collectDbConfig().db_name}`);
+  addLog('> 正在写入配置文件 .env ...');
+  addLog('> 正在创建数据表（36 张）...');
+
+  const btn = document.getElementById('btnInstall');
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('/setup/api/install', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        db: collectDbConfig(),
+        site_name: document.getElementById('siteName').value.trim() || 'ApeAdmin',
+        site_url: siteUrl,
+        admin_path: document.getElementById('adminPath').value.trim() || '/admin',
+        admin_username: username,
+        admin_password: password,
+        cors_origins: [siteUrl]
+      })
+    });
+    const json = await res.json();
+
+    if (json.code === 200 && json.data?.installed) {
+      installResult = json.data;
+      addLog('✓ 数据表创建完成', 'ok');
+      addLog('✓ 初始数据写入完成', 'ok');
+      addLog('✓ 配置文件生成完成', 'ok');
+      addLog('✓ 安装完成！', 'ok');
+      setTimeout(() => showSuccess(json.data), 600);
+    } else {
+      addLog('✗ 安装失败: ' + (json.msg || '未知错误'), 'err');
+      btn.disabled = false;
+      addLog('> 请修正错误后重试（返回上一步）');
+      const back = document.createElement('button');
+      back.className = 'btn btn-ghost';
+      back.textContent = '返回重试';
+      back.style.marginTop = '10px';
+      back.onclick = () => gotoStep(2);
+      document.getElementById('installing').appendChild(back);
+    }
+  } catch (e) {
+    addLog('✗ 请求失败: ' + e.message, 'err');
+    btn.disabled = false;
+  }
+}
+
+// ---------- 成功页 ----------
+function showSuccess(data) {
+  document.getElementById('installing').style.display = 'none';
+  document.getElementById('installDone').style.display = '';
+
+  const siteUrl = (data.site_url || '').replace(/\/+$/, '');
+  const adminPath = (data.admin_path || '/admin').replace(/\/+$/, '');
+  const list = document.getElementById('resultList');
+
+  const items = [
+    ['站点名称', data.site_name || 'ApeAdmin', ''],
+    ['前台地址', siteUrl ? `<a href="${siteUrl}/" target="_blank">${siteUrl}/</a>` : '（未配置）', ''],
+    ['管理后台', siteUrl ? `<a href="${siteUrl}${adminPath}/" target="_blank">${siteUrl}${adminPath}/</a>` : adminPath, ''],
+    ['管理员账号', data.admin_username, ''],
+    ['管理员密码', data.admin_password, 'password'],
+    ['数据库', data.db_type === 'mysql' ? 'MySQL' : 'SQLite', '']
+  ];
+
+  items.forEach(([k, v, cls]) => {
+    const div = document.createElement('div');
+    div.className = 'result-item' + (cls ? ' ' + cls : '');
+    div.innerHTML = `<div class="k">${k}</div><div class="v">${v}</div>`;
+    list.appendChild(div);
+  });
+
+  // 轮询等待重启完成（health 接口可达且非 setup 模式）
+  startRestartPolling();
+}
+
+function startRestartPolling() {
+  const btn = document.getElementById('btnGoHome');
+  let elapsed = 0;
+  btn.style.display = '';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>等待服务重启...';
+
+  // 安装后：本进程仍在 setup 模式（/setup/api/status 返回 200）。
+  // 重启后：新进程是 normal 模式，setup 路由不存在 → status 返回 404。
+  // 通过轮询 status 是否 404 判断重启完成。
+  checkTimer = setInterval(async () => {
+    elapsed += 3;
+    let restarted = false;
+    try {
+      const res = await fetch('/setup/api/status', { cache: 'no-store' });
+      if (res.status === 404) restarted = true;
+    } catch (e) { restarted = true; }  // 连接被拒（服务正在重启）也算
+
+    if (restarted) {
+      clearInterval(checkTimer);
+      btn.disabled = false;
+      btn.textContent = '进入站点';
+      btn.onclick = () => { location.href = '/'; };
+    } else if (elapsed > 300) {  // 5 分钟超时
+      clearInterval(checkTimer);
+      btn.disabled = false;
+      btn.textContent = '进入站点';
+      btn.onclick = () => { location.href = '/'; };
+    }
+  }, 3000);
+}
+
+function checkAndGo() { location.href = '/'; }
+
+// ---------- 已安装检测（仅首屏，安装流程中不触发） ----------
+let wizardFlowStarted = false;
+(async function checkInstalled() {
+  try {
+    const res = await fetch('/setup/api/status');
+    const json = await res.json();
+    if (json.data && json.data.installed) {
+      // 已安装过：提示并跳首页
+      document.querySelector('.card').innerHTML = `
+        <div class="success-icon">✓</div>
+        <h2 style="text-align:center">系统已安装</h2>
+        <p class="desc" style="text-align:center">检测到系统已完成初始化，正在跳转到首页…</p>`;
+      setTimeout(() => { location.href = '/'; }, 1500);
+    }
+  } catch (e) { /* setup 模式下 status 一定可达 */ }
+})();
+</script>
+</body>
+</html>

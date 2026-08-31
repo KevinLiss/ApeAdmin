@@ -54,10 +54,10 @@ class OperationLogMiddleware(BaseHTTPMiddleware):
     Skips /logs endpoints and non-API paths to avoid noise and infinite loops.
     """
 
-    SKIP_PREFIXES = ("/api/v1/logs",)
+    SKIP_PREFIXES = ("/api/v1/logs", "/setup/api")
 
     async def dispatch(self, request: Request, call_next):
-        # Skip log endpoints and non-API requests
+        # Skip log endpoints, setup wizard, and non-API requests
         path = request.url.path
         if not path.startswith("/api/v1/") or any(path.startswith(p) for p in self.SKIP_PREFIXES):
             return await call_next(request)
