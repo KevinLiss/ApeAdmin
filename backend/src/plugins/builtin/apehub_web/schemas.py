@@ -309,3 +309,36 @@ class WithdrawalHandleIn(BaseModel):
     action: str = Field(pattern="^(approve|reject|done)$")
     remark: str = Field(default="", max_length=500)
     tx_hash: str = Field(default="", max_length=128)
+
+
+# ---------------------------------------------------------------------------
+# Admin plugin management
+# ---------------------------------------------------------------------------
+
+class AdminPluginUpdateIn(BaseModel):
+    """Admin can edit all plugin fields including slug, category, price, status."""
+    name: str | None = Field(default=None, min_length=2, max_length=64)
+    display_name: str | None = Field(default=None, min_length=2, max_length=128)
+    slug: str | None = Field(default=None, min_length=2, max_length=128)
+    description: str | None = None
+    category: str | None = None
+    version: str | None = Field(default=None, max_length=32)
+    tags: str | None = Field(default=None, max_length=255)
+    icon: str | None = Field(default=None, max_length=255)
+    price: Decimal | None = Field(default=None, ge=0)
+    service_fee_rate: Decimal | None = Field(default=None, ge=0, le=100)
+    status: str | None = None
+    download_count: int | None = Field(default=None, ge=0)
+    install_count: int | None = Field(default=None, ge=0)
+    rating_avg: float | None = Field(default=None, ge=0, le=5)
+    rating_count: int | None = Field(default=None, ge=0)
+    developer_id: int | None = None
+    demos: list[PluginDemoIn] | None = None
+
+
+class AdminVersionUpdateIn(BaseModel):
+    """Admin can edit version fields including documentation and changelog."""
+    version: str | None = Field(default=None, max_length=32)
+    compatibility: str | None = Field(default=None, max_length=255)
+    changelog: str | None = None
+    documentation: str | None = None

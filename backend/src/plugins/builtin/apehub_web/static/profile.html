@@ -6,7 +6,7 @@
 <title>ApeHub - 个人中心</title>
 <meta name="description" content="ApeHub 开发者中心，管理插件版本、购买授权、USDT 收益与提现。">
 <link rel="icon" href="/apehub-web/assets/logo.png">
-<link rel="stylesheet" href="/apehub-web/profile.css?v=1.6.0">
+<link rel="stylesheet" href="/apehub-web/profile.css?v=1.7.1">
 </head>
 <body>
 <div class="bg-glow"></div>
@@ -54,10 +54,10 @@
       <button class="btn btn-primary" id="openPluginDialog">提交新插件</button>
     </div>
     <section class="stats">
-      <div class="stat" onclick="document.querySelectorAll('.tab')[3].click()" style="cursor:pointer"><span>可提现余额</span><strong id="statBalance">0 USDT</strong></div>
-      <div class="stat" onclick="document.querySelectorAll('.tab')[3].click()" style="cursor:pointer"><span>提现冻结</span><strong id="statFrozen">0 USDT</strong></div>
-      <div class="stat" onclick="document.querySelectorAll('.tab')[2].click()" style="cursor:pointer"><span>累计收益</span><strong id="statIncome">0 USDT</strong></div>
-      <div class="stat" onclick="document.querySelectorAll('.tab')[1].click()" style="cursor:pointer"><span>我发布的插件</span><strong id="statPlugins">0</strong></div>
+      <div class="stat" data-tab-target="wallet" title="点击查看钱包详情" style="cursor:pointer"><span class="stat-label">可提现余额</span><strong id="statBalance">0 USDT</strong></div>
+      <div class="stat" data-tab-target="wallet" title="点击查看钱包详情" style="cursor:pointer"><span class="stat-label">提现冻结</span><strong id="statFrozen">0 USDT</strong></div>
+      <div class="stat" data-tab-target="income" title="点击查看收益明细" style="cursor:pointer"><span class="stat-label">累计收益</span><strong id="statIncome">0 USDT</strong></div>
+      <div class="stat" data-tab-target="developer" title="点击进入开发者工作台" style="cursor:pointer"><span class="stat-label">我发布的插件</span><strong id="statPlugins">0 个</strong></div>
     </section>
 
     <div class="tabs" role="tablist">
@@ -86,8 +86,31 @@
 
     <section class="panel" id="panel-wallet">
       <div class="wallet-grid">
-        <form class="form-section" onsubmit="return false"><h2>TRC20 收款钱包</h2><div class="field"><label>USDT-TRC20 地址</label><input id="walletAddress" maxlength="34" placeholder="T 开头的 34 位地址"></div><div class="actions"><button class="btn btn-primary" type="button" id="saveWallet">保存钱包</button></div></form>
-        <form class="form-section" id="withdrawForm"><h2>申请提现</h2><div class="field"><label>提现金额 (USDT)</label><input id="withdrawAmount" type="number" min="0" step="0.00000001" required></div><div class="field" style="margin-top:12px"><label>TRC20 收款地址</label><input id="withdrawAddress" maxlength="34" required></div><div class="fee-preview" id="feePreview"></div><div id="withdrawRule" style="color:var(--text-3);font-size:12px"></div><div class="actions"><button class="btn btn-primary" type="submit">提交提现申请</button></div></form>
+        <form class="form-section" onsubmit="return false">
+          <h2>TRC20 收款钱包</h2>
+          <p class="form-desc">保存后提现表单将自动带出，无需重复填写。</p>
+          <div class="field">
+            <label>USDT-TRC20 地址</label>
+            <input id="walletAddress" maxlength="34" placeholder="T 开头的 34 位地址" autocomplete="off">
+            <div class="field-hint" id="walletAddressHint">仅支持 TRC20 网络，地址以 T 开头共 34 位</div>
+          </div>
+          <div class="actions"><button class="btn btn-primary" type="button" id="saveWallet">保存钱包</button></div>
+        </form>
+        <form class="form-section" id="withdrawForm">
+          <h2>申请提现</h2>
+          <div class="field">
+            <label>提现金额 (USDT)</label>
+            <input id="withdrawAmount" type="number" min="0" step="0.00000001" placeholder="输入提现金额" required>
+            <div class="field-hint" id="withdrawRule">最低提现金额与手续费率请以页面提示为准</div>
+          </div>
+          <div class="field" style="margin-top:16px">
+            <label>TRC20 收款地址</label>
+            <input id="withdrawAddress" maxlength="34" placeholder="T 开头的 34 位地址" autocomplete="off" required>
+            <div class="field-hint">默认使用上方保存的钱包地址，可手动修改</div>
+          </div>
+          <div class="fee-preview" id="feePreview"></div>
+          <div class="actions"><button class="btn btn-primary" type="submit">提交提现申请</button></div>
+        </form>
       </div>
       <div class="section-head" style="margin-top:24px"><h2>提现记录</h2></div>
       <div class="table-wrap"><table><thead><tr><th>申请</th><th>手续费</th><th>到账</th><th>地址</th><th>状态</th><th>交易哈希</th></tr></thead><tbody id="withdrawBody"></tbody></table></div>
@@ -149,7 +172,7 @@
 </dialog>
 
 <div class="toast" id="toast" role="status"></div>
-<script src="/apehub-web/site-runtime.js?v=1.6.0"></script>
-<script src="/apehub-web/profile-app.js" defer></script>
+<script src="/apehub-web/site-runtime.js?v=1.6.1"></script>
+<script src="/apehub-web/profile-app.js?v=1.7.0" defer></script>
 </body>
 </html>

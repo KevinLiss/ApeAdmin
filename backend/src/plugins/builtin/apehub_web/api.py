@@ -79,6 +79,8 @@ from src.plugins.builtin.apehub_web.models import (
     WithdrawalStatus,
 )
 from src.plugins.builtin.apehub_web.schemas import (
+    AdminPluginUpdateIn,
+    AdminVersionUpdateIn,
     DocCategoryIn,
     DocIn,
     NavigationItemIn,
@@ -1950,6 +1952,247 @@ async def delete_admin_plugin(
     await db.delete(plugin)
     await db.commit()
     return success_response(msg="插件提交及未售文件已删除")
+
+
+# ---------------------------------------------------------------------------
+# Admin plugin editing (full CRUD — basic info, media, files, versions)
+# ---------------------------------------------------------------------------
+
+@router.put("/admin/plugins/{plugin_id}")
+async def admin_update_plugin(
+    plugin_id: int,
+    body: AdminPluginUpdateIn,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
+    """Admin can edit all plugin fields including slug, status, developer."""
+    await _require_permission(user, "apehub_web:plugins:review")
+    plugin = await db.get(ApehubWebPlugin, plugin_id)
+    if plugin is None:
+        raise NotFoundException("插件不存在")
+    payload = body.model_dump(exclude_unset=True)
+    demos_data = payload.pop("demos", None)
+    # Validate status enum if provided
+    if "status" in payload and payload["status"]:
+        try:
+            payload["status"] = PluginStatus(payload["status"])
+        except ValueError:
+            raise ValidationException("无效的插件状态")
+    # Validate developer_id if provided
+    if "developer_id" in payload and payload["developer_id"]:
+        dev = await db.get(User, payload["developer_id"])
+        if dev is None:
+            raise ValidationException("指定的开发者用户不存在")
+    # Generate slug from name if name changes
+    if "name" in payload and "slug" not in payload:
+        payload["slug"] = services.gen_slug(payload["name"])
+    for k, v in payload.items():
+        setattr(plugin, k, v)
+    # Replace demos if provided
+    if demos_data is not None:
+        await db.execute(sa_delete(ApehubWebPluginDemo).where(ApehubWebPluginDemo.plugin_id == plugin_id))
+        for demo in demos_data:
+            db.add(ApehubWebPluginDemo(
+                plugin_id=plugin_id,
+                demo_type=demo.demo_type,
+                title=demo.title,
+                url=demo.url,
+                qr_image=demo.qr_image,
+            ))
+    await db.commit()
+    return success_response(msg="插件信息已更新")
+
+
+@router.post("/admin/plugins/{plugin_id}/media/upload")
+async def admin_upload_media(
+    plugin_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    file: Annotated[UploadFile, File(...)],
+    media_type: str = Query(..., pattern="^(logo|carousel)$"),
+    alt_text: str = Query("", max_length=255),
+    sort: int = Query(0, ge=0, le=9999),
+):
+    """Admin upload plugin media (logo/carousel screenshot)."""
+    await _require_permission(user, "apehub_web:plugins:review")
+    plugin = await db.get(ApehubWebPlugin, plugin_id)
+    if plugin is None:
+        raise NotFoundException("插件不存在")
+    content = await file.read(MAX_SITE_IMAGE_SIZE + 1)
+    if not content or len(content) > MAX_SITE_IMAGE_SIZE:
+        raise ValidationException("图片不能为空且不能超过 5MB")
+    extension = _image_extension(content)
+    if extension is None:
+        raise ValidationException("仅支持 PNG、JPEG、GIF 或 WebP 图片")
+    stored = f"plugin-media/{plugin.id}/{uuid.uuid4().hex}{extension}"
+    destination = _safe_upload_path(stored)
+    _ensure_dir(str(destination.parent))
+    destination.write_bytes(content)
+    url = f"/apehub-web/uploads/{stored}"
+    media = ApehubWebPluginMedia(
+        plugin_id=plugin.id,
+        media_type=media_type,
+        url=url,
+        alt_text=alt_text,
+        sort=sort,
+    )
+    db.add(media)
+    if media_type == "logo":
+        plugin.icon = url
+    await db.commit()
+    await db.refresh(media)
+    return success_response(data={"id": media.id, "url": url}, msg="图片上传成功")
+
+
+@router.delete("/admin/plugins/{plugin_id}/media/{media_id}")
+async def admin_delete_media(
+    plugin_id: int,
+    media_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
+    """Admin delete plugin media."""
+    await _require_permission(user, "apehub_web:plugins:review")
+    plugin = await db.get(ApehubWebPlugin, plugin_id)
+    if plugin is None:
+        raise NotFoundException("插件不存在")
+    media = await db.get(ApehubWebPluginMedia, media_id)
+    if media is None or media.plugin_id != plugin.id:
+        raise NotFoundException("图片不存在")
+    if media.url.startswith("/apehub-web/uploads/"):
+        relative = media.url.removeprefix("/apehub-web/uploads/")
+        path = _safe_upload_path(relative)
+        if path.is_file():
+            path.unlink()
+    if plugin.icon == media.url:
+        plugin.icon = ""
+    await db.delete(media)
+    await db.commit()
+    return success_response(msg="图片已删除")
+
+
+@router.post("/admin/plugins/{plugin_id}/files")
+async def admin_upload_file(
+    plugin_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    file: Annotated[UploadFile, File(...)],
+    file_type: str = Query("package", pattern="^(package|doc|screenshot)$"),
+    version_id: int | None = Query(None),
+):
+    """Admin upload plugin file (package/doc/screenshot)."""
+    await _require_permission(user, "apehub_web:plugins:review")
+    plugin = await db.get(ApehubWebPlugin, plugin_id)
+    if plugin is None:
+        raise NotFoundException("插件不存在")
+    if version_id is None:
+        version = (
+            await db.execute(
+                select(ApehubWebPluginVersion)
+                .where(ApehubWebPluginVersion.plugin_id == plugin.id)
+                .order_by(ApehubWebPluginVersion.id.desc())
+                .limit(1)
+            )
+        ).scalar_one_or_none()
+    else:
+        version = await db.get(ApehubWebPluginVersion, version_id)
+        if version is None or version.plugin_id != plugin.id:
+            raise NotFoundException("版本不存在")
+    if version is None:
+        raise ValidationException("请先创建插件版本")
+    if file_type == "package" and not (file.filename or "").lower().endswith(".zip"):
+        raise ValidationException("插件安装包必须是 ZIP 文件")
+    extension = Path(file.filename or "").suffix.lower() or ".bin"
+    stored = f"plugins/{plugin.id}/{version.id}/{uuid.uuid4().hex}{extension}"
+    dest = _safe_upload_path(stored)
+    _ensure_dir(str(dest.parent))
+    size = 0
+    try:
+        with dest.open("wb") as fh:
+            while chunk := await file.read(1024 * 1024):
+                size += len(chunk)
+                if size > MAX_PACKAGE_SIZE:
+                    raise ValidationException("插件文件不能超过 50MB")
+                fh.write(chunk)
+        if file_type == "package":
+            report = await asyncio.to_thread(inspect_package, dest)
+            manifest_version = str(report["manifest"].get("version") or "")
+            if manifest_version != version.version:
+                raise ValidationException(
+                    f"plugin.json 版本号 {manifest_version} 与当前版本 {version.version} 不一致"
+                )
+    except Exception:
+        if dest.is_file():
+            dest.unlink()
+        raise
+    md5 = hashlib.md5(dest.read_bytes()).hexdigest()
+    if file_type == "package":
+        old_files = (
+            await db.execute(
+                select(ApehubWebPluginFile).where(
+                    ApehubWebPluginFile.version_id == version.id,
+                    ApehubWebPluginFile.file_type == "package",
+                )
+            )
+        ).scalars().all()
+        for old_file in old_files:
+            old_path = _safe_upload_path(old_file.stored_path)
+            if old_path.is_file():
+                old_path.unlink()
+            await db.delete(old_file)
+        version.analysis_report = None
+        version.documentation = ""
+    row = ApehubWebPluginFile(
+        plugin_id=plugin_id, version_id=version.id, file_type=file_type,
+        filename=file.filename or stored, stored_path=stored, size=size, md5=md5,
+    )
+    db.add(row)
+    await db.commit()
+    return success_response(
+        data={"id": row.id, "version_id": version.id, "filename": row.filename, "size": size},
+        msg="文件上传成功",
+    )
+
+
+@router.delete("/admin/plugins/{plugin_id}/files/{file_id}")
+async def admin_delete_file(
+    plugin_id: int,
+    file_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
+    """Admin delete plugin file."""
+    await _require_permission(user, "apehub_web:plugins:review")
+    plugin = await db.get(ApehubWebPlugin, plugin_id)
+    if plugin is None:
+        raise NotFoundException("插件不存在")
+    f = await db.get(ApehubWebPluginFile, file_id)
+    if not f or f.plugin_id != plugin_id:
+        raise NotFoundException("文件不存在")
+    path = _safe_upload_path(f.stored_path)
+    if path.is_file():
+        path.unlink()
+    await db.delete(f)
+    await db.commit()
+    return success_response(msg="文件已删除")
+
+
+@router.put("/admin/plugins/{plugin_id}/versions/{version_id}")
+async def admin_update_version(
+    plugin_id: int,
+    version_id: int,
+    body: AdminVersionUpdateIn,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
+    """Admin can edit version documentation, changelog, compatibility."""
+    await _require_permission(user, "apehub_web:plugins:review")
+    plugin, version = await _admin_plugin_version(db, plugin_id, version_id)
+    payload = body.model_dump(exclude_unset=True)
+    for k, v in payload.items():
+        setattr(version, k, v)
+    await db.commit()
+    return success_response(msg="版本信息已更新")
 
 
 # ---------------------------------------------------------------------------

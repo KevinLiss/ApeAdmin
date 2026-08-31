@@ -174,7 +174,7 @@ async def seed_apehub_web_data() -> None:
         plugin_count = (await db.execute(select(func.count()).select_from(ApehubWebPlugin))).scalar() or 0
         if plugin_count == 0:
             db.add(ApehubWebPlugin(
-                developer_id=1,
+                developer_id=2,  # kankan
                 name="dashboard-plus",
                 display_name="Dashboard Plus 增强仪表盘",
                 slug="dashboard-plus",

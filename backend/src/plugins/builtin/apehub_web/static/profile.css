@@ -157,12 +157,25 @@ nav {
 .stat {
   background: var(--panel); border: 1px solid var(--panel-border);
   border-radius: 16px; padding: 22px 24px;
-  transition: all .3s;
+  transition: all .3s; position: relative; overflow: hidden;
 }
-.stat:hover { border-color: rgba(109,92,255,.3); }
-.stat span { display: block; color: var(--text-2); font-size: 12px; font-weight: 500; }
+.stat::after {
+  content: ''; position: absolute; inset: auto 0 0 0; height: 2px;
+  background: var(--grad-2); opacity: 0; transition: opacity .3s;
+}
+.stat:hover { border-color: rgba(109,92,255,.35); transform: translateY(-2px); box-shadow: 0 10px 30px -10px rgba(109,92,255,.25); }
+.stat:hover::after { opacity: 1; }
+.stat .stat-label {
+  display: flex; align-items: center; gap: 6px;
+  color: var(--text-2); font-size: 12px; font-weight: 600;
+  letter-spacing: .03em;
+}
+.stat .stat-label::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--grad-2); opacity: .7;
+}
 .stat strong {
-  display: block; margin-top: 10px; font-size: 26px;
+  display: block; margin-top: 12px; font-size: 26px;
   font-variant-numeric: tabular-nums; font-weight: 800;
   background: var(--grad); -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
@@ -294,16 +307,35 @@ progress { accent-color: var(--primary); }
 .field input:focus, .field textarea:focus, .field select:focus {
   border-color: var(--primary); box-shadow: 0 0 0 3px rgba(109,92,255,.15);
 }
-.field-hint { margin-top: 5px; font-size: 11px; color: var(--text-3); }
+.field-hint { margin-top: 6px; font-size: 12px; color: var(--text-3); line-height: 1.5; }
 
 /* ========== Wallet ========== */
-.wallet-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(340px,.8fr); gap: 18px; }
+.wallet-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(340px,.8fr); gap: 18px; align-items: stretch; }
 .form-section {
   padding: 24px; border: 1px solid var(--panel-border);
   background: var(--panel); border-radius: 16px;
+  display: flex; flex-direction: column;
 }
-.form-section h2 { margin: 0 0 16px; font-size: 17px; font-weight: 700; }
-.fee-preview { padding: 14px; margin: 12px 0; background: var(--panel-2); border-radius: 8px; color: var(--text-2); font-size: 13px; }
+.form-section h2 { margin: 0 0 6px; font-size: 17px; font-weight: 700; }
+.form-desc { margin: 0 0 18px; color: var(--text-3); font-size: 12.5px; line-height: 1.5; }
+.fee-preview {
+  padding: 14px 16px; margin: 16px 0 4px; background: var(--panel-2);
+  border-radius: 10px; color: var(--text-2); font-size: 13px;
+  border: 1px solid var(--panel-border);
+  display: flex; align-items: center; gap: 8px;
+}
+.fee-preview::before { content: '💡'; font-size: 14px; flex-shrink: 0; }
+.fee-preview-muted { color: var(--text-3); }
+.fee-preview-muted::before { content: '📝'; }
+.fee-preview strong { color: var(--text); }
+.form-section .actions { margin-top: auto; padding-top: 18px; }
+.field-error input { border-color: var(--red) !important; }
+.field-error input:focus { box-shadow: 0 0 0 3px rgba(248,113,113,.18) !important; }
+.error-text { color: var(--red) !important; }
+
+/* ========== Withdraw table column widths ========== */
+#withdrawBody td:nth-child(1), #withdrawBody td:nth-child(2), #withdrawBody td:nth-child(3) { white-space: nowrap; }
+#withdrawBody td:nth-child(6) { max-width: 180px; word-break: break-all; }
 
 /* ========== Dialogs ========== */
 dialog {

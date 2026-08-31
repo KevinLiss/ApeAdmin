@@ -93,7 +93,7 @@ function renderProfile() {
   $('#statBalance').textContent = `${money(p.balance)} USDT`;
   $('#statFrozen').textContent = `${money(p.frozen_balance)} USDT`;
   $('#statIncome').textContent = `${money(p.total_income)} USDT`;
-  $('#statPlugins').textContent = String(state.plugins.length);
+  $('#statPlugins').textContent = `${state.plugins.length} 个`;
 }
 
 function renderPurchased(items) {
@@ -304,22 +304,44 @@ function renderIncomes(items) {
 }
 
 /* ========== Wallet & Withdrawal ========== */
+const TRC20_RE = /^T[1-9A-HJ-NP-Za-km-z]{33}$/;
+
+function isTrc20Address(value) {
+  return TRC20_RE.test(String(value || '').trim());
+}
+
 function feeFor(amount) {
   const cfg = state.config || {}, value = Number(cfg.withdrawal_fee_value || 0);
   return cfg.withdrawal_fee_type === 'percent' ? amount * value / 100 : value;
 }
 
+function feeRateText() {
+  const cfg = state.config || {};
+  if (cfg.withdrawal_fee_type === 'percent') return `手续费率 ${money(cfg.withdrawal_fee_value)}%`;
+  const value = Number(cfg.withdrawal_fee_value || 0);
+  return value > 0 ? `固定手续费 ${money(value)} USDT` : '免手续费';
+}
+
+function withdrawHintText() {
+  return `最低提现 ${money(state.config?.min_withdrawal || 100)} USDT · ${feeRateText()}`;
+}
+
 function renderWallet(wallet, withdrawals) {
   $('#walletAddress').value = wallet?.address || '';
   $('#withdrawAddress').value = wallet?.address || '';
-  $('#withdrawRule').textContent = `最低提现 ${money(state.config?.min_withdrawal || 100)} USDT · 手续费 ${state.config?.withdrawal_fee_type === 'percent' ? `${money(state.config?.withdrawal_fee_value)}%` : `${money(state.config?.withdrawal_fee_value)} USDT`}`;
+  $('#withdrawRule').textContent = withdrawHintText();
   $('#withdrawBody').innerHTML = withdrawals.length ? withdrawals.map(item => `<tr><td>${money(item.amount)} USDT</td><td>${money(item.fee)} USDT</td><td>${money(item.net_amount)} USDT</td><td title="${esc(item.account)}">${esc(item.account.slice(0, 8))}...${esc(item.account.slice(-6))}</td><td><span class="status ${esc(item.status)}">${statusText(item.status)}</span></td><td>${esc(item.tx_hash || '-')}</td></tr>`).join('') : '<tr><td colspan="6" class="empty">暂无提现记录</td></tr>';
   updateFeePreview();
 }
 
 function updateFeePreview() {
-  const amount = Number($('#withdrawAmount')?.value || 0), fee = Math.min(amount, feeFor(amount));
-  if ($('#feePreview')) $('#feePreview').textContent = `手续费 ${money(fee)} USDT，预计到账 ${money(Math.max(0, amount - fee))} USDT`;
+  const el = $('#feePreview');
+  if (!el) return;
+  const amount = Number($('#withdrawAmount')?.value || 0);
+  if (amount <= 0) { el.textContent = '输入提现金额后将实时显示手续费与到账金额'; el.classList.add('fee-preview-muted'); return; }
+  el.classList.remove('fee-preview-muted');
+  const fee = Math.min(amount, feeFor(amount));
+  el.textContent = `手续费 ${money(fee)} USDT，预计到账 ${money(Math.max(0, amount - fee))} USDT`;
 }
 
 /* ========== Event Bindings ========== */
@@ -329,6 +351,10 @@ $('#logoutBtn').addEventListener('click', () => {
 $$('.tab').forEach(button => button.addEventListener('click', () => {
   $$('.tab').forEach(item => item.classList.toggle('active', item === button));
   $$('.panel').forEach(panel => panel.classList.toggle('active', panel.id === `panel-${button.dataset.tab}`));
+}));
+$$('.stat[data-tab-target]').forEach(stat => stat.addEventListener('click', () => {
+  const tab = $(`.tab[data-tab="${stat.dataset.tabTarget}"]`);
+  if (tab) tab.click();
 }));
 $('#openPluginDialog').addEventListener('click', () => $('#pluginDialog').showModal());
 $$('[data-close]').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()));
@@ -346,14 +372,81 @@ $('#versionForm').addEventListener('submit', async event => {
     event.target.reset(); $('#versionDialog').close(); toast('新版本草稿已创建'); await selectPlugin(plugin.id); state.selectedVersion = state.selectedPlugin.versions.find(item => item.id === created.id) || state.selectedPlugin.versions[0]; renderWorkbench();
   } catch (error) { toast(error.message, true); }
 });
+function validateAddress(address, fieldName) {
+  const value = String(address || '').trim();
+  if (!value) return `${fieldName}不能为空`;
+  if (value.length !== 34) return `${fieldName}需为 34 位（当前 ${value.length} 位）`;
+  if (!value.startsWith('T')) return `${fieldName}需以 T 开头`;
+  if (!TRC20_RE.test(value)) return `${fieldName}包含无效字符，请检查后重试`;
+  return '';
+}
+
+function setAddressError(input, hint, error) {
+  const target = input.closest('.field') || input.parentElement;
+  if (error) {
+    target.classList.add('field-error');
+    hint.textContent = error;
+    hint.classList.add('error-text');
+  } else {
+    target.classList.remove('field-error');
+    hint.textContent = hint.dataset.default || '';
+    hint.classList.remove('error-text');
+  }
+}
+
+function bindAddressInput(input, hint, options = {}) {
+  input.addEventListener('input', () => {
+    if (!input.value.trim()) { setAddressError(input, hint, ''); return; }
+    const error = validateAddress(input.value, options.label || 'TRC20 地址');
+    setAddressError(input, hint, error);
+  });
+}
+
+const $walletAddress = $('#walletAddress');
+const $walletAddressHint = $('#walletAddressHint');
+const $withdrawAddress = $('#withdrawAddress');
+const $withdrawRule = $('#withdrawRule');
+const $feePreview = $('#feePreview');
+
+if ($walletAddress && $walletAddressHint) {
+  $walletAddressHint.dataset.default = $walletAddressHint.textContent;
+  bindAddressInput($walletAddress, $walletAddressHint, { label: '钱包地址' });
+}
+if ($withdrawAddress) {
+  bindAddressInput($withdrawAddress, $withdrawRule, { label: '收款地址' });
+}
+
 $('#saveWallet').addEventListener('click', async () => {
-  try { const address = $('#walletAddress').value.trim(); await api('/apehub-web/wallet', { method: 'PUT', body: JSON.stringify({ address }) }); $('#withdrawAddress').value = address; toast('TRC20 钱包已保存'); } catch (error) { toast(error.message, true); }
+  const address = $('#walletAddress').value.trim();
+  const error = validateAddress(address, '钱包地址');
+  if (error) {
+    setAddressError($('#walletAddress'), $('#walletAddressHint'), error);
+    toast(error, true);
+    $('#walletAddress').focus();
+    return;
+  }
+  try {
+    await api('/apehub-web/wallet', { method: 'PUT', body: JSON.stringify({ address }) });
+    $('#withdrawAddress').value = address;
+    toast('TRC20 钱包已保存');
+  } catch (error) { toast(error.message, true); }
 });
 $('#withdrawAmount').addEventListener('input', updateFeePreview);
 $('#withdrawForm').addEventListener('submit', async event => {
   event.preventDefault();
+  const amount = $('#withdrawAmount').value.trim();
+  const address = $('#withdrawAddress').value.trim();
+  const amountError = !Number(amount) || Number(amount) <= 0 ? '请输入有效的提现金额' : '';
+  const addressError = validateAddress(address, '收款地址');
+  if (amountError) { toast(amountError, true); $('#withdrawAmount').focus(); return; }
+  if (addressError) {
+    setAddressError($('#withdrawAddress'), $('#withdrawRule'), addressError);
+    toast(addressError, true);
+    $('#withdrawAddress').focus();
+    return;
+  }
   try {
-    await api('/apehub-web/withdrawals', { method: 'POST', body: JSON.stringify({ amount: $('#withdrawAmount').value, account: $('#withdrawAddress').value.trim() }) });
+    await api('/apehub-web/withdrawals', { method: 'POST', body: JSON.stringify({ amount, account: address }) });
     toast('提现申请已提交'); event.target.reset(); await refreshAll();
   } catch (error) { toast(error.message, true); }
 });

@@ -93,6 +93,19 @@ export const getAdminVersionSourceTree = (pluginId: number, versionId: number) =
 export const getAdminVersionSource = (pluginId: number, versionId: number, path: string) => api.get(`/apehub-web/admin/plugins/${pluginId}/versions/${versionId}/source`, { params: { path } })
 export const refundAdminOrder = (orderId: number, data: any) => api.post(`/apehub-web/admin/orders/${orderId}/refund`, data)
 
+// admin 插件编辑管理
+export const updateAdminPlugin = (id: number, data: any) => api.put(`/apehub-web/admin/plugins/${id}`, data)
+export const adminUploadMedia = (id: number, formData: FormData, params: any) =>
+  api.post(`/apehub-web/admin/plugins/${id}/media/upload`, formData, { params })
+export const adminDeleteMedia = (pluginId: number, mediaId: number) =>
+  api.delete(`/apehub-web/admin/plugins/${pluginId}/media/${mediaId}`)
+export const adminUploadFile = (id: number, formData: FormData, params: any) =>
+  api.post(`/apehub-web/admin/plugins/${id}/files`, formData, { params })
+export const adminDeleteFile = (pluginId: number, fileId: number) =>
+  api.delete(`/apehub-web/admin/plugins/${pluginId}/files/${fileId}`)
+export const updateAdminVersion = (pluginId: number, versionId: number, data: any) =>
+  api.put(`/apehub-web/admin/plugins/${pluginId}/versions/${versionId}`, data)
+
 export const getAdminWithdrawals = (params: any) => api.get('/apehub-web/admin/withdrawals', { params })
 export const handleWithdrawal = (id: number, data: any) =>
   api.post(`/apehub-web/admin/withdrawals/${id}/handle`, data)
