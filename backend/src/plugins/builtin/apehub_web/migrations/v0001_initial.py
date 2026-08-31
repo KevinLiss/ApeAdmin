@@ -4,7 +4,7 @@ from sqlalchemy import inspect, text
 
 from src.db.engine import Base, engine
 
-SCHEMA_VERSION = 10
+SCHEMA_VERSION = 11
 VERSION_TABLE = "apehub_web_schema_version"
 
 
@@ -106,3 +106,9 @@ async def apply_migrations() -> None:
             await upgrade_multi_wallet(connection)
             await connection.execute(text(f"INSERT INTO {VERSION_TABLE} (version) VALUES (10)"))
             current = 10
+        if current < 11:
+            from .v0011_theme_mode import upgrade_add_theme_mode
+
+            await upgrade_add_theme_mode(connection)
+            await connection.execute(text(f"INSERT INTO {VERSION_TABLE} (version) VALUES (11)"))
+            current = 11

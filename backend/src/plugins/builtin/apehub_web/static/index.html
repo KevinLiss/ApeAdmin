@@ -61,6 +61,7 @@
   ::-webkit-scrollbar { width: 10px; }
   ::-webkit-scrollbar-thumb { background: #2a2d45; border-radius: 8px; }
   ::-webkit-scrollbar-track { background: transparent; }
+  :root[data-theme="light"] ::-webkit-scrollbar-thumb { background: #cbd5e1; }
 
   .container { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
 
@@ -992,6 +993,6 @@ npm run dev   <span class="c-c"># http://localhost:5173</span>
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 </script>
-<script src="/apehub-web/site-runtime.js?v=1.6.0"></script>
+<script src="/apehub-web/site-runtime.js?v=1.7.0"></script>
 </body>
 </html>

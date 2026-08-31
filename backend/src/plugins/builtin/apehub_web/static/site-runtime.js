@@ -2,8 +2,23 @@
 (() => {
   /* ---------- Theme ---------- */
   const root = document.documentElement;
-  const savedTheme = localStorage.getItem('ape-theme') || 'dark';
+  // Server-controlled default theme: read from backend config (theme_mode).
+  // Local user preference (ape-theme) overrides it once set. Default to 'light'.
+  const savedTheme = localStorage.getItem('ape-theme') || 'light';
   root.setAttribute('data-theme', savedTheme);
+
+  // Fetch public config to apply site-level theme_mode when no local override exists.
+  (async () => {
+    try {
+      const response = await fetch('/api/v1/apehub-web/site/public/config');
+      const payload = await response.json();
+      const serverTheme = payload?.data?.theme_mode;
+      if (serverTheme && !localStorage.getItem('ape-theme')) {
+        root.setAttribute('data-theme', serverTheme === 'dark' ? 'dark' : 'light');
+        updateToggleIcons();
+      }
+    } catch { /* keep current theme on network failure */ }
+  })();
 
   function updateToggleIcons() {
     const theme = root.getAttribute('data-theme') || 'dark';

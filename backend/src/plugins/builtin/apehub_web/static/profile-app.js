@@ -131,14 +131,26 @@ async function selectPlugin(id) {
 function renderWorkbench() {
   const root = $('#workbench');
   const plugin = state.selectedPlugin;
-  if (!plugin) { root.innerHTML = '<div class="workbench-empty">选择左侧插件进入版本工作台</div>'; return; }
-  const iconSrc = isImage(plugin.icon) ? plugin.icon : '/apehub-web/assets/logo.png';
+  if (!plugin) { root.innerHTML = '<div class="workbench-empty">选择左侧插件进入管理</div>'; return; }
   const logoMedia = (plugin.media || []).find(m => m.media_type === 'logo');
   const carouselMedia = (plugin.media || []).filter(m => m.media_type === 'carousel');
+  const logoUrl = logoMedia ? logoMedia.url : (isImage(plugin.icon) ? plugin.icon : '/apehub-web/assets/logo.png');
   root.innerHTML = `
     <div class="plugin-meta">
-      <img src="${esc(isImage(plugin.icon) ? plugin.icon : '/apehub-web/assets/logo.png')}" alt="${esc(plugin.display_name)}">
+      <img src="${esc(logoUrl)}" alt="${esc(plugin.display_name)}">
       <div><h2>${esc(plugin.display_name)}</h2><p>${esc(plugin.name)} · ${money(plugin.price)} USDT · ${statusText(plugin.status)}</p></div>
+    </div>
+    <div class="block">
+      <h3>基本信息</h3>
+      <div class="info-grid">
+        <div class="field"><label>插件标题</label><input id="editDisplayName" value="${esc(plugin.display_name)}"></div>
+        <div class="field"><label>插件标识</label><input id="editName" value="${esc(plugin.name)}"><div class="field-hint">小写字母+下划线</div></div>
+        <div class="field"><label>售价 (USDT)</label><input id="editPrice" type="number" min="0" step="0.01" value="${plugin.price}"><div class="field-hint">填 0 表示免费</div></div>
+        <div class="field"><label>分类</label><select id="editCategory"><option ${plugin.category === '工具' ? 'selected' : ''}>工具</option><option ${plugin.category === 'AI' ? 'selected' : ''}>AI</option><option ${plugin.category === '电商' ? 'selected' : ''}>电商</option><option ${plugin.category === '仪表盘' ? 'selected' : ''}>仪表盘</option><option ${plugin.category === '系统增强' ? 'selected' : ''}>系统增强</option></select></div>
+        <div class="field"><label>标签</label><input id="editTags" value="${esc(plugin.tags)}"><div class="field-hint">逗号分隔</div></div>
+        <div class="field full"><label>插件介绍</label><textarea id="editDescription" style="min-height:100px">${esc(plugin.description || '')}</textarea></div>
+      </div>
+      <div class="info-actions"><button class="btn btn-primary btn-small" id="savePluginInfo">保存基本信息</button></div>
     </div>
     <div class="block">
       <h3>市场图片</h3>
@@ -152,15 +164,16 @@ function renderWorkbench() {
           <div class="upload-info"><span>轮播图（${carouselMedia.length} 张）</span><label class="btn btn-small">选择图片<input id="carouselFile" type="file" accept="image/png,image/jpeg,image/gif,image/webp" multiple hidden></label></div>
         </div>
       </div>
-      ${carouselMedia.length ? `<div class="carousel-thumbs">${carouselMedia.map(m => `<div class="thumb"><img src="${esc(m.url)}" alt="${esc(m.alt_text)}"><button class="thumb-del" data-media="${m.id}">×</button></div>`).join('')}</div>` : ''}
+      ${carouselMedia.length ? `<div class="carousel-thumbs">${carouselMedia.map(m => `<div class="thumb"><img src="${esc(m.url)}" alt="${esc(m.alt_text)}"><button class="thumb-del" data-media="${m.id}" title="删除">×</button></div>`).join('')}</div>` : ''}
     </div>
     <div class="block">
-      <div class="section-head"><h3>版本树</h3><button class="btn btn-small" id="newVersionBtn">新建版本</button></div>
+      <div class="section-head"><h3>版本管理</h3><button class="btn btn-small" id="newVersionBtn">新建版本</button></div>
       <div class="version-layout">
         <div class="version-tree">${(plugin.versions || []).map(version => `<button data-version="${version.id}" class="${state.selectedVersion?.id === version.id ? 'active' : ''}"><strong>${esc(version.version)}</strong><br><span class="status ${esc(version.status)}">${statusText(version.status)}</span></button>`).join('') || '<div class="empty">暂无版本</div>'}</div>
         <div class="version-detail" id="versionDetail"></div>
       </div>
     </div>`;
+  $('#savePluginInfo').addEventListener('click', savePluginInfo);
   $('#logoFile').addEventListener('change', event => uploadMedia(event.target.files[0], 'logo'));
   $('#carouselFile').addEventListener('change', event => uploadCarousel(event.target.files));
   $('#newVersionBtn').addEventListener('click', () => $('#versionDialog').showModal());
@@ -169,9 +182,30 @@ function renderWorkbench() {
     renderWorkbench();
   }));
   $$('[data-media]').forEach(button => button.addEventListener('click', async () => {
+    if (!confirm('确定删除此图片吗？')) return;
     try { await api(`/apehub-web/developer/plugins/${plugin.id}/media/${button.dataset.media}`, { method: 'DELETE' }); toast('图片已删除'); await selectPlugin(plugin.id); } catch (error) { toast(error.message, true); }
   }));
   renderVersionDetail();
+}
+
+async function savePluginInfo() {
+  const plugin = state.selectedPlugin;
+  if (!plugin) return;
+  const payload = {
+    name: $('#editName').value.trim(),
+    display_name: $('#editDisplayName').value.trim(),
+    description: $('#editDescription').value.trim(),
+    category: $('#editCategory').value,
+    tags: $('#editTags').value.trim(),
+    price: Number($('#editPrice').value),
+    version: plugin.version,
+  };
+  if (!payload.display_name) { toast('插件标题不能为空', true); return; }
+  if (!payload.name) { toast('插件标识不能为空', true); return; }
+  try {
+    await api(`/apehub-web/developer/plugins/${plugin.id}`, { method: 'PUT', body: JSON.stringify(payload) });
+    toast('基本信息已保存'); await selectPlugin(plugin.id); await refreshPlugins();
+  } catch (error) { toast(error.message, true); }
 }
 
 function renderVersionDetail() {
@@ -180,7 +214,7 @@ function renderVersionDetail() {
   if (!root) return;
   if (!version) { root.innerHTML = '<div class="empty">请选择版本</div>'; return; }
   const editable = ['draft', 'rejected', 'analysis_failed'].includes(version.status);
-  const files = (version.files || []).map(file => `<div class="file-chip"><span>${esc(file.filename)}</span><span class="muted">${Math.ceil(file.size / 1024)} KB</span></div>`).join('') || '<span class="muted">未上传安装包</span>';
+  const files = (version.files || []).map(file => `<div class="file-chip"><span>${esc(file.filename)}</span><span class="muted">${Math.ceil(file.size / 1024)} KB</span>${editable ? `<button class="file-chip-del" data-file="${file.id}" title="删除文件">×</button>` : ''}</div>`).join('') || '<span class="muted">未上传安装包</span>';
   const report = version.analysis_report;
   const aiResult = report?.ai || null;
   const warnings = report?.warnings || [];
@@ -188,6 +222,7 @@ function renderVersionDetail() {
   const riskColor = riskColors[report?.risk_level] || 'text-3';
   root.innerHTML = `
     <div class="version-head"><h4>${esc(version.version)}</h4><span class="status ${esc(version.status)}">${statusText(version.status)}</span></div>
+    ${version.compatibility ? `<div class="field" style="margin-bottom:14px"><label>兼容性</label><input id="versionCompat" value="${esc(version.compatibility)}" ${editable ? '' : 'disabled'}></div>` : ''}
     <div class="field"><label>更新说明</label><textarea id="versionChangelog" ${editable ? '' : 'disabled'}>${esc(version.changelog || '')}</textarea></div>
     <div class="field" style="margin-top:14px"><label>技术文档（Markdown）</label><textarea id="versionDocs" style="min-height:260px" ${editable ? '' : 'disabled'}>${esc(version.documentation || '')}</textarea></div>
     <div class="analysis-panel">
@@ -201,6 +236,11 @@ function renderVersionDetail() {
       <div id="analysisProgress"></div>
     </div>
     <div class="actions">${editable ? `<label class="btn btn-small">上传 ZIP<input id="packageFile" type="file" accept=".zip,application/zip" hidden></label><button class="btn btn-small" id="saveVersion">保存文档</button><button class="btn btn-small" id="analyzeVersion">AI 自动分析</button><button class="btn btn-primary btn-small" id="submitVersion">提交审核</button>` : ''}</div>`;
+  // Bind file delete
+  if (editable) $$('[data-file]').forEach(btn => btn.addEventListener('click', async () => {
+    if (!confirm('确定删除此安装包吗？')) return;
+    try { await api(`/apehub-web/developer/plugins/${state.selectedPlugin.id}/files/${btn.dataset.file}`, { method: 'DELETE' }); toast('文件已删除'); await selectPlugin(state.selectedPlugin.id); } catch (error) { toast(error.message, true); }
+  }));
   if (!editable) return;
   $('#packageFile').addEventListener('change', event => uploadPackage(event.target.files[0]));
   $('#saveVersion').addEventListener('click', saveVersion);

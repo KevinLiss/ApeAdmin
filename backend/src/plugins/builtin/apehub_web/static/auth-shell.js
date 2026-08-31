@@ -55,6 +55,10 @@
     animation: fadeIn .25s ease;
   }
   :root[data-theme="light"] .modal-overlay { background: rgba(248,250,252,.7); }
+  :root[data-theme="light"] #authModal .close-btn { background: rgba(0,0,0,.06); }
+  :root[data-theme="light"] #authModal .close-btn:hover { background: rgba(0,0,0,.1); }
+  :root[data-theme="light"] #authModal .tabs { background: rgba(0,0,0,.04); }
+  :root[data-theme="light"] #authModal .field input { background: #ffffff; }
   .modal-overlay.show { display: flex; }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }

@@ -162,6 +162,8 @@ class ApehubWebSiteConfig(ApehubWebBase):
     deepseek_model: Mapped[str] = mapped_column(String(64), default="deepseek-chat")
     # Plugin detail page layout/content configuration (JSON, fully configurable)
     plugin_detail_config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    # Site default theme (light/dark), public site reads this as fallback
+    theme_mode: Mapped[str] = mapped_column(String(16), default="light")
     # Service fee (platform cut, percent)
     service_fee_rate: Mapped[Decimal] = mapped_column(Numeric(8, 4), default=Decimal("30"))
     currency: Mapped[str] = mapped_column(String(8), default="USDT")

@@ -41,6 +41,7 @@ class SiteConfigIn(BaseModel):
     deepseek_base_url: str | None = None
     deepseek_model: str | None = None
     plugin_detail_config: dict[str, Any] | None = None
+    theme_mode: str | None = Field(default=None, pattern="^(light|dark)$")
     service_fee_rate: Decimal | None = Field(default=None, ge=0, le=100)
     settlement_days: int | None = Field(default=None, ge=0, le=365)
     refund_days: int | None = Field(default=None, ge=0, le=365)
@@ -69,6 +70,7 @@ class SiteConfigOut(ORMModel):
     lempay_payment_type: str
     deepseek_base_url: str
     deepseek_model: str
+    theme_mode: str
     service_fee_rate: Decimal
     settlement_days: int
     refund_days: int

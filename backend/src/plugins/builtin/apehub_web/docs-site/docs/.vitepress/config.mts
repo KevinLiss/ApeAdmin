@@ -11,7 +11,7 @@ export default defineConfig({
   head: [
     ['script', {}, `(function () {
       try {
-        var theme = localStorage.getItem('ape-theme') || 'dark'
+        var theme = localStorage.getItem('ape-theme') || 'light'
         document.documentElement.classList.toggle('dark', theme === 'dark')
         localStorage.setItem('vitepress-theme-appearance', theme)
       } catch (error) {}

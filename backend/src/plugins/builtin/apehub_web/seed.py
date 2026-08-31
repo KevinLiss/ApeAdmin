@@ -117,6 +117,7 @@ async def seed_apehub_web_data() -> None:
                 mail_host="smtp.qq.com",
                 mail_port=465,
                 service_fee_rate=30.0,
+                theme_mode="light",
                 plugin_detail_config=_default_plugin_detail_config(),
             ))
             logger.info("apehub_web: site_config seeded")
