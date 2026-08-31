@@ -5,6 +5,7 @@ from src.models.rbac import Dept, Menu, Role, User, role_menu, user_role
 from src.models.ai import AiProvider
 from src.models.plugin import Plugin
 from src.models.mcp import McpAuditLog
+from src.models.mcp_tool import McpToolRegistration
 from src.models.log import SysLog
 from src.models.file import FileFolder, SystemFile
 from src.models.setting import Setting
@@ -22,6 +23,7 @@ __all__ = [
     "AiProvider",
     "Plugin",
     "McpAuditLog",
+    "McpToolRegistration",
     "SysLog",
     "FileFolder",
     "SystemFile",

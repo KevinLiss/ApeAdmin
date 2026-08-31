@@ -93,10 +93,22 @@ async def list_tools(
                 "name": t.name,
                 "description": t.description,
                 "input_schema": t.input_schema,
+                "category": t.category,
+                "plugin_name": t.plugin_name,
+                "required_permissions": t.required_permissions,
             }
             for t in tools
         ]
     )
+
+
+@router.get("/tools/categories")
+async def list_tool_categories(
+    user: Annotated[User, Depends(get_current_user)],
+):
+    """List all MCP tool categories with counts."""
+    categories = mcp_manager.list_categories()
+    return success_response(data=categories)
 
 
 @router.post("/tools/call")

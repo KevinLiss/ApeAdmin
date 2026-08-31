@@ -90,6 +90,7 @@ export const getAdminPluginFileDownloadUrl = (pluginId: number, fileId: number) 
   `/api/v1/apehub-web/admin/plugins/${pluginId}/files/${fileId}/download`
 export const reviewPluginVersion = (pluginId: number, versionId: number, data: any) => api.post(`/apehub-web/admin/plugins/${pluginId}/versions/${versionId}/review`, data)
 export const publishPluginVersion = (pluginId: number, versionId: number) => api.post(`/apehub-web/admin/plugins/${pluginId}/versions/${versionId}/publish`)
+export const unpublishPluginVersion = (pluginId: number, versionId: number) => api.post(`/apehub-web/admin/plugins/${pluginId}/versions/${versionId}/unpublish`)
 export const getAdminVersionSourceTree = (pluginId: number, versionId: number) => api.get(`/apehub-web/admin/plugins/${pluginId}/versions/${versionId}/source-tree`)
 export const getAdminVersionSource = (pluginId: number, versionId: number, path: string) => api.get(`/apehub-web/admin/plugins/${pluginId}/versions/${versionId}/source`, { params: { path } })
 export const refundAdminOrder = (orderId: number, data: any) => api.post(`/apehub-web/admin/orders/${orderId}/refund`, data)

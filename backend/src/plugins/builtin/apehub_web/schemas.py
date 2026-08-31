@@ -358,6 +358,7 @@ class AdminPluginUpdateIn(BaseModel):
     rating_count: int | None = Field(default=None, ge=0)
     developer_id: int | None = None
     demos: list[PluginDemoIn] | None = None
+    mcp_tools: list[dict] | None = None  # 声明的 MCP 工具清单
 
 
 class AdminVersionUpdateIn(BaseModel):

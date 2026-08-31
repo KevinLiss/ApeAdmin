@@ -291,6 +291,7 @@ class ApehubWebPlugin(ApehubWebBase):
     rating_avg: Mapped[float] = mapped_column(Float, default=5.0)
     rating_count: Mapped[int] = mapped_column(Integer, default=0)
     reject_reason: Mapped[str] = mapped_column(String(500), default="")
+    mcp_tools: Mapped[dict | None] = mapped_column(JSON, nullable=True)  # 声明的 MCP 工具清单
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

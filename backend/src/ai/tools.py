@@ -173,8 +173,13 @@ async def execute_tool(
     arguments: dict[str, Any],
     db: AsyncSession,
     user_permissions: set[str],
+    user: User | None = None,
 ) -> str:
-    """Execute a system tool by name and return the result as a JSON string."""
+    """Execute a system tool by name and return the result as a JSON string.
+
+    If ``user`` is provided, MCP tool calls are logged to sys_mcp_audit_log
+    so AI-agent-triggered invocations are traceable alongside HTTP API calls.
+    """
     if not check_tool_permission(tool_name, user_permissions):
         return json.dumps({"error": f"权限不足，无法调用工具: {tool_name}"}, ensure_ascii=False)
 
@@ -198,6 +203,7 @@ async def execute_tool(
     # MCP tools: try registered MCP tools as fallback
     try:
         from src.mcp.manager import mcp_manager
+        from src.mcp.routes import _write_audit_log
 
         # Permission check: MCP tool call requires mcp:tools:call (super admin has "*")
         if "mcp:tools:call" not in user_permissions and "*" not in user_permissions:
@@ -207,8 +213,16 @@ async def execute_tool(
         if tool_name not in {t.name for t in available}:
             return json.dumps({"error": f"未知工具: {tool_name}"}, ensure_ascii=False)
 
-        result = await mcp_manager.call_tool(tool_name, arguments)
-        return json.dumps(result, ensure_ascii=False, default=str)
+        try:
+            result = await mcp_manager.call_tool(tool_name, arguments)
+            # Write audit log for AI-agent-triggered MCP tool calls
+            if user is not None:
+                await _write_audit_log(db, "tool", tool_name, user, arguments, result)
+            return json.dumps(result, ensure_ascii=False, default=str)
+        except Exception as e:
+            if user is not None:
+                await _write_audit_log(db, "tool", tool_name, user, arguments, status="failed")
+            return json.dumps({"error": f"MCP 工具执行失败: {e}"}, ensure_ascii=False)
     except Exception as e:
         return json.dumps({"error": f"MCP 工具执行失败: {e}"}, ensure_ascii=False)
 

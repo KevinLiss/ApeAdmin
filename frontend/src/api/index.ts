@@ -60,6 +60,7 @@ export const deletePlugin = (id: number) => request.delete(`/plugins/${id}`)
 
 // ---- MCP ----
 export const getMcpTools = () => request.get('/mcp/tools')
+export const getMcpToolCategories = () => request.get('/mcp/tools/categories')
 export const callMcpTool = (name: string, arguments_: any) =>
   request.post('/mcp/tools/call', { name, arguments: arguments_ })
 export const getMcpResources = () => request.get('/mcp/resources')

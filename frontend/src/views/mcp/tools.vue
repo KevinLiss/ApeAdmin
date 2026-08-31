@@ -1,15 +1,35 @@
 <template>
   <el-card shadow="never" class="page-card">
     <div class="toolbar">
+      <el-select v-model="filterCategory" clearable placeholder="全部分类" style="width:180px" @change="fetchData">
+        <el-option v-for="c in categories" :key="c.name" :label="`${c.name} (${c.count})`" :value="c.name" />
+      </el-select>
       <el-button type="primary" @click="fetchData">
         <el-icon><Refresh /></el-icon>刷新
       </el-button>
     </div>
 
-    <el-table :data="tools" v-loading="loading" stripe>
+    <el-table :data="filteredTools" v-loading="loading" stripe>
       <el-table-column prop="name" label="工具名称" width="180" />
-      <el-table-column prop="description" label="描述" min-width="250" />
-      <el-table-column label="输入参数" min-width="200">
+      <el-table-column prop="description" label="描述" min-width="200" />
+      <el-table-column label="分类" width="120">
+        <template #default="{ row }">
+          <el-tag size="small" type="info">{{ row.category || 'system' }}</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="来源插件" width="130">
+        <template #default="{ row }">
+          <span v-if="row.plugin_name">{{ row.plugin_name }}</span>
+          <span v-else style="color:#909399">内置</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="权限要求" width="160">
+        <template #default="{ row }">
+          <el-tag v-for="p in row.required_permissions" :key="p" size="small" type="warning" class="param-tag">{{ p }}</el-tag>
+          <span v-if="!row.required_permissions?.length" style="color:#909399">无</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="输入参数" min-width="180">
         <template #default="{ row }">
           <el-tag v-for="(v, k) in row.input_schema?.properties || {}" :key="k" size="small" class="param-tag">
             {{ k }}:{{ v.type }}
@@ -46,24 +66,31 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { getMcpTools, callMcpTool } from '@/api'
+import { getMcpTools, getMcpToolCategories, callMcpTool } from '@/api'
 
 const tools = ref<any[]>([])
+const categories = ref<any[]>([])
+const filterCategory = ref('')
 const loading = ref(false)
 const callVisible = ref(false)
 const calling = ref(false)
 const currentTool = ref<any>(null)
 const callArgs = reactive<Record<string, string>>({})
-const neverResult = ref(null)
 const callResult = ref<any>(null)
+
+const filteredTools = computed(() => {
+  if (!filterCategory.value) return tools.value
+  return tools.value.filter((t: any) => t.category === filterCategory.value)
+})
 
 async function fetchData() {
   loading.value = true
   try {
-    const data: any = await getMcpTools()
-    tools.value = data || []
+    const [toolData, catData]: any = await Promise.all([getMcpTools(), getMcpToolCategories()])
+    tools.value = toolData || []
+    categories.value = catData || []
   } finally {
     loading.value = false
   }

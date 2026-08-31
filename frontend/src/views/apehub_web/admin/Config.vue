@@ -90,12 +90,23 @@
           </el-form-item>
           <template v-if="form.ai_provider === 'deepseek'">
             <el-form-item label="API 地址"><el-input v-model="form.deepseek_base_url" /></el-form-item>
-            <el-form-item label="分析模型"><el-input v-model="form.deepseek_model" /></el-form-item>
+            <el-form-item label="分析模型">
+              <el-select v-model="form.deepseek_model" filterable allow-create default-first-option placeholder="选择或输入模型名">
+                <el-option label="deepseek-chat" value="deepseek-chat" />
+                <el-option label="deepseek-reasoner" value="deepseek-reasoner" />
+              </el-select>
+            </el-form-item>
             <el-form-item label="API Key"><el-input v-model="form.deepseek_api_key" type="password" show-password :placeholder="form.deepseek_configured ? '已配置，留空保持不变' : '请输入 DeepSeek API Key'" /></el-form-item>
           </template>
           <template v-else>
             <el-form-item label="API 地址"><el-input v-model="form.qwen_base_url" /></el-form-item>
-            <el-form-item label="分析模型"><el-input v-model="form.qwen_model" placeholder="qwen3.7-plus / qwen3.8-max / qwen3.8-flash" /></el-form-item>
+            <el-form-item label="分析模型">
+              <el-select v-model="form.qwen_model" filterable allow-create default-first-option placeholder="选择或输入模型名">
+                <el-option label="qwen3.7-plus" value="qwen3.7-plus" />
+                <el-option label="qwen3.8-max" value="qwen3.8-max" />
+                <el-option label="qwen3.8-flash" value="qwen3.8-flash" />
+              </el-select>
+            </el-form-item>
             <el-form-item label="API Key"><el-input v-model="form.qwen_api_key" type="password" show-password :placeholder="form.qwen_configured ? '已配置，留空保持不变' : '请输入千问 API Key（DashScope 兼容模式）'" /></el-form-item>
           </template>
           <el-form-item><el-button type="primary" :loading="saving" @click="saveConfig">保存 AI 配置</el-button></el-form-item>

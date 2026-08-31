@@ -46,7 +46,7 @@ const staticRoutes: RouteRecordRaw[] = [
   { path: '/:pathMatch(.*)*', name: 'CatchAll', component: () => import('@/views/error/404.vue'), meta: { title: '404' } },
 ]
 
-const router = createRouter({ history: createWebHistory(), routes: staticRoutes })
+const router = createRouter({ history: createWebHistory('/admin/'), routes: staticRoutes })
 let dynamicRoutesLoaded = false
 
 function registerDynamicRoutes(menus: any[]) {

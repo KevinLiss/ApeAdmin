@@ -192,6 +192,7 @@
                     <el-icon><Promotion /></el-icon> 发布上架
                   </el-button>
                   <el-tag v-if="row.status === 'published'" type="success" size="small" effect="dark">已发布</el-tag>
+                  <el-button v-if="row.status === 'published'" text type="warning" @click="unpublishVersion(row)">下架</el-button>
                 </template>
               </el-table-column>
               <template #empty><el-empty description="暂无版本" :image-size="60" /></template>
@@ -622,7 +623,7 @@ import { Document, CircleCheck, CircleClose, Remove, Money, Search, User, PriceT
 import {
   deleteAdminPlugin, getAdminPluginDetail, getAdminPluginFileDownloadUrl,
   getAdminPlugins, getAdminVersionSource, getAdminVersionSourceTree,
-  offlinePlugin, onlinePlugin, publishPluginVersion, reviewPluginVersion,
+  offlinePlugin, onlinePlugin, publishPluginVersion, unpublishPluginVersion, reviewPluginVersion,
   updateAdminPlugin, adminUploadMedia, adminDeleteMedia, adminUploadFile, adminDeleteFile,
   updateAdminVersion, adminUploadDemoQr, getAdminUsers,
 } from '@/api/apehub_web'
@@ -765,6 +766,13 @@ const publishVersion = async (version: any) => {
   await ElMessageBox.confirm(`确认发布 v${version.version} 至插件市场？发布后用户可购买和安装。`, '发布版本', { type: 'warning' })
   await publishPluginVersion(detail.value.id, version.id)
   ElMessage.success('版本已发布上架')
+  await refresh(detail.value.id)
+}
+const unpublishVersion = async (version: any) => {
+  if (!detail.value) return
+  await ElMessageBox.confirm(`确认下架 v${version.version}？下架后用户将无法购买此版本，已购买用户不受影响。若无其他已发布版本，插件将整体下架。`, '下架版本', { type: 'warning' })
+  await unpublishPluginVersion(detail.value.id, version.id)
+  ElMessage.success('版本已下架')
   await refresh(detail.value.id)
 }
 

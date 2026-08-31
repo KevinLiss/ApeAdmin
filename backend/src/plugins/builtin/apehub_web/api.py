@@ -439,6 +439,7 @@ def _plugin_summary(p: ApehubWebPlugin, with_demos: bool = False) -> dict[str, A
         "rating_avg": p.rating_avg,
         "rating_count": p.rating_count,
         "reject_reason": p.reject_reason,
+        "mcp_tools": p.mcp_tools,
         "created_at": p.created_at.isoformat() if p.created_at else None,
         "updated_at": p.updated_at.isoformat() if p.updated_at else None,
     }
@@ -1919,6 +1920,42 @@ async def publish_plugin_version(
     ))
     await db.commit()
     return success_response(msg=f"版本 {version.version} 已上架")
+
+
+@router.post("/admin/plugins/{plugin_id}/versions/{version_id}/unpublish")
+async def unpublish_plugin_version(
+    plugin_id: int,
+    version_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
+    """下架已发布版本：版本回退为 approved，若无其他已发布版本则插件也下架。"""
+    await _require_permission(user, "apehub_web:plugins:review")
+    plugin, version = await _admin_plugin_version(db, plugin_id, version_id)
+    if version.status != PluginVersionStatus.PUBLISHED:
+        raise ConflictException("仅已发布的版本可下架")
+    version.status = PluginVersionStatus.APPROVED
+    version.published_at = None
+    # 检查是否还有其他已发布版本
+    has_other_published = any(
+        v.id != version.id and v.status == PluginVersionStatus.PUBLISHED
+        for v in plugin.versions
+    )
+    if not has_other_published:
+        plugin.status = PluginStatus.OFFLINE
+    else:
+        # 有其他已发布版本，插件保持上架状态
+        plugin.status = PluginStatus.APPROVED
+    db.add(ApehubWebPluginReview(
+        plugin_id=plugin.id,
+        version_id=version.id,
+        reviewer_id=user.id,
+        action="unpublish",
+        comment="版本下架",
+        service_fee_rate=plugin.service_fee_rate,
+    ))
+    await db.commit()
+    return success_response(msg=f"版本 {version.version} 已下架")
 
 
 @router.get("/admin/plugins/{plugin_id}/files/{file_id}/download")

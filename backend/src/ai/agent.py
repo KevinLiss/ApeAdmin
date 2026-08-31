@@ -37,6 +37,7 @@ SYSTEM_PROMPT = """你是 ApeAdmin 智能管理助手，可以帮助用户通过
 3. 部门管理：查询部门树、创建部门、更新部门、删除部门
 4. 菜单管理：查询菜单树、创建菜单项、更新菜单、删除菜单
 5. 系统工具：系统健康检查、查看已安装插件列表、系统统计信息
+6. 插件市场：搜索市场插件、查看插件详情、查询开发者信息、市场统计
 
 使用规则：
 - 当用户的请求涉及系统操作时，调用对应的工具完成任务
@@ -190,7 +191,7 @@ async def chat_non_stream(
 
             # Execute tool in a DB session
             async with SessionLocal() as db:
-                result = await execute_tool(fn_name, fn_args, db, user_permissions)
+                result = await execute_tool(fn_name, fn_args, db, user_permissions, user)
 
             tool_results.append({
                 "role": "tool",
@@ -295,7 +296,7 @@ async def chat_stream(
             yield json.dumps({"type": "tool_call", "name": fn_name, "arguments": fn_args}, ensure_ascii=False)
 
             async with SessionLocal() as db:
-                result = await execute_tool(fn_name, fn_args, db, user_permissions)
+                result = await execute_tool(fn_name, fn_args, db, user_permissions, user)
 
             yield json.dumps({"type": "tool_result", "name": fn_name, "result": json.loads(result)}, ensure_ascii=False)
 

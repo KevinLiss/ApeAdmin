@@ -459,6 +459,8 @@ class PluginManager:
         before_tools = set(mcp_manager._tools)
         before_events = {(event, id(handler.handler)) for event, handlers in event_bus._handlers.items() for handler in handlers}
         info.instance.register(app)
+        # Let the plugin declare its own MCP tools in a dedicated hook
+        info.instance.register_mcp_tools()
         return self._track_registered_resources(name, app, before_routes, before_tools, before_events)
 
     async def enable_plugin(self, name: str, app: FastAPI, db: "AsyncSession | None" = None) -> dict[str, Any]:

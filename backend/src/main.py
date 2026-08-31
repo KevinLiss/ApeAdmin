@@ -36,7 +36,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Seed initial data
     from src.core.seed import seed_initial_data
     await seed_initial_data()
-
     # Load system settings (admin_path, etc.)
     from src.crud.setting import crud_setting
     from src.db import SessionLocal
@@ -87,7 +86,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         # Register built-in MCP resources
         from src.mcp.builtin_resources import register_builtin_resources
         register_builtin_resources()
-        logger.info("MCP routes registered")
+        # Register MCP SSE transport (standard MCP protocol over SSE)
+        from src.mcp.sse_transport import register_sse_routes
+        register_sse_routes(app)
+        logger.info("MCP routes + SSE transport registered")
+
+        # Restore persisted MCP tool registrations from DB
+        await _restore_mcp_tools_from_db()
 
     # Emit startup event
     from src.plugins import event_bus, Event
@@ -106,6 +111,49 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     await close_db()
     logger.info("Goodbye!")
+
+
+async def _restore_mcp_tools_from_db() -> None:
+    """Restore MCP tool registrations persisted in ``sys_mcp_tool`` table.
+
+    For each enabled entry, dynamically import ``handler_module`` and call
+    its ``handler_attr`` (a callable) to re-register the tool(s) into the
+    in-memory McpManager.
+    """
+    try:
+        from sqlalchemy import select
+        from src.db import SessionLocal
+        from src.models import McpToolRegistration
+
+        async with SessionLocal() as db:
+            stmt = select(McpToolRegistration).where(McpToolRegistration.enabled == True)
+            result = await db.execute(stmt)
+            rows = result.scalars().all()
+
+        if not rows:
+            return
+
+        import importlib
+
+        restored = 0
+        for row in rows:
+            if not row.handler_module or not row.handler_attr:
+                continue
+            try:
+                mod = importlib.import_module(row.handler_module)
+                fn = getattr(mod, row.handler_attr, None)
+                if fn is None:
+                    logger.warning(f"MCP restore: {row.handler_module}.{row.handler_attr} not found")
+                    continue
+                fn()
+                restored += 1
+            except Exception as exc:
+                logger.error(f"MCP restore failed for '{row.name}': {exc}")
+
+        if restored:
+            logger.info(f"Restored {restored} MCP tool registration(s) from DB")
+    except Exception as exc:
+        logger.warning(f"Could not restore MCP tools from DB (table may not exist yet): {exc}")
 
 
 def create_app() -> FastAPI:

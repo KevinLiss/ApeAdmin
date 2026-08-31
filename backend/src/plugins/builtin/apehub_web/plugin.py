@@ -95,3 +95,9 @@ class ApehubWebPlugin(PluginInterface):
                 name="apehub_web_static",
             )
         logger.info("Apehub_web routes registered under /api/v1/apehub-web and /apehub-web")
+
+    def register_mcp_tools(self) -> None:
+        """Register apehub_web marketplace MCP tools for AI agents."""
+        from src.plugins.builtin.apehub_web.mcp_tools import register_mcp_tools
+
+        register_mcp_tools()

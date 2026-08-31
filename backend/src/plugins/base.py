@@ -147,6 +147,16 @@ class PluginInterface(ABC):
         """Register routes, middleware, MCP tools, etc. on the FastAPI app."""
         ...
 
+    def register_mcp_tools(self) -> None:
+        """Register MCP tools owned by this plugin.
+
+        Called by PluginManager after ``register()`` so plugins can declare
+        AI-callable tools in a dedicated, lifecycle-aware method.
+
+        Plugins that don't need MCP tools can leave this as a no-op.
+        """
+        pass
+
     def unregister(self, app: "FastAPI") -> None:
         """Release plugin-owned runtime resources before it is disabled.
 
