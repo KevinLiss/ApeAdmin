@@ -65,7 +65,7 @@ function applyHeroConfig(plugin) {
 
 function applySectionConfig() {
   const sections = pageConfig.sections || {};
-  const panelMap = { intro: 'tab-intro', docs: 'tab-docs', demo: 'tab-demo', changelog: 'tab-changelog' };
+  const panelMap = { intro: 'tab-intro', docs: 'tab-docs', changelog: 'tab-changelog' };
   for (const [key, panelId] of Object.entries(panelMap)) {
     const cfg = sections[key];
     const panel = document.getElementById(panelId);
@@ -215,17 +215,10 @@ function renderDetail(plugin) {
 
 function renderDemos(demos) {
   const dropdown = document.getElementById('demoDropdown');
+  if (!dropdown) return;
   dropdown.innerHTML = demos.length ? demos.map(item => `<a href="${detailEsc(item.url || '#')}" target="${item.url ? '_blank' : '_self'}" rel="noopener">${detailEsc(item.title || item.demo_type)}</a>`).join('') : '<a href="#">暂无在线 Demo</a>';
-  document.getElementById('demoBtn').disabled = !demos.length;
-  const demoBody = document.getElementById('demoBody');
-  demoBody.innerHTML = demos.length ? `<div class="big-icon">演</div><p>可用 Demo：${demos.map(item => detailEsc(item.title || item.demo_type)).join(' · ')}</p>` : '<div class="big-icon">—</div><p>当前版本未提供在线 Demo</p>';
-  // Update the demo URL display to match the first available demo
-  const demoUrlEl = document.getElementById('demoUrl');
-  if (demoUrlEl) {
-    const firstUrl = demos.length ? (demos[0].url || '—') : '—';
-    demoUrlEl.textContent = firstUrl;
-    if (demoUrlEl.tagName === 'A') demoUrlEl.href = firstUrl === '—' ? '#' : firstUrl;
-  }
+  const demoBtn = document.getElementById('demoBtn');
+  if (demoBtn) demoBtn.disabled = !demos.length;
 }
 
 function renderBuy(plugin, latest) {

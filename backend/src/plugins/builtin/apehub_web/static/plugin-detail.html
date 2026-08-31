@@ -181,15 +181,6 @@
   .code-box code { color: #c5c9e8; white-space: pre; }
   .c-k { color: #c792ea; } .c-s { color: #a5e07a; } .c-n { color: #f6c177; } .c-c { color: #556; } .c-f { color: #82aaff; }
 
-  /* Demo 体验区 */
-  .demo-frame { border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 24px; background: var(--bg-soft); }
-  .demo-frame .df-head { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--panel-2); border-bottom: 1px solid var(--border); }
-  .demo-frame .df-head .dot { width: 10px; height: 10px; border-radius: 50%; }
-  .demo-frame .df-head .url { font-size: 12px; color: var(--text-3); margin-left: 8px; font-family: monospace; }
-  .demo-frame .df-body { height: 480px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 16px; }
-  .demo-frame .df-body .big-icon { font-size: 64px; opacity: .6; }
-  .demo-frame .df-body p { color: var(--text-3); font-size: 14px; }
-
   /* 更新日志 */
   .changelog { margin-bottom: 24px; }
   .log-item { display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--border); }
@@ -339,7 +330,6 @@
   <div class="tabs-inner">
     <button class="tab-btn active" data-tab="intro">📖 介绍</button>
     <button class="tab-btn" data-tab="docs">📄 文档</button>
-    <button class="tab-btn" data-tab="demo">🖥 Demo 体验</button>
     <button class="tab-btn" data-tab="changelog">📜 更新日志</button>
   </div>
 </div>
@@ -428,31 +418,6 @@ AI_STREAM_ENABLED=<span class="c-s">true</span>
     <span class="c-k">def</span> <span class="c-f">send_message</span>(message: <span class="c-k">str</span>, model: <span class="c-k">str</span> = <span class="c-s">"deepseek-chat"</span>) -> dict:
         <span class="c-s">"""向AI模型发送消息并获取响应"""</span>
         <span class="c-k">return</span> agent.chat(message, model)</code></pre>
-    </div>
-  </div>
-
-  <!-- Demo 体验 -->
-  <div class="tab-panel" id="tab-demo">
-    <h2 class="sec-title">Demo<span class="em">体验</span></h2>
-    <p class="sec-desc">选择终端体验方式，直接在线感受插件的 AI 对话能力。</p>
-
-    <div class="demo-frame" id="demoFrame">
-      <div class="df-head">
-        <span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span>
-        <a class="url" id="demoUrl" href="#">https://demo.apeadmin.dev/ai-chat</a>
-      </div>
-      <div class="df-body" id="demoBody">
-        <div class="big-icon">💬</div>
-        <p>选择上方「立即体验」下拉中的体验方式开始</p>
-      </div>
-    </div>
-
-    <h3 class="sub-title">体验指引</h3>
-    <div class="feat-grid">
-      <div class="feat-card"><h4>📱 H5 在线体验</h4><p>移动端对话界面，体验流式输出效果。</p></div>
-      <div class="feat-card"><h4>💻 PC 后台体验</h4><p>完整后台管理界面，模型密钥配置与对话。</p></div>
-      <div class="feat-card"><h4>🔌 API 接口调试</h4><p>直接调用 REST API，查看请求与响应。</p></div>
-      <div class="feat-card"><h4>🤖 MCP 工具调用</h4><p>Agent 通过 MCP 网关调用工具的完整流程。</p></div>
     </div>
   </div>
 
