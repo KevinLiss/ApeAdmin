@@ -816,7 +816,7 @@ const developerList = ref<any[]>([])
 // 加载开发者列表（管理员可筛选绑定）
 const loadDevelopers = async () => {
   try {
-    const data = await getAdminUsers({ page: 1, page_size: 200 })
+    const data = await getAdminUsers({ page: 1, page_size: 100 })
     developerList.value = data.items || data || []
   } catch {
     developerList.value = []

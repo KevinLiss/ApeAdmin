@@ -23,6 +23,8 @@ runtimes/
 
 # Runtime uploads (plugin packages / media)
 backend/src/uploads/
+# 后端挂载的静态构建产物（由前端构建后同步拷贝）
+backend/frontend_dist/
 
 # Alembic
 backend/alembic/versions/*.py

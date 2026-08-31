@@ -489,7 +489,11 @@ async def public_site_config(db: Annotated[AsyncSession, Depends(get_db)]):
 
 @router.get("/site/public/content")
 async def public_site_content(db: Annotated[AsyncSession, Depends(get_db)]):
-    """All enabled site content blocks grouped by block_key."""
+    """All site content blocks grouped by block_key.
+
+    返回所有「出现过配置记录」的 block_key（含全禁用时的空数组），
+    便于前端区分「未配置（默认显示）」与「已禁用（隐藏）」。
+    """
     result = await db.execute(
         select(ApehubWebSiteContent).where(ApehubWebSiteContent.enabled.is_(True)).order_by(ApehubWebSiteContent.sort)
     )
@@ -505,6 +509,10 @@ async def public_site_content(db: Annotated[AsyncSession, Depends(get_db)]):
             "sort": c.sort,
             "extra": c.extra or {},
         })
+    # 补上所有存在记录（可能已全部禁用）的 block_key，值为空数组
+    keys_result = await db.execute(select(ApehubWebSiteContent.block_key).distinct())
+    for key in keys_result.scalars().all():
+        blocks.setdefault(key, [])
     return success_response(data=blocks)
 
 
@@ -812,24 +820,6 @@ async def create_site_content(
     return success_response(data={"id": content.id}, msg="内容已创建")
 
 
-@router.put("/admin/content/{content_id}")
-async def update_site_content(
-    content_id: int,
-    body: SiteContentIn,
-    db: Annotated[AsyncSession, Depends(get_db)],
-    user: Annotated[User, Depends(get_current_user)],
-):
-    await _require_permission(user, "apehub_web:content:edit")
-    content = await db.get(ApehubWebSiteContent, content_id)
-    if not content:
-        raise NotFoundException("内容不存在")
-    payload = body.model_dump(exclude_unset=True)
-    for k, v in payload.items():
-        setattr(content, k, v)
-    await db.commit()
-    return success_response(msg="内容已更新")
-
-
 class ContentOrderItem(BaseModel):
     id: int
     sort: int
@@ -860,6 +850,24 @@ async def reorder_site_content(
             row.sort = item.sort
     await db.commit()
     return success_response(msg="排序已更新")
+
+
+@router.put("/admin/content/{content_id}")
+async def update_site_content(
+    content_id: int,
+    body: SiteContentIn,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
+    await _require_permission(user, "apehub_web:content:edit")
+    content = await db.get(ApehubWebSiteContent, content_id)
+    if not content:
+        raise NotFoundException("内容不存在")
+    payload = body.model_dump(exclude_unset=True)
+    for k, v in payload.items():
+        setattr(content, k, v)
+    await db.commit()
+    return success_response(msg="内容已更新")
 
 
 @router.delete("/admin/content/{content_id}")

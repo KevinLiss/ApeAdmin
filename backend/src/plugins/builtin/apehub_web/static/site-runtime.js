@@ -159,8 +159,65 @@
       document.querySelectorAll('#navLoginBtn').forEach(link => { link.hidden = authenticated; link.style.display = authenticated ? 'none' : ''; });
       const hero = content.hero && content.hero[0];
       if (hero?.image) document.querySelectorAll('img[src*="screenshot.png"]').forEach((image) => { image.src = hero.image; });
+      /* ---------- Dynamic section order & visibility (drag layout) ---------- */
+      applyContentLayout(content);
     } catch (error) {
       console.warn('Apehub_web public configuration unavailable', error);
     }
   })();
+
+  /**
+   * 根据后台「内容管理」配置动态重排首页区块顺序与显隐。
+   * - key 存在配置且启用：按最小 sort 升序排列
+   * - key 存在配置但全部禁用：隐藏区块
+   * - key 从未配置：保持默认显示与原始 DOM 位置
+   * 仅作用于带 [data-block-key] 的区块元素（首页）。
+   */
+  function applyContentLayout(content) {
+    const blocks = Array.from(document.querySelectorAll('[data-block-key]'));
+    if (!blocks.length) return;
+
+    // 每个 block_key 的启用配置（按 sort 升序）
+    const keyMeta = new Map();
+    Object.entries(content || {}).forEach(([key, list]) => {
+      const enabled = (list || []).filter(item => item.enabled !== false);
+      enabled.sort((a, b) => (a.sort || 0) - (b.sort || 0));
+      keyMeta.set(key, { sort: enabled.length ? (enabled[0].sort || 0) : null, count: enabled.length });
+    });
+
+    // 1) 显隐
+    blocks.forEach(section => {
+      const meta = keyMeta.get(section.getAttribute('data-block-key'));
+      if (meta === undefined) {
+        section.hidden = false;                 // 从未配置，默认显示
+      } else {
+        section.hidden = meta.count === 0;      // 有配置但全部禁用 → 隐藏
+      }
+    });
+
+    // 2) 稳定重排：已配置且启用的区块按 sort 升序；未配置区块保持原始相对顺序；
+    //    已配置区块整体排在未配置区块之前（语义：后台设置过顺序的优先）。
+    const originalIndex = new Map();
+    blocks.forEach((section, i) => originalIndex.set(section, i));
+    const getOrder = section => {
+      const meta = keyMeta.get(section.getAttribute('data-block-key'));
+      return meta && meta.count ? meta.sort : null;
+    };
+    const sorted = blocks.slice().sort((a, b) => {
+      const oa = getOrder(a), ob = getOrder(b);
+      if (oa !== null && ob !== null) return oa - ob;
+      if (oa !== null) return -1;
+      if (ob !== null) return 1;
+      return originalIndex.get(a) - originalIndex.get(b);
+    });
+
+    // 3) 重插：把重排后的区块整体移到原第一个区块的位置（锚点保持在原首区块之前）
+    const firstBlock = blocks[0];
+    const anchor = firstBlock && firstBlock.previousElementSibling;
+    if (firstBlock && anchor) {
+      // 先把所有区块从原位置移除（保持引用），再依次插回锚点之后
+      sorted.forEach(section => section.remove());
+      sorted.forEach(section => anchor.after(section));
+    }
+  }
 })();

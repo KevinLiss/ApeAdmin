@@ -266,22 +266,15 @@ const initSortable = () => {
     chosenClass: 'drag-chosen',
     onEnd: async (evt: any) => {
       if (evt.oldIndex === evt.newIndex) return
-      const tbody = evt.from
-      // Sortable 只移动了 DOM 行，需按 DOM 新顺序重排数据
-      const trs = Array.from(tbody.querySelectorAll('tr'))
-      const idMap = new Map(contentList.value.map(r => [String(r.id), r]))
-      const ordered = trs
-        .map(tr => idMap.get(tr.getAttribute('data-row-key')))
-        .filter(Boolean)
-      if (ordered.length !== contentList.value.length) {
-        loadList()
-        return
-      }
-      // 按当前展示顺序重写 sort（10 起步避免与 0 冲突）
-      const items = ordered.map((row, idx) => ({ id: row.id, sort: (idx + 1) * 10 }))
+      // Sortable 只移动了 DOM 行，Vue 数据顺序未变
+      // 用 oldIndex/newIndex 重排 contentList，再按新顺序重写 sort
+      const arr = contentList.value.slice()
+      const [moved] = arr.splice(evt.oldIndex, 1)
+      arr.splice(evt.newIndex, 0, moved)
+      const items = arr.map((row, idx) => ({ id: row.id, sort: (idx + 1) * 10 }))
       try {
         await reorderAdminContent(items)
-        contentList.value = ordered.map((row, idx) => ({ ...row, sort: (idx + 1) * 10 }))
+        contentList.value = arr.map((row, idx) => ({ ...row, sort: (idx + 1) * 10 }))
         ElMessage.success(`已更新排序，共 ${items.length} 个区块`)
       } catch {
         ElMessage.error('排序保存失败')
