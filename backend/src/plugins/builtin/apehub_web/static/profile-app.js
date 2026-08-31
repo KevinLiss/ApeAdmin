@@ -238,7 +238,7 @@ function renderVersionDetail() {
     ${stepsHtml}
     ${emptyTip}
     ${version.compatibility ? `<div class="field" style="margin-bottom:14px"><label>兼容性</label><input id="versionCompat" value="${esc(version.compatibility)}" ${editable ? '' : 'disabled'}></div>` : ''}
-    <div class="field"><label>更新说明</label><textarea id="versionChangelog" ${editable ? '' : 'disabled'}>${esc(version.changelog || '')}</textarea></div>
+    <div class="field"><label>更新说明${editable ? '<button class="btn btn-small btn-ai-optimize" id="optimizeChangelogBtn" title="使用 AI 润色更新说明">AI 优化</button>' : ''}</label><textarea id="versionChangelog" ${editable ? '' : 'disabled'}>${esc(version.changelog || '')}</textarea></div>
     <div class="field" style="margin-top:14px"><label>技术文档（Markdown）</label><textarea id="versionDocs" style="min-height:260px" ${editable ? '' : 'disabled'}>${esc(version.documentation || '')}</textarea></div>
     <div class="analysis-panel">
       <div class="analysis-header"><strong>安装包</strong>${files}</div>
@@ -262,6 +262,8 @@ function renderVersionDetail() {
   $('#saveVersion').addEventListener('click', saveVersion);
   $('#analyzeVersion').addEventListener('click', analyzeVersion);
   $('#submitVersion').addEventListener('click', submitVersion);
+  const optimizeBtn = $('#optimizeChangelogBtn');
+  if (optimizeBtn) optimizeBtn.addEventListener('click', optimizeChangelog);
   // If analysis failed, try to fetch the error info
   if (version.status === 'analysis_failed') fetchAnalysisError(state.selectedPlugin.id, version.id);
 }
@@ -305,6 +307,21 @@ async function uploadPackage(file) {
     await api(`/apehub-web/developer/plugins/${state.selectedPlugin.id}/files?file_type=package&version_id=${state.selectedVersion.id}`, { method: 'POST', body: form });
     toast('安装包校验并上传成功'); await selectPlugin(state.selectedPlugin.id);
   } catch (error) { toast(error.message, true); }
+}
+
+async function optimizeChangelog() {
+  const plugin = state.selectedPlugin, version = state.selectedVersion;
+  const textarea = $('#versionChangelog');
+  const raw = (textarea?.value || '').trim();
+  if (!raw) { toast('请先输入更新说明草稿', true); return; }
+  const btn = $('#optimizeChangelogBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'AI 优化中...'; }
+  try {
+    const data = await api(`/apehub-web/developer/plugins/${plugin.id}/versions/${version.id}/optimize-changelog`, { method: 'POST', body: JSON.stringify({ changelog: raw }) });
+    if (textarea && data.changelog) { textarea.value = data.changelog; toast('AI 优化完成，请确认后保存'); }
+    else { toast('AI 返回为空', true); }
+  } catch (error) { toast(error.message, true); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = 'AI 优化'; } }
 }
 
 async function saveVersion() {

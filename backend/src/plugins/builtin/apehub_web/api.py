@@ -47,6 +47,8 @@ from src.plugins.builtin.apehub_web.analysis import (
     PackageValidationError,
     generate_documentation,
     inspect_package,
+    optimize_changelog,
+
 )
 from src.plugins.builtin.apehub_web.models import (
     AnalysisStatus,
@@ -81,6 +83,7 @@ from src.plugins.builtin.apehub_web.models import (
 from src.plugins.builtin.apehub_web.schemas import (
     AdminPluginUpdateIn,
     AdminVersionUpdateIn,
+    ChangelogOptimizeIn,
     DocCategoryIn,
     DocIn,
     NavigationItemIn,
@@ -1553,6 +1556,44 @@ async def submit_plugin_version_for_review(
         plugin.reject_reason = ""
     await db.commit()
     return success_response(msg="版本已提交审核")
+
+
+@router.post("/developer/plugins/{plugin_id}/versions/{version_id}/optimize-changelog")
+async def optimize_version_changelog(
+    plugin_id: int,
+    version_id: int,
+    body: ChangelogOptimizeIn,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
+    """Use AI to polish a changelog draft. AI Key stays server-side; never exposed to frontend."""
+    plugin, version = await _owned_version(db, plugin_id, version_id, user.id)
+    _editable_version(version)
+    cfg = await _get_site_config(db)
+    if cfg.ai_provider == "qwen":
+        if not cfg.qwen_api_key_enc:
+            raise ValidationException("请先在官网配置中设置千问（Qwen）API Key")
+        provider_base_url = cfg.qwen_base_url
+        provider_model = cfg.qwen_model
+        provider_api_key = _decrypt_secret(cfg.qwen_api_key_enc)
+    else:
+        if not cfg.deepseek_api_key_enc:
+            raise ValidationException("请先在官网配置中设置 DeepSeek API Key")
+        provider_base_url = cfg.deepseek_base_url
+        provider_model = cfg.deepseek_model
+        provider_api_key = _decrypt_secret(cfg.deepseek_api_key_enc)
+    try:
+        optimized = await optimize_changelog(
+            body.changelog,
+            api_key=provider_api_key,
+            base_url=provider_base_url,
+            model=provider_model,
+        )
+    except RuntimeError as exc:
+        raise ValidationException(str(exc))
+    except Exception as exc:
+        raise ValidationException(f"AI 优化失败：{exc}")
+    return success_response(data={"changelog": optimized}, msg="AI 优化完成")
 
 
 # ---------------------------------------------------------------------------

@@ -231,3 +231,55 @@ async def generate_documentation(
         "prompt_tokens": int(usage.get("prompt_tokens") or 0),
         "completion_tokens": int(usage.get("completion_tokens") or 0),
     }
+
+
+def _changelog_optimize_prompt(raw_text: str) -> list[dict[str, str]]:
+    system = (
+        "你是技术写作专家，擅长撰写清晰、专业的插件版本更新说明（changelog）。"
+        "请对用户提供的草稿进行润色和结构化优化，使其更易读、更专业。"
+        "要求：\n"
+        "1. 保持原意，不要编造不存在的功能或修复\n"
+        "2. 使用简洁的条目式格式（如「新增」「修复」「优化」「变更」分类前缀）\n"
+        "3. 每个条目一句话，突出关键变化\n"
+        "4. 如果原文已经很好，仅做微调\n"
+        "5. 直接输出优化后的纯文本，不要包含任何解释、前后缀或 markdown 代码块"
+    )
+    return [
+        {"role": "system", "content": system},
+        {"role": "user", "content": f"请优化以下版本更新说明：\n\n{raw_text}"},
+    ]
+
+
+async def optimize_changelog(
+    raw_text: str,
+    *,
+    api_key: str,
+    base_url: str,
+    model: str,
+) -> str:
+    """Call AI to polish a changelog draft. Returns the optimized text."""
+    if not api_key:
+        raise RuntimeError("AI API Key 未配置")
+    endpoint = base_url.rstrip("/") + "/chat/completions"
+    client_kwargs: dict[str, Any] = {"timeout": 60}
+    proxy = _normalized_proxy()
+    if proxy:
+        client_kwargs["proxy"] = proxy
+    async with httpx.AsyncClient(**client_kwargs) as client:
+        response = await client.post(
+            endpoint,
+            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+            json={
+                "model": model,
+                "messages": _changelog_optimize_prompt(raw_text),
+                "temperature": 0.3,
+                "max_tokens": 2000,
+            },
+        )
+    response.raise_for_status()
+    payload = response.json()
+    content = payload.get("choices", [{}])[0].get("message", {}).get("content", "")
+    if not content:
+        raise RuntimeError("AI 服务返回了空内容")
+    return content.strip()
+

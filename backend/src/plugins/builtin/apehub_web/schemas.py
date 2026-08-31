@@ -366,3 +366,9 @@ class AdminVersionUpdateIn(BaseModel):
     compatibility: str | None = Field(default=None, max_length=255)
     changelog: str | None = None
     documentation: str | None = None
+
+
+class ChangelogOptimizeIn(BaseModel):
+    """Developer submits a changelog draft for AI polishing."""
+    changelog: str = Field(min_length=1, max_length=5000)
+
