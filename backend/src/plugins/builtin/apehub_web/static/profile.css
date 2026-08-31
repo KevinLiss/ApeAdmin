@@ -124,6 +124,8 @@ nav {
 .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 32px -8px rgba(109,92,255,.9); }
 .btn-small { padding: 8px 16px; font-size: 13px; border-radius: 10px; border: 1px solid var(--panel-border); background: var(--panel); color: var(--text-2); }
 .btn-small:hover { color: var(--text); border-color: rgba(255,255,255,.2); }
+.btn:disabled { opacity: .45; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+.btn:disabled:hover { color: var(--text-2); border-color: var(--panel-border); }
 .btn-danger { color: #ffdada; border-color: #744848; background: #2a1b1b; }
 :root[data-theme="light"] .btn-danger { color: #b91c1c; border-color: rgba(220,38,38,.3); background: rgba(220,38,38,.08); }
 :root[data-theme="light"] .btn-danger:hover { background: rgba(220,38,38,.14); }
@@ -544,13 +546,21 @@ dialog::backdrop { background: rgba(7,8,15,.65); backdrop-filter: blur(8px); }
 .toast {
   position: fixed; right: 22px; bottom: 22px; z-index: 200;
   max-width: 400px; padding: 14px 18px; border-radius: 12px;
-  background: rgba(109,92,255,.15); color: #c7d2fe;
-  border: 1px solid rgba(109,92,255,.3);
-  box-shadow: 0 12px 40px rgba(0,0,0,.35);
-  display: none; backdrop-filter: blur(8px); font-size: 14px;
+  background: rgba(109,92,255,.92); color: #fff;
+  border: 1px solid rgba(109,92,255,.6);
+  box-shadow: 0 12px 40px rgba(0,0,0,.45);
+  display: none; backdrop-filter: blur(8px); font-size: 14px; font-weight: 500;
 }
-.toast.error { background: rgba(248,113,113,.15); color: #fca5a5; border-color: rgba(248,113,113,.3); }
+.toast.error { background: rgba(220,38,38,.95); color: #fff; border-color: rgba(220,38,38,.7); }
 .toast.show { display: block; }
+:root[data-theme="light"] .toast {
+  background: #4f46e5; color: #fff;
+  border-color: rgba(79,70,229,.8);
+  box-shadow: 0 12px 32px rgba(79,70,229,.35);
+}
+:root[data-theme="light"] .toast.error {
+  background: #dc2626; color: #fff; border-color: rgba(220,38,38,.8);
+}
 .loading { opacity: .55; pointer-events: none; }
 
 /* ========== Footer ========== */

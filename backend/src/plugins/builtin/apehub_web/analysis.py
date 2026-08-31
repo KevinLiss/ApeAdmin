@@ -201,7 +201,7 @@ async def generate_documentation(
     if not api_key:
         raise RuntimeError("AI API Key 未配置")
     endpoint = base_url.rstrip("/") + "/chat/completions"
-    client_kwargs: dict[str, Any] = {"timeout": 300}
+    client_kwargs: dict[str, Any] = {"timeout": httpx.Timeout(120.0, connect=15.0)}
     proxy = _normalized_proxy()
     if proxy:
         client_kwargs["proxy"] = proxy

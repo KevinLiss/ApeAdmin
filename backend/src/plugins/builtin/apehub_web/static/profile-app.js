@@ -215,6 +215,7 @@ function renderVersionDetail() {
   if (!version) { root.innerHTML = '<div class="empty">请选择版本</div>'; return; }
   const editable = ['draft', 'rejected', 'analysis_failed'].includes(version.status);
   const isPublished = version.status === 'published';
+  const isAnalyzing = version.status === 'analyzing';
   const canEdit = editable || isPublished;
   const hasPackage = (version.files || []).length > 0;
   const hasDocs = !!(version.documentation && version.documentation.trim());
@@ -256,12 +257,14 @@ function renderVersionDetail() {
       ${version.reject_reason ? `<div class="reject-reason"><strong>驳回原因：</strong>${esc(version.reject_reason)}</div>` : ''}
       <div id="analysisProgress"></div>
     </div>
-    <div class="actions">${canEdit ? `<label class="btn btn-small">上传 ZIP<input id="packageFile" type="file" accept=".zip,application/zip" hidden></label><button class="btn btn-small" id="saveVersion">保存文档</button><button class="btn btn-small" id="analyzeVersion">AI 自动分析</button><button class="btn btn-primary btn-small" id="submitVersion">${isPublished ? '重新提交审核' : '提交审核'}</button>` : ''}</div>`;
+    <div class="actions">${canEdit ? `<label class="btn btn-small">上传 ZIP<input id="packageFile" type="file" accept=".zip,application/zip" hidden></label><button class="btn btn-small" id="saveVersion">保存文档</button><button class="btn btn-small" id="analyzeVersion" ${hasPackage ? '' : 'disabled title="请先上传 ZIP 安装包"'}${version.status === 'analyzing' ? ' disabled' : ''}>AI 自动分析</button><button class="btn btn-primary btn-small" id="submitVersion" ${hasPackage ? '' : 'disabled title="请先上传 ZIP 安装包"'}${!hasDocs ? ' disabled title="请先填写技术文档"' : ''}>${isPublished ? '重新提交审核' : '提交审核'}</button>` : ''}</div>`;
   // Bind file delete
   if (canEdit) $$('[data-file]').forEach(btn => btn.addEventListener('click', async () => {
     if (!confirm('确定删除此安装包吗？')) return;
     try { await api(`/apehub-web/developer/plugins/${state.selectedPlugin.id}/files/${btn.dataset.file}`, { method: 'DELETE' }); toast('文件已删除'); await selectPlugin(state.selectedPlugin.id); } catch (error) { toast(error.message, true); }
   }));
+  // Resume progress polling if a job is still running for this version
+  if (isAnalyzing) pollAnalysis(state.selectedPlugin.id, version.id);
   if (!canEdit) return;
   $('#packageFile').addEventListener('change', event => uploadPackage(event.target.files[0]));
   $('#saveVersion').addEventListener('click', saveVersion);
@@ -342,11 +345,14 @@ async function saveVersion() {
 /* ========== AI Analysis with progress visualization ========== */
 async function analyzeVersion() {
   const plugin = state.selectedPlugin, version = state.selectedVersion;
+  if (!(version.files || []).length) { toast('请先上传 ZIP 安装包，再进行 AI 分析', true); return; }
+  const btn = $('#analyzeVersion');
+  if (btn) { btn.disabled = true; btn.textContent = 'AI 分析中...'; }
   try {
     await api(`/apehub-web/developer/plugins/${plugin.id}/versions/${version.id}/analyze`, { method: 'POST' });
     toast('AI 分析已开始，请稍候...');
     pollAnalysis(plugin.id, version.id);
-  } catch (error) { toast(error.message, true); }
+  } catch (error) { toast(error.message, true); if (btn) { btn.disabled = false; btn.textContent = 'AI 自动分析'; } }
 }
 
 async function pollAnalysis(pluginId, versionId) {
@@ -368,6 +374,16 @@ async function pollAnalysis(pluginId, versionId) {
         </div>`;
     }
     if (['queued', 'running'].includes(data.job?.status)) {
+      // Safety net: stop polling if the job has been running too long (AI upstream hang)
+      const started = data.job.created_at ? new Date(data.job.created_at).getTime() : Date.now();
+      const elapsedMs = Date.now() - started;
+      if (elapsedMs > 5 * 60 * 1000) {
+        const box = $('#analysisProgress');
+        if (box) box.innerHTML = '<div class="analysis-job"><div class="job-stage">AI 分析超时</div><div class="job-error">分析耗时过长，可能是 AI 服务暂时不可用。请稍后点击「AI 自动分析」重试，或手动填写文档后提交审核。</div></div>';
+        await selectPlugin(pluginId);
+        toast('AI 分析超时，请稍后重试', true);
+        return;
+      }
       state.analysisTimer = setTimeout(() => pollAnalysis(pluginId, versionId), 1500);
     } else {
       await selectPlugin(pluginId);
