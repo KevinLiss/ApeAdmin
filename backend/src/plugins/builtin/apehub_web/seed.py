@@ -126,9 +126,15 @@ async def seed_apehub_web_data() -> None:
         content_count = (await db.execute(select(func.count()).select_from(ApehubWebSiteContent))).scalar() or 0
         if content_count == 0:
             blocks = [
-                dict(block_key="hero", title="让 ApeAdmin 更强大", subtitle="Apehub_web 插件市场与技术文档中心", body="基于 ApeAdmin 底座构建的插件生态，发现、购买、上架你的 ApeAdmin 插件。", image="/apehub-web/assets/screenshot.png", sort=0, enabled=True, extra={"cta_text": "浏览插件市场", "cta_link": "/apehub-web/plugins.html"}),
-                dict(block_key="features", title="核心特性", subtitle="", body="插件市场 / 技术文档 / 开发者中心 / 支付分成", sort=1, enabled=True, extra={}),
-                dict(block_key="footer", title="Apehub_web", subtitle="", body="© 2026 Apehub_web. Powered by ApeAdmin.", sort=99, enabled=True, extra={}),
+                dict(block_key="hero", title="让中后台管理，为 AI 智能体而生", subtitle="面向 AI 智能体场景的开源开发框架 · MIT License", body="ApeAdmin 基于 FastAPI + Vue3 打造，跳出传统后台设计思路，原生为 AI Agent 能力调用做适配。开箱即用、可插拔扩展，帮开发者快速搭建兼具业务管理与 AI 工具输出能力的应用。", image="/apehub-web/assets/screenshot.png", sort=10, enabled=True, extra={"cta_text": "浏览插件市场", "cta_link": "/apehub-web/plugins.html"}),
+                dict(block_key="architecture", title="前后端分离 · 底座与插件解耦", subtitle="Architecture", body="单体应用架构 + 后端插件化扩展，双数据库驱动无缝切换，Redis 可选自动降级。", sort=20, enabled=True, extra={}),
+                dict(block_key="features", title="开箱即用的企业级能力", subtitle="Core Features", body="底座提供权限、菜单、日志等基础设施，业务功能以插件形式独立开发与部署，同时通过 MCP 网关将管理能力暴露给 AI Agent 调用。", sort=30, enabled=True, extra={}),
+                dict(block_key="mcp", title="把管理系统变成 AI 的工具", subtitle="MCP Gateway", body="通过 MCP-SSE 网关，将底座与插件的管理能力封装为标准化 AI 工具，实现传统业务系统与大模型智能体的无缝打通。", sort=40, enabled=True, extra={}),
+                dict(block_key="plugin_eco", title="插件化 · 让业务独立生长", subtitle="Plugin Ecosystem", body="插件间通过事件总线松耦合通信，支持 ZIP 上传安装，能力可路由注册、MCP 工具注册、事件监听。", sort=50, enabled=True, extra={}),
+                dict(block_key="techstack", title="现代、稳健、可扩展", subtitle="Tech Stack", body="选型兼顾性能与开发效率，双数据库驱动与可选缓存让你在开发与生产间无缝切换。", sort=60, enabled=True, extra={}),
+                dict(block_key="quickstart", title="三分钟跑起来", subtitle="Quick Start", body="默认使用 SQLite 零配置启动，无需额外安装数据库。", sort=70, enabled=True, extra={}),
+                dict(block_key="cta", title="开始构建你的 AI 中后台", subtitle="", body="开源 · 免费 · 面向智能体场景，立即体验或给项目点个 Star。", sort=80, enabled=True, extra={}),
+                dict(block_key="footer", title="ApeAdmin", subtitle="", body="面向 AI 智能体场景的开发框架。以 FastAPI 异步服务、Vue 3 管理界面、RBAC 与可控插件机制支撑持续交付。", sort=90, enabled=True, extra={}),
             ]
             for b in blocks:
                 db.add(ApehubWebSiteContent(**b))

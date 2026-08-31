@@ -159,12 +159,53 @@
       document.querySelectorAll('#navLoginBtn').forEach(link => { link.hidden = authenticated; link.style.display = authenticated ? 'none' : ''; });
       const hero = content.hero && content.hero[0];
       if (hero?.image) document.querySelectorAll('img[src*="screenshot.png"]').forEach((image) => { image.src = hero.image; });
+      /* ---------- Dynamic text rendering (content management) ---------- */
+      applyBlockContent(content);
       /* ---------- Dynamic section order & visibility (drag layout) ---------- */
       applyContentLayout(content);
     } catch (error) {
       console.warn('Apehub_web public configuration unavailable', error);
     }
   })();
+
+  /**
+   * 将后台「内容管理」保存的文字（title / subtitle / body）渲染到对应区块 DOM。
+   * - 字段为空或 null 时不覆盖原有 HTML，保留默认内容。
+   * - 仅作用于带 [data-block-key] 的区块元素（首页）。
+   */
+  function applyBlockContent(content) {
+    const selectors = {
+      hero:       { title: 'h1',              subtitle: '.ver-tag',  body: '.sub' },
+      features:   { title: '.sec-head h2',    subtitle: '.sec-tag',  body: '.sec-head p' },
+      architecture:{ title: '.sec-head h2',   subtitle: '.sec-tag',  body: '.sec-head p' },
+      mcp:        { title: '.sec-head h2',    subtitle: '.sec-tag',  body: '.sec-head p' },
+      techstack:  { title: '.sec-head h2',    subtitle: '.sec-tag',  body: '.sec-head p' },
+      plugin_eco: { title: '.sec-head h2',    subtitle: '.sec-tag',  body: '.sec-head p' },
+      quickstart: { title: '.sec-head h2',    subtitle: '.sec-tag',  body: '.sec-head p' },
+      cta:        { title: '.cta-band h2',   subtitle: null,         body: '.cta-band p' },
+      footer:     { title: '.foot-brand .brand span', subtitle: null, body: '.foot-brand p' },
+    };
+    Object.entries(content || {}).forEach(([key, items]) => {
+      const item = (items || []).find(i => i.enabled !== false) || (items || [])[0];
+      if (!item) return;
+      const section = document.querySelector(`[data-block-key="${key}"]`);
+      if (!section) return;
+      const sel = selectors[key];
+      if (!sel) return;
+      if (item.title && sel.title) {
+        const el = section.querySelector(sel.title);
+        if (el) el.textContent = item.title;
+      }
+      if (item.subtitle && sel.subtitle) {
+        const el = section.querySelector(sel.subtitle);
+        if (el) el.textContent = item.subtitle;
+      }
+      if (item.body && sel.body) {
+        const el = section.querySelector(sel.body);
+        if (el) el.textContent = item.body;
+      }
+    });
+  }
 
   /**
    * 根据后台「内容管理」配置动态重排首页区块顺序与显隐。
@@ -259,7 +300,7 @@
         try {
           const response = await fetch('/api/v1/apehub-web/site/public/content');
           const payload = await response.json();
-          if (payload.code === 200) applyContentLayout(payload.data);
+          if (payload.code === 200) { applyBlockContent(payload.data); applyContentLayout(payload.data); }
         } catch { /* keep current layout */ }
       })();
     }

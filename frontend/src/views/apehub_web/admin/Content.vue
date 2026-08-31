@@ -118,6 +118,7 @@
           <div class="panel-header">
             <el-button text :icon="ArrowLeft" @click="goEdit">返回列表</el-button>
             <span class="panel-title">{{ editingBlock.id ? '编辑内容块' : '新增内容块' }}</span>
+            <span class="panel-sub" v-if="editingBlock.id">{{ editingBlock.block_key }}</span>
           </div>
           <div class="edit-form">
             <el-form :model="editingBlock" label-position="top">
@@ -235,15 +236,31 @@ const filteredList = computed(() => {
 })
 
 // —— iframe 通信 ——
-const postToPreview = (type: string, blockKey?: string) => {
+// iframe 未加载完成时消息先入队，load 后自动补发，避免丢消息
+const pendingPreviewMsgs: Array<{ type: string; blockKey?: string }> = []
+const sendToPreview = (type: string, blockKey?: string) => {
   const frame = previewFrame.value?.contentWindow
   if (!frame) return
+  if (iframeLoading.value) {
+    pendingPreviewMsgs.push({ type, blockKey })
+    return
+  }
   frame.postMessage({ source: 'apehub-admin', type, blockKey }, window.location.origin)
 }
+const flushPendingPreview = () => {
+  if (iframeLoading.value) return
+  let msg: { type: string; blockKey?: string } | undefined
+  while ((msg = pendingPreviewMsgs.shift())) {
+    previewFrame.value?.contentWindow?.postMessage(
+      { source: 'apehub-admin', type: msg.type, blockKey: msg.blockKey },
+      window.location.origin
+    )
+  }
+}
 
-const highlightBlock = (blockKey: string) => postToPreview('ape-highlight', blockKey)
-const clearHighlight = () => postToPreview('ape-highlight-clear')
-const refreshPreview = () => postToPreview('ape-refresh')
+const highlightBlock = (blockKey: string) => sendToPreview('ape-highlight', blockKey)
+const clearHighlight = () => sendToPreview('ape-highlight-clear')
+const refreshPreview = () => sendToPreview('ape-refresh')
 
 const openPreview = () => { window.open(previewUrl, '_blank') }
 
@@ -311,7 +328,8 @@ const toggleEnabled = async (row: any, val: boolean) => {
     ElMessage.success(val ? '已启用' : '已禁用')
     refreshPreview()
   } catch {
-    // 失败不翻转
+    row.enabled = !val
+    ElMessage.error(val ? '启用失败' : '禁用失败')
   } finally {
     row._toggling = false
   }
@@ -326,6 +344,17 @@ const openEdit = (row: any) => {
 }
 const goEdit = () => { editingBlock.value = null }
 
+// 打开编辑时高亮定位对应区块；返回列表时重新绑定拖拽
+watch(editingBlock, async (val) => {
+  await nextTick()
+  if (val?.id && val.block_key) {
+    highlightBlock(val.block_key)
+  } else if (!val) {
+    clearHighlight()
+    initSortable()
+  }
+})
+
 // 保存
 const handleSave = async () => {
   if (!editingBlock.value.block_key?.trim()) {
@@ -337,6 +366,9 @@ const handleSave = async () => {
     if (editingBlock.value.id) {
       await updateAdminContent(editingBlock.value.id, editingBlock.value)
     } else {
+      // 新建时默认排到末尾：sort = 当前最大 sort + 10
+      const maxSort = contentList.value.reduce((m, c) => Math.max(m, c.sort ?? 0), 0)
+      editingBlock.value.sort = maxSort + 10
       await createAdminContent(editingBlock.value)
     }
     ElMessage.success('保存成功')
@@ -346,13 +378,19 @@ const handleSave = async () => {
   } finally { saving.value = false }
 }
 
+
+
 // 删除
 const handleDelete = async (row: any) => {
-  await ElMessageBox.confirm(`确认删除内容块「${row.title || row.block_key}」？`, '删除确认', {
-    type: 'warning',
-    confirmButtonText: '删除',
-    cancelButtonText: '取消',
-  })
+  try {
+    await ElMessageBox.confirm(`确认删除内容块「${row.title || row.block_key}」？`, '删除确认', {
+      type: 'warning',
+      confirmButtonText: '删除',
+      cancelButtonText: '取消',
+    })
+  } catch {
+    return // 用户取消
+  }
   deleting.value = true
   try {
     await deleteAdminContent(row.id)
@@ -370,7 +408,10 @@ onMounted(() => {
   nextTick(() => {
     const frame = previewFrame.value
     if (frame) {
-      frame.addEventListener('load', () => { iframeLoading.value = false })
+      frame.addEventListener('load', () => {
+        iframeLoading.value = false
+        flushPendingPreview()
+      })
     }
   })
 })
