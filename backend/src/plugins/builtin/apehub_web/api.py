@@ -2057,10 +2057,10 @@ async def admin_update_plugin(
         for demo in demos_data:
             db.add(ApehubWebPluginDemo(
                 plugin_id=plugin_id,
-                demo_type=demo.demo_type,
-                title=demo.title,
-                url=demo.url,
-                qr_image=demo.qr_image,
+                demo_type=demo["demo_type"],
+                title=demo.get("title", ""),
+                url=demo.get("url", ""),
+                qr_image=demo.get("qr_image", ""),
             ))
     await db.commit()
     return success_response(msg="插件信息已更新")
