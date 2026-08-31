@@ -279,6 +279,9 @@ const initSortable = () => {
         contentList.value = arr.map((row, idx) => ({ ...row, sort: (idx + 1) * 10 }))
         ElMessage.success(`已更新排序，共 ${items.length} 个区块`)
         refreshPreview()
+        // Vue 重渲染替换了 DOM，需等渲染完成后重新绑定 Sortable，否则后续拖拽失效
+        await nextTick()
+        initSortable()
       } catch {
         ElMessage.error('排序保存失败')
         loadList()
