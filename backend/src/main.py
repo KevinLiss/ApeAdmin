@@ -116,14 +116,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 async def _restore_mcp_tools_from_db() -> None:
     """Restore MCP tool registrations persisted in ``sys_mcp_tool`` table.
 
-    For each enabled entry, dynamically import ``handler_module`` and call
-    its ``handler_attr`` (a callable) to re-register the tool(s) into the
-    in-memory McpManager.
+    Each row stores the tool's handler *function* (``handler_module`` +
+    ``handler_attr``) plus its metadata. Restore re-imports the function and
+    re-registers it via ``mcp_manager.register_tool`` — the handler is NOT
+    called here (calling it would either create a dangling coroutine for
+    async tools or raise TypeError for tools with required arguments).
 
-    Runs **after** plugin registration, so a tool already registered by its
-    owning plugin (via register_mcp_tools hook) is skipped — the DB row is
-    mainly a fallback for tools whose owner plugin failed to load, and a
-    record of what *was* enabled.
+    Tools already registered in memory (e.g. by their owning plugin's
+    ``register_mcp_tools`` hook, which runs earlier) are skipped, so DB rows
+    only act as a fallback for tools whose owner plugin failed to load.
     """
     try:
         from sqlalchemy import select
@@ -141,32 +142,35 @@ async def _restore_mcp_tools_from_db() -> None:
 
         import importlib
 
-        # Group rows by (handler_module, handler_attr) so registration
-        # callables (which register several tools each) run only once.
-        entrypoints: dict[tuple[str, str], list[str]] = {}
+        restored = 0
+        skipped = 0
         for row in rows:
             if not row.handler_module or not row.handler_attr:
                 continue
-            entrypoints.setdefault((row.handler_module, row.handler_attr), []).append(row.name)
-
-        restored = 0
-        for (module_path, attr), names in entrypoints.items():
+            if mcp_manager.get_tool(row.name) is not None:
+                skipped += 1  # already registered by its owning plugin
+                continue
             try:
-                mod = importlib.import_module(module_path)
-                fn = getattr(mod, attr, None)
+                mod = importlib.import_module(row.handler_module)
+                fn = getattr(mod, row.handler_attr, None)
                 if fn is None:
-                    logger.warning(f"MCP restore: {module_path}.{attr} not found")
+                    logger.warning(f"MCP restore: {row.handler_module}.{row.handler_attr} not found")
                     continue
-                before = set(mcp_manager._tools)
-                fn()
-                registered = set(mcp_manager._tools) - before
-                restored += len(registered)
-                logger.info(f"MCP restore: {module_path}.{attr} re-registered {sorted(registered)}")
+                mcp_manager.register_tool(
+                    name=row.name,
+                    description=row.description,
+                    handler=fn,
+                    required_permissions=row.required_permissions or [],
+                    plugin_name=row.plugin_name,
+                    category=row.category,
+                    persist=False,  # avoid re-writing the same row during restore
+                )
+                restored += 1
             except Exception as exc:
-                logger.error(f"MCP restore failed for {names}: {exc}")
+                logger.error(f"MCP restore failed for '{row.name}': {exc}")
 
-        if restored:
-            logger.info(f"Restored {restored} MCP tool registration(s) from DB")
+        if restored or skipped:
+            logger.info(f"MCP restore done: {restored} restored from DB, {skipped} already in memory")
     except Exception as exc:
         logger.warning(f"Could not restore MCP tools from DB (table may not exist yet): {exc}")
 
