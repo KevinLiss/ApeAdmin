@@ -20,29 +20,29 @@
         <button class="active" id="tabLogin">登录</button>
         <button id="tabRegister">注册</button>
       </div>
-      <form id="authForm">
+      <form id="authForm" novalidate>
         <div class="field" id="nameField">
           <label>用户名</label>
-          <input type="text" id="usernameInput" placeholder="输入你的用户名" required minlength="3" maxlength="50" />
+          <input type="text" id="usernameInput" placeholder="3-50 个字符，字母/数字/下划线" required minlength="3" maxlength="50" autocomplete="username" />
         </div>
         <div class="field" id="emailField" style="display:none;">
           <label>邮箱</label>
-          <input type="email" id="emailInput" placeholder="you@example.com" maxlength="100" />
+          <input type="email" id="emailInput" placeholder="you@example.com" maxlength="100" autocomplete="email" />
         </div>
         <div class="field" id="codeField" style="display:none;">
           <label>邮箱验证码</label>
           <div class="field-group">
-            <input type="text" placeholder="输入 6 位验证码" maxlength="6" id="codeInput" inputmode="numeric" />
+            <input type="text" placeholder="输入 6 位数字验证码" maxlength="6" id="codeInput" inputmode="numeric" autocomplete="one-time-code" />
             <button type="button" class="send-code-btn" id="sendCodeBtn">发送验证码</button>
           </div>
         </div>
         <div class="field">
           <label>密码</label>
-          <input type="password" id="passwordInput" placeholder="至少 8 位密码" required minlength="8" maxlength="100" />
+          <input type="password" id="passwordInput" placeholder="至少 8 位密码" required minlength="8" maxlength="100" autocomplete="new-password" />
         </div>
         <button type="submit" class="submit-btn" id="submitBtn">登录</button>
       </form>
-      <p class="modal-sub" id="authMessage" role="status" style="min-height:20px;margin-top:12px;"></p>
+      <p class="auth-message" id="authMessage" role="status" aria-live="polite"></p>
       <div class="alt-text" id="altText">还没有账号？<a id="switchLink">立即注册</a></div>
     </div>
   </div>`;
@@ -98,12 +98,18 @@
   }
   #authModal .field input::placeholder { color: var(--text-3); }
   #authModal .field input:focus { outline: none; border-color: var(--primary); background: rgba(109,92,255,.06); }
+  #authModal .field.error input { border-color: #ef4444; background: rgba(239,68,68,.06); }
+  #authModal .auth-message { margin-top: 12px; min-height: 20px; font-size: 13px; line-height: 1.5; text-align: center; }
+  #authModal .auth-message.error { color: #ef4444; }
+  #authModal .auth-message.success { color: #22c55e; }
   #authModal .field-group { display: flex; gap: 10px; }
   #authModal .field-group input { flex: 1; }
   #authModal .send-code-btn {
-    flex-shrink: 0; padding: 0 14px; border-radius: 12px; border: 1px solid var(--panel-border, var(--border-2));
+    flex-shrink: 0; padding: 0 14px; min-width: 96px; border-radius: 12px; border: 1px solid var(--panel-border, var(--border-2));
     background: rgba(109,92,255,.1); color: var(--primary); font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
+    white-space: nowrap; transition: all .2s;
   }
+  #authModal .send-code-btn:hover:not(:disabled) { background: rgba(109,92,255,.18); border-color: rgba(109,92,255,.5); }
   #authModal .send-code-btn:disabled { opacity: .6; cursor: not-allowed; }
   #authModal .submit-btn {
     width: 100%; padding: 13px; border: none; border-radius: 12px;
@@ -156,8 +162,41 @@
   let mode = 'login';
 
   function showMessage(message, isError = false) {
-    authMessage.textContent = message;
-    authMessage.style.color = isError ? '#ef4444' : '#22c55e';
+    authMessage.textContent = message || '';
+    authMessage.classList.toggle('error', !!message && isError);
+    authMessage.classList.toggle('success', !!message && !isError);
+  }
+
+  /** 从后端响应中提取可读错误文案（兼容 code/msg 信封与 FastAPI 422 detail 数组） */
+  function extractApiError(payload) {
+    if (!payload || typeof payload !== 'object') return '';
+    if (typeof payload.msg === 'string' && payload.msg) return payload.msg;
+    const detail = payload.detail;
+    if (typeof detail === 'string' && detail) return detail;
+    if (Array.isArray(detail) && detail.length) {
+      const first = detail[0] || {};
+      const fieldMap = {
+        username: '用户名', password: '密码', email: '邮箱',
+        verification_code: '邮箱验证码', nickname: '昵称',
+      };
+      const loc = Array.isArray(first.loc) ? first.loc.filter(p => p !== 'body') : [];
+      const fieldName = fieldMap[loc[0]] || loc.join('.') || '表单';
+      const type = first.type || '';
+      const ctx = first.ctx || {};
+      if (type === 'string_pattern_mismatch') return `${fieldName}格式不正确`;
+      if (type === 'string_too_short') return `${fieldName}长度不足（至少 ${ctx.min_length ?? '?'} 个字符）`;
+      if (type === 'string_too_long') return `${fieldName}超出长度限制（最多 ${ctx.max_length ?? '?'} 个字符）`;
+      if (type === 'missing') return `请填写${fieldName}`;
+      if (type === 'value_error' || type === 'value_error.email') return `${fieldName}格式不正确`;
+      if (type === 'email_not_valid' || type === 'value_error.email') return '邮箱格式不正确';
+      return first.msg ? `${fieldName}${first.msg.replace(/^Value error,\s*/, '')}` : `${fieldName}填写有误，请检查后重试`;
+    }
+    return '';
+  }
+
+  function fieldError(el, hasError) {
+    const field = el?.closest('.field');
+    if (field) field.classList.toggle('error', hasError);
   }
 
   async function apiRequest(path, options = {}) {
@@ -167,7 +206,10 @@
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok || payload.code !== 200) {
-      throw new Error(payload.msg || payload.detail || '请求失败，请稍后重试');
+      const message = extractApiError(payload) || `请求失败（${response.status}），请稍后重试`;
+      const err = new Error(message);
+      err.status = response.status;
+      throw err;
     }
     return payload.data;
   }
