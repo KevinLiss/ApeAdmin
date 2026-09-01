@@ -167,6 +167,10 @@ function renderWorkbench() {
       ${carouselMedia.length ? `<div class="carousel-thumbs">${carouselMedia.map(m => `<div class="thumb"><img src="${esc(m.url)}" alt="${esc(m.alt_text)}"><button class="thumb-del" data-media="${m.id}" title="删除">×</button></div>`).join('')}</div>` : ''}
     </div>
     <div class="block">
+      <div class="section-head"><h3>Demo 管理</h3><button class="btn btn-small" id="addDemoBtn">添加 Demo</button></div>
+      <div id="demoList">${renderDemoList(plugin)}</div>
+    </div>
+    <div class="block">
       <div class="section-head"><h3>版本管理</h3><button class="btn btn-small" id="newVersionBtn">新建版本</button></div>
       <div class="version-layout">
         <div class="version-tree">${(plugin.versions || []).map(version => `<button data-version="${version.id}" class="${state.selectedVersion?.id === version.id ? 'active' : ''}"><strong>${esc(version.version)}</strong><br><span class="status ${esc(version.status)}">${statusText(version.status)}</span></button>`).join('') || '<div class="empty">暂无版本</div>'}</div>
@@ -176,6 +180,13 @@ function renderWorkbench() {
   $('#savePluginInfo').addEventListener('click', savePluginInfo);
   $('#logoFile').addEventListener('change', event => uploadMedia(event.target.files[0], 'logo'));
   $('#carouselFile').addEventListener('change', event => uploadCarousel(event.target.files));
+  $('#addDemoBtn').addEventListener('click', () => {
+    if (!state.selectedPlugin.demos) state.selectedPlugin.demos = [];
+    state.selectedPlugin.demos.push({ demo_type: 'h5', title: '', url: '', qr_image: '' });
+    $('#demoList').innerHTML = renderDemoList(state.selectedPlugin);
+    bindDemoEvents();
+  });
+  bindDemoEvents();
   $('#newVersionBtn').addEventListener('click', () => $('#versionDialog').showModal());
   $$('[data-version]').forEach(button => button.addEventListener('click', () => {
     state.selectedVersion = plugin.versions.find(item => item.id === Number(button.dataset.version));
@@ -199,12 +210,121 @@ async function savePluginInfo() {
     tags: $('#editTags').value.trim(),
     price: Number($('#editPrice').value),
     version: plugin.version,
+    demos: (plugin.demos || []).map(d => ({ demo_type: d.demo_type, title: d.title || '', url: d.url || '', qr_image: d.qr_image || '' })),
   };
   if (!payload.display_name) { toast('插件标题不能为空', true); return; }
   if (!payload.name) { toast('插件标识不能为空', true); return; }
   try {
     await api(`/apehub-web/developer/plugins/${plugin.id}`, { method: 'PUT', body: JSON.stringify(payload) });
     toast('基本信息已保存'); await selectPlugin(plugin.id); await refreshPlugins();
+  } catch (error) { toast(error.message, true); }
+}
+
+/* ========== Demo Management ========== */
+const DEMO_TYPES = [
+  { value: 'h5', label: 'H5 演示', hasQr: true },
+  { value: 'miniprogram', label: '小程序', hasQr: true },
+  { value: 'admin', label: '管理后台', hasQr: false },
+  { value: 'pc', label: 'PC 端', hasQr: false },
+  { value: 'api', label: 'API 文档', hasQr: false },
+  { value: 'mcp', label: 'MCP 工具', hasQr: false },
+];
+
+function renderDemoList(plugin) {
+  const demos = plugin.demos || [];
+  if (!demos.length) return '<div class="empty">暂无 Demo，点击「添加 Demo」创建</div>';
+  return demos.map((demo, i) => {
+    const dt = DEMO_TYPES.find(t => t.value === demo.demo_type) || DEMO_TYPES[0];
+    const qrPart = dt.hasQr ? `
+      <div class="demo-qr">
+        ${demo.qr_image ? `<img src="${esc(demo.qr_image)}" class="qr-preview" alt="qr">` : '<span class="qr-placeholder">无二维码</span>'}
+        <label class="btn btn-small">上传二维码<input class="demoQrFile" data-idx="${i}" type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden></label>
+        ${demo.qr_image ? `<button class="btn btn-small demoQrDel" data-idx="${i}">移除</button>` : ''}
+      </div>` : '';
+    const urlPart = dt.hasQr
+      ? `<input class="demoUrl" data-idx="${i}" value="${esc(demo.url || '')}" placeholder="演示链接（选填）">`
+      : `<input class="demoUrl" data-idx="${i}" value="${esc(demo.url || '')}" placeholder="演示链接（必填）">`;
+    return `<div class="demo-card">
+      <div class="demo-card-head">
+        <select class="demoType" data-idx="${i}">${DEMO_TYPES.map(t => `<option value="${t.value}" ${t.value === demo.demo_type ? 'selected' : ''}>${t.label}</option>`).join('')}</select>
+        <input class="demoTitle" data-idx="${i}" value="${esc(demo.title || '')}" placeholder="Demo 标题">
+        <button class="btn btn-small demoDel" data-idx="${i}">删除</button>
+      </div>
+      <div class="demo-card-body">${urlPart}${qrPart}</div>
+    </div>`;
+  }).join('');
+}
+
+function bindDemoEvents() {
+  const plugin = state.selectedPlugin;
+  if (!plugin) return;
+  $$('.demoDel').forEach(btn => btn.addEventListener('click', () => {
+    const idx = Number(btn.dataset.idx);
+    if (!plugin.demos) return;
+    plugin.demos.splice(idx, 1);
+    $('#demoList').innerHTML = renderDemoList(plugin);
+    bindDemoEvents();
+    saveDemos();
+  }));
+  $$('.demoType').forEach(sel => sel.addEventListener('change', () => {
+    const idx = Number(sel.dataset.idx);
+    if (!plugin.demos) return;
+    plugin.demos[idx].demo_type = sel.value;
+    if (!['h5', 'miniprogram'].includes(sel.value)) plugin.demos[idx].qr_image = '';
+    $('#demoList').innerHTML = renderDemoList(plugin);
+    bindDemoEvents();
+    saveDemos();
+  }));
+  $$('.demoTitle').forEach(inp => inp.addEventListener('input', () => {
+    const idx = Number(inp.dataset.idx);
+    if (!plugin.demos) return;
+    plugin.demos[idx].title = inp.value;
+  }));
+  $$('.demoUrl').forEach(inp => inp.addEventListener('input', () => {
+    const idx = Number(inp.dataset.idx);
+    if (!plugin.demos) return;
+    plugin.demos[idx].url = inp.value;
+  }));
+  $$('.demoQrFile').forEach(inp => inp.addEventListener('change', async () => {
+    const idx = Number(inp.dataset.idx);
+    if (!plugin.demos || !inp.files[0]) return;
+    const form = new FormData(); form.append('file', inp.files[0]);
+    try {
+      const res = await api(`/apehub-web/developer/plugins/${plugin.id}/demo/qr`, { method: 'POST', body: form });
+      plugin.demos[idx].qr_image = res.url;
+      $('#demoList').innerHTML = renderDemoList(plugin);
+      bindDemoEvents();
+      saveDemos();
+      toast('二维码上传成功');
+    } catch (error) { toast(error.message, true); }
+  }));
+  $$('.demoQrDel').forEach(btn => btn.addEventListener('click', async () => {
+    const idx = Number(btn.dataset.idx);
+    if (!plugin.demos) return;
+    const oldUrl = plugin.demos[idx].qr_image;
+    plugin.demos[idx].qr_image = '';
+    $('#demoList').innerHTML = renderDemoList(plugin);
+    bindDemoEvents();
+    saveDemos();
+    if (oldUrl) {
+      try { await api(`/apehub-web/developer/plugins/${plugin.id}/demo/qr?url=${encodeURIComponent(oldUrl)}`, { method: 'DELETE' }); } catch {}
+    }
+  }));
+}
+
+async function saveDemos() {
+  const plugin = state.selectedPlugin;
+  if (!plugin) return;
+  try {
+    await api(`/apehub-web/developer/plugins/${plugin.id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        name: plugin.name, display_name: plugin.display_name, description: plugin.description || '',
+        category: plugin.category, tags: plugin.tags || '', price: Number(plugin.price || 0),
+        version: plugin.version,
+        demos: (plugin.demos || []).map(d => ({ demo_type: d.demo_type, title: d.title || '', url: d.url || '', qr_image: d.qr_image || '' })),
+      }),
+    });
   } catch (error) { toast(error.message, true); }
 }
 

@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: 'd0eefd64-a83a-4e66-a173-607c9c4fbc9f'
-  PropagateID: 'd0eefd64-a83a-4e66-a173-607c9c4fbc9f'
-  ReservedCode1: '14220988-f25b-4387-81c8-32ee995fd5fb'
-  ReservedCode2: '14220988-f25b-4387-81c8-32ee995fd5fb'
+  ProduceID: '610ad8a2-e7d3-4398-b7fa-4ec442d23e0e'
+  PropagateID: '610ad8a2-e7d3-4398-b7fa-4ec442d23e0e'
+  ReservedCode1: '5cbcb7ff-0c52-4a9b-b478-31aa5f8657c9'
+  ReservedCode2: '5cbcb7ff-0c52-4a9b-b478-31aa5f8657c9'
 ---
 
 <div align="center">
@@ -357,6 +357,31 @@ class MyPlugin(PluginInterface):
 | 智谱 GLM | glm-4-flash | `https://open.bigmodel.cn/api/paas/v4` |
 | OpenAI | gpt-4o-mini | `https://api.openai.com/v1` |
 | 自定义 | — | 任意 OpenAI 兼容端点 |
+
+## 系统截图
+
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <img src="assets/screenshots/login.png" alt="登录页" /><br/>
+      <sub><b>登录页</b></sub>
+    </td>
+    <td width="50%" align="center">
+      <img src="assets/screenshots/dashboard.png" alt="监控仪表盘" /><br/>
+      <sub><b>监控仪表盘</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <img src="assets/screenshots/plugins.png" alt="插件市场" /><br/>
+      <sub><b>插件市场</b></sub>
+    </td>
+    <td width="50%" align="center">
+      <img src="assets/screenshots/system.png" alt="系统管理" /><br/>
+      <sub><b>系统管理</b></sub>
+    </td>
+  </tr>
+</table>
 
 ## 贡献指南
 

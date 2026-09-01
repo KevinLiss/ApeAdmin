@@ -1315,10 +1315,11 @@ async def update_my_plugin(
             v = services.gen_slug(v)
             plugin.slug = v
         setattr(plugin, k, v)
-    # Replace demos as a single transaction.
-    await db.execute(sa_delete(ApehubWebPluginDemo).where(ApehubWebPluginDemo.plugin_id == plugin_id))
-    for demo in body.demos or []:
-        db.add(ApehubWebPluginDemo(plugin_id=plugin_id, demo_type=demo.demo_type, title=demo.title, url=demo.url, qr_image=demo.qr_image))
+    # Replace demos only when the caller explicitly sends the field.
+    if "demos" in payload:
+        await db.execute(sa_delete(ApehubWebPluginDemo).where(ApehubWebPluginDemo.plugin_id == plugin_id))
+        for demo in body.demos or []:
+            db.add(ApehubWebPluginDemo(plugin_id=plugin_id, demo_type=demo.demo_type, title=demo.title, url=demo.url, qr_image=demo.qr_image))
     await db.commit()
     return success_response(msg="插件基本信息已更新")
 
@@ -1430,6 +1431,46 @@ async def upload_plugin_media(
     await db.commit()
     await db.refresh(media)
     return success_response(data={"id": media.id, "url": url}, msg="图片上传成功")
+
+
+@router.post("/developer/plugins/{plugin_id}/demo/qr")
+async def upload_demo_qr(
+    plugin_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    file: Annotated[UploadFile, File(...)],
+):
+    """Developer upload QR code image for a plugin demo (H5 / miniprogram)."""
+    plugin = await _owned_plugin(db, plugin_id, user.id)
+    content = await file.read(MAX_SITE_IMAGE_SIZE + 1)
+    if not content or len(content) > MAX_SITE_IMAGE_SIZE:
+        raise ValidationException("二维码图片不能为空且不能超过 5MB")
+    extension = _image_extension(content)
+    if extension is None:
+        raise ValidationException("仅支持 PNG、JPEG、GIF 或 WebP 图片")
+    stored = f"plugin-media/{plugin.id}/qr-{uuid.uuid4().hex}{extension}"
+    destination = _safe_upload_path(stored)
+    _ensure_dir(str(destination.parent))
+    destination.write_bytes(content)
+    url = f"/apehub-web/uploads/{stored}"
+    return success_response(data={"url": url}, msg="二维码上传成功")
+
+
+@router.delete("/developer/plugins/{plugin_id}/demo/qr")
+async def delete_demo_qr(
+    plugin_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    url: str = Query(..., max_length=255),
+):
+    """Developer delete an orphan QR image (not yet saved to a demo record)."""
+    plugin = await _owned_plugin(db, plugin_id, user.id)
+    if url.startswith("/apehub-web/uploads/"):
+        relative = url.removeprefix("/apehub-web/uploads/")
+        path = _safe_upload_path(relative)
+        if path.is_file():
+            path.unlink()
+    return success_response(msg="二维码已删除")
 
 
 @router.delete("/developer/plugins/{plugin_id}/media/{media_id}")
