@@ -67,6 +67,7 @@ class ApehubWebPlugin(PluginInterface):
             "apehub_web_site_content",
             "apehub_web_navigation_item",
             "apehub_web_profile",
+            "apehub_web_release",
             "apehub_web_schema_version",
         ]
         async with engine.begin() as conn:

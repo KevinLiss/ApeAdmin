@@ -73,6 +73,7 @@ from src.plugins.builtin.apehub_web.models import (
     ApehubWebPluginVersion,
     ApehubWebProfile,
     ApehubWebPurchaseEntitlement,
+    ApehubWebRelease,
     ApehubWebSiteConfig,
     ApehubWebSiteContent,
     ApehubWebWithdrawal,
@@ -97,6 +98,7 @@ from src.plugins.builtin.apehub_web.schemas import (
     PluginVersionCreateIn,
     PluginVersionUpdateIn,
     ProfileUpdateIn,
+    ReleaseUpdateIn,
     PurchaseIn,
     RefundIn,
     SiteConfigIn,
@@ -3608,3 +3610,202 @@ async def admin_orders(
             }
         )
     return success_response(data={"total": total, "page": page, "page_size": page_size, "items": items})
+
+
+# ---------------------------------------------------------------------------
+# Release (install/download) management
+# ---------------------------------------------------------------------------
+
+def _release_summary(release: ApehubWebRelease) -> dict[str, Any]:
+    return {
+        "id": release.id,
+        "version": release.version,
+        "title": release.title,
+        "description": release.description,
+        "changelog": release.changelog,
+        "file_name": release.file_name,
+        "file_size": release.file_size,
+        "file_md5": release.file_md5,
+        "is_latest": release.is_latest,
+        "enabled": release.enabled,
+        "download_count": release.download_count,
+        "created_at": release.created_at.isoformat() if release.created_at else None,
+        "updated_at": release.updated_at.isoformat() if release.updated_at else None,
+    }
+
+
+@router.get("/site/public/releases")
+async def public_releases(db: Annotated[AsyncSession, Depends(get_db)]):
+    """Public list of enabled ApeAdmin releases, newest first."""
+    result = await db.execute(
+        select(ApehubWebRelease).where(ApehubWebRelease.enabled == True).order_by(ApehubWebRelease.id.desc())  # noqa: E712
+    )
+    items = [_release_summary(r) for r in result.scalars().all()]
+    return success_response(data={"total": len(items), "items": items})
+
+
+@router.get("/site/public/releases/{release_id}/download")
+async def public_release_download(
+    release_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    """Public download of a release package (no auth required)."""
+    release = await db.get(ApehubWebRelease, release_id)
+    if release is None or not release.enabled:
+        raise NotFoundException("下载包不存在或已下线")
+    if not release.file_path:
+        raise NotFoundException("该版本尚未上传安装包")
+    stored = release.file_path
+    destination = _safe_upload_path(stored)
+    if not destination.is_file():
+        raise NotFoundException("安装包文件缺失，请联系管理员")
+    release.download_count += 1
+    await db.commit()
+    from fastapi.responses import FileResponse
+
+    return FileResponse(destination, filename=release.file_name or destination.name)
+
+
+@router.get("/admin/releases")
+async def admin_list_releases(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
+    """List all releases for the management console."""
+    await _require_permission(user, "apehub_web:releases:list")
+    result = await db.execute(select(ApehubWebRelease).order_by(ApehubWebRelease.id.desc()))
+    items = [_release_summary(r) for r in result.scalars().all()]
+    return success_response(data={"total": len(items), "items": items})
+
+
+@router.post("/admin/releases")
+async def admin_create_release(
+    body: ReleaseUpdateIn,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
+    """Create a release record (package file uploaded separately)."""
+    await _require_permission(user, "apehub_web:releases:edit")
+    if not body.version:
+        raise ValidationException("版本号不能为空")
+    duplicate = (
+        await db.execute(
+            select(ApehubWebRelease.id).where(ApehubWebRelease.version == body.version)
+        )
+    ).scalar_one_or_none()
+    if duplicate:
+        raise ConflictException("该版本号已存在")
+    release = ApehubWebRelease(
+        version=body.version,
+        title=body.title or body.version,
+        description=body.description or "",
+        changelog=body.changelog or "",
+        is_latest=bool(body.is_latest),
+        enabled=True,
+    )
+    db.add(release)
+    await db.flush()
+    if release.is_latest:
+        await db.execute(
+            update(ApehubWebRelease)
+            .where(ApehubWebRelease.id != release.id)
+            .values(is_latest=False)
+        )
+    await db.commit()
+    await db.refresh(release)
+    return success_response(data=_release_summary(release), msg="发布版本已创建")
+
+
+@router.put("/admin/releases/{release_id}")
+async def admin_update_release(
+    release_id: int,
+    body: ReleaseUpdateIn,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
+    """Update release metadata."""
+    await _require_permission(user, "apehub_web:releases:edit")
+    release = await db.get(ApehubWebRelease, release_id)
+    if release is None:
+        raise NotFoundException("发布版本不存在")
+    was_latest = release.is_latest
+    for key, value in body.model_dump(exclude_unset=True).items():
+        if key == "version" and (not value or value == release.version):
+            continue
+        if key == "version":
+            duplicate = (
+                await db.execute(
+                    select(ApehubWebRelease.id).where(
+                        ApehubWebRelease.version == value,
+                        ApehubWebRelease.id != release.id,
+                    )
+                )
+            ).scalar_one_or_none()
+            if duplicate:
+                raise ConflictException("该版本号已存在")
+        setattr(release, key, value)
+    if body.is_latest is True and not was_latest:
+        await db.execute(
+            update(ApehubWebRelease)
+            .where(ApehubWebRelease.id != release.id)
+            .values(is_latest=False)
+        )
+    await db.commit()
+    await db.refresh(release)
+    return success_response(data=_release_summary(release), msg="发布版本已更新")
+
+
+@router.delete("/admin/releases/{release_id}")
+async def admin_delete_release(
+    release_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
+    """Delete a release record and its package file."""
+    await _require_permission(user, "apehub_web:releases:edit")
+    release = await db.get(ApehubWebRelease, release_id)
+    if release is None:
+        raise NotFoundException("发布版本不存在")
+    if release.file_path:
+        path = _safe_upload_path(release.file_path)
+        if path.is_file():
+            path.unlink()
+    await db.delete(release)
+    await db.commit()
+    return success_response(msg="发布版本已删除")
+
+
+@router.post("/admin/releases/{release_id}/upload")
+async def admin_upload_release_package(
+    release_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    file: Annotated[UploadFile, File(...)],
+):
+    """Upload a release ZIP package (max 200MB)."""
+    await _require_permission(user, "apehub_web:releases:edit")
+    release = await db.get(ApehubWebRelease, release_id)
+    if release is None:
+        raise NotFoundException("发布版本不存在")
+    MAX_RELEASE_SIZE = 200 * 1024 * 1024
+    content = await file.read(MAX_RELEASE_SIZE + 1)
+    if not content or len(content) > MAX_RELEASE_SIZE:
+        raise ValidationException("安装包不能为空且不能超过 200MB")
+    if not content.startswith(b"PK\x03\x04") and not content.startswith(b"PK\x05\x06"):
+        raise ValidationException("仅支持 ZIP 安装包")
+    ext = ".zip"
+    stored = f"release-packages/{release.id}/{uuid.uuid4().hex}{ext}"
+    destination = _safe_upload_path(stored)
+    _ensure_dir(str(destination.parent))
+    destination.write_bytes(content)
+    if release.file_path:
+        old = _safe_upload_path(release.file_path)
+        if old.is_file():
+            old.unlink()
+    release.file_path = stored
+    release.file_name = file.filename or f"apeadmin-{release.version}.zip"
+    release.file_size = len(content)
+    release.file_md5 = hashlib.md5(content).hexdigest()
+    await db.commit()
+    await db.refresh(release)
+    return success_response(data=_release_summary(release), msg="安装包上传成功")

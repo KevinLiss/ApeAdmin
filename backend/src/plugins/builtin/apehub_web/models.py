@@ -13,6 +13,7 @@ Tables (all prefixed ``apehub_web_``, linking back to ApeAdmin's ``sys_user``):
 - apehub_web_order            purchase/payment orders
 - apehub_web_income           revenue share records (developer/platform split)
 - apehub_web_withdrawal       withdrawal requests
+- apehub_web_release          ApeAdmin base release packages (install/download)
 """
 
 import enum
@@ -565,3 +566,24 @@ class ApehubWebLedgerEntry(ApehubWebBase):
     __table_args__ = (
         UniqueConstraint("order_id", "entry_type", name="uq_apehub_web_ledger_order_type"),
     )
+
+
+class ApehubWebRelease(ApehubWebBase):
+    """ApeAdmin 底座版本发布包（安装下载页展示 + 下载）。"""
+
+    __tablename__ = "apehub_web_release"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    version: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+    title: Mapped[str] = mapped_column(String(128), default="")
+    description: Mapped[str] = mapped_column(Text, default="")
+    changelog: Mapped[str] = mapped_column(Text, default="")
+    file_name: Mapped[str] = mapped_column(String(255), default="")
+    file_size: Mapped[int] = mapped_column(Integer, default=0)
+    file_path: Mapped[str] = mapped_column(String(500), default="")   # 相对存储路径（不含 UPLOAD_ROOT）
+    file_md5: Mapped[str] = mapped_column(String(64), default="")
+    is_latest: Mapped[bool] = mapped_column(Boolean, default=False)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    download_count: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

@@ -147,7 +147,7 @@ async def seed_apehub_web_data() -> None:
                 ("首页", "/apehub-web/index.html", 1),
                 ("插件市场", "/apehub-web/plugins.html", 2),
                 ("技术文档", "/apehub-web/docs-portal/", 3),
-                ("个人中心", "/apehub-web/profile.html", 4),
+                ("安装下载", "/apehub-web/download.html", 4),
             ]:
                 db.add(ApehubWebNavigationItem(title=item[0], link=item[1], sort=item[2]))
             logger.info("apehub_web: navigation seeded")
@@ -243,9 +243,11 @@ async def _seed_admin_menus() -> None:
         ("技术文档管理", "C", "admin/tech-docs", "apehub_web/admin/TechDocs", "apehub_web:techdocs:list", "Files", 4),
         ("编辑技术文档", "F", None, None, "apehub_web:techdocs:edit", None, 1),
         ("插件管理", "C", "admin/plugins", "apehub_web/admin/Plugins", "apehub_web:plugins:review", "Box", 5),
-        ("订单管理", "C", "admin/orders", "apehub_web/admin/Orders", "apehub_web:orders:list", "ShoppingCart", 6),
-        ("提现审核", "C", "admin/withdrawals", "apehub_web/admin/Withdrawals", "apehub_web:withdrawals:review", "Money", 7),
-        ("用户管理", "C", "admin/users", "apehub_web/admin/Users", "apehub_web:users:list", "User", 8),
+        ("安装下载管理", "C", "admin/releases", "apehub_web/admin/Releases", "apehub_web:releases:list", "Download", 6),
+        ("编辑发布版本", "F", None, None, "apehub_web:releases:edit", None, 1),
+        ("订单管理", "C", "admin/orders", "apehub_web/admin/Orders", "apehub_web:orders:list", "ShoppingCart", 7),
+        ("提现审核", "C", "admin/withdrawals", "apehub_web/admin/Withdrawals", "apehub_web:withdrawals:review", "Money", 8),
+        ("用户管理", "C", "admin/users", "apehub_web/admin/Users", "apehub_web:users:list", "User", 9),
     ]
 
     async with SessionLocal() as db:

@@ -114,3 +114,14 @@ export const handleWithdrawal = (id: number, data: any) =>
 export const getAdminUsers = (params: any) => api.get('/apehub-web/admin/users', { params })
 export const getAdminOrders = (params: any) => api.get('/apehub-web/admin/orders', { params })
 export const getAdminIncomes = (params: any) => api.get('/apehub-web/admin/incomes', { params })
+
+// ---------- 安装下载版本管理（Release） ----------
+export const getPublicReleases = () => api.get('/apehub-web/site/public/releases')
+export const getReleaseDownloadUrl = (id: number) => `/api/v1/apehub-web/site/public/releases/${id}/download`
+
+export const getAdminReleases = () => api.get('/apehub-web/admin/releases')
+export const createAdminRelease = (data: any) => api.post('/apehub-web/admin/releases', data)
+export const updateAdminRelease = (id: number, data: any) => api.put(`/apehub-web/admin/releases/${id}`, data)
+export const deleteAdminRelease = (id: number) => api.delete(`/apehub-web/admin/releases/${id}`)
+export const uploadAdminReleasePackage = (id: number, formData: FormData) =>
+  api.post(`/apehub-web/admin/releases/${id}/upload`, formData, { headers: { 'Content-Type': 'multipart/form-data' } })

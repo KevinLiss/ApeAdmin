@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ApeAdmin · 安装下载</title>
+<meta name="description" content="ApeAdmin 安装下载 —— 下载最新版 ApeAdmin，快速搭建你的 AI 中后台。" />
+<link rel="icon" type="image/png" href="/apehub-web/assets/logo.png" />
+<style>
+  :root {
+    --bg: #07080f;
+    --bg-soft: #0c0e1a;
+    --panel: rgba(255,255,255,0.04);
+    --panel-2: rgba(255,255,255,0.06);
+    --border: rgba(255,255,255,0.08);
+    --border-2: rgba(255,255,255,0.14);
+    --primary: #6d5cff;
+    --primary-2: #9d6bff;
+    --accent: #22d3ee;
+    --text: #eef0ff;
+    --text-2: #a4a9c9;
+    --text-3: #6b7096;
+    --radius: 20px;
+    --maxw: 1200px;
+    --grad: linear-gradient(135deg, #6d5cff 0%, #9d6bff 50%, #d65ef0 100%);
+    --grad-2: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  }
+  :root[data-theme="light"] {
+    --bg: #f8fafc;
+    --bg-soft: #ffffff;
+    --panel: rgba(0,0,0,0.025);
+    --panel-2: rgba(0,0,0,0.04);
+    --border: rgba(0,0,0,0.08);
+    --border-2: rgba(0,0,0,0.14);
+    --primary: #6d5cff;
+    --primary-2: #7c3aed;
+    --accent: #0891b2;
+    --text: #1e293b;
+    --text-2: #475569;
+    --text-3: #94a3b8;
+    --grad: linear-gradient(135deg, #6d5cff 0%, #9d6bff 50%, #d65ef0 100%);
+    --grad-2: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  }
+  :root[data-theme="light"] .bg-glow {
+    background: radial-gradient(700px 500px at 15% -5%, rgba(109,92,255,.10), transparent 60%),
+                radial-gradient(600px 400px at 85% 5%, rgba(214,94,240,.06), transparent 60%);
+  }
+  :root[data-theme="light"] .bg-grid {
+    background-image: linear-gradient(rgba(0,0,0,.035) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(0,0,0,.035) 1px, transparent 1px);
+  }
+  :root[data-theme="light"] nav { background: rgba(255,255,255,.85); }
+  :root[data-theme="light"] .menu-toggle { color: var(--text); }
+  :root[data-theme="light"] ::-webkit-scrollbar-thumb { background: #cbd5e1; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.6; overflow-x: hidden;
+  }
+  a { color: inherit; text-decoration: none; }
+  ::selection { background: rgba(109,92,255,.4); }
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-thumb { background: #2a2d45; border-radius: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  .bg-glow {
+    position: fixed; inset: 0; z-index: -2; pointer-events: none;
+    background:
+      radial-gradient(700px 500px at 15% -5%, rgba(109,92,255,.16), transparent 60%),
+      radial-gradient(600px 400px at 85% 5%, rgba(214,94,240,.10), transparent 60%);
+  }
+  .bg-grid {
+    position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 80% 50% at 50% 0%, #000 30%, transparent 80%);
+  }
+  .container { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+  /* 导航 */
+  nav { position: sticky; top: 0; z-index: 100; backdrop-filter: blur(14px); background: rgba(7,8,15,.8); border-bottom: 1px solid var(--border); }
+  .nav-inner { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 68px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+  .brand img { width: 30px; height: 30px; border-radius: 8px; }
+  .brand .badge { font-size: 10px; font-weight: 600; color: var(--accent); border: 1px solid rgba(34,211,238,.4); background: rgba(34,211,238,.1); padding: 2px 8px; border-radius: 999px; margin-left: 4px; }
+  .nav-links { display: flex; gap: 26px; align-items: center; }
+  .nav-links a { color: var(--text-2); font-size: 14.5px; transition: color .2s; }
+  .nav-links a:hover, .nav-links a.active { color: var(--text); }
+  .nav-actions { display: flex; gap: 12px; align-items: center; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 600; border-radius: 12px; padding: 10px 18px; border: 1px solid transparent; transition: all .22s; font-family: inherit; }
+  .btn-ghost { color: var(--text-2); background: transparent; border-color: var(--border); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--border-2); }
+  .btn-primary { color: #fff; background: var(--grad-2); box-shadow: 0 8px 24px -8px rgba(109,92,255,.7); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 32px -8px rgba(109,92,255,.9); }
+  .btn-sm { padding: 8px 16px; font-size: 13px; border-radius: 10px; }
+  .theme-toggle { font-size: 16px; padding: 8px 12px; line-height: 1; }
+  .menu-toggle { display: none; background: none; border: none; color: var(--text); font-size: 22px; cursor: pointer; }
+
+  /* 页面头部 */
+  .page-head { padding: 80px 0 40px; text-align: center; }
+  .page-head h1 { font-size: clamp(32px, 5vw, 48px); font-weight: 800; letter-spacing: -.5px; margin-bottom: 16px; }
+  .page-head h1 .grad { background: var(--grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .page-head .sub { color: var(--text-2); font-size: 16px; max-width: 620px; margin: 0 auto; }
+
+  /* 最新版本卡片 */
+  .latest-card {
+    max-width: 760px; margin: 0 auto 56px; padding: 34px;
+    border-radius: 24px; text-align: center; position: relative; overflow: hidden;
+    background: var(--grad-2); color: #fff;
+    box-shadow: 0 24px 60px -20px rgba(109,92,255,.6);
+  }
+  .latest-card::before {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(400px 200px at 20% 0%, rgba(255,255,255,.18), transparent 60%);
+  }
+  .latest-card .lc-tag { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: 2px; background: rgba(255,255,255,.2); padding: 4px 14px; border-radius: 999px; margin-bottom: 14px; }
+  .latest-card .lc-version { font-size: 44px; font-weight: 800; line-height: 1.1; margin-bottom: 8px; }
+  .latest-card .lc-title { font-size: 16px; opacity: .9; margin-bottom: 4px; }
+  .latest-card .lc-desc { font-size: 14px; opacity: .75; margin-bottom: 22px; }
+  .latest-card .lc-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .latest-card .lc-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 13px 28px; border-radius: 14px; font-size: 15px; font-weight: 700;
+    background: #fff; color: #4f46e5; cursor: pointer; transition: all .22s;
+  }
+  .latest-card .lc-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px -8px rgba(0,0,0,.35); }
+  .latest-card .lc-btn.ghost { background: rgba(255,255,255,.15); color: #fff; }
+
+  /* 版本列表 */
+  .sec-head { text-align: center; margin-bottom: 36px; }
+  .sec-head h2 { font-size: 26px; font-weight: 800; }
+  .sec-head p { color: var(--text-2); font-size: 14px; margin-top: 6px; }
+  .releases-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 72px; }
+  .release-item {
+    display: flex; align-items: center; gap: 20px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
+    padding: 22px 26px; transition: all .25s;
+  }
+  .release-item:hover { border-color: rgba(109,92,255,.4); background: rgba(109,92,255,.04); }
+  .release-item .r-ver { flex-shrink: 0; }
+  .release-item .r-ver .ver-badge {
+    display: inline-block; font-size: 15px; font-weight: 700; color: #fff;
+    background: var(--grad-2); padding: 6px 14px; border-radius: 10px;
+  }
+  .release-item .r-ver .ver-badge.old { background: rgba(148,163,184,.25); color: var(--text-2); }
+  .release-item .r-body { flex: 1; min-width: 0; }
+  .release-item .r-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .release-item .r-title .r-latest-tag { font-size: 11px; color: #fff; background: linear-gradient(90deg,#f59e0b,#ef4444); padding: 2px 8px; border-radius: 999px; margin-left: 8px; vertical-align: 2px; }
+  .release-item .r-changelog { color: var(--text-2); font-size: 13px; white-space: pre-line; }
+  .release-item .r-meta { display: flex; gap: 14px; margin-top: 8px; font-size: 12px; color: var(--text-3); }
+  .release-item .r-actions { flex-shrink: 0; }
+  .dl-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 22px; border-radius: 12px; font-size: 14px; font-weight: 600;
+    background: var(--grad-2); color: #fff; cursor: pointer; border: none; font-family: inherit;
+    box-shadow: 0 6px 16px -6px rgba(109,92,255,.5); transition: all .22s;
+  }
+  .dl-btn:hover { transform: translateY(-2px); }
+  .dl-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+  .dl-btn.ghost { background: transparent; border: 1px solid var(--border-2); color: var(--text-2); box-shadow: none; }
+
+  /* 安装说明 */
+  .install-guide { max-width: 760px; margin: 0 auto 72px; }
+  .guide-card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 30px 34px; margin-bottom: 18px;
+  }
+  .guide-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+  .guide-card h3 .step-num {
+    width: 26px; height: 26px; border-radius: 50%; background: var(--grad-2); color: #fff;
+    font-size: 14px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .guide-card code {
+    display: block; background: var(--bg-soft); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 16px; font-size: 13px; color: var(--accent);
+    font-family: "SF Mono", Menlo, Consolas, monospace; margin: 10px 0; overflow-x: auto;
+    white-space: pre;
+  }
+  .guide-card p { color: var(--text-2); font-size: 14px; }
+
+  /* 页脚 */
+  footer { border-top: 1px solid var(--border); padding: 40px 24px; }
+  .foot-inner { max-width: var(--maxw); margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+  .foot-inner .l { color: var(--text-3); font-size: 13px; }
+  .foot-inner .r { display: flex; gap: 18px; }
+  .foot-inner .r a { color: var(--text-3); font-size: 13px; transition: color .2s; }
+  .foot-inner .r a:hover { color: var(--text); }
+
+  /* 加载/错误 */
+  .loading-tip, .error-tip { text-align: center; padding: 60px 20px; color: var(--text-2); }
+
+  /* 响应式 */
+  @media (max-width: 900px) {
+    .nav-links { display: none; }
+    .menu-toggle { display: block; }
+    .release-item { flex-direction: column; align-items: flex-start; gap: 14px; }
+    .release-item .r-actions { width: 100%; }
+    .release-item .r-actions .dl-btn { width: 100%; justify-content: center; }
+  }
+  @media (max-width: 600px) {
+    .nav-actions .gh-link { display: none; }
+    .nav-actions .btn-primary { padding: 8px 14px; font-size: 13px; }
+    .page-head { padding: 40px 0 26px; }
+    .latest-card { padding: 26px 20px; }
+    .latest-card .lc-version { font-size: 34px; }
+  }
+</style>
+</head>
+<body>
+<div class="bg-glow"></div>
+<div class="bg-grid"></div>
+
+<!-- 导航 -->
+<nav>
+  <div class="nav-inner">
+    <a class="brand" href="/apehub-web/index.html">
+      <img src="/apehub-web/assets/logo.png" alt="ApeAdmin" />
+      <span>ApeAdmin <span class="badge">Download</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="/apehub-web/index.html">首页</a>
+      <a href="/apehub-web/plugins.html">插件市场</a>
+      <a href="/apehub-web/docs-portal/">技术文档</a>
+      <a class="active" href="/apehub-web/download.html">安装下载</a>
+    </div>
+    <div class="nav-actions">
+      <button class="btn btn-ghost theme-toggle" id="themeToggle" aria-label="切换主题" title="切换明暗主题">🌙</button>
+      <a class="btn btn-ghost gh-link" href="https://github.com/KevinLiss/ApeAdmin" target="_blank" rel="noopener">GitHub</a>
+      <a class="btn btn-primary" href="javascript:void(0)" id="navLoginBtn">登录 / 注册</a>
+      <a class="btn btn-primary" href="/apehub-web/profile.html" id="navProfileBtn" hidden>个人中心</a>
+    </div>
+    <button class="menu-toggle" id="menuToggle" aria-label="菜单">☰</button>
+  </div>
+</nav>
+
+<!-- 页面头部 -->
+<div class="page-head">
+  <div class="container">
+    <h1>安装<span class="grad">下载</span></h1>
+    <p class="sub">下载 ApeAdmin 安装包，快速搭建你的 AI 中后台。支持 ZIP 一键安装、热启用禁用插件，与底座完全解耦。</p>
+  </div>
+</div>
+
+<!-- 最新版本 -->
+<div class="container">
+  <div class="latest-card" id="latestCard" hidden>
+    <span class="lc-tag">最新版本</span>
+    <div class="lc-version" id="latestVersion">v1.7.0</div>
+    <div class="lc-title" id="latestTitle"></div>
+    <div class="lc-desc" id="latestDesc"></div>
+    <div class="lc-actions">
+      <a class="lc-btn" id="latestDownloadBtn" href="javascript:void(0)">立即下载</a>
+      <a class="lc-btn ghost" href="#releases">查看全部版本</a>
+    </div>
+  </div>
+
+  <!-- 版本列表 -->
+  <div class="section-head" id="releases">
+    <h2>全部版本</h2>
+    <p>包含历史版本与更新日志，可按需下载</p>
+  </div>
+  <div class="releases-list" id="releasesList">
+    <div class="loading-tip">正在加载版本列表...</div>
+  </div>
+
+  <!-- 安装说明 -->
+  <div class="section-head">
+    <h2>安装说明</h2>
+    <p>三步完成部署</p>
+  </div>
+  <div class="install-guide">
+    <div class="guide-card">
+      <h3><span class="step-num">1</span>下载安装包</h3>
+      <p>点击上方「立即下载」获取最新版 ZIP 安装包，也可在全部版本中选择历史版本。</p>
+    </div>
+    <div class="guide-card">
+      <h3><span class="step-num">2</span>上传到服务器</h3>
+      <p>将安装包上传至 ApeAdmin 服务器，然后在管理后台「系统管理 → 版本更新」中选择该 ZIP 包并一键更新。</p>
+      <code># 也可通过命令行部署
+pip install -r requirements.txt
+python -m uvicorn src.main:app --host 0.0.0.0 --port 80</code>
+    </div>
+    <div class="guide-card">
+      <h3><span class="step-num">3</span>完成部署</h3>
+      <p>服务启动后访问 <code style="display:inline;padding:2px 8px">http://你的域名/admin/</code>，默认账号 admin，首次登录后请及时修改密码。更多细节见<a href="/apehub-web/docs-portal/" style="color:var(--primary)">技术文档</a>。</p>
+    </div>
+  </div>
+</div>
+
+<!-- 页脚 -->
+<footer>
+  <div class="foot-inner">
+    <div class="l">© 2026 ApeAdmin · 安装下载 · MIT License</div>
+    <div class="r">
+      <a href="/apehub-web/index.html">首页</a>
+      <a href="/apehub-web/plugins.html">插件市场</a>
+      <a href="/apehub-web/docs-portal/">技术文档</a>
+      <a href="https://github.com/KevinLiss/ApeAdmin" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+</footer>
+
+<script src="/apehub-web/site-runtime.js?v=1.7.0"></script>
+<script src="/apehub-web/releases-app.js?v=1.0.0" defer></script>
+</body>
+</html>

@@ -378,3 +378,17 @@ class DocumentationOptimizeIn(BaseModel):
     """Developer submits a documentation draft for AI polishing."""
     documentation: str = Field(min_length=1, max_length=50000)
 
+
+# ---------------------------------------------------------------------------
+# Release (install/download) management
+# ---------------------------------------------------------------------------
+
+class ReleaseUpdateIn(BaseModel):
+    """Admin edits a release record (without uploading a new package)."""
+    version: str | None = Field(default=None, min_length=1, max_length=32)
+    title: str | None = Field(default=None, max_length=128)
+    description: str | None = None
+    changelog: str | None = None
+    is_latest: bool | None = None
+    enabled: bool | None = None
+
