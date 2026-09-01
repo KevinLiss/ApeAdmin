@@ -431,4 +431,3 @@ class MyPlugin(PluginInterface):
   <img src="assets/wechat-group-qr.png" alt="微信用户群二维码" width="220">
 </p>
 
-> AI生成
