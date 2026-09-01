@@ -2649,7 +2649,7 @@ async def create_order(
     submit_url = services.build_lepay_submit_url(
         payment_cfg,
         {
-            "type": "usdt",
+            "type": cfg.lempay_payment_type or "usdt",
             "name": _lempay_product_name(plugin.display_name),
             "money": format(payment_amount, ".2f"),
             "out_trade_no": order.order_no,

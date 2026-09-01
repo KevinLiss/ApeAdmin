@@ -36,7 +36,7 @@ class SiteConfigIn(BaseModel):
     lempay_submit_url: str | None = None
     lempay_notify_url: str | None = None
     lempay_return_url: str | None = None
-    lempay_payment_type: str | None = Field(default=None, pattern="^usdt$")
+    lempay_payment_type: str | None = Field(default=None, pattern="^(alipay|wxpay|usdt)$")
     deepseek_api_key: str | None = None
     deepseek_base_url: str | None = None
     deepseek_model: str | None = None

@@ -1,0 +1,8 @@
+{
+  "db_type": "sqlite",
+  "db_name": "apeadmin",
+  "admin_username": "admin",
+  "site_name": "ApeAdmin",
+  "admin_path": "/admin",
+  "completed_at": "2026-08-26T15:44:47"
+}
