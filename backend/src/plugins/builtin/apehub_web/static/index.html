@@ -405,6 +405,10 @@
   }
   .modal .field input::placeholder { color: var(--text-3); }
   .modal .field input:focus { outline: none; border-color: var(--primary); background: rgba(109,92,255,.06); }
+  .modal .field.error input { border-color: #ef4444; background: rgba(239,68,68,.06); }
+  .modal .auth-message { margin-top: 12px; min-height: 20px; font-size: 13px; line-height: 1.5; text-align: center; }
+  .modal .auth-message.error { color: #ef4444; }
+  .modal .auth-message.success { color: #22c55e; }
   .modal .submit-btn {
     width: 100%; padding: 13px; border: none; border-radius: 12px;
     font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit;
@@ -818,7 +822,7 @@ npm run dev   <span class="c-c"># http://localhost:5173</span>
       </div>
       <button type="submit" class="submit-btn" id="submitBtn">登录</button>
     </form>
-    <p class="modal-sub" id="authMessage" role="status" style="min-height:20px;margin-top:12px;"></p>
+    <p class="auth-message" id="authMessage" role="status" aria-live="polite"></p>
     <div class="alt-text" id="altText">还没有账号？<a id="switchLink">立即注册</a></div>
   </div>
 </div>
@@ -848,8 +852,40 @@ npm run dev   <span class="c-c"># http://localhost:5173</span>
   let mode = 'login';
 
   function showMessage(message, isError = false) {
-    authMessage.textContent = message;
-    authMessage.style.color = isError ? '#ef4444' : '#22c55e';
+    authMessage.textContent = message || '';
+    authMessage.classList.toggle('error', !!message && isError);
+    authMessage.classList.toggle('success', !!message && !isError);
+  }
+
+  /** 从后端响应中提取可读错误文案（兼容 code/msg 信封与 FastAPI 422 detail 数组） */
+  function extractApiError(payload) {
+    if (!payload || typeof payload !== 'object') return '';
+    if (typeof payload.msg === 'string' && payload.msg) return payload.msg;
+    const detail = payload.detail;
+    if (typeof detail === 'string' && detail) return detail;
+    if (Array.isArray(detail) && detail.length) {
+      const first = detail[0] || {};
+      const fieldMap = {
+        username: '用户名', password: '密码', email: '邮箱',
+        verification_code: '邮箱验证码', nickname: '昵称',
+      };
+      const loc = Array.isArray(first.loc) ? first.loc.filter(p => p !== 'body') : [];
+      const fieldName = fieldMap[loc[0]] || loc.join('.') || '表单';
+      const type = first.type || '';
+      const ctx = first.ctx || {};
+      if (type === 'string_pattern_mismatch') return `${fieldName}格式不正确`;
+      if (type === 'string_too_short') return `${fieldName}长度不足（至少 ${ctx.min_length ?? '?'} 个字符）`;
+      if (type === 'string_too_long') return `${fieldName}超出长度限制（最多 ${ctx.max_length ?? '?'} 个字符）`;
+      if (type === 'missing') return `请填写${fieldName}`;
+      if (type === 'value_error' || type === 'value_error.email') return `${fieldName}格式不正确`;
+      return first.msg ? `${fieldName}${first.msg.replace(/^Value error,\s*/, '')}` : `${fieldName}填写有误，请检查后重试`;
+    }
+    return '';
+  }
+
+  function fieldError(el, hasError) {
+    const field = el?.closest('.field');
+    if (field) field.classList.toggle('error', hasError);
   }
 
   async function apiRequest(path, options = {}) {
@@ -859,7 +895,10 @@ npm run dev   <span class="c-c"># http://localhost:5173</span>
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok || payload.code !== 200) {
-      throw new Error(payload.msg || payload.detail || '请求失败，请稍后重试');
+      const message = extractApiError(payload) || `请求失败（${response.status}），请稍后重试`;
+      const err = new Error(message);
+      err.status = response.status;
+      throw err;
     }
     return payload.data;
   }
@@ -968,13 +1007,41 @@ npm run dev   <span class="c-c"># http://localhost:5173</span>
   });
   document.getElementById('authForm').addEventListener('submit', async e => {
     e.preventDefault();
-    submitBtn.disabled = true;
-    try {
-      const username = usernameInput.value.trim();
-      const password = passwordInput.value;
-      if (mode === 'register' && codeSentEmail && emailInput.value.trim().toLowerCase() !== codeSentEmail) {
-        throw new Error('邮箱已变更，请使用发送验证码的邮箱，或重新发送验证码');
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
+    const email = emailInput.value.trim();
+    const code = codeInput.value.trim();
+    [usernameInput, emailInput, codeInput, passwordInput].forEach(el => fieldError(el, false));
+    if (!username || username.length < 3) {
+      showMessage('用户名至少 3 个字符', true);
+      fieldError(usernameInput, true); usernameInput.focus();
+      return;
+    }
+    if (password.length < 8) {
+      showMessage('密码至少 8 位', true);
+      fieldError(passwordInput, true); passwordInput.focus();
+      return;
+    }
+    if (mode === 'register') {
+      if (!email) {
+        showMessage('请填写邮箱地址', true);
+        fieldError(emailInput, true); emailInput.focus();
+        return;
       }
+      if (!code || !/^\d{6}$/.test(code)) {
+        showMessage('请输入 6 位数字验证码', true);
+        fieldError(codeInput, true); codeInput.focus();
+        return;
+      }
+      if (codeSentEmail && email.toLowerCase() !== codeSentEmail) {
+        showMessage('邮箱已变更，请使用发送验证码的邮箱，或重新发送验证码', true);
+        fieldError(emailInput, true);
+        return;
+      }
+    }
+    submitBtn.disabled = true;
+    submitBtn.textContent = mode === 'login' ? '登录中...' : '注册中...';
+    try {
       const data = mode === 'login'
         ? await apiRequest('/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) })
         : await apiRequest('/apehub-web/site/auth/register', {
@@ -982,8 +1049,8 @@ npm run dev   <span class="c-c"># http://localhost:5173</span>
             body: JSON.stringify({
               username,
               password,
-              email: emailInput.value.trim(),
-              verification_code: codeInput.value.trim(),
+              email,
+              verification_code: code,
             }),
           });
       localStorage.setItem('access_token', data.access_token);
@@ -993,6 +1060,7 @@ npm run dev   <span class="c-c"># http://localhost:5173</span>
       showMessage(error.message, true);
     } finally {
       submitBtn.disabled = false;
+      submitBtn.textContent = mode === 'login' ? '登录' : '注册';
     }
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });

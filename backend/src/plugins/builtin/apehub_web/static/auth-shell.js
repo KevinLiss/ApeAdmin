@@ -232,7 +232,9 @@
     emailInput.required = !isLogin;
     codeInput.required = !isLogin;
     submitBtn.textContent = isLogin ? '登录' : '注册';
+    passwordInput.autocomplete = isLogin ? 'current-password' : 'new-password';
     showMessage('');
+    [usernameInput, emailInput, codeInput, passwordInput].forEach(el => fieldError(el, false));
     altText.innerHTML = isLogin
       ? '还没有账号？<a id="switchLink">立即注册</a>'
       : '已有账号？<a id="switchLink">返回登录</a>';
@@ -286,8 +288,11 @@
     const email = emailInput.value.trim();
     if (!email) {
       showMessage('请先填写邮箱地址', true);
+      fieldError(emailInput, true);
+      emailInput.focus();
       return;
     }
+    fieldError(emailInput, false);
     const remaining = resendRemaining(email);
     if (remaining > 0) {
       renderResendCountdown();
@@ -302,7 +307,7 @@
       const data = await apiRequest('/apehub-web/site/auth/register/code', {
         method: 'POST', body: JSON.stringify({ email }),
       });
-      showMessage(`验证码已发送至 ${email}，请查收邮箱`);
+      showMessage(`验证码已发送至 ${email}，请查收邮箱（含垃圾箱），5 分钟内有效`);
       codeSentEmail = email;
       sessionStorage.setItem('apehub_code_email', email);
       delete sendCodeBtn.dataset.sending;
@@ -318,13 +323,42 @@
   });
   document.getElementById('authForm').addEventListener('submit', async e => {
     e.preventDefault();
-    submitBtn.disabled = true;
-    try {
-      const username = usernameInput.value.trim();
-      const password = passwordInput.value;
-      if (mode === 'register' && codeSentEmail && emailInput.value.trim().toLowerCase() !== codeSentEmail) {
-        throw new Error('邮箱已变更，请使用发送验证码的邮箱，或重新发送验证码');
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
+    const email = emailInput.value.trim();
+    const code = codeInput.value.trim();
+    [usernameInput, emailInput, codeInput, passwordInput].forEach(el => fieldError(el, false));
+    if (!username || username.length < 3) {
+      showMessage('用户名至少 3 个字符', true);
+      fieldError(usernameInput, true); usernameInput.focus();
+      return;
+    }
+    if (password.length < 8) {
+      showMessage('密码至少 8 位', true);
+      fieldError(passwordInput, true); passwordInput.focus();
+      return;
+    }
+    if (mode === 'register') {
+      if (!email) {
+        showMessage('请填写邮箱地址', true);
+        fieldError(emailInput, true); emailInput.focus();
+        return;
       }
+      if (!code || !/^\d{6}$/.test(code)) {
+        showMessage('请输入 6 位数字验证码', true);
+        fieldError(codeInput, true); codeInput.focus();
+        return;
+      }
+      if (codeSentEmail && email.toLowerCase() !== codeSentEmail) {
+        showMessage('邮箱已变更，请使用发送验证码的邮箱，或重新发送验证码', true);
+        fieldError(emailInput, true);
+        return;
+      }
+    }
+    submitBtn.disabled = true;
+    submitBtn.dataset.loading = '1';
+    submitBtn.textContent = mode === 'login' ? '登录中...' : '注册中...';
+    try {
       const data = mode === 'login'
         ? await apiRequest('/auth/login', { method: 'POST', body: JSON.stringify({ username, password, source: 'site' }) })
         : await apiRequest('/apehub-web/site/auth/register', {
@@ -332,8 +366,8 @@
             body: JSON.stringify({
               username,
               password,
-              email: emailInput.value.trim(),
-              verification_code: codeInput.value.trim(),
+              email,
+              verification_code: code,
             }),
           });
       localStorage.setItem('access_token', data.access_token);
@@ -342,7 +376,9 @@
     } catch (error) {
       showMessage(error.message, true);
     } finally {
+      delete submitBtn.dataset.loading;
       submitBtn.disabled = false;
+      submitBtn.textContent = mode === 'login' ? '登录' : '注册';
     }
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
