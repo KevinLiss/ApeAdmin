@@ -119,7 +119,7 @@
     display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
     font-size: 14px; font-weight: 600; border-radius: 12px;
     padding: 10px 18px; border: 1px solid transparent; transition: all .22s;
-    font-family: inherit;
+    font-family: inherit; white-space: nowrap; flex-shrink: 0;
   }
   .btn-ghost { color: var(--text-2); background: transparent; border-color: var(--panel-border); }
   .btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,.25); }
@@ -344,8 +344,12 @@
     .hero { padding-top: 70px; }
     section { padding: 70px 0; }
     .foot-grid { grid-template-columns: 1fr; }
+    .nav-inner { padding: 0 16px; }
+    .nav-actions { gap: 8px; }
     .nav-actions .gh-link { display: none; }
-    .nav-actions .btn-primary { padding: 8px 14px; font-size: 13px; }
+    .nav-actions .theme-toggle { padding: 8px 10px; }
+    .nav-actions .btn-primary { padding: 8px 12px; font-size: 13px; }
+    .menu-toggle { margin-left: 10px; }
     .hero .stat-row { gap: 8px; }
     .stat { min-width: 140px; padding: 14px 18px; }
     .hero .cta { margin-bottom: 50px; }

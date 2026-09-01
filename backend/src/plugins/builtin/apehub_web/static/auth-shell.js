@@ -115,7 +115,14 @@
   #authModal .submit-btn:disabled { opacity: .6; transform: none; cursor: not-allowed; }
   #authModal .alt-text { margin-top: 18px; text-align: center; font-size: 14px; color: var(--text-2); }
   #authModal .alt-text a { color: var(--primary); cursor: pointer; font-weight: 600; }
-  #authModal .modal-sub + .alt-text { margin-top: 0; }`;
+  #authModal .modal-sub + .alt-text { margin-top: 0; }
+  @media (max-width: 480px) {
+    #authModal.modal-overlay { padding: 14px; }
+    #authModal .modal { padding: 28px 20px; border-radius: 18px; }
+    #authModal .modal-title { font-size: 20px; }
+    #authModal .modal-sub { margin-bottom: 20px; }
+    #authModal .close-btn { top: 10px; right: 10px; }
+  }`;
 
   /* ---------- 注入样式与 DOM ---------- */
   const styleEl = document.createElement('style');
