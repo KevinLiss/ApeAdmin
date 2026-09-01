@@ -33,6 +33,9 @@ class LoginSchema(BaseModel):
     password: str = Field(..., min_length=6, max_length=100)
     captcha_id: str | None = Field(default=None, max_length=64)
     captcha_code: str | None = Field(default=None, max_length=8)
+    # Login origin marker: "admin" (管理后台, default) or "site" (官网/前端门户).
+    # 插件钩子（如 login_captcha.before_login）据此区分是否强制验证码。
+    source: str | None = Field(default=None, max_length=20)
 
 
 class ChangePasswordSchema(BaseModel):

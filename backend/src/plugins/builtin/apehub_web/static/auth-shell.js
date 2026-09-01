@@ -277,7 +277,7 @@
         throw new Error('邮箱已变更，请使用发送验证码的邮箱，或重新发送验证码');
       }
       const data = mode === 'login'
-        ? await apiRequest('/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) })
+        ? await apiRequest('/auth/login', { method: 'POST', body: JSON.stringify({ username, password, source: 'site' }) })
         : await apiRequest('/apehub-web/site/auth/register', {
             method: 'POST',
             body: JSON.stringify({

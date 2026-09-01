@@ -40,6 +40,10 @@ class LoginCaptchaPlugin(PluginInterface):
         logger.info("LoginCaptchaPlugin uninstalled")
 
     async def before_login(self, payload: dict[str, Any]) -> None:
+        # 官网/前端门户登录不带验证码字段，跳过强制校验；
+        # 仅对管理后台登录（source 为空或非 "site"）强制验证码。
+        if payload.get("source") == "site":
+            return
         captcha_id = payload.get("captcha_id")
         captcha_code = payload.get("captcha_code")
         if not captcha_id or not captcha_code:
