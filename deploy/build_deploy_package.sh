@@ -85,11 +85,14 @@ fi
 
 # 底座模式：剔除 apehub_web 官网插件（含源码、静态页、迁移链）
 if [[ $WITH_APEHUB -eq 0 ]]; then
-  echo "    - 底座模式：剔除 apehub_web 插件"
+  echo "    - 底座模式：剔除 apehub_web 插件（保留管理后台前端 chunk）"
   rm -rf "$STAGE_PKG/src/plugins/builtin/apehub_web"
   # 插件相关测试与前端构建残留（无运行时硬依赖，纯粹不误导用户）
   rm -f  "$STAGE_PKG/tests/test_apehub_web_marketplace.py"
-  find "$STAGE_PKG/frontend_dist" -name "apehub_web*" -delete 2>/dev/null || true
+  # 注意：不能删除 frontend_dist 中的 apehub_web chunk！
+  # 主前端构建已包含 apehub_web 管理页面组件（@/views/apehub_web/admin/*），
+  # 用户后续通过后台「导入插件」ZIP 安装 apehub_web 插件时，
+  # 菜单路由懒加载会请求这些 chunk；删掉会导致页面点击无反应。
 fi
 
 # docs-site 产物已在 static/docs-portal，源码+node_modules 不进包
