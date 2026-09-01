@@ -8,9 +8,9 @@
 </div>
 
 <p align="center">
-  <a href="http://apehub.finecv.cn/apehub-web">快速开始</a> ·
+  <a href="http://apehub.finecv.cn/apehub-web">官网地址</a> ·
   <a href="http://apehub.finecv.cn/apehub-web/plugins.html">插件市场</a> ·
-  <a href="http://apehub.finecv.cn/apehub-web/docs-portal">技术文档</a> ·
+  <a href="http://apehub.finecv.cn/apehub-web/docs-portal">快速开始</a> ·
   <a href="#功能特性">功能</a> ·
   <a href="#架构">架构</a> ·
   <a href="#配置说明">配置</a> ·
