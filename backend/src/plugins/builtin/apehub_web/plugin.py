@@ -25,7 +25,7 @@ class ApehubWebPlugin(PluginInterface):
     name = "apehub_web"
     display_name = "Apehub_web"
     description = "ApeAdmin 官网门户：产品介绍、插件市场、技术文档和个人中心"
-    version = "1.4.0"
+    version = "1.5.0"
     author = "ApeAdmin"
 
     async def install(self) -> None:

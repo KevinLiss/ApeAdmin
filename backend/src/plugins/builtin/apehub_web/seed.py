@@ -180,21 +180,45 @@ async def seed_apehub_web_data() -> None:
         # ---- Demo plugins ----
         plugin_count = (await db.execute(select(func.count()).select_from(ApehubWebPlugin))).scalar() or 0
         if plugin_count == 0:
-            db.add(ApehubWebPlugin(
-                developer_id=2,  # kankan
-                name="dashboard-plus",
-                display_name="Dashboard Plus 增强仪表盘",
-                slug="dashboard-plus",
-                description="为 ApeAdmin 提供更强大的仪表盘组件与图表库。",
-                category="仪表盘",
-                version="1.0.0",
-                tags="dashboard,图表,ECharts",
-                price=0.0,
-                service_fee_rate=30.0,
-                status=PluginStatus.APPROVED,
-                download_count=128,
-            ))
-            logger.info("apehub_web: demo plugin seeded")
+            # Dynamically resolve the demo developer: prefer kankan, fall back to
+            # the first enabled user, skip seeding the demo plugin if none exists.
+            # Never hardcode a user ID: on a fresh install sys_user only has admin,
+            # and a hardcoded ID breaks the FK constraint (developer_id -> sys_user).
+            from sqlalchemy import or_
+
+            from src.models import User
+
+            developer = (
+                await db.execute(
+                    select(User)
+                    .where(User.deleted_at.is_(None), User.status == 1)
+                    .where(or_(User.username == "kankan", User.username == "admin"))
+                    .order_by(User.id)
+                    .limit(1)
+                )
+            ).scalar_one_or_none()
+            if developer is None:
+                developer = (
+                    await db.execute(
+                        select(User).where(User.deleted_at.is_(None), User.status == 1).order_by(User.id).limit(1)
+                    )
+                ).scalar_one_or_none()
+            if developer is not None:
+                db.add(ApehubWebPlugin(
+                    developer_id=developer.id,
+                    name="dashboard-plus",
+                    display_name="Dashboard Plus 增强仪表盘",
+                    slug="dashboard-plus",
+                    description="为 ApeAdmin 提供更强大的仪表盘组件与图表库。",
+                    category="仪表盘",
+                    version="1.0.0",
+                    tags="dashboard,图表,ECharts",
+                    price=0.0,
+                    service_fee_rate=30.0,
+                    status=PluginStatus.APPROVED,
+                    download_count=128,
+                ))
+                logger.info("apehub_web: demo plugin seeded")
 
         await db.commit()
     await _seed_admin_menus()

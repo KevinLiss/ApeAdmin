@@ -112,6 +112,22 @@ export const getSettings = () => request.get('/settings')
 export const updateSettings = (items: Record<string, string>) => request.put('/settings', { items })
 export const updateSetting = (key: string, value: string) => request.put(`/settings/${key}`, { value })
 
+// ---- 系统版本与更新 ----
+export const getSystemVersion = () => request.get('/system/version')
+export const uploadSystemUpdate = (file: File, onProgress?: (percent: number) => void) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  return request.post('/system/update', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 300000, // 5 min timeout for large packages
+    onUploadProgress: (e: any) => {
+      if (onProgress && e.total) {
+        onProgress(Math.round((e.loaded / e.total) * 100))
+      }
+    },
+  })
+}
+
 /**
  * SSE 流式对话 —— 使用 fetch + ReadableStream 解析 SSE
  * @param data  ChatStreamRequest body

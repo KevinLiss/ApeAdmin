@@ -50,9 +50,9 @@
             <el-icon :size="18"><Moon v-if="!isDark" /><Sunny v-else /></el-icon>
           </li>
 
-          <!-- Bookmark (hidden on mobile ≤575px) -->
-          <li v-if="!isMobile || windowWidth > 575" class="icon-item" @click="bookmarkVisible = !bookmarkVisible">
-            <el-icon :size="18"><Star /></el-icon>
+          <!-- Version update (replaces bookmark) -->
+          <li v-if="!isMobile || windowWidth > 575" class="icon-item version-update-btn" @click="versionUpdateVisible = true">
+            <el-icon :size="18"><RefreshRight /></el-icon>
           </li>
 
           <!-- Notifications -->
@@ -98,6 +98,9 @@
         </ul>
       </div>
     </div>
+
+    <!-- Version Update Dialog -->
+    <VersionUpdateDialog v-model="versionUpdateVisible" />
   </header>
 </template>
 
@@ -106,6 +109,7 @@ import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
+import VersionUpdateDialog from './VersionUpdateDialog.vue'
 
 const props = defineProps<{
   isDark?: boolean
@@ -124,7 +128,7 @@ const router = useRouter()
 const userStore = useUserStore()
 
 const keyword = ref('')
-const bookmarkVisible = ref(false)
+const versionUpdateVisible = ref(false)
 const notifVisible = ref(false)
 const msgVisible = ref(false)
 const profileVisible = ref(false)
