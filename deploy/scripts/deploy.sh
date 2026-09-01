@@ -27,11 +27,18 @@
 set -euo pipefail
 
 # ---- 可调参数（可用环境变量覆盖） ----
-# 例: RUN_USER=root PORT=80 bash deploy.sh   ← 80 端口直连模式（同宝塔主推方案）
+# 两 种典型用法:
+#   1) 反代模式（主推，Nginx 占 80/443，本服务只监听本机回环）:
+#        bash deploy.sh                        # 默认 127.0.0.1:8000
+#   2) 80 直连模式（无 Nginx 场景）:
+#        RUN_USER=root PORT=80 bash deploy.sh
 APP_NAME="${APP_NAME:-apeadmin}"
 INSTALL_DIR="${INSTALL_DIR:-/www/wwwroot/${APP_NAME}}"
 RUN_USER="${RUN_USER:-www}"
 PORT="${PORT:-8000}"
+# 反代模式绑回环（外网不可直接访问）；直连模式自动改绑 0.0.0.0
+BIND_HOST="${BIND_HOST:-127.0.0.1}"
+[[ "${PORT}" -lt 1024 ]] && BIND_HOST="0.0.0.0"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -55,8 +62,13 @@ log "检测到 Python $PY_VER"
 # ---------------------------------------------------------------- 1. 目录与用户
 log "部署目录: $INSTALL_DIR"
 id "$RUN_USER" >/dev/null 2>&1 || RUN_USER=root
-if [[ "$RUN_USER" == "www" && "$PORT" -lt 1024 ]]; then
+if [[ "$RUN_USER" != "root" && "$PORT" -lt 1024 ]]; then
   die "端口 ${PORT} < 1024 只有 root 能绑，请改: RUN_USER=root PORT=${PORT} bash $0"
+fi
+if [[ "$BIND_HOST" == "0.0.0.0" ]]; then
+  log "监听 0.0.0.0:${PORT}（直连模式，需确保端口已放行且未被占用）"
+else
+  log "监听 ${BIND_HOST}:${PORT}（反代模式，需 Nginx 转发，外网无需放行此端口）"
 fi
 
 mkdir -p "$INSTALL_DIR"
@@ -115,7 +127,8 @@ Type=simple
 User=${RUN_USER}
 WorkingDirectory=${INSTALL_DIR}
 # 单 worker（插件热拔插运行态为进程本地，多 worker 不支持）
-ExecStart=${INSTALL_DIR}/.venv/bin/uvicorn src.main:app --host 0.0.0.0 --port ${PORT} --workers 1
+# proxy-headers: Nginx 反代场景还原真实客户端 IP（否则日志/审计全记成 127.0.0.1）
+ExecStart=${INSTALL_DIR}/.venv/bin/uvicorn src.main:app --host ${BIND_HOST} --port ${PORT} --workers 1 --proxy-headers --forwarded-allow-ips 127.0.0.1
 Restart=always
 RestartSec=5
 Environment=PYTHONUNBUFFERED=1

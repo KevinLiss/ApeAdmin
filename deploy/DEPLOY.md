@@ -3,16 +3,17 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: 'a80eb638-f488-4705-82fc-d62f53a2938f'
-  PropagateID: 'a80eb638-f488-4705-82fc-d62f53a2938f'
-  ReservedCode1: 'df1fcf4c-f544-4f07-8373-d06381cfff0f'
-  ReservedCode2: 'df1fcf4c-f544-4f07-8373-d06381cfff0f'
+  ProduceID: '975f6190-01c0-4d88-8b4c-a14071e6aee1'
+  PropagateID: '975f6190-01c0-4d88-8b4c-a14071e6aee1'
+  ReservedCode1: 'c6c3c78c-4c7d-499d-8eea-f904adb73e40'
+  ReservedCode2: 'c6c3c78c-4c7d-499d-8eea-f904adb73e40'
 ---
 
-# ApeAdmin 宝塔部署指南（安装向导版 · 80 端口直连）
+# ApeAdmin 宝塔部署指南（安装向导版 · Nginx 反代）
 
 > **部署目标**：服务器 118.89.55.247（宝塔面板）· 域名 `apehub.finecv.cn`
-> **部署方式**：上传部署包 → 宝塔建 Python 项目（**直接绑 80 端口，无需 Nginx 反代**）→ 浏览器打开自动进入**安装向导**（3 步完成）
+> **部署方式**：部署包解压 → 一键脚本部署（127.0.0.1:8000）→ 宝塔建反代站点 → 浏览器进入**安装向导**（3 步完成）
+> **多域名共存**：Nginx 占 80/443 按 Host 分发，ApeAdmin 只监听本机回环，服务器上其他网站项目不受影响
 
 ## 部署包内容（底座版 · 扁平结构）
 
@@ -34,11 +35,19 @@ apeadmin/
 底座包含：RBAC 权限、菜单、用户/角色/部门管理、插件框架、MCP 工具、AI 供应商配置、日志审计。
 不含 apehub_web 官网插件（后续在后台插件管理里按需安装）。
 
-## 为什么可以直接用 80 端口、不用反向代理？
+## 为什么用 Nginx 反代（多域名场景的标准架构）
 
-- **80 端口被谁占着**：你服务器上的 Nginx（宝塔默认装的）。卸载或停止它，80 就空出来了。
-- **普通用户绑不了 80**：Linux 下 1024 以下端口只有 root 能绑定，所以启动用户必须选 **root**。
-- **失去了什么**：HTTPS（443）需要证书服务。首次部署先用 80 跑通；以后要 HTTPS 再把 Nginx 装回来做反代即可（见文末），数据不受影响。
+```
+用户浏览器 → http://apehub.finecv.cn
+                ↓ (80端口, Nginx)
+        Nginx 按 Host 分发:
+        ├─ apehub.finecv.cn  → 127.0.0.1:8000 (ApeAdmin)
+        └─ 其他域名           → 服务器上其他项目（不受影响）
+```
+
+- **其他项目零影响**：Nginx 按 Host 分发，各走各的
+- **HTTPS 随时可上**：站点设置 → SSL → Let's Encrypt 一键申请
+- **安全**：ApeAdmin 只监听 127.0.0.1，外网无法直接访问 8000，无需放行
 
 ## 一、本地打包
 
@@ -49,11 +58,10 @@ bash build_deploy_package.sh              # 底座版（推荐先用这个）
 bash build_deploy_package.sh --with-apehub
 ```
 
-## 二、服务器准备（宝塔，三件事）
+## 二、服务器准备（宝塔，两件事）
 
 1. **DNS 解析**：域名服务商加 A 记录 `apehub → 118.89.55.247`
-2. **卸载 Nginx**：软件商店 → 已安装 → Nginx → 卸载（或停止并关闭自启），释放 80 端口
-3. **Python 环境**：网站 → Python项目 → Python环境，确认有 Python 3.11.6（你的面板已有）
+2. **Nginx 保持运行**：反代模式依赖它（宝塔软件商店已装的话不用动）
 
 MySQL **不用提前建库**——向导第 1 步可以直接创建（用宝塔数据库页建的账号），或选 SQLite 完全免配置。
 
@@ -73,35 +81,56 @@ cd /www/wwwroot && tar xzf apeadmin-base-*.tar.gz
 
 **自检**：`/www/wwwroot/apeadmin/src/main.py` 必须存在（注意是 `src/main.py`，不再是 `backend/src/main.py`）。
 
-## 四、创建 Python 项目（对应宝塔表单逐项填）
+## 四、一键脚本部署（终端，推荐路线）
+
+> 服务器终端（root）执行，自动：建虚拟环境 → 装依赖（阿里云镜像）→ 注册 systemd（开机自启/崩溃拉起）→ 监听 127.0.0.1:8000
+
+```bash
+cd /www/wwwroot/apeadmin
+bash scripts/deploy.sh
+```
+
+服务管理：`systemctl status|restart apeadmin` · `journalctl -u apeadmin -f`（实时日志）
+
+<details>
+<summary>备选：宝塔面板 Python 项目方式（点击展开，仅当不想用命令行时）</summary>
 
 宝塔 → 网站 → Python项目 → 添加项目：
 
-| 表单项 | 填写值 | 说明 |
-|---|---|---|
-| 项目名称 | `apeadmin` | |
-| **项目路径** | `/www/wwwroot/apeadmin` | 解压即此目录，直接选，**不用进子目录** |
-| Python版本 | 3.11.6 | |
-| 启动方式 | **命令行启动** | |
-| 启动命令 | `python -m uvicorn src.main:app --host 0.0.0.0 --port 80 --workers 1` | 端口写 80 |
-| **项目端口** | `80` | 与启动命令一致 |
-| 通讯协议 | **asgi** | FastAPI 必须，别用默认 wsgi |
-| 环境变量 | 留空 | |
-| **启动用户** | **root** | 默认 www 绑不了 80，必须改 |
-| 安装依赖包路径 | `/www/wwwroot/apeadmin/requirements.txt` | 勾选让面板自动装 |
+| 表单项 | 填写值 |
+|---|---|
+| 项目名称 | `apeadmin` |
+| 项目路径 | `/www/wwwroot/apeadmin` |
+| 启动方式 | 命令行启动 |
+| 启动命令 | `python3 -m uvicorn src.main:app --host 127.0.0.1 --port 8000 --workers 1` |
+| 启动用户 | `root`（若面板环境准备失败，用上面的一键脚本） |
+| 安装依赖包路径 | `/www/wwwroot/apeadmin/requirements.txt` |
 
-> ⚠️ **单 worker**：插件热拔插运行态是进程本地的，多 worker 会状态错乱。
-> ⚠️ **不要**提前创建 `.env`——没有 `.env` 才会触发安装向导。
-> ⚠️ 面板若自动在启动命令里追加参数，以「端口 80、workers 1」为准。
+注意：面板路线与脚本路线**二选一**，勿同时建（会抢端口）。
+</details>
 
-## 五、放行 80 端口（两处都要）
+## 五、宝塔建反代站点（可视化两步）
 
-1. **腾讯云控制台** → 你的服务器 → 防火墙/安全组 → 添加规则：允许 TCP 80
-2. **宝塔** → 安全 → 添加端口规则：放行 80
+1. 宝塔 → **网站 → 添加站点**：
+   - 域名：`apehub.finecv.cn`
+   - PHP 版本：**纯静态**
+   - 其他默认，提交
+2. 站点右侧**「设置」**：
+   - **「反向代理」→「添加反向代理」**：代理名称 `apeadmin`、目标 URL `http://127.0.0.1:8000`，提交
+   - **「配置文件」**：在 `server{}` 内补三行后保存（大文件上传/长连接，MCP 必需）：
 
-## 六、浏览器打开向导（核心流程）
+```nginx
+    client_max_body_size 100m;
+    proxy_read_timeout 3600s;
+    proxy_buffering off;
+```
 
-访问 `http://118.89.55.247/`（**不带端口号**），自动跳转 `/setup` 安装向导。
+> 完整参考：包内 `nginx/apeadmin.conf`（已按 apehub.finecv.cn 配好，含 SSE/上传配置）。
+> 若服务器 80 被其他项目占用属正常——Nginx 按 Host 分发互不影响。
+
+## 六、安装向导（浏览器）
+
+访问 `http://apehub.finecv.cn/`，自动跳转 `/setup`：
 
 ### 第 1 步：配置数据库
 
@@ -122,7 +151,11 @@ cd /www/wwwroot && tar xzf apeadmin-base-*.tar.gz
 
 ### 第 3 步：成功页
 
-显示前后台地址、管理员账号密码（提示保存）。按提示**重启项目**（宝塔 Python 项目页点「重启」）——重启时自动初始化超管账号、菜单、种子数据（用新密钥加密，保证 AI Key 等密文可解）。
+显示前后台地址、管理员账号密码（提示保存）。按提示重启服务——重启时自动初始化超管账号、菜单、种子数据（用新密钥加密，保证 AI Key 等密文可解）：
+
+```bash
+systemctl restart apeadmin
+```
 
 重启完成页面自动检测到，点「进入站点」即完成。
 
@@ -134,7 +167,8 @@ cd /www/wwwroot && tar xzf apeadmin-base-*.tar.gz
 | 用向导设的账号密码登录 | 进入后台，菜单/用户/角色正常 |
 | 后台 → AI 设置 | Key 显示 sk-****（加密解密一致） |
 | 后台 → 系统设置 | 站点名/域名 = 向导填的值 |
-| `curl http://127.0.0.1/health` | `status: healthy` |
+| 服务器 `curl http://127.0.0.1:8000/health` | `status: healthy` |
+| 后台 → 日志审计里的登录 IP | 真实公网 IP，非 127.0.0.1（--proxy-headers 生效） |
 
 ## 八、后续：安装 apehub_web 官网插件
 
@@ -146,8 +180,10 @@ cd /www/wwwroot && tar xzf apeadmin-base-*.tar.gz
 ## 九、日常运维
 
 ```bash
-# 面板：网站 → Python项目 → 重启/日志
-# 命令行:
+# 服务管理（一键脚本路线）:
+systemctl status|restart|stop apeadmin
+journalctl -u apeadmin -f        # 实时日志
+# 或用包内脚本:
 bash /www/wwwroot/apeadmin/scripts/manage.sh status|logs|restart|backup
 ```
 
@@ -160,20 +196,20 @@ bash /www/wwwroot/apeadmin/scripts/manage.sh restart
 
 ## 十、以后要 HTTPS 怎么办（可选）
 
-跑通后随时可升级，**数据不受影响**：
+反代架构下 HTTPS 零改造，宝塔可视化操作：
 
-1. 软件商店装回 Nginx（它会占用 80/443 做证书与转发）
-2. 宝塔 Python 项目把启动命令端口从 80 改回 8000、启动用户改回 www、重启
-3. 宝塔建站点 `apehub.finecv.cn` → SSL → Let's Encrypt 申请证书
-4. 站点反代配置参考包内 `nginx/apeadmin.conf`（含 SSE 与上传大小配置）
+1. 站点设置 → SSL → Let's Encrypt 申请 `apehub.finecv.cn` 证书
+2. 开启「强制 HTTPS」
+
+ApeAdmin 无需任何改动（Nginx 层完成加密，应用照常监听 8000）。
 
 ## 注意事项
 
 | 事项 | 说明 |
 |---|---|
 | **单 worker** | 启动命令固定 `--workers 1` |
-| **asgi** | 面板通讯协议必须 asgi |
-| **启动用户 root** | 80 端口直连的前提；将来切 HTTPS 反代后可改回 www |
+| **反代模式端口** | 默认 127.0.0.1:8000，外网不可直接访问，安全组无需放行 8000 |
+| **真实 IP 透传** | 启动命令带 `--proxy-headers --forwarded-allow-ips 127.0.0.1`，否则日志全记 127.0.0.1 |
 | **无 .env 才有向导** | 手工放了 .env 则直接按 .env 启动，不走向导 |
 | **JWT_SECRET** | 向导自动生成；生成后不可改（API Key 加密依赖） |
 | **SQLite 够用吗** | 2000 用户量级写并发足够；上量后后台导出再切 MySQL |
