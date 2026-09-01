@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '610ad8a2-e7d3-4398-b7fa-4ec442d23e0e'
-  PropagateID: '610ad8a2-e7d3-4398-b7fa-4ec442d23e0e'
-  ReservedCode1: '5cbcb7ff-0c52-4a9b-b478-31aa5f8657c9'
-  ReservedCode2: '5cbcb7ff-0c52-4a9b-b478-31aa5f8657c9'
+  ProduceID: '632efedd-49c6-4dad-be0f-a9d4453e1573'
+  PropagateID: '632efedd-49c6-4dad-be0f-a9d4453e1573'
+  ReservedCode1: 'b7067922-0e47-4afb-9253-436ff6bd2b2d'
+  ReservedCode2: 'b7067922-0e47-4afb-9253-436ff6bd2b2d'
 ---
 
 <div align="center">
@@ -437,7 +437,7 @@ class MyPlugin(PluginInterface):
 用微信扫描下方二维码联系作者加入 ApeAdmin 用户群，反馈问题、分享使用心得，和其他用户、维护者一起交流：
 
 <p align="center">
-  <img src="assets/aa4f8c941d68d25fe00fb679b62d923b.jpg" alt="微信用户群二维码" width="220">
+  <img src="assets/wechat-group-qr.png" alt="微信用户群二维码" width="220">
 </p>
 
 > AI生成
