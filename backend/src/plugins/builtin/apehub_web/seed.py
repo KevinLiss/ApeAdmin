@@ -240,10 +240,12 @@ async def _seed_admin_menus() -> None:
         ("编辑内容", "F", None, None, "apehub_web:content:edit", None, 1),
         ("文档管理", "C", "admin/docs", "apehub_web/admin/Docs", "apehub_web:docs:list", "Notebook", 3),
         ("编辑文档", "F", None, None, "apehub_web:docs:edit", None, 1),
-        ("插件管理", "C", "admin/plugins", "apehub_web/admin/Plugins", "apehub_web:plugins:review", "Box", 4),
-        ("订单管理", "C", "admin/orders", "apehub_web/admin/Orders", "apehub_web:orders:list", "ShoppingCart", 5),
-        ("提现审核", "C", "admin/withdrawals", "apehub_web/admin/Withdrawals", "apehub_web:withdrawals:review", "Money", 6),
-        ("用户管理", "C", "admin/users", "apehub_web/admin/Users", "apehub_web:users:list", "User", 7),
+        ("技术文档管理", "C", "admin/tech-docs", "apehub_web/admin/TechDocs", "apehub_web:techdocs:list", "Files", 4),
+        ("编辑技术文档", "F", None, None, "apehub_web:techdocs:edit", None, 1),
+        ("插件管理", "C", "admin/plugins", "apehub_web/admin/Plugins", "apehub_web:plugins:review", "Box", 5),
+        ("订单管理", "C", "admin/orders", "apehub_web/admin/Orders", "apehub_web:orders:list", "ShoppingCart", 6),
+        ("提现审核", "C", "admin/withdrawals", "apehub_web/admin/Withdrawals", "apehub_web:withdrawals:review", "Money", 7),
+        ("用户管理", "C", "admin/users", "apehub_web/admin/Users", "apehub_web:users:list", "User", 8),
     ]
 
     async with SessionLocal() as db:

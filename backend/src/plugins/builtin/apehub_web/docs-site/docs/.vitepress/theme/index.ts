@@ -23,7 +23,7 @@ const SiteActions = defineComponent({
     })
 
     return () => h('div', { class: 'apehub-site-actions' }, [
-      h('a', { class: 'apehub-site-link', href: 'http://127.0.0.1:8000/apehub-web/', target: '_self' }, '官网首页'),
+      h('a', { class: 'apehub-site-link', href: '/apehub-web/', target: '_self' }, '官网首页'),
     ])
   },
 })

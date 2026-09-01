@@ -1099,6 +1099,86 @@ async def delete_doc(doc_id: int, db: Annotated[AsyncSession, Depends(get_db)], 
 
 
 # ---------------------------------------------------------------------------
+# Tech Docs admin (VitePress markdown source file management)
+# ---------------------------------------------------------------------------
+
+_PLUGIN_DIR = Path(__file__).resolve().parent
+_DOCS_SRC_DIR = _PLUGIN_DIR / "docs-site" / "docs"
+_ALLOWED_MD_DIRS = {"guide", "marketplace"}
+
+
+@router.get("/admin/tech-docs")
+async def list_tech_docs(
+    user: Annotated[User, Depends(get_current_user)],
+):
+    """List all VitePress markdown source files."""
+    await _require_permission(user, "apehub_web:techdocs:list")
+    files = []
+    if _DOCS_SRC_DIR.exists():
+        for md in sorted(_DOCS_SRC_DIR.rglob("*.md")):
+            rel = md.relative_to(_DOCS_SRC_DIR)
+            category = rel.parts[0] if len(rel.parts) > 1 else "root"
+            files.append({
+                "path": str(rel).replace("\\", "/"),
+                "name": md.stem,
+                "category": category,
+                "size": md.stat().st_size,
+                "modified": datetime.fromtimestamp(md.stat().st_mtime).strftime("%Y-%m-%d %H:%M"),
+            })
+    return success_response(data=files)
+
+
+@router.get("/admin/tech-docs/{file_path:path}")
+async def read_tech_doc(
+    file_path: str,
+    user: Annotated[User, Depends(get_current_user)],
+):
+    """Read a single VitePress markdown source file."""
+    await _require_permission(user, "apehub_web:techdocs:list")
+    safe = _resolve_md_path(file_path)
+    if not safe or not safe.exists():
+        raise NotFoundException("文件不存在")
+    return success_response(data={
+        "path": file_path,
+        "content": safe.read_text(encoding="utf-8"),
+        "size": safe.stat().st_size,
+    })
+
+
+class TechDocSaveIn(BaseModel):
+    content: str = Field(..., min_length=0)
+
+
+@router.put("/admin/tech-docs/{file_path:path}")
+async def save_tech_doc(
+    file_path: str,
+    body: TechDocSaveIn,
+    user: Annotated[User, Depends(get_current_user)],
+):
+    """Save (overwrite) a VitePress markdown source file."""
+    await _require_permission(user, "apehub_web:techdocs:edit")
+    safe = _resolve_md_path(file_path)
+    if not safe or not safe.parent.exists():
+        raise NotFoundException("文件路径无效")
+    safe.write_text(body.content, encoding="utf-8")
+    return success_response(msg="文件已保存")
+
+
+def _resolve_md_path(file_path: str) -> Path | None:
+    """Resolve a relative markdown path safely under the docs source dir."""
+    if not file_path.endswith(".md"):
+        return None
+    candidate = (_DOCS_SRC_DIR / file_path).resolve()
+    try:
+        candidate.relative_to(_DOCS_SRC_DIR)
+    except ValueError:
+        return None
+    if not candidate.exists():
+        return None
+    return candidate
+
+
+# ---------------------------------------------------------------------------
 # Marketplace (public browse + developer submit + admin review)
 # ---------------------------------------------------------------------------
 

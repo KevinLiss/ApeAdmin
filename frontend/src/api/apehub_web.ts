@@ -66,7 +66,6 @@ export const deleteAdminNavigation = (id: number) => api.delete(`/apehub-web/adm
 export const getAdminContent = () => api.get('/apehub-web/admin/content')
 export const createAdminContent = (data: any) => api.post('/apehub-web/admin/content', data)
 export const updateAdminContent = (id: number, data: any) => api.put(`/apehub-web/admin/content/${id}`, data)
-export const reorderAdminContent = (items: { id: number; sort: number }[]) => api.put('/apehub-web/admin/content/order', { items })
 export const deleteAdminContent = (id: number) => api.delete(`/apehub-web/admin/content/${id}`)
 
 export const getAdminDocCategories = () => api.get('/apehub-web/admin/doc-categories')
@@ -80,6 +79,11 @@ export const createAdminDoc = (data: any) => api.post('/apehub-web/admin/docs', 
 export const updateAdminDoc = (id: number, data: any) => api.put(`/apehub-web/admin/docs/${id}`, data)
 export const deleteAdminDoc = (id: number) => api.delete(`/apehub-web/admin/docs/${id}`)
 
+// ---------- 技术文档管理（VitePress markdown 源文件） ----------
+export const getTechDocs = () => api.get('/apehub-web/admin/tech-docs')
+export const readTechDoc = (filePath: string) => api.get(`/apehub-web/admin/tech-docs/${filePath}`)
+export const saveTechDoc = (filePath: string, data: { content: string }) => api.put(`/apehub-web/admin/tech-docs/${filePath}`, data)
+
 export const getAdminPlugins = (params: any) => api.get('/apehub-web/admin/plugins', { params })
 export const getAdminPluginDetail = (id: number) => api.get(`/apehub-web/admin/plugins/${id}`)
 export const reviewPlugin = (id: number, data: any) => api.post(`/apehub-web/admin/plugins/${id}/review`, data)
@@ -90,25 +94,18 @@ export const getAdminPluginFileDownloadUrl = (pluginId: number, fileId: number) 
   `/api/v1/apehub-web/admin/plugins/${pluginId}/files/${fileId}/download`
 export const reviewPluginVersion = (pluginId: number, versionId: number, data: any) => api.post(`/apehub-web/admin/plugins/${pluginId}/versions/${versionId}/review`, data)
 export const publishPluginVersion = (pluginId: number, versionId: number) => api.post(`/apehub-web/admin/plugins/${pluginId}/versions/${versionId}/publish`)
-export const unpublishPluginVersion = (pluginId: number, versionId: number) => api.post(`/apehub-web/admin/plugins/${pluginId}/versions/${versionId}/unpublish`)
 export const getAdminVersionSourceTree = (pluginId: number, versionId: number) => api.get(`/apehub-web/admin/plugins/${pluginId}/versions/${versionId}/source-tree`)
 export const getAdminVersionSource = (pluginId: number, versionId: number, path: string) => api.get(`/apehub-web/admin/plugins/${pluginId}/versions/${versionId}/source`, { params: { path } })
-export const refundAdminOrder = (orderId: number, data: any) => api.post(`/apehub-web/admin/orders/${orderId}/refund`, data)
-
-// admin 插件编辑管理
+export const unpublishPluginVersion = (pluginId: number, versionId: number) => api.post(`/apehub-web/admin/plugins/${pluginId}/versions/${versionId}/unpublish`)
 export const updateAdminPlugin = (id: number, data: any) => api.put(`/apehub-web/admin/plugins/${id}`, data)
-export const adminUploadMedia = (id: number, formData: FormData, params: any) =>
-  api.post(`/apehub-web/admin/plugins/${id}/media/upload`, formData, { params })
-export const adminDeleteMedia = (pluginId: number, mediaId: number) =>
-  api.delete(`/apehub-web/admin/plugins/${pluginId}/media/${mediaId}`)
-export const adminUploadDemoQr = (pluginId: number, formData: FormData) =>
-  api.post(`/apehub-web/admin/plugins/${pluginId}/demo/qr`, formData)
-export const adminUploadFile = (id: number, formData: FormData, params: any) =>
-  api.post(`/apehub-web/admin/plugins/${id}/files`, formData, { params })
-export const adminDeleteFile = (pluginId: number, fileId: number) =>
-  api.delete(`/apehub-web/admin/plugins/${pluginId}/files/${fileId}`)
-export const updateAdminVersion = (pluginId: number, versionId: number, data: any) =>
-  api.put(`/apehub-web/admin/plugins/${pluginId}/versions/${versionId}`, data)
+export const adminUploadMedia = (pluginId: number, formData: FormData, params?: any) => api.post(`/apehub-web/admin/plugins/${pluginId}/media/upload`, formData, { params, headers: { 'Content-Type': 'multipart/form-data' } })
+export const adminDeleteMedia = (pluginId: number, mediaId: number) => api.delete(`/apehub-web/admin/plugins/${pluginId}/media/${mediaId}`)
+export const adminUploadFile = (pluginId: number, formData: FormData, params?: any) => api.post(`/apehub-web/admin/plugins/${pluginId}/files`, formData, { params, headers: { 'Content-Type': 'multipart/form-data' } })
+export const adminDeleteFile = (pluginId: number, fileId: number) => api.delete(`/apehub-web/admin/plugins/${pluginId}/files/${fileId}`)
+export const updateAdminVersion = (pluginId: number, versionId: number, data: any) => api.put(`/apehub-web/admin/plugins/${pluginId}/versions/${versionId}`, data)
+export const adminUploadDemoQr = (pluginId: number, formData: FormData) => api.post(`/apehub-web/admin/plugins/${pluginId}/demo/qr`, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+export const reorderAdminContent = (items: any[]) => api.put('/apehub-web/admin/content/order', { items })
+export const refundAdminOrder = (orderId: number, data: any) => api.post(`/apehub-web/admin/orders/${orderId}/refund`, data)
 
 export const getAdminWithdrawals = (params: any) => api.get('/apehub-web/admin/withdrawals', { params })
 export const handleWithdrawal = (id: number, data: any) =>
