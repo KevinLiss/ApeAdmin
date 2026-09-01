@@ -58,7 +58,11 @@ class LoginCaptchaPlugin(PluginInterface):
             captcha_id = secrets.token_urlsafe(12)
             code = f"{secrets.randbelow(10000):04d}"
             self._captchas[captcha_id] = (code, time.time() + 120)
-            return {"code": 200, "msg": "success", "data": {"captcha_id": captcha_id, "code": code, "expires_in": 120}}
+            # Return captcha_id only; code is rendered as an SVG image
+            svg = _render_captcha_svg(code)
+            import base64
+            svg_b64 = base64.b64encode(svg.encode("utf-8")).decode("ascii")
+            return {"code": 200, "msg": "success", "data": {"captcha_id": captcha_id, "image": f"data:image/svg+xml;base64,{svg_b64}", "expires_in": 120}}
 
         @router.post("/verify")
         async def verify_captcha(body: CaptchaVerifyRequest) -> dict[str, Any]:
@@ -80,3 +84,25 @@ class LoginCaptchaPlugin(PluginInterface):
     def on_unload(self) -> None:
         self._captchas.clear()
         logger.info("LoginCaptchaPlugin unloaded")
+
+
+def _render_captcha_svg(code: str) -> str:
+    """Render captcha code as an SVG image with noise."""
+    import random
+    chars = []
+    colors = ["#4f46e5", "#7c3aed", "#2563eb", "#0891b2", "#db2777"]
+    for i, ch in enumerate(code):
+        x = 15 + i * 26 + random.randint(-3, 3)
+        y = 30 + random.randint(-4, 4)
+        color = random.choice(colors)
+        rot = random.randint(-15, 15)
+        chars.append(f'<text x="{x}" y="{y}" font-size="28" font-weight="bold" fill="{color}" transform="rotate({rot} {x} {y})" font-family="Arial">{ch}</text>')
+    noise_lines = "".join(
+        f'<line x1="{random.randint(0,110)}" y1="{random.randint(0,40)}" x2="{random.randint(0,110)}" y2="{random.randint(0,40)}" stroke="#e0e0e0" stroke-width="1"/>'
+        for _ in range(5)
+    )
+    noise_dots = "".join(
+        f'<circle cx="{random.randint(0,110)}" cy="{random.randint(0,40)}" r="1" fill="#ccc"/>'
+        for _ in range(15)
+    )
+    return f'<svg width="110" height="40" viewBox="0 0 110 40" xmlns="http://www.w3.org/2000/svg"><rect width="110" height="40" fill="#f0f4ff" rx="4"/>{noise_lines}{noise_dots}{"".join(chars)}</svg>'

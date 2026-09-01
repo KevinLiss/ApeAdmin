@@ -72,17 +72,22 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     frontend_dist = Path(__file__).resolve().parent.parent / "frontend_dist"
     if frontend_dist.exists():
         from fastapi.staticfiles import StaticFiles
-        app.mount(admin_path, StaticFiles(directory=str(frontend_dist), html=True), name="admin_spa")
-        logger.info(f"Admin SPA mounted at {admin_path}")
+        from starlette.staticfiles import StaticFiles as StarletteStaticFiles
 
-        # Fallback: serve index.html for all admin sub-routes (SPA history mode)
-        @app.get(f"{admin_path}/{{path:path}}", include_in_schema=False)
-        async def admin_spa_fallback(path: str):
-            from fastapi.responses import FileResponse
-            index = frontend_dist / "index.html"
-            if index.exists():
-                return FileResponse(str(index))
-            return {"detail": "Not Found"}
+        # Custom static files handler: serve real files, fallback to index.html
+        # for SPA history-mode routes (e.g. /admin/login, /admin/dashboard)
+        class SpaStaticFiles(StarletteStaticFiles):
+            async def get_response(self, path: str, scope):
+                if path == "" or path == "index.html":
+                    return await super().get_response("index.html", scope)
+                try:
+                    return await super().get_response(path, scope)
+                except Exception:
+                    # File not found → serve index.html for SPA fallback
+                    return await super().get_response("index.html", scope)
+
+        app.mount(admin_path, SpaStaticFiles(directory=str(frontend_dist), html=True), name="admin_spa")
+        logger.info(f"Admin SPA mounted at {admin_path} (with SPA fallback)")
     else:
         logger.info("Frontend dist not found, admin SPA not mounted (dev mode: use Vite)")
 

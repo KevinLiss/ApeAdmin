@@ -37,7 +37,7 @@ request.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('apeadmin_token')
       ElMessage.error('登录已过期，请重新登录')
-      window.location.href = '/login'
+      window.location.href = '/admin/login'
     } else {
       const msg = error.response?.data?.msg || error.message || '网络错误'
       ElMessage.error(msg)
