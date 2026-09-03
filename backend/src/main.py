@@ -253,11 +253,8 @@ def create_app() -> FastAPI:
     async def root_redirect():
         if not is_installed():
             return RedirectResponse(url="/setup")
-        # apehub_web plugin serves the official site at /apehub-web when present
-        from pathlib import Path
-        site_dir = Path(__file__).resolve().parent / "plugins" / "builtin" / "apehub_web" / "static"
-        if site_dir.exists():
-            return RedirectResponse(url="/apehub-web/")
+        # If a plugin ships a public site (e.g. under /apehub-web), it will
+        # register its own mount; the base falls back to the admin console.
         return RedirectResponse(url=settings.ADMIN_PATH + "/")
 
     return app

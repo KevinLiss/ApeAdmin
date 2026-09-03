@@ -1,4 +1,13 @@
-
+---
+AIGC:
+  ContentProducer: '001191110102MAD55U9H0F10002'
+  ContentPropagator: '001191110102MAD55U9H0F10002'
+  Label: '1'
+  ProduceID: 'ad7eca94-7b37-46a9-ab64-1635f368a836'
+  PropagateID: 'ad7eca94-7b37-46a9-ab64-1635f368a836'
+  ReservedCode1: 'dec59dc0-a8f7-41ec-bee7-38ce42e960ba'
+  ReservedCode2: 'dec59dc0-a8f7-41ec-bee7-38ce42e960ba'
+---
 
 <div align="center">
   <br/>
@@ -196,8 +205,7 @@ apeadmin/
       plugins/                   # 插件系统
         base.py                  # PluginInterface + EventBus
         manager.py               # 插件发现/加载/安装/卸载
-        builtin/                 # 内置插件
-          apehub_web/            # 官网插件（可选）
+        builtin/                 # 内置插件（按需放入，目录动态扫描）
           login_captcha/         # 登录验证码
       setup_wizard/              # 安装向导（未安装时挂载）
         state.py                 # 安装状态（setup.lock / .env 读写）
@@ -430,4 +438,3 @@ class MyPlugin(PluginInterface):
 <p align="center">
   <img src="assets/wechat-group-qr.png" alt="微信用户群二维码" width="220">
 </p>
-

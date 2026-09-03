@@ -61,6 +61,15 @@ Thumbs.db
 desktop.ini
 
 # ========================================
+# Business plugins (developed & stored in a separate repo)
+# ========================================
+backend/src/plugins/builtin/apehub_web/
+frontend/src/views/apehub_web/
+frontend/src/api/apehub_web.ts
+backend/tests/test_apehub_web_marketplace.py
+APEHUB_WEB_*.md
+
+# ========================================
 # Temporary / Agent Files
 # ========================================
 .temp/
@@ -70,8 +79,3 @@ desktop.ini
 # Deploy package staging / artifacts
 deploy/.stage/
 deploy/dist/
-
-# ========================================
-# docs-site build dependencies
-# ========================================
-backend/src/plugins/builtin/apehub_web/docs-site/node_modules/
