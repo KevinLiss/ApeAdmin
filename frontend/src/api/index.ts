@@ -1,9 +1,8 @@
 import request from './request'
 
 // ---- Auth ----
-export const login = (data: { username: string; password: string; captcha_id?: string; captcha_code?: string }) =>
+export const login = (data: { username: string; password: string }) =>
   request.post('/auth/login', data)
-export const getLoginCaptcha = () => request.get('/login-captcha/captcha')
 
 export const getUserInfo = () => request.get('/auth/userinfo')
 
@@ -195,3 +194,9 @@ export function chatStream(
 
   return controller
 }
+
+// ---- Dev Example (插件开发示例) ----
+export const getDevExampleNotes = (params: any) => request.get('/dev-example/notes', { params })
+export const createDevExampleNote = (data: any) => request.post('/dev-example/notes', data)
+export const updateDevExampleNote = (id: number, data: any) => request.put(`/dev-example/notes/${id}`, data)
+export const deleteDevExampleNote = (id: number) => request.delete(`/dev-example/notes/${id}`)

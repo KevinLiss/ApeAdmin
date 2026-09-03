@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: 'ad7eca94-7b37-46a9-ab64-1635f368a836'
-  PropagateID: 'ad7eca94-7b37-46a9-ab64-1635f368a836'
-  ReservedCode1: 'dec59dc0-a8f7-41ec-bee7-38ce42e960ba'
-  ReservedCode2: 'dec59dc0-a8f7-41ec-bee7-38ce42e960ba'
+  ProduceID: '9b1a717d-17a6-4f14-9477-bbbfb34635ee'
+  PropagateID: '9b1a717d-17a6-4f14-9477-bbbfb34635ee'
+  ReservedCode1: 'f09dfaa5-5d32-4837-808f-69ca1abfbfa9'
+  ReservedCode2: 'f09dfaa5-5d32-4837-808f-69ca1abfbfa9'
 ---
 
 <div align="center">
@@ -206,7 +206,7 @@ apeadmin/
         base.py                  # PluginInterface + EventBus
         manager.py               # 插件发现/加载/安装/卸载
         builtin/                 # 内置插件（按需放入，目录动态扫描）
-          login_captcha/         # 登录验证码
+          dev_example/           # 插件开发示例
       setup_wizard/              # 安装向导（未安装时挂载）
         state.py                 # 安装状态（setup.lock / .env 读写）
         api.py                   # 向导 API（状态/测试连接/执行安装）

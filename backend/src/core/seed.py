@@ -141,6 +141,12 @@ async def _seed_menus(db: AsyncSession) -> None:
         ("提交插件", "ApeHub 管理", "F", None, None, "apehub:plugin:submit", None, 8),
         ("订单列表", "ApeHub 管理", "F", None, None, "apehub:order:list", None, 9),
         ("申请提现", "ApeHub 管理", "F", None, None, "apehub:withdrawal:create", None, 10),
+        # Dev example plugin menus
+        ("插件示例", None, "M", "/dev-example", None, None, "Lightning", 50),
+        ("备忘录管理", "插件示例", "C", "notes", "dev_example/notes/index", "dev_example:notes:list", "Document", 1),
+        ("新增备忘录", "备忘录管理", "F", None, None, "dev_example:notes:create", None, 1),
+        ("编辑备忘录", "备忘录管理", "F", None, None, "dev_example:notes:edit", None, 2),
+        ("删除备忘录", "备忘录管理", "F", None, None, "dev_example:notes:delete", None, 3),
     ]
 
     # Track created menus by name for parent linking
@@ -236,6 +242,12 @@ async def _seed_missing_menus(db: AsyncSession) -> None:
         ("提交插件", "ApeHub 管理", "F", None, None, "apehub:plugin:submit", None, 8),
         ("订单列表", "ApeHub 管理", "F", None, None, "apehub:order:list", None, 9),
         ("申请提现", "ApeHub 管理", "F", None, None, "apehub:withdrawal:create", None, 10),
+        # Dev example plugin menus
+        ("插件示例", None, "M", "/dev-example", None, None, "Lightning", 50),
+        ("备忘录管理", "插件示例", "C", "notes", "dev_example/notes/index", "dev_example:notes:list", "Document", 1),
+        ("新增备忘录", "备忘录管理", "F", None, None, "dev_example:notes:create", None, 1),
+        ("编辑备忘录", "备忘录管理", "F", None, None, "dev_example:notes:edit", None, 2),
+        ("删除备忘录", "备忘录管理", "F", None, None, "dev_example:notes:delete", None, 3),
     ]
 
     missing_menus = [

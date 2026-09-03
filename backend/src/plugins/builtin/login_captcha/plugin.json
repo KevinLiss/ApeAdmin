@@ -1,8 +1,0 @@
-{
-  "name": "login_captcha",
-  "display_name": "登录验证码",
-  "version": "1.0.0",
-  "description": "用于验证插件热拔插的登录验证码示例插件",
-  "author": "ApeAdmin",
-  "dependencies": []
-}

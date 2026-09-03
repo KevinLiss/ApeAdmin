@@ -1,0 +1,8 @@
+{
+  "name": "dev_example",
+  "display_name": "插件开发示例",
+  "version": "1.0.0",
+  "description": "完整的插件开发示例——包含数据库模型、API 路由、菜单注册、事件订阅、MCP 工具",
+  "author": "ApeAdmin",
+  "dependencies": []
+}
