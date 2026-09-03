@@ -35,6 +35,7 @@ async def seed_initial_data() -> None:
         await _seed_menus(db)
         await _seed_role(db)
         await _seed_developer_role(db)
+        await _seed_viewer_role(db)
         await _seed_super_admin(db)
         await _seed_ai_provider(db)
         await _seed_settings(db)
@@ -450,6 +451,92 @@ async def _seed_developer_role(db: AsyncSession) -> None:
         await db.execute(insert(role_menu), [{"role_id": role.id, "menu_id": menu.id} for menu in missing])
         await db.flush()
     logger.info(f"Developer role ready ({len(apehub_menus)} ApeHub permissions)")
+
+
+# ── 只读角色（viewer）──────────────────────────────────────────────
+# 目标：全局只读——能看到各管理页并调用列表/详情接口，但不能增删改。
+# 实现思路：
+#   1. 绑定全部 C 类（页面）菜单——C 类菜单自带 ``xxx:list`` 读权限，
+#      同时让侧边栏渲染出对应页面入口。
+#   2. 追加个别只读性质的 F 类按钮（如下载文件）。
+#   3. 显式排除：写权限（add/edit/delete/toggle/upload/restart/config 等）、
+#      apehub_web 插件权限（不对官网测试开放）、历史遗留的 ``apehub:*`` 死权限。
+
+# 只读角色额外包含的按钮级权限（除 C 类菜单自带权限外）
+_VIEWER_EXTRA_PERMISSIONS = {"system:file:download"}
+
+# 明确排除的权限前缀/全名（写操作 + 不开放的插件域）
+_VIEWER_EXCLUDED_PREFIXES = ("apehub:", "apehub_web:")
+_VIEWER_EXCLUDED_PERMISSIONS = {"ai:chat:call"}
+# 目录（M 类）无 permission 字段，按名字排除插件所属目录
+_VIEWER_EXCLUDED_DIRECTORIES = {"ApeHub 管理", "Apehub_web"}
+
+
+def _is_viewer_permitted(permission: str | None) -> bool:
+    """判断某权限是否允许授予只读角色。"""
+    if not permission:
+        return False
+    if permission.startswith(_VIEWER_EXCLUDED_PREFIXES):
+        return False
+    if permission in _VIEWER_EXCLUDED_PERMISSIONS:
+        return False
+    return True
+
+
+async def _seed_viewer_role(db: AsyncSession) -> None:
+    """Create or update the global read-only (viewer) role.
+
+    绑定规则（幂等，可重复执行）：
+    - 全部启用的 C 类菜单（页面入口 + ``xxx:list`` 读权限）
+    - 顶层目录（M 类）随之带上，便于侧边栏渲染分组
+    - 仅含只读动作的 F 类按钮（见 ``_VIEWER_EXTRA_PERMISSIONS``）
+    - 排除 apehub / apehub_web 两类插件域，与全部写操作按钮
+    """
+    result = await db.execute(select(Role).where(Role.code == "viewer"))
+    role = result.scalars().first()
+    if role is None:
+        role = Role(
+            name="只读访客",
+            code="viewer",
+            data_scope=1,
+            sort=3,
+            status=1,
+            remark="全局只读角色——仅可查看各管理页与列表数据，用于官网测试连接",
+        )
+        db.add(role)
+        await db.flush()
+
+    all_menus = list((await db.execute(select(Menu))).scalars().all())
+    viewer_menus = [
+        menu
+        for menu in all_menus
+        if menu.status == 1
+        and (
+            # 页面菜单（C 类）——permission 前缀过滤：
+            # apehub:* / apehub_web:* 域全部排除，system:*/ai:*/mcp:*/dev_example:* 的
+            # xxx:list 读权限保留（写权限只存在于 F 类按钮，不会进这个分支）
+            (menu.type == "C" and _is_viewer_permitted(menu.permission))
+            # 顶层目录（M 类）——无 permission，按名字排除插件所属目录
+            or (
+                menu.type == "M"
+                and menu.parent_id == 0
+                and menu.name not in _VIEWER_EXCLUDED_DIRECTORIES
+            )
+            # 只读性质的按钮（F 类，如下载文件）
+            or (
+                menu.type == "F"
+                and menu.permission in _VIEWER_EXTRA_PERMISSIONS
+            )
+        )
+    ]
+
+    bound_result = await db.execute(select(role_menu.c.menu_id).where(role_menu.c.role_id == role.id))
+    bound_ids = set(bound_result.scalars().all())
+    missing = [menu for menu in viewer_menus if menu.id not in bound_ids]
+    if missing:
+        await db.execute(insert(role_menu), [{"role_id": role.id, "menu_id": menu.id} for menu in missing])
+        await db.flush()
+    logger.info(f"Viewer role ready ({len(viewer_menus)} read-only permissions)")
 
 
 async def _seed_super_admin(db: AsyncSession) -> None:

@@ -37,7 +37,9 @@ async def test_enable_disable_reenable_tracks_and_removes_resources():
 
     disabled = await manager.disable_plugin("dev_example", app)
     assert disabled["routes_removed"] == 1
-    assert disabled["mcp_tools_removed"] == 0
+    # dev_example registers 2 MCP tools (list_notes / create_note);
+    # disabling the plugin must unregister them.
+    assert disabled["mcp_tools_removed"] == 2
     assert disabled["events_unsubscribed"] == 1
 
     enabled_again = await manager.enable_plugin("dev_example", app)
