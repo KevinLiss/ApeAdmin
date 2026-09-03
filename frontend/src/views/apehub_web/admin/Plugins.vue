@@ -33,8 +33,8 @@
       <div class="stat-card revenue">
         <div class="stat-icon"><el-icon><Money /></el-icon></div>
         <div class="stat-body">
-          <div class="stat-value">{{ fmtMoney(stats.totalRevenue) }} <small>USDT</small></div>
-          <div class="stat-label">总成交额</div>
+          <div class="stat-value">¥{{ fmtMoney(stats.totalRevenue) }}</div>
+          <div class="stat-label">总成交额（人民币）</div>
         </div>
       </div>
     </div>
@@ -77,7 +77,7 @@
         <el-table-column prop="category" label="分类" width="90" />
         <el-table-column label="价格" width="100">
           <template #default="{ row }">
-            <span v-if="Number(row.price) > 0" class="price-tag">{{ fmtMoney(row.price) }} USDT</span>
+            <span v-if="Number(row.price) > 0" class="price-tag">¥{{ fmtMoney(row.price) }}</span>
             <span v-else class="free-tag">免费</span>
           </template>
         </el-table-column>
@@ -128,7 +128,7 @@
             <p>{{ detail.description || '暂无描述' }}</p>
             <div class="plugin-meta">
               <span><el-icon><User /></el-icon> {{ detail.developer?.username || '-' }}</span>
-              <span><el-icon><PriceTag /></el-icon> {{ Number(detail.price) > 0 ? `${fmtMoney(detail.price)} USDT` : '免费' }}</span>
+              <span><el-icon><PriceTag /></el-icon> {{ Number(detail.price) > 0 ? `¥${fmtMoney(detail.price)}` : '免费' }}</span>
               <span><el-icon><Folder /></el-icon> {{ detail.category }}</span>
               <span>📊 服务费 {{ fmtMoney(detail.service_fee_rate) }}%</span>
             </div>
@@ -140,7 +140,7 @@
         <div class="metrics-bar">
           <div class="metric-item"><span class="metric-val">{{ detail.metrics?.buyer_count || 0 }}</span><span class="metric-lbl">购买人数</span></div>
           <div class="metric-item"><span class="metric-val">{{ detail.metrics?.paid_order_count || 0 }}</span><span class="metric-lbl">成交订单</span></div>
-          <div class="metric-item"><span class="metric-val">{{ fmtMoney(detail.metrics?.paid_amount) }}</span><span class="metric-lbl">成交额 USDT</span></div>
+          <div class="metric-item"><span class="metric-val">¥{{ fmtMoney(detail.metrics?.paid_amount) }}</span><span class="metric-lbl">成交额（人民币）</span></div>
           <div class="metric-item"><span class="metric-val">{{ detail.metrics?.install_users || 0 }}</span><span class="metric-lbl">安装人数</span></div>
         </div>
 
@@ -378,8 +378,9 @@
                 <el-input v-model="editForm.icon" placeholder="图标 URL 或文字" style="flex:1;min-width:200px" />
               </div>
             </el-form-item>
-            <el-form-item label="价格 (USDT)">
+            <el-form-item label="价格 (元)">
               <el-input-number v-model="editForm.price" :min="0" :precision="2" :step="1" />
+              <span class="form-hint" style="margin-left:8px">付费插件最低 3 元；开发者收益按汇率换算为 USDT 结算</span>
             </el-form-item>
             <el-form-item label="服务费率 %">
               <el-input-number v-model="editForm.service_fee_rate" :min="0" :max="100" :precision="2" :step="5" />

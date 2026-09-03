@@ -129,14 +129,21 @@ function applyButtonConfig(plugin) {
     setEnabled(buyBtn, buyCfg.enabled !== false);
     const isFree = Number(plugin.price) <= 0;
     if (buyCfg.enabled !== false) {
-      // 支持 {price} 占位符（自动替换为人民币价格），修复旧配置残留占位符未替换的 bug
+      // 支持 {price} 占位符。替换为纯数字（模板自带货币符号时避免出现 ¥¥ 双符号），
+      // 并兼容旧模板：清理残留 USDT 字样、去重货币符号、缺失时自动补 ¥
       const formatLabel = (template, fallback) => {
-        const text = template || fallback;
-        return String(text).replace(/\{price\}/g, detailPrice(plugin.price));
+        let text = String(template || fallback);
+        text = text.replace(/\s*USDT/gi, '');               // 旧模板残留单位清理
+        text = text.replace(/\{price\}/g, Number(plugin.price || 0).toFixed(2));
+        text = text.replace(/[¥￥]{2,}/g, '¥');              // 双符号去重
+        if (!/[¥￥]/.test(text) && Number(plugin.price) > 0 && /\d/.test(text)) {
+          text = text.replace(/(\d[\d,.]*)/, '¥$1');        // 缺失货币符号时补 ¥
+        }
+        return text;
       };
       const label = isFree
         ? formatLabel(buyCfg.label_free, '免费下载')
-        : formatLabel(buyCfg.label_paid, `🛒 立即购买`);
+        : formatLabel(buyCfg.label_paid, `购买 {price}`);
       buyBtn.textContent = label;
       if (buyCfg.style) buyBtn.className = `btn btn-${buyCfg.style} btn-lg`;
     }

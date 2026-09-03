@@ -1240,6 +1240,7 @@ async def submit_plugin(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ):
+    _validate_plugin_price(body.price)
     prof = await _get_or_create_profile(db, user)
     prof.is_developer = True
     slug = services.gen_slug(body.name)
@@ -1309,6 +1310,8 @@ async def update_my_plugin(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ):
+    if "price" in body.model_fields_set:
+        _validate_plugin_price(body.price)
     plugin = await _owned_plugin(db, plugin_id, user.id)
     payload = body.model_dump(exclude_unset=True)
     if "slug" in payload:
@@ -1842,6 +1845,18 @@ async def generate_version_documentation(
 # Admin review / marketplace management
 # ---------------------------------------------------------------------------
 
+def _validate_plugin_price(price: Decimal) -> None:
+    """定价校验：人民币计价，付费插件最低 ¥3（支付渠道最低限额），免费为 0。"""
+    if price is None:
+        return
+    if price < 0:
+        raise ValidationException("价格不能为负数")
+    if Decimal(price).quantize(Decimal("0.01")) != Decimal(price):
+        raise ValidationException("价格最多支持两位小数")
+    if 0 < price < Decimal("3"):
+        raise ValidationException("付费插件定价最低为 3 元人民币（免费请填 0）")
+
+
 async def _plugin_management_stats(db: AsyncSession, plugin_ids: list[int]) -> dict[int, dict[str, Any]]:
     """Fetch purchase and installation metrics in bulk for management views."""
     if not plugin_ids:
@@ -2349,6 +2364,8 @@ async def admin_update_plugin(
 ):
     """Admin can edit all plugin fields including slug, status, developer."""
     await _require_permission(user, "apehub_web:plugins:review")
+    if "price" in body.model_fields_set and body.price is not None:
+        _validate_plugin_price(body.price)
     plugin = await db.get(ApehubWebPlugin, plugin_id)
     if plugin is None:
         raise NotFoundException("插件不存在")
