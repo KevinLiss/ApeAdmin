@@ -78,3 +78,43 @@ class ChatStreamRequest(BaseModel):
     max_tokens: int = 2000
     temperature: float = 0.7
     enable_tools: bool = True  # 是否启用系统工具调用
+
+
+# ---------------------------------------------------------------------------
+# AI Chat Session (conversation persistence)
+# ---------------------------------------------------------------------------
+
+class SessionCreate(BaseModel):
+    """Create a new chat session."""
+    title: str | None = Field(default=None, max_length=200)
+
+
+class SessionOut(BaseModel):
+    model_config = ORMConfig
+    id: int
+    title: str
+    provider_id: int | None = None
+    model: str | None = None
+    message_count: int
+    created_at: datetime
+    updated_at: datetime
+
+
+class SessionMessageOut(BaseModel):
+    id: int
+    session_id: int
+    role: str
+    content: str
+    tool_events: list[dict] | None = None
+    created_at: datetime
+
+
+class SessionAppendMessage(BaseModel):
+    """Append a message to a session (called by frontend after send/complete)."""
+    role: str = Field(..., pattern="^(user|assistant)$")
+    content: str = ""
+    tool_events: list[dict] | None = None
+
+
+class SessionRename(BaseModel):
+    title: str = Field(..., min_length=1, max_length=200)

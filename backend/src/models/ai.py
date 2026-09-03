@@ -36,3 +36,44 @@ class AiProvider(IDMixin, TimestampMixin, Base):
 
     def __repr__(self) -> str:
         return f"<AiProvider {self.name} ({self.provider_type})>"
+
+
+class ChatSession(IDMixin, TimestampMixin, Base):
+    """AI chat session: a conversation thread owned by a user."""
+
+    __tablename__ = "chat_session"
+
+    user_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True, comment="所属用户ID")
+    title: Mapped[str] = mapped_column(
+        String(200), nullable=False, default="新对话", comment="会话标题(取首条用户消息)"
+    )
+    provider_id: Mapped[Optional[int]] = mapped_column(
+        Integer, nullable=True, comment="最近使用的供应商ID"
+    )
+    model: Mapped[Optional[str]] = mapped_column(
+        String(100), nullable=True, comment="最近使用的模型名"
+    )
+    message_count: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, comment="消息数量"
+    )
+
+    def __repr__(self) -> str:
+        return f"<ChatSession {self.id} user={self.user_id}>"
+
+
+class ChatMessageModel(IDMixin, TimestampMixin, Base):
+    """AI chat message: single user/assistant message in a session."""
+
+    __tablename__ = "chat_message"
+
+    session_id: Mapped[int] = mapped_column(
+        Integer, nullable=False, index=True, comment="所属会话ID"
+    )
+    role: Mapped[str] = mapped_column(String(20), nullable=False, comment="user/assistant")
+    content: Mapped[str] = mapped_column(Text, nullable=False, default="", comment="消息内容")
+    tool_events: Mapped[Optional[str]] = mapped_column(
+        Text, nullable=True, comment="工具调用事件(JSON数组)"
+    )
+
+    def __repr__(self) -> str:
+        return f"<ChatMessage {self.id} session={self.session_id} role={self.role}>"

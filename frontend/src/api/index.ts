@@ -82,6 +82,19 @@ export const testProvider = (id: number) => request.post(`/ai/providers/${id}/te
 // ---- AI 对话 ----
 export const chat = (data: any) => request.post('/ai/chat', data)
 
+// ---- AI 会话持久化 ----
+export const getChatSessions = () => request.get('/ai/sessions')
+export const createChatSession = (title?: string) =>
+  request.post('/ai/sessions', { title: title || null })
+export const getChatSessionMessages = (id: number) => request.get(`/ai/sessions/${id}`)
+export const renameChatSession = (id: number, title: string) =>
+  request.put(`/ai/sessions/${id}`, { title })
+export const deleteChatSession = (id: number) => request.delete(`/ai/sessions/${id}`)
+export const appendChatMessage = (
+  id: number,
+  data: { role: string; content: string; tool_events?: any[] | null }
+) => request.post(`/ai/sessions/${id}/messages`, data)
+
 // ---- 系统日志 ----
 export const getLogs = (params: any = {}) => request.get('/logs', { params })
 export const getLogDetail = (id: number) => request.get(`/logs/${id}`)

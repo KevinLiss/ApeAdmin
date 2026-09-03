@@ -11,6 +11,7 @@ from src.api.role import router as role_router
 from src.api.user import router as user_router
 from src.api.ai_provider import router as ai_provider_router
 from src.api.chat import router as chat_router
+from src.api.chat_session import router as chat_session_router
 from src.api.plugin import router as plugin_router
 from src.api.dashboard import router as dashboard_router
 from src.api.log import router as log_router
@@ -41,6 +42,7 @@ api_router.include_router(menu_router)
 api_router.include_router(dept_router)
 api_router.include_router(ai_provider_router)
 api_router.include_router(chat_router)
+api_router.include_router(chat_session_router)
 api_router.include_router(plugin_router)
 api_router.include_router(dashboard_router)
 api_router.include_router(log_router)

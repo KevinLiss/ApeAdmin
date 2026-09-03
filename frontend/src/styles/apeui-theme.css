@@ -5,8 +5,7 @@
 
 :root {
   /* ApeAdmin 主色 #5A67F5 */
-  --el-color-primary: #5A67F5;
-  --el-color-primary-light-3: #7F8AF8;
+  --el-color-primary: #5A67F5;  --el-color-primary-light-3: #7F8AF8;
   --el-color-primary-light-5: #A5ACFA;
   --el-color-primary-light-7: #C9CDFC;
   --el-color-primary-light-8: #DBDFFD;
@@ -80,6 +79,14 @@
   --apeui-grad-2: #47A8FF;   /* 青蓝 */
   --apeui-grad-3: #7A5BFF;   /* 亮蓝紫 */
   --apeui-grad-4: #47D8FF;   /* 亮青蓝 */
+
+  /* 全局布局变量（浅色） */
+  --theme-body-bg: #eff3f9;
+  --theme-card-bg: #ffffff;
+  --theme-border: #e9edf3;
+  --theme-text: #2b2b2b;
+  --theme-text-secondary: #5a6273;
+  --theme-text-muted: #909399;
 }
 
 /* Logo 渐变背景工具类 */

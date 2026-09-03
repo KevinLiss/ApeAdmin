@@ -2,7 +2,7 @@
 
 from src.models.mixins import IDMixin, SoftDeleteMixin, TimestampMixin
 from src.models.rbac import Dept, Menu, Role, User, role_menu, user_role
-from src.models.ai import AiProvider
+from src.models.ai import AiProvider, ChatMessageModel, ChatSession
 from src.models.plugin import Plugin
 from src.models.mcp import McpAuditLog
 from src.models.mcp_tool import McpToolRegistration
@@ -21,6 +21,8 @@ __all__ = [
     "user_role",
     "role_menu",
     "AiProvider",
+    "ChatSession",
+    "ChatMessageModel",
     "Plugin",
     "McpAuditLog",
     "McpToolRegistration",

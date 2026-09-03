@@ -15,6 +15,7 @@
     "@fullcalendar/interaction": "^6.1.21",
     "@fullcalendar/vue3": "^7.0.2",
     "axios": "^1.7.9",
+    "dompurify": "^3.4.14",
     "echarts": "^5.6.0",
     "element-plus": "^2.9.0",
     "marked": "^18.0.10",
@@ -27,6 +28,7 @@
     "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
+    "@types/prismjs": "^1.26.6",
     "@types/sortablejs": "^1.15.9",
     "@vitejs/plugin-vue": "^5.2.1",
     "typescript": "^5.7.2",

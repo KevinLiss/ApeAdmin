@@ -66,7 +66,7 @@
                   <p><span class="dot" :style="{ background: n.color }"></span>{{ n.text }}<em>{{ n.time }}</em></p>
                 </li>
               </ul>
-              <a class="check-all">查看全部通知</a>
+              <a class="check-all" @click="viewAllNotifications">查看全部通知</a>
             </div>
           </li>
 
@@ -166,6 +166,11 @@ const notifications = [
   { text: '新用户注册', time: '3 小时', color: '#E6A23C' },
   { text: '数据库备份完成', time: '6 小时', color: '#F56C6C' },
 ]
+
+function viewAllNotifications() {
+  notifVisible.value = false
+  ElMessage.info('通知中心开发中，敬请期待')
+}
 
 const avatarText = computed(() => (userStore.nickname || userStore.username || 'A').charAt(0).toUpperCase())
 const profileText = computed(() => userStore.roles?.[0] || 'Admin')
