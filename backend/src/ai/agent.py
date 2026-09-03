@@ -89,7 +89,10 @@ async def _call_llm(
     url = f"{base_url.rstrip('/')}/chat/completions"
     async with httpx.AsyncClient(timeout=120.0) as client:
         resp = await client.post(url, headers=headers, json=body)
-        resp.raise_for_status()
+        if resp.status_code >= 400:
+            error_body = resp.text
+            logger.error(f"LLM API 调用失败 [{resp.status_code}] {url}: {error_body[:500]}")
+            raise RuntimeError(f"模型接口返回 {resp.status_code}: {error_body[:300]}")
         return resp.json()
 
 
@@ -121,7 +124,10 @@ async def _call_llm_stream(
     url = f"{base_url.rstrip('/')}/chat/completions"
     async with httpx.AsyncClient(timeout=120.0) as client:
         async with client.stream("POST", url, headers=headers, json=body) as resp:
-            resp.raise_for_status()
+            if resp.status_code >= 400:
+                error_body = (await resp.aread()).decode("utf-8", errors="replace")
+                logger.error(f"LLM API 流式调用失败 [{resp.status_code}] {url}: {error_body[:500]}")
+                raise RuntimeError(f"模型接口返回 {resp.status_code}: {error_body[:300]}")
             async for line in resp.aiter_lines():
                 if line.startswith("data: "):
                     chunk = line[6:]
@@ -266,7 +272,9 @@ async def chat_stream(
                 for tc in delta["tool_calls"]:
                     idx = tc.get("index", 0)
                     while len(collected_tool_calls) <= idx:
-                        collected_tool_calls.append({"id": "", "function": {"name": "", "arguments": ""}})
+                        collected_tool_calls.append(
+                            {"id": "", "type": "function", "function": {"name": "", "arguments": ""}}
+                        )
                     if tc.get("id"):
                         collected_tool_calls[idx]["id"] = tc["id"]
                     if tc.get("function", {}).get("name"):
@@ -279,10 +287,20 @@ async def chat_stream(
             yield json.dumps({"type": "done"}, ensure_ascii=False)
             return
 
+        # Normalize collected tool calls for the next-round request:
+        # - "type": "function" is REQUIRED by OpenAI-compatible APIs (DeepSeek returns 400 without it)
+        # - fallback id / arguments to avoid empty values being rejected
+        for idx, tc in enumerate(collected_tool_calls):
+            if not tc.get("id"):
+                tc["id"] = f"call_{round_num}_{idx}"
+            tc["type"] = "function"
+            if not tc["function"].get("arguments"):
+                tc["function"]["arguments"] = "{}"
+
         # Execute tool calls
         llm_messages.append({
             "role": "assistant",
-            "content": collected_content,
+            "content": collected_content or None,
             "tool_calls": collected_tool_calls,
         })
 
