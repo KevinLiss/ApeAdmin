@@ -174,6 +174,8 @@ class ApehubWebSiteConfig(ApehubWebBase):
     # Service fee (platform cut, percent)
     service_fee_rate: Mapped[Decimal] = mapped_column(Numeric(8, 4), default=Decimal("30"))
     currency: Mapped[str] = mapped_column(String(8), default="USDT")
+    # CNY/USDT exchange rate used to convert CNY order revenue into USDT developer income
+    usdt_cny_rate: Mapped[Decimal] = mapped_column(Numeric(20, 8), default=Decimal("7.2"))
     settlement_days: Mapped[int] = mapped_column(Integer, default=7)
     refund_days: Mapped[int] = mapped_column(Integer, default=7)
     min_withdrawal: Mapped[Decimal] = mapped_column(Numeric(20, 8), default=Decimal("100"))
@@ -467,7 +469,11 @@ class ApehubWebOrder(ApehubWebBase):
     amount: Mapped[Decimal] = mapped_column(Numeric(20, 8), default=Decimal("0"))
     service_fee: Mapped[Decimal] = mapped_column(Numeric(20, 8), default=Decimal("0"))
     developer_income: Mapped[Decimal] = mapped_column(Numeric(20, 8), default=Decimal("0"))
+    # Developer income recorded in USDT (CNY order amount split then converted via usdt_cny_rate)
+    developer_income_usdt: Mapped[Decimal] = mapped_column(Numeric(20, 8), default=Decimal("0"))
     currency: Mapped[str] = mapped_column(String(8), default="USDT")
+    # Actual payment channel used at order creation: alipay / wxpay / usdt
+    pay_type: Mapped[str] = mapped_column(String(16), default="")
     status: Mapped[OrderStatus] = mapped_column(Enum(OrderStatus), default=OrderStatus.PENDING)
     lepay_trade_no: Mapped[str] = mapped_column(String(64), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

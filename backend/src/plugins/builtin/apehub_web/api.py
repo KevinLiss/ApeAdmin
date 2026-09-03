@@ -15,7 +15,7 @@ import secrets
 import uuid
 import zipfile
 from datetime import datetime, timedelta
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 from typing import Annotated, Any
 
@@ -248,6 +248,7 @@ def _payment_config(cfg: ApehubWebSiteConfig) -> dict[str, Any]:
         "lempay_notify_url": cfg.lempay_notify_url,
         "lempay_return_url": cfg.lempay_return_url,
         "lempay_payment_type": cfg.lempay_payment_type,
+        "usdt_cny_rate": Decimal(cfg.usdt_cny_rate or "7.2"),
     }
 
 
@@ -467,7 +468,7 @@ def _plugin_summary(p: ApehubWebPlugin, with_demos: bool = False) -> dict[str, A
         "tags": p.tags,
         "icon": p.icon,
         "price": _money(p.price),
-        "currency": "USDT",
+        "currency": "CNY",
         "service_fee_rate": _money(p.service_fee_rate),
         "status": p.status.value,
         "download_count": p.download_count,
@@ -526,6 +527,7 @@ async def public_site_config(db: Annotated[AsyncSession, Depends(get_db)]):
         "theme_mode": cfg.theme_mode or "light",
         "service_fee_rate": cfg.service_fee_rate,
         "currency": cfg.currency,
+        "usdt_cny_rate": cfg.usdt_cny_rate,
         "refund_days": cfg.refund_days,
         "min_withdrawal": cfg.min_withdrawal,
         "withdrawal_fee_type": cfg.withdrawal_fee_type,
@@ -694,6 +696,7 @@ async def get_site_config(
         "theme_mode": cfg.theme_mode or "light",
         "service_fee_rate": cfg.service_fee_rate,
         "currency": cfg.currency,
+        "usdt_cny_rate": cfg.usdt_cny_rate,
         "settlement_days": cfg.settlement_days,
         "refund_days": cfg.refund_days,
         "min_withdrawal": cfg.min_withdrawal,
@@ -2615,14 +2618,22 @@ async def create_order(
         raise NotFoundException("插件不存在或未上架")
     if plugin.price <= 0:
         raise ValidationException("免费插件无需购买")
+    # 人民币计价：付费插件最低 ¥3（支付渠道最低限额）
+    if plugin.price < Decimal("3"):
+        raise ValidationException("付费插件定价最低为 3 元人民币")
     payment_amount = Decimal(plugin.price).quantize(Decimal("0.01"))
     if payment_amount != Decimal(plugin.price):
-        raise ValidationException("LemPay 支付金额最多支持两位小数，请联系管理员调整定价")
+        raise ValidationException("支付金额最多支持两位小数，请联系管理员调整定价")
 
     cfg = await _get_site_config(db)
     payment_cfg = _payment_config(cfg)
     if not payment_cfg["lempay_pid"] or not payment_cfg["lempay_key"] or not payment_cfg["lempay_submit_url"]:
         raise ValidationException("支付通道尚未配置完成")
+
+    # 支付渠道：用户选择优先，否则使用后台配置的默认通道
+    pay_type = body.channel or cfg.lempay_payment_type or "usdt"
+    if pay_type not in ("alipay", "wxpay", "usdt"):
+        raise ValidationException("不支持的支付方式")
 
     entitlement = await db.execute(select(ApehubWebPurchaseEntitlement).where(
         ApehubWebPurchaseEntitlement.user_id == user.id,
@@ -2632,7 +2643,12 @@ async def create_order(
     if entitlement.scalar_one_or_none():
         raise ConflictException("您已购买该插件")
 
+    # 分账：金额人民币，平台手续费人民币；开发者收益按汇率折算为 USDT 记账
     dev_income, fee = services.calc_split(plugin.price, plugin.service_fee_rate)
+    rate = payment_cfg["usdt_cny_rate"]
+    if rate <= 0:
+        raise ValidationException("USDT 汇率配置异常，请联系管理员")
+    dev_income_usdt = (dev_income / rate).quantize(Decimal("0.00000001"), rounding=ROUND_HALF_UP)
     order = ApehubWebOrder(
         order_no=services.gen_order_no(),
         user_id=user.id,
@@ -2640,18 +2656,30 @@ async def create_order(
         amount=plugin.price,
         service_fee=fee,
         developer_income=dev_income,
-        currency="USDT",
+        developer_income_usdt=dev_income_usdt,
+        currency="CNY",
+        pay_type=pay_type,
     )
     db.add(order)
     await db.commit()
     await db.refresh(order)
 
+    # 提交给 LemPay 的金额：
+    # - alipay/wxpay 通道提交人民币金额（CNY）
+    # - usdt 通道提交按汇率换算后的 USDT 金额
+    if pay_type == "usdt":
+        submit_money = (payment_amount / rate).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        order_currency = "USDT"
+    else:
+        submit_money = payment_amount
+        order_currency = "CNY"
+
     submit_url = services.build_lepay_submit_url(
         payment_cfg,
         {
-            "type": cfg.lempay_payment_type or "usdt",
+            "type": pay_type,
             "name": _lempay_product_name(plugin.display_name),
-            "money": format(payment_amount, ".2f"),
+            "money": format(submit_money, ".2f"),
             "out_trade_no": order.order_no,
             "notify_url": cfg.lempay_notify_url or "",
             "return_url": cfg.lempay_return_url or "",
@@ -2662,7 +2690,10 @@ async def create_order(
             "id": order.id,
             "order_no": order.order_no,
             "amount": _money(order.amount),
-            "currency": "USDT",
+            "currency": "CNY",
+            "pay_type": pay_type,
+            "submit_amount": format(submit_money, ".2f"),
+            "submit_currency": order_currency,
             "status": order.status.value,
         },
         "pay_url": submit_url,
@@ -2703,13 +2734,25 @@ async def lepay_notify(
         return PlainTextResponse("fail", status_code=400)
     if str(params.get("pid") or "") != str(cfg.lempay_pid):
         return PlainTextResponse("fail", status_code=400)
-    if params.get("type") != "usdt":
+    # 渠道校验：回调 type 必须与订单创建时使用的渠道一致（修复硬编码 usdt 的 bug）
+    notified_type = params.get("type") or ""
+    order_pay_type = order.pay_type or cfg.lempay_payment_type or "usdt"
+    if notified_type not in ("alipay", "wxpay", "usdt") or notified_type != order_pay_type:
         return PlainTextResponse("fail", status_code=400)
     try:
         notified_amount = Decimal(params.get("money") or "-1").quantize(Decimal("0.01"))
     except Exception:
         return PlainTextResponse("fail", status_code=400)
-    if notified_amount != Decimal(order.amount).quantize(Decimal("0.01")):
+    # 金额校验：
+    # - 人民币订单（alipay/wxpay）：回调金额 == 订单人民币金额
+    # - USDT 订单：回调金额 == 人民币金额按汇率换算后的 USDT 金额
+    if order_pay_type == "usdt":
+        expected_amount = (
+            Decimal(order.amount) / Decimal(cfg.usdt_cny_rate or "7.2")
+        ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    else:
+        expected_amount = Decimal(order.amount).quantize(Decimal("0.01"))
+    if notified_amount != expected_amount:
         return PlainTextResponse("fail", status_code=400)
     plugin = await db.get(ApehubWebPlugin, order.plugin_id)
     if plugin is None or params.get("name") != _lempay_product_name(plugin.display_name):
@@ -2766,7 +2809,7 @@ async def lepay_notify(
             order_id=order.id,
             user_id=plugin.developer_id,
             plugin_id=plugin.id,
-            amount=order.developer_income,
+            amount=order.developer_income_usdt,
             rate=plugin.service_fee_rate,
             available_at=available_at,
             status="pending",
@@ -2784,7 +2827,7 @@ async def lepay_notify(
             user_id=plugin.developer_id,
             order_id=order.id,
             entry_type="sale_income",
-            amount=order.developer_income,
+            amount=order.developer_income_usdt,
             status="pending",
             available_at=available_at,
             note=f"插件销售：{plugin.display_name}",
@@ -2810,11 +2853,18 @@ async def refund_order(
     if datetime.utcnow() > order.paid_at + timedelta(days=cfg.refund_days):
         raise ConflictException("该订单已超过退款期限")
     try:
+        # USDT 订单退款按汇率换算回 USDT 金额
+        if order.pay_type == "usdt":
+            refund_money = (
+                Decimal(order.amount) / Decimal(cfg.usdt_cny_rate or "7.2")
+            ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        else:
+            refund_money = Decimal(order.amount)
         await services.request_lepay_refund(
             _payment_config(cfg),
             trade_no=order.lepay_trade_no,
             out_trade_no=order.order_no,
-            money=Decimal(order.amount),
+            money=refund_money,
         )
     except Exception as exc:
         raise ValidationException(f"退款提交失败：{str(exc)[:200]}") from exc
@@ -2883,7 +2933,8 @@ async def my_orders(
         items.append({
             "id": o.id, "order_no": o.order_no, "plugin_id": o.plugin_id,
             "plugin_name": plugin.display_name if plugin else "",
-            "amount": o.amount, "status": o.status.value, "created_at": o.created_at.isoformat() if o.created_at else None,
+            "amount": o.amount, "currency": o.currency or "CNY", "pay_type": o.pay_type or "",
+            "status": o.status.value, "created_at": o.created_at.isoformat() if o.created_at else None,
         })
     return success_response(data=items)
 
@@ -3602,8 +3653,11 @@ async def admin_orders(
                 "plugin_id": order.plugin_id,
                 "plugin_name": plugin.display_name if plugin else "",
                 "amount": order.amount,
+                "currency": order.currency or "CNY",
+                "pay_type": order.pay_type or "",
                 "service_fee": order.service_fee,
                 "developer_income": order.developer_income,
+                "developer_income_usdt": order.developer_income_usdt,
                 "status": order.status.value,
                 "created_at": order.created_at.isoformat() if order.created_at else None,
                 "paid_at": order.paid_at.isoformat() if order.paid_at else None,

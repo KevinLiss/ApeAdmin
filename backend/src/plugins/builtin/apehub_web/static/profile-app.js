@@ -97,7 +97,7 @@ function renderProfile() {
 function renderPurchased(items) {
   $('#purchasedBody').innerHTML = items.length ? items.map(item => {
     const files = (item.files || []).map(file => `<button class="btn btn-small" data-download="${file.id}" data-name="${esc(file.filename)}">${esc(file.version || item.version)} 下载</button>`).join(' ');
-    return `<tr><td><strong>${esc(item.display_name)}</strong><br><span class="muted">${esc(item.name)}</span></td><td>${esc(item.version)}</td><td>${money(item.price)} USDT</td><td><span class="status paid">永久授权</span></td><td>${files || '-'}</td></tr>`;
+    return `<tr><td><strong>${esc(item.display_name)}</strong><br><span class="muted">${esc(item.name)}</span></td><td>${esc(item.version)}</td><td>¥${money(item.price)}</td><td><span class="status paid">永久授权</span></td><td>${files || '-'}</td></tr>`;
   }).join('') : '<tr><td colspan="5" class="empty">暂无已购插件</td></tr>';
   $$('[data-download]').forEach(button => button.addEventListener('click', () => downloadFile(button.dataset.download, button.dataset.name)));
 }
@@ -114,7 +114,7 @@ async function downloadFile(id, filename) {
 
 /* ========== Developer Plugin List ========== */
 function renderPlugins() {
-  $('#pluginList').innerHTML = state.plugins.length ? state.plugins.map(plugin => `<button class="plugin-row${state.selectedPlugin?.id === plugin.id ? ' active' : ''}" data-plugin="${plugin.id}"><strong>${esc(plugin.display_name)}</strong><span>${esc(plugin.version)} · ${statusText(plugin.status)} · ${money(plugin.price)} USDT</span></button>`).join('') : '<div class="empty">还没有插件草稿<br><span class="muted" style="font-size:12px">点击右上角发布新插件</span></div>';
+  $('#pluginList').innerHTML = state.plugins.length ? state.plugins.map(plugin => `<button class="plugin-row${state.selectedPlugin?.id === plugin.id ? ' active' : ''}" data-plugin="${plugin.id}"><strong>${esc(plugin.display_name)}</strong><span>${esc(plugin.version)} · ${statusText(plugin.status)} · ¥${money(plugin.price)}</span></button>`).join('') : '<div class="empty">还没有插件草稿<br><span class="muted" style="font-size:12px">点击右上角发布新插件</span></div>';
   $$('[data-plugin]').forEach(button => button.addEventListener('click', () => selectPlugin(Number(button.dataset.plugin))));
 }
 
@@ -138,14 +138,14 @@ function renderWorkbench() {
   root.innerHTML = `
     <div class="plugin-meta">
       <img src="${esc(logoUrl)}" alt="${esc(plugin.display_name)}">
-      <div><h2>${esc(plugin.display_name)}</h2><p>${esc(plugin.name)} · ${money(plugin.price)} USDT · ${statusText(plugin.status)}</p></div>
+      <div><h2>${esc(plugin.display_name)}</h2><p>${esc(plugin.name)} · ¥${money(plugin.price)} · ${statusText(plugin.status)}</p></div>
     </div>
     <div class="block">
       <h3>基本信息</h3>
       <div class="info-grid">
         <div class="field"><label>插件标题</label><input id="editDisplayName" value="${esc(plugin.display_name)}"></div>
         <div class="field"><label>插件标识</label><input id="editName" value="${esc(plugin.name)}"><div class="field-hint">小写字母+下划线</div></div>
-        <div class="field"><label>售价 (USDT)</label><input id="editPrice" type="number" min="0" step="0.01" value="${money(plugin.price)}"><div class="field-hint">填 0 表示免费</div></div>
+        <div class="field"><label>售价 (元)</label><input id="editPrice" type="number" min="0" step="0.01" value="${money(plugin.price)}"><div class="field-hint">填 0 表示免费，付费最低 3 元</div></div>
         <div class="field"><label>分类</label><select id="editCategory"><option ${plugin.category === '工具' ? 'selected' : ''}>工具</option><option ${plugin.category === 'AI' ? 'selected' : ''}>AI</option><option ${plugin.category === '电商' ? 'selected' : ''}>电商</option><option ${plugin.category === '仪表盘' ? 'selected' : ''}>仪表盘</option><option ${plugin.category === '系统增强' ? 'selected' : ''}>系统增强</option></select></div>
         <div class="field"><label>标签</label><input id="editTags" value="${esc(plugin.tags)}"><div class="field-hint">逗号分隔</div></div>
         <div class="field full"><label>插件介绍</label><textarea id="editDescription" style="min-height:100px">${esc(plugin.description || '')}</textarea></div>

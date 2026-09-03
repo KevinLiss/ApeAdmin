@@ -1,7 +1,7 @@
 const marketState = { category: 'all', keyword: '', page: 1, pageSize: 18, total: 0, items: [] };
 const marketEsc = value => String(value ?? '').replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[char]));
 const marketIsImage = value => /^(?:https?:\/\/|\/|data:image\/)/i.test(String(value || '').trim());
-const marketPrice = value => Number(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const marketPrice = value => `¥${Number(value || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 function categoryKey(value) {
   const text = String(value || '').toLowerCase();
@@ -40,7 +40,7 @@ function renderMarket() {
         <div class="p-head"><div class="p-icon" style="background:rgba(52,211,153,.12)">${icon}</div><div><div class="p-name">${marketEsc(item.display_name)}</div><div class="p-ver">v${marketEsc(item.version)}</div></div></div>
         <div class="p-desc">${marketEsc(item.description || '暂无介绍')}</div>
         <div class="p-tags">${tags.map(tag => `<span class="p-tag">${marketEsc(tag)}</span>`).join('')}</div>
-        <div class="p-meta"><div class="p-stats"><span>安装 ${Number(item.install_count || 0).toLocaleString()}</span><span>下载 ${Number(item.download_count || 0).toLocaleString()}</span></div><div class="p-actions"><button class="install-btn">${Number(item.price) > 0 ? `${marketPrice(item.price)} USDT` : '免费'}</button></div></div>
+        <div class="p-meta"><div class="p-stats"><span>安装 ${Number(item.install_count || 0).toLocaleString()}</span><span>下载 ${Number(item.download_count || 0).toLocaleString()}</span></div><div class="p-actions"><button class="install-btn">${Number(item.price) > 0 ? `${marketPrice(item.price)}` : '免费'}</button></div></div>
       </article>`;
     }).join('');
     grid.querySelectorAll('[data-id]').forEach(card => card.addEventListener('click', () => location.href = `/apehub-web/plugin-detail.html?id=${card.dataset.id}`));

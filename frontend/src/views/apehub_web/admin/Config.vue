@@ -60,8 +60,16 @@
         <el-alert :title="form.lempay_configured ? 'LemPay 密钥已配置' : 'LemPay 密钥尚未配置'" :type="form.lempay_configured ? 'success' : 'warning'" :closable="false" show-icon class="asset-tip" />
         <el-form :model="form" label-width="140px" class="form-wide" v-loading="loading">
           <div class="form-grid">
-            <el-form-item label="计价币种"><el-input model-value="USDT" disabled /></el-form-item>
-            <el-form-item label="支付方式"><el-input model-value="USDT" disabled /></el-form-item>
+            <el-form-item label="计价币种"><el-input model-value="CNY (人民币)" disabled /><div class="field-tip">插件定价以人民币计价，最低 ¥3</div></el-form-item>
+            <el-form-item label="默认支付方式">
+              <el-select v-model="form.lempay_payment_type" placeholder="选择默认支付方式">
+                <el-option label="支付宝" value="alipay" />
+                <el-option label="微信支付" value="wxpay" />
+                <el-option label="USDT" value="usdt" />
+              </el-select>
+              <div class="field-tip">用户可在购买时自选支付方式，此项为默认值</div>
+            </el-form-item>
+            <el-form-item label="USDT 汇率"><el-input-number v-model="form.usdt_cny_rate" :precision="2" :min="0.01" :step="0.1" controls-position="right" /><span class="field-tip">1 USDT = X 元人民币，用于将人民币订单收益换算为 USDT 开发者收入</span></el-form-item>
             <el-form-item label="商户 ID"><el-input-number v-model="form.lempay_pid" :min="0" controls-position="right" /></el-form-item>
             <el-form-item label="商户密钥"><el-input v-model="form.lempay_key" type="password" show-password :placeholder="form.lempay_configured ? '已配置，留空保持不变' : '请输入商户密钥'" /></el-form-item>
             <el-form-item label="支付提交地址"><el-input v-model="form.lempay_submit_url" placeholder="https://.../submit.php" /></el-form-item>
@@ -274,7 +282,7 @@ const AssetField = defineComponent({
 
 const activeTab = ref('basic'); const loading = ref(false); const saving = ref(false)
 const navLoading = ref(false); const navSaving = ref(false); const navigation = ref<any[]>([]); const navDialog = ref(false); const hero = ref<any>(null)
-const form = ref<any>({ site_name: '', site_logo: '/apehub-web/assets/logo.png', site_icon: '/apehub-web/assets/logo.png', site_domain: '', site_prefix: '/apehub-web', seo_title: '', seo_description: '', seo_keywords: '', theme_mode: 'light', service_fee_rate: 30, mail_user: '', mail_code: '', mail_host: 'smtp.qq.com', mail_port: 465, lempay_pid: 0, lempay_key: '', lempay_submit_url: '', lempay_api_url: '', lempay_notify_url: '', lempay_return_url: '', lempay_payment_type: 'usdt', deepseek_api_key: '', deepseek_base_url: 'https://api.deepseek.com', deepseek_model: 'deepseek-chat', ai_provider: 'deepseek', qwen_api_key: '', qwen_base_url: 'https://dashscope.aliyuncs.com/compatible-mode/v1', qwen_model: 'qwen3.7-plus', settlement_days: 7, refund_days: 7, min_withdrawal: 100, withdrawal_fee_type: 'fixed', withdrawal_fee_value: 0 })
+const form = ref<any>({ site_name: '', site_logo: '/apehub-web/assets/logo.png', site_icon: '/apehub-web/assets/logo.png', site_domain: '', site_prefix: '/apehub-web', seo_title: '', seo_description: '', seo_keywords: '', theme_mode: 'light', service_fee_rate: 30, mail_user: '', mail_code: '', mail_host: 'smtp.qq.com', mail_port: 465, lempay_pid: 0, lempay_key: '', lempay_submit_url: '', lempay_api_url: '', lempay_notify_url: '', lempay_return_url: '', lempay_payment_type: 'alipay', usdt_cny_rate: 7.2, deepseek_api_key: '', deepseek_base_url: 'https://api.deepseek.com', deepseek_model: 'deepseek-chat', ai_provider: 'deepseek', qwen_api_key: '', qwen_base_url: 'https://dashscope.aliyuncs.com/compatible-mode/v1', qwen_model: 'qwen3.7-plus', settlement_days: 7, refund_days: 7, min_withdrawal: 100, withdrawal_fee_type: 'fixed', withdrawal_fee_value: 0 })
 
 /* ---------------- 插件详情页配置 ---------------- */
 const defaultDetailConfig = () => ({

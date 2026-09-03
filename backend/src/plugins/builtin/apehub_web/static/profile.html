@@ -144,7 +144,7 @@
       <div class="field"><label>插件标识</label><input name="name" required minlength="2" placeholder="my_plugin"><div class="field-hint">小写字母+下划线，唯一标识</div></div>
       <div class="field"><label>插件标题</label><input name="display_name" required minlength="2" placeholder="My Plugin"></div>
       <div class="field"><label>首个版本号</label><input name="version" value="1.0.0" required><div class="field-hint">遵循 SemVer 规范</div></div>
-      <div class="field"><label>期望售价 (USDT)</label><input name="price" type="number" min="0" step="0.01" value="0" required><div class="field-hint">填 0 表示免费</div></div>
+      <div class="field"><label>期望售价 (元)</label><input name="price" type="number" min="0" step="0.01" value="0" required><div class="field-hint">填 0 表示免费，付费最低 3 元</div></div>
       <div class="field"><label>分类</label><select name="category"><option>工具</option><option>AI</option><option>电商</option><option>仪表盘</option><option>系统增强</option></select></div>
       <div class="field"><label>标签</label><input name="tags" placeholder="FastAPI,ApeAdmin"><div class="field-hint">逗号分隔，便于搜索</div></div>
       <div class="field full"><label>插件介绍</label><textarea name="description" required placeholder="描述插件功能、使用场景和核心特性..."></textarea></div>

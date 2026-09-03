@@ -4,7 +4,7 @@ from sqlalchemy import inspect, text
 
 from src.db.engine import Base, engine
 
-SCHEMA_VERSION = 14
+SCHEMA_VERSION = 15
 VERSION_TABLE = "apehub_web_schema_version"
 
 
@@ -124,3 +124,9 @@ async def apply_migrations() -> None:
             await upgrade_add_releases(connection)
             await connection.execute(text(f"INSERT INTO {VERSION_TABLE} (version) VALUES (14)"))
             current = 14
+        if current < 15:
+            from .v0015_cny_pricing import upgrade_cny_pricing
+
+            await upgrade_cny_pricing(connection)
+            await connection.execute(text(f"INSERT INTO {VERSION_TABLE} (version) VALUES (15)"))
+            current = 15

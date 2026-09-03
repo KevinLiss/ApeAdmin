@@ -76,7 +76,7 @@ def _default_plugin_detail_config() -> dict:
             },
             "buy": {
                 "label_free": "免费下载",
-                "label_paid": "购买 {price} USDT",
+                "label_paid": "购买 ¥{price}",
                 "enabled": True,
                 "style": "primary",
             },
@@ -117,10 +117,21 @@ async def seed_apehub_web_data() -> None:
                 mail_host="smtp.qq.com",
                 mail_port=465,
                 service_fee_rate=30.0,
+                currency="CNY",
+                usdt_cny_rate=7.2,
                 theme_mode="light",
                 plugin_detail_config=_default_plugin_detail_config(),
             ))
             logger.info("apehub_web: site_config seeded")
+        else:
+            # 确保旧数据迁移到 CNY 计价（已有行时更新 currency 和 usdt_cny_rate）
+            from sqlalchemy import update
+            await db.execute(
+                update(ApehubWebSiteConfig)
+                .values(currency="CNY", usdt_cny_rate=7.2)
+                .where(ApehubWebSiteConfig.currency != "CNY")
+            )
+            logger.info("apehub_web: site_config currency updated to CNY")
 
         # ---- Site content blocks ----
         content_count = (await db.execute(select(func.count()).select_from(ApehubWebSiteContent))).scalar() or 0

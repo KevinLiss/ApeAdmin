@@ -47,6 +47,7 @@ class SiteConfigIn(BaseModel):
     plugin_detail_config: dict[str, Any] | None = None
     theme_mode: str | None = Field(default=None, pattern="^(light|dark)$")
     service_fee_rate: Decimal | None = Field(default=None, ge=0, le=100)
+    usdt_cny_rate: Decimal | None = Field(default=None, gt=0)
     settlement_days: int | None = Field(default=None, ge=0, le=365)
     refund_days: int | None = Field(default=None, ge=0, le=365)
     min_withdrawal: Decimal | None = Field(default=None, ge=0)
@@ -227,6 +228,8 @@ class PluginOut(ORMModel):
 
 class PurchaseIn(BaseModel):
     plugin_id: int
+    # 用户选择的支付渠道：alipay / wxpay / usdt，缺省由后台 lempay_payment_type 决定
+    channel: str | None = Field(default=None, pattern="^(alipay|wxpay|usdt)$")
 
 
 class RefundIn(BaseModel):

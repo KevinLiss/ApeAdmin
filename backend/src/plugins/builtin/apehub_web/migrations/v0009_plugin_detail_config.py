@@ -62,7 +62,7 @@ def _default_config() -> dict:
             "demo": {"label": "🖥 立即体验", "enabled": True, "style": "ghost"},
             "buy": {
                 "label_free": "免费下载",
-                "label_paid": "🛒 立即购买",
+                "label_paid": "购买 ¥{price}",
                 "enabled": True,
                 "style": "primary",
             },

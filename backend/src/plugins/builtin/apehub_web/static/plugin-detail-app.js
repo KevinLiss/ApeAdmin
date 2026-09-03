@@ -8,7 +8,7 @@
 const detailEsc = value => String(value ?? '').replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[char]));
 const detailToken = () => localStorage.getItem('access_token') || '';
 const detailIsImage = value => /^(?:https?:\/\/|\/|data:image\/)/i.test(String(value || '').trim());
-const detailPrice = value => Number(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const detailPrice = value => `¥${Number(value || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 let currentPlugin = null;
 let pageConfig = {};            // raw plugin_detail_config from /site/public/config
@@ -129,9 +129,14 @@ function applyButtonConfig(plugin) {
     setEnabled(buyBtn, buyCfg.enabled !== false);
     const isFree = Number(plugin.price) <= 0;
     if (buyCfg.enabled !== false) {
+      // 支持 {price} 占位符（自动替换为人民币价格），修复旧配置残留占位符未替换的 bug
+      const formatLabel = (template, fallback) => {
+        const text = template || fallback;
+        return String(text).replace(/\{price\}/g, detailPrice(plugin.price));
+      };
       const label = isFree
-        ? (buyCfg.label_free || '免费下载')
-        : (buyCfg.label_paid || `🛒 立即购买`);
+        ? formatLabel(buyCfg.label_free, '免费下载')
+        : formatLabel(buyCfg.label_paid, `🛒 立即购买`);
       buyBtn.textContent = label;
       if (buyCfg.style) buyBtn.className = `btn btn-${buyCfg.style} btn-lg`;
     }
@@ -224,15 +229,19 @@ function renderDemos(demos) {
 function renderBuy(plugin, latest) {
   const button = document.getElementById('buyBtn');
   const isPaid = Number(plugin.price) > 0;
-  button.textContent = isPaid ? `购买 ${detailPrice(plugin.price)} USDT` : '免费下载';
+  button.textContent = isPaid ? `购买 ${detailPrice(plugin.price)}` : '免费下载';
   const buyCfg = pageConfig.buttons?.buy || {};
   const subText = buyCfg.subtitle || '购买一次，永久获得该插件全部已发布版本。';
   const features = buyCfg.features || ['当前已发布版本', '后续发布版本', '完整技术文档'];
-  const ctaText = isPaid ? (buyCfg.cta_paid || '前往 USDT 支付') : (buyCfg.cta_free || '下载当前版本');
+  const ctaText = isPaid ? (buyCfg.cta_paid || '前往支付') : (buyCfg.cta_free || '下载当前版本');
   const modal = document.querySelector('#buyModal .modal');
-  modal.innerHTML = `<button class="close-btn" id="buyClose">×</button><h3>${detailEsc(plugin.display_name)}</h3><p class="m-sub">${detailEsc(subText)}</p><div class="price-grid" style="grid-template-columns:1fr"><div class="price-card popular"><div class="p-name">完整插件授权</div><div class="p-price">${isPaid ? detailPrice(plugin.price) : '0.00'}<span class="unit"> USDT / 永久</span></div><ul class="p-features">${features.map(f => `<li>${detailEsc(f)}</li>`).join('')}</ul><button class="p-btn pro" id="confirmBuy">${detailEsc(ctaText)}</button></div></div>`;
+  modal.innerHTML = `<button class="close-btn" id="buyClose">×</button><h3>${detailEsc(plugin.display_name)}</h3><p class="m-sub">${detailEsc(subText)}</p><div class="price-grid" style="grid-template-columns:1fr"><div class="price-card popular"><div class="p-name">完整插件授权</div><div class="p-price">${isPaid ? detailPrice(plugin.price) : '0.00'}<span class="unit"> 人民币 / 永久</span></div><ul class="p-features">${features.map(f => `<li>${detailEsc(f)}</li>`).join('')}</ul>${isPaid ? '<div class="pay-channels"><div class="pay-channel" data-channel="alipay"><span class="pay-icon">支</span>支付宝</div><div class="pay-channel" data-channel="wxpay"><span class="pay-icon">微</span>微信支付</div><div class="pay-channel" data-channel="usdt"><span class="pay-icon">₮</span>USDT</div></div>' : ''}<button class="p-btn pro" id="confirmBuy">${detailEsc(ctaText)}</button></div></div>`;
   document.getElementById('buyClose').addEventListener('click', () => document.getElementById('buyModal').classList.remove('show'));
   document.getElementById('confirmBuy').addEventListener('click', () => purchase(plugin, latest));
+  modal.querySelectorAll('.pay-channel').forEach(channel => channel.addEventListener('click', () => {
+    modal.querySelectorAll('.pay-channel').forEach(item => item.classList.remove('active'));
+    channel.classList.add('active');
+  }));
 }
 
 function applyLabelConfig() {
@@ -264,7 +273,10 @@ async function purchase(plugin, latest) {
       if (!response.ok) throw new Error('下载失败');
       const url = URL.createObjectURL(await response.blob()); const link = document.createElement('a'); link.href = url; link.download = file.filename; link.click(); URL.revokeObjectURL(url);
     } else {
-      const order = await detailApi('/apehub-web/orders/create', { method:'POST', body:JSON.stringify({ plugin_id:plugin.id }) });
+      // 读取用户选择的支付渠道（默认支付宝）
+      const active = document.querySelector('#buyModal .pay-channel.active');
+      const channel = active ? active.dataset.channel : (pageConfig.buttons?.buy?.default_channel || 'alipay');
+      const order = await detailApi('/apehub-web/orders/create', { method:'POST', body:JSON.stringify({ plugin_id:plugin.id, channel }) });
       location.assign(order.pay_url);
     }
   } catch (error) { alert(error.message); }
