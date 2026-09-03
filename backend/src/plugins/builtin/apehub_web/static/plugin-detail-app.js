@@ -242,13 +242,9 @@ function renderBuy(plugin, latest) {
   const features = buyCfg.features || ['当前已发布版本', '后续发布版本', '完整技术文档'];
   const ctaText = isPaid ? (buyCfg.cta_paid || '前往支付') : (buyCfg.cta_free || '下载当前版本');
   const modal = document.querySelector('#buyModal .modal');
-  modal.innerHTML = `<button class="close-btn" id="buyClose">×</button><h3>${detailEsc(plugin.display_name)}</h3><p class="m-sub">${detailEsc(subText)}</p><div class="price-grid" style="grid-template-columns:1fr"><div class="price-card popular"><div class="p-name">完整插件授权</div><div class="p-price">${isPaid ? detailPrice(plugin.price) : '0.00'}<span class="unit"> 人民币 / 永久</span></div><ul class="p-features">${features.map(f => `<li>${detailEsc(f)}</li>`).join('')}</ul>${isPaid ? '<div class="pay-channels"><div class="pay-channel" data-channel="alipay"><span class="pay-icon">支</span>支付宝</div><div class="pay-channel" data-channel="wxpay"><span class="pay-icon">微</span>微信支付</div><div class="pay-channel" data-channel="usdt"><span class="pay-icon">₮</span>USDT</div></div>' : ''}<button class="p-btn pro" id="confirmBuy">${detailEsc(ctaText)}</button></div></div>`;
+  modal.innerHTML = `<button class="close-btn" id="buyClose">×</button><h3>${detailEsc(plugin.display_name)}</h3><p class="m-sub">${detailEsc(subText)}</p><div class="price-grid" style="grid-template-columns:1fr"><div class="price-card popular"><div class="p-name">完整插件授权</div><div class="p-price">${isPaid ? detailPrice(plugin.price) : '0.00'}<span class="unit"> 人民币 / 永久</span></div><ul class="p-features">${features.map(f => `<li>${detailEsc(f)}</li>`).join('')}</ul>${isPaid ? '<div class="pay-hint">点击「前往支付」进入收银台，支持支付宝 / 微信 / USDT</div>' : ''}<button class="p-btn pro" id="confirmBuy">${detailEsc(ctaText)}</button></div></div>`;
   document.getElementById('buyClose').addEventListener('click', () => document.getElementById('buyModal').classList.remove('show'));
   document.getElementById('confirmBuy').addEventListener('click', () => purchase(plugin, latest));
-  modal.querySelectorAll('.pay-channel').forEach(channel => channel.addEventListener('click', () => {
-    modal.querySelectorAll('.pay-channel').forEach(item => item.classList.remove('active'));
-    channel.classList.add('active');
-  }));
 }
 
 function applyLabelConfig() {
@@ -280,10 +276,8 @@ async function purchase(plugin, latest) {
       if (!response.ok) throw new Error('下载失败');
       const url = URL.createObjectURL(await response.blob()); const link = document.createElement('a'); link.href = url; link.download = file.filename; link.click(); URL.revokeObjectURL(url);
     } else {
-      // 读取用户选择的支付渠道（默认支付宝）
-      const active = document.querySelector('#buyModal .pay-channel.active');
-      const channel = active ? active.dataset.channel : (pageConfig.buttons?.buy?.default_channel || 'alipay');
-      const order = await detailApi('/apehub-web/orders/create', { method:'POST', body:JSON.stringify({ plugin_id:plugin.id, channel }) });
+      // 支付渠道由 LemPay 收银台自选（收银台只展示可用渠道），下单时不指定
+      const order = await detailApi('/apehub-web/orders/create', { method:'POST', body:JSON.stringify({ plugin_id:plugin.id }) });
       location.assign(order.pay_url);
     }
   } catch (error) { alert(error.message); }

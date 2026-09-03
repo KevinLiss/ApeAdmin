@@ -2647,10 +2647,10 @@ async def create_order(
     if not payment_cfg["lempay_pid"] or not payment_cfg["lempay_key"] or not payment_cfg["lempay_submit_url"]:
         raise ValidationException("支付通道尚未配置完成")
 
-    # 支付渠道：用户选择优先，否则使用后台配置的默认通道
-    pay_type = body.channel or cfg.lempay_payment_type or "usdt"
-    if pay_type not in ("alipay", "wxpay", "usdt"):
-        raise ValidationException("不支持的支付方式")
+    # 支付渠道：不指定，跳转 LemPay 收银台由用户自选（收银台只展示商户可用渠道，
+    # 避免前端预选渠道在渠道维护时出现“请更换其他方式支付”死路）；
+    # 回调时根据用户实际支付渠道回写 order.pay_type
+    pay_type = "cashier"
 
     entitlement = await db.execute(select(ApehubWebPurchaseEntitlement).where(
         ApehubWebPurchaseEntitlement.user_id == user.id,
@@ -2681,27 +2681,20 @@ async def create_order(
     await db.commit()
     await db.refresh(order)
 
-    # 提交给 LemPay 的金额：
-    # - alipay/wxpay 通道提交人民币金额（CNY）
-    # - usdt 通道提交按汇率换算后的 USDT 金额
-    if pay_type == "usdt":
-        submit_money = (payment_amount / rate).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-        order_currency = "USDT"
-    else:
-        submit_money = payment_amount
-        order_currency = "CNY"
+    # 提交给 LemPay 的金额：人民币金额（收银台模式下无论用户最终选支付宝/微信/USDT，
+    # 订单金额均为人民币，USDT 渠道由收银台内部换算）
+    submit_money = payment_amount
+    order_currency = "CNY"
 
-    submit_url = services.build_lepay_submit_url(
-        payment_cfg,
-        {
-            "type": pay_type,
-            "name": _lempay_product_name(plugin.display_name),
-            "money": format(submit_money, ".2f"),
-            "out_trade_no": order.order_no,
-            "notify_url": cfg.lempay_notify_url or "",
-            "return_url": cfg.lempay_return_url or "",
-        },
-    )
+    submit_params = {
+        "name": _lempay_product_name(plugin.display_name),
+        "money": format(submit_money, ".2f"),
+        "out_trade_no": order.order_no,
+        "notify_url": cfg.lempay_notify_url or "",
+        "return_url": cfg.lempay_return_url or "",
+    }
+    # type 不传时 LemPay 自动跳转收银台由用户自选支付方式
+    submit_url = services.build_lepay_submit_url(payment_cfg, submit_params)
     return success_response(data={
         "order": {
             "id": order.id,
@@ -2751,24 +2744,19 @@ async def lepay_notify(
         return PlainTextResponse("fail", status_code=400)
     if str(params.get("pid") or "") != str(cfg.lempay_pid):
         return PlainTextResponse("fail", status_code=400)
-    # 渠道校验：回调 type 必须与订单创建时使用的渠道一致（修复硬编码 usdt 的 bug）
+    # 支付渠道：收银台模式下用户实际使用的渠道由回传 type 决定，回写订单
     notified_type = params.get("type") or ""
-    order_pay_type = order.pay_type or cfg.lempay_payment_type or "usdt"
-    if notified_type not in ("alipay", "wxpay", "usdt") or notified_type != order_pay_type:
+    if notified_type not in ("alipay", "wxpay", "usdt"):
         return PlainTextResponse("fail", status_code=400)
+    if order.pay_type != notified_type:
+        order.pay_type = notified_type
     try:
         notified_amount = Decimal(params.get("money") or "-1").quantize(Decimal("0.01"))
     except Exception:
         return PlainTextResponse("fail", status_code=400)
-    # 金额校验：
-    # - 人民币订单（alipay/wxpay）：回调金额 == 订单人民币金额
-    # - USDT 订单：回调金额 == 人民币金额按汇率换算后的 USDT 金额
-    if order_pay_type == "usdt":
-        expected_amount = (
-            Decimal(order.amount) / Decimal(cfg.usdt_cny_rate or "7.2")
-        ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-    else:
-        expected_amount = Decimal(order.amount).quantize(Decimal("0.01"))
+    # 金额校验：统一按订单人民币金额比对（收银台模式下 USDT 渠道由收银台内部换算，
+    # 回调 money 仍为人民币订单金额）
+    expected_amount = Decimal(order.amount).quantize(Decimal("0.01"))
     if notified_amount != expected_amount:
         return PlainTextResponse("fail", status_code=400)
     plugin = await db.get(ApehubWebPlugin, order.plugin_id)
@@ -2870,13 +2858,9 @@ async def refund_order(
     if datetime.utcnow() > order.paid_at + timedelta(days=cfg.refund_days):
         raise ConflictException("该订单已超过退款期限")
     try:
-        # USDT 订单退款按汇率换算回 USDT 金额
-        if order.pay_type == "usdt":
-            refund_money = (
-                Decimal(order.amount) / Decimal(cfg.usdt_cny_rate or "7.2")
-            ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-        else:
-            refund_money = Decimal(order.amount)
+        # 退款金额：统一按订单人民币金额原路退回（收银台模式下 USDT 支付
+        # 也是按人民币订单金额收款换算，退款由 LemPay 按原支付渠道处理）
+        refund_money = Decimal(order.amount)
         await services.request_lepay_refund(
             _payment_config(cfg),
             trade_no=order.lepay_trade_no,
