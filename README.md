@@ -1,3 +1,13 @@
+---
+AIGC:
+  ContentProducer: '001191110102MAD55U9H0F10002'
+  ContentPropagator: '001191110102MAD55U9H0F10002'
+  Label: '1'
+  ProduceID: '6721019d-9b32-4893-a967-9bd4b6fb48f9'
+  PropagateID: '6721019d-9b32-4893-a967-9bd4b6fb48f9'
+  ReservedCode1: '61b168dc-2531-4399-a867-142495f90901'
+  ReservedCode2: '61b168dc-2531-4399-a867-142495f90901'
+---
 
 <div align="center">
   <br/>
@@ -7,12 +17,17 @@
 </div>
 
 <p align="center">
+  <a href="https://apehub.finecv.cn/admin">在线体验</a> ·
   <a href="http://apehub.finecv.cn/apehub-web">官网地址</a> ·
   <a href="http://apehub.finecv.cn/apehub-web/plugins.html">插件市场</a> ·
   <a href="http://apehub.finecv.cn/apehub-web/docs-portal">快速开始</a> ·
   <a href="#功能特性">功能</a> ·
   <a href="#架构">架构</a> ·
   <a href="#配置说明">配置</a> ·
+</p>
+
+<p align="center">
+  简体中文 | <a href="README.en.md">English</a>
 </p>
 
 <p align="center">
@@ -116,6 +131,16 @@ WordPress 式开箱体验，无需手工编辑配置文件：
 
 ## 快速开始
 
+### 在线体验
+
+无需自己搭建，直接访问线上演示环境：
+
+- **案例地址**：<https://apehub.finecv.cn/admin>
+- **测试账号**：`ceshi110`
+- **密码**：`ceshi110`
+
+> 测试账号为只读访客（viewer）角色，仅可查看各模块数据，无增删改权限。
+
 ### 方式一：安装向导（推荐）
 
 无需手工配置，浏览器里点几下即可完成安装：
@@ -153,6 +178,8 @@ npm run dev
 2. 系统管理 → 用户 / 角色 / 菜单 / 部门 / 插件管理
 3. MCP 管理 → 工具 / 资源 / 提示词 / 调用日志
 4. AI 助手 → 配置模型密钥后即可对话
+
+> 也可以直接用上方「在线体验」的测试账号登录线上演示环境，无需本地部署。
 
 ## 架构
 
