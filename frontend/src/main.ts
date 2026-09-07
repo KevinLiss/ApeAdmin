@@ -5,6 +5,7 @@ import zhCn from 'element-plus/es/locale/lang/zh-cn'
 import 'element-plus/dist/index.css'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import '@/styles/apeui-theme.css'
+import 'vue3-verify/dist/vue3-verify.css'
 
 import App from './App.vue'
 import router from './router'

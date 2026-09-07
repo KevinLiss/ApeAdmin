@@ -36,8 +36,11 @@ request.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('apeadmin_token')
-      ElMessage.error('登录已过期，请重新登录')
-      window.location.href = '/admin/login'
+      // 如果已在登录页，不跳转也不弹消息，由调用方（如 handleLogin）处理错误提示
+      if (!window.location.pathname.includes('/login')) {
+        ElMessage.error('登录已过期，请重新登录')
+        window.location.href = '/admin/login'
+      }
     } else {
       const msg = error.response?.data?.msg || error.message || '网络错误'
       ElMessage.error(msg)

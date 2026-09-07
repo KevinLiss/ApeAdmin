@@ -10,6 +10,11 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
+        // vue3-verify package.json exports has a broken style.css mapping;
+        // alias the css path directly to the real file
+        'vue3-verify/dist/vue3-verify.css': fileURLToPath(
+          new URL('./node_modules/vue3-verify/dist/vue3-verify.css', import.meta.url)
+        ),
       },
     },
     server: {
