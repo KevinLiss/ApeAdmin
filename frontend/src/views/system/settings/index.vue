@@ -7,10 +7,12 @@
         <span class="breadcrumb">系统管理 / 站点配置与品牌定制</span>
       </div>
       <div class="head-actions">
-        <el-button type="warning" :loading="restarting" @click="handleRestart">
-          <el-icon v-if="!restarting"><RefreshRight /></el-icon>重启后端
-        </el-button>
-        <el-button type="primary" :loading="saving" @click="handleSave">
+        <el-tooltip content="需 system:plugin:restart 权限" placement="top">
+          <el-button type="warning" :loading="restarting" @click="handleRestart" v-permission="'system:plugin:restart'">
+            <el-icon v-if="!restarting"><RefreshRight /></el-icon>重启后端
+          </el-button>
+        </el-tooltip>
+        <el-button type="primary" :loading="saving" @click="handleSave" v-permission="'system:setting:edit'">
           <el-icon><Check /></el-icon>保存设置
         </el-button>
       </div>
@@ -32,9 +34,16 @@
               <el-input v-model="form.site_name" placeholder="如 ApeAdmin" />
             </el-form-item>
 
-            <el-form-item label="Logo URL">
+            <el-form-item label="Logo">
               <div class="logo-row">
-                <el-input v-model="form.logo_url" placeholder="留空使用默认图标" />
+                <el-input v-model="form.logo_url" placeholder="留空使用默认图标，可上传或粘贴图片 URL" />
+                <el-upload
+                  :show-file-list="false"
+                  :http-request="uploadLogo"
+                  accept=".jpg,.jpeg,.png,.gif,.webp,.svg,.ico"
+                >
+                  <el-button :loading="uploadingLogo">上传图片</el-button>
+                </el-upload>
                 <div class="logo-preview">
                   <img v-if="form.logo_url" :src="form.logo_url" alt="Logo" class="preview-img" />
                   <img v-else src="/assets/images/logo-icon.png" alt="Logo" class="preview-img" />
@@ -59,7 +68,19 @@
             </el-form-item>
 
             <el-form-item label="登录页背景">
-              <el-input v-model="form.login_bg" placeholder="背景图 URL（留空使用默认）" />
+              <div class="logo-row">
+                <el-input v-model="form.login_bg" placeholder="背景图 URL / CSS 值（留空使用默认）" />
+                <el-upload
+                  :show-file-list="false"
+                  :http-request="uploadLoginBg"
+                  accept=".jpg,.jpeg,.png,.gif,.webp"
+                >
+                  <el-button :loading="uploadingBg">上传图片</el-button>
+                </el-upload>
+              </div>
+              <div v-if="form.login_bg" class="bg-preview" :style="{ background: bgPreviewStyle }">
+                <span class="bg-preview-tip">登录页背景预览</span>
+              </div>
             </el-form-item>
 
             <el-form-item label="页脚文字">
@@ -91,7 +112,7 @@
             </el-form-item>
 
             <el-form-item label="侧边栏主题">
-              <el-radio-group v-model="form.sidebar_theme">
+              <el-radio-group v-model="form.sidebar_theme" @change="onSidebarThemeChange">
                 <el-radio-button label="light">浅色</el-radio-button>
                 <el-radio-button label="dark">深色</el-radio-button>
               </el-radio-group>
@@ -151,18 +172,21 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, onMounted, ref } from 'vue'
+import { reactive, onMounted, ref, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Brush, Setting, Check, RefreshRight, InfoFilled, User } from '@element-plus/icons-vue'
 import { useTheme } from '@/composables/useTheme'
 import { useSettingsStore } from '@/stores/settings'
 import { getSettings, updateSettings, restartServer } from '@/api'
+import request from '@/api/request'
 
 const { isDark, applyDark } = useTheme()
 const settingsStore = useSettingsStore()
 
 const saving = ref(false)
 const restarting = ref(false)
+const uploadingLogo = ref(false)
+const uploadingBg = ref(false)
 
 const colorPresets = [
   '#5A67F5', // 靛蓝紫
@@ -217,6 +241,44 @@ function onColorChange(color: string) {
   settingsStore.applyThemeColor()
 }
 
+function onSidebarThemeChange() {
+  // Live preview: apply sidebar theme immediately
+  settingsStore.sidebar_theme = form.sidebar_theme
+  settingsStore.applySidebarTheme()
+}
+
+/** 品牌图片上传（logo / 登录页背景），成功后回填 URL */
+async function uploadBrandImage(options: any, target: 'logo_url' | 'login_bg') {
+  const setLoading = target === 'logo_url' ? uploadingLogo : uploadingBg
+  setLoading.value = true
+  try {
+    const formData = new FormData()
+    formData.append('file', options.file)
+    const res: any = await request.post('/settings/brand-image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    if (res?.url) {
+      ;(form as any)[target] = res.url
+      ElMessage.success('图片已上传，请点击“保存设置”生效')
+    }
+  } catch {
+    // error message already shown by interceptor
+  } finally {
+    setLoading.value = false
+  }
+}
+
+const uploadLogo = (options: any) => uploadBrandImage(options, 'logo_url')
+const uploadLoginBg = (options: any) => uploadBrandImage(options, 'login_bg')
+
+/** 登录页背景预览样式：URL 或 CSS 值都能预览 */
+const bgPreviewStyle = computed(() => {
+  const v = form.login_bg
+  if (!v) return 'transparent'
+  if (v.startsWith('http') || v.startsWith('/')) return `url(${v}) center/cover no-repeat`
+  return v
+})
+
 async function loadSettings() {
   try {
     const data: any = await getSettings()
@@ -239,14 +301,20 @@ async function handleSave() {
     for (const [k, v] of Object.entries(form)) {
       items[k] = String(v)
     }
+    // Detect admin_path change BEFORE syncing to store
+    const adminPathChanged = form.admin_path !== settingsStore.admin_path
     await updateSettings(items)
-    // Sync to store
+    // Sync all fields to store so the whole app reacts without reload
     settingsStore.site_name = form.site_name
     settingsStore.logo_url = form.logo_url
     settingsStore.primary_color = form.primary_color
     settingsStore.footer_text = form.footer_text
+    settingsStore.login_bg = form.login_bg
+    settingsStore.sidebar_theme = form.sidebar_theme
+    settingsStore.admin_path = form.admin_path
     settingsStore.applyThemeColor()
-    ElMessage.success('设置已保存')
+    settingsStore.applySidebarTheme()
+    ElMessage.success('设置已保存' + (adminPathChanged ? '（后台路径修改需重启后端生效）' : ''))
   } catch {
     ElMessage.error('保存失败')
   } finally {
@@ -343,6 +411,7 @@ onMounted(async () => {
   align-items: center;
   gap: 12px;
   width: 100%;
+  flex-wrap: wrap;
 }
 .logo-preview {
   flex-shrink: 0;
@@ -352,6 +421,24 @@ onMounted(async () => {
   height: 36px;
   border-radius: 8px;
   object-fit: cover;
+}
+.bg-preview {
+  width: 100%;
+  height: 64px;
+  border-radius: 8px;
+  margin-top: 8px;
+  border: 1px solid #e9edf3;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  overflow: hidden;
+}
+.bg-preview-tip {
+  font-size: 11px;
+  color: #909399;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 2px 8px;
+  border-radius: 4px 0 0 0;
 }
 
 .color-row {

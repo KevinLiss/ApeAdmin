@@ -46,6 +46,7 @@ export const useSettingsStore = defineStore('settings', {
         }
         this.loaded = true
         this.applyThemeColor()
+        this.applySidebarTheme()
       } catch {
         // Backend might be unreachable on first load; use defaults
         this.loaded = true
@@ -70,6 +71,16 @@ export const useSettingsStore = defineStore('settings', {
         }
         const dark2 = darken(rgb, 0.12)
         root.style.setProperty('--el-color-primary-dark-2', dark2)
+      }
+    },
+
+    /** Apply sidebar_theme (light/dark) to the admin sidebar */
+    applySidebarTheme() {
+      const root = document.documentElement
+      if (this.sidebar_theme === 'dark') {
+        root.classList.add('sidebar-dark')
+      } else {
+        root.classList.remove('sidebar-dark')
       }
     },
   },

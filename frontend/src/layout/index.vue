@@ -31,6 +31,11 @@
       <main class="main" :class="{ 'apeui-content': isApeui }">
         <router-view />
       </main>
+
+      <!-- 全局页脚：显示品牌定制里配置的页脚文字 -->
+      <footer v-if="settingsStore.footer_text" class="layout-footer">
+        {{ settingsStore.footer_text }}
+      </footer>
     </div>
   </div>
 </template>
@@ -42,11 +47,13 @@ import { ElMessage } from 'element-plus'
 import ApeSidebar from '@/components/ApeSidebar.vue'
 import ApeHeader from '@/components/ApeHeader.vue'
 import { useUserStore } from '@/stores/user'
+import { useSettingsStore } from '@/stores/settings'
 import { useTheme } from '@/composables/useTheme'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+const settingsStore = useSettingsStore()
 
 const collapsed = ref(false)
 const isMobile = ref(false)
@@ -156,6 +163,21 @@ async function onLogout() {
   overflow-x: hidden;
   margin-top: 64px;
   min-height: 0;
+}
+
+/* 全局页脚 */
+.layout-footer {
+  flex-shrink: 0;
+  padding: 10px 20px 12px;
+  text-align: center;
+  font-size: 12px;
+  color: #909399;
+  border-top: 1px solid #e9edf3;
+  background: transparent;
+}
+html.dark .layout-footer {
+  border-top-color: #2e3344;
+  color: #8a90a8;
 }
 
 /* Mobile overlay */

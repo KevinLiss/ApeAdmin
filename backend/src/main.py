@@ -15,10 +15,12 @@ installation wizard (/setup) + minimal health routes are served.
 """
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from loguru import logger
 
 from src.core.config import settings
@@ -249,13 +251,31 @@ def create_app() -> FastAPI:
     # Root redirect: setup mode → wizard; normal → admin (base) or site (plugin)
     from src.setup_wizard import is_installed
 
+    # Public static mount for brand images (logo / login background)
+    # uploaded via POST /api/v1/settings/brand-image
+    brand_dir = Path(settings.FILE_STORAGE_DIR).parent / "brand"
+    brand_dir.mkdir(parents=True, exist_ok=True)
+    app.mount("/media/brand", StaticFiles(directory=str(brand_dir)), name="brand_media")
+
     @app.get("/", include_in_schema=False)
     async def root_redirect():
         if not is_installed():
             return RedirectResponse(url="/setup")
+        # Read admin_path from DB (runtime setting) instead of .env, so a
+        # path changed in 系统设置 + backend restart redirects correctly.
+        from src.crud.setting import crud_setting
+        from src.db import SessionLocal
+        try:
+            async with SessionLocal() as sdb:
+                admin_path = await crud_setting.get_value(sdb, "admin_path", settings.ADMIN_PATH)
+        except Exception:
+            admin_path = settings.ADMIN_PATH
+        if not admin_path.startswith("/"):
+            admin_path = "/" + admin_path
+        admin_path = admin_path.rstrip("/") or "/admin"
         # If a plugin ships a public site (e.g. under /apehub-web), it will
         # register its own mount; the base falls back to the admin console.
-        return RedirectResponse(url=settings.ADMIN_PATH + "/")
+        return RedirectResponse(url=admin_path + "/")
 
     return app
 

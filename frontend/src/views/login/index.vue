@@ -1,10 +1,11 @@
 <template>
   <!-- ApeAdmin 登录页 -->
-  <div class="login-card">
+  <div class="login-card" :style="loginBgStyle">
     <div>
       <div class="login-logo">
-        <img src="/assets/images/logo-icon.png" alt="Logo" class="login-logo-icon" />
-        <span class="login-logo-text">ApeAdmin</span>
+        <img v-if="settingsStore.logo_url" :src="settingsStore.logo_url" alt="Logo" class="login-logo-icon" />
+        <img v-else src="/assets/images/logo-icon.png" alt="Logo" class="login-logo-icon" />
+        <span class="login-logo-text">{{ settingsStore.site_name }}</span>
       </div>
       <div class="login-main">
         <form class="theme-form" @submit.prevent="handleLogin">
@@ -43,17 +44,40 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
+import { useSettingsStore } from '@/stores/settings'
+import { getPublicSettings } from '@/api'
 
 const router = useRouter()
 const userStore = useUserStore()
+const settingsStore = useSettingsStore()
 
 const loading = ref(false)
 const remember = ref(true)
 const pwdType = ref<'password' | 'text'>('password')
+
+// 登录页背景：后台品牌定制里配置的 login_bg（可自定义 CSS 值或图片 URL）
+const loginBgStyle = computed(() => {
+  if (settingsStore.login_bg) {
+    const v = settingsStore.login_bg
+    if (v.startsWith('http') || v.startsWith('/')) {
+      return { background: `url(${v}) center/cover no-repeat` }
+    }
+    return { background: v }
+  }
+  return {}
+})
+
+// 登录页在布局之外、可能直接刷新进入，需自行拉取公开设置（主题色/品牌）
+onMounted(async () => {
+  if (!settingsStore.loaded) {
+    await settingsStore.fetchPublicSettings()
+  }
+  settingsStore.applyThemeColor()
+})
 
 const form = reactive({
   username: 'admin',
@@ -91,7 +115,7 @@ async function handleLogin() {
   align-items: center;
   justify-content: center;
   margin: 0 auto;
-  background: rgba(90, 103, 245, 0.14);
+  background: var(--el-color-primary-light-9, rgba(90, 103, 245, 0.14));
   background-position: center;
   padding: 30px 12px;
 }
@@ -110,8 +134,13 @@ async function handleLogin() {
 .login-logo-text {
   font-size: 28px;
   font-weight: 700;
-  color: #2b2b2b;
+  color: var(--el-color-primary, #2b2b2b);
   letter-spacing: 0.5px;
+}
+
+/* 自定义背景图时登录卡片略增投影，保证可读性 */
+.login-card[style*="url"] .login-main {
+  box-shadow: 0 8px 40px rgba(8, 21, 66, 0.16);
 }
 .login-card .login-main {
   width: 450px;
@@ -159,7 +188,7 @@ async function handleLogin() {
 .login-card .login-main .theme-form input.form-control:hover,
 .login-card .login-main .theme-form input.form-control:focus {
   box-shadow: none !important;
-  border-color: #5A67F5;
+  border-color: var(--el-color-primary, #5A67F5);
   transition: all 0.3s ease;
 }
 .login-card .login-main .theme-form .form-input .show-hide {
@@ -171,7 +200,7 @@ async function handleLogin() {
 }
 .login-card .login-main .theme-form .checkbox label::before {
   background-color: #f9f9fa;
-  border: 1px solid rgba(90, 103, 245, 0.1);
+  border: 1px solid var(--el-color-primary-light-7, rgba(90, 103, 245, 0.1));
 }
 .login-card .login-main .theme-form .checkbox {
   display: inline-flex;
@@ -182,7 +211,7 @@ async function handleLogin() {
   position: absolute;
   top: 10px;
   right: 0;
-  color: #5A67F5;
+  color: var(--el-color-primary, #5A67F5);
   text-decoration: none;
 }
 .login-card .login-main .theme-form .btn-primary {
@@ -190,7 +219,7 @@ async function handleLogin() {
   height: 46px;
   border: none;
   border-radius: 4px;
-  background-color: #5A67F5;
+  background-color: var(--el-color-primary, #5A67F5);
   color: #fff;
   font-size: 15px;
   font-weight: 500;
@@ -198,7 +227,7 @@ async function handleLogin() {
   transition: all 0.3s ease;
 }
 .login-card .login-main .theme-form .btn-primary:hover {
-  background-color: #4755E6;
+  background-color: var(--el-color-primary-dark-2, #4755E6);
 }
 .login-card .login-main .theme-form .btn-primary:disabled {
   opacity: 0.7;

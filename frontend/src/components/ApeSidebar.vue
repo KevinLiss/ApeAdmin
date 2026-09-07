@@ -635,6 +635,92 @@ function resolvePath(parentPath: string, ...childPaths: string[]): string {
 </style>
 
 <style>
+/* ===== 侧边栏主题（品牌定制里的侧边栏主题设置） ===== */
+html.sidebar-dark .ape-sidebar {
+  background: #232838;
+  box-shadow: 0 0 21px 0 rgba(0, 0, 0, 0.35);
+}
+html.sidebar-dark .ape-sidebar .brand-text {
+  color: #e6e8f0;
+}
+html.sidebar-dark .ape-sidebar .logo-wrapper {
+  border-bottom-color: #2e3344;
+}
+html.sidebar-dark .ape-sidebar .sidebar-link {
+  color: #8a90a8;
+}
+html.sidebar-dark .ape-sidebar .sidebar-link .menu-icon {
+  color: #6b7290;
+}
+html.sidebar-dark .ape-sidebar .sidebar-link:hover {
+  background: #2e3344;
+  color: #fff;
+}
+html.sidebar-dark .ape-sidebar .sidebar-link:hover .menu-icon {
+  color: #fff;
+}
+html.sidebar-dark .ape-sidebar .sidebar-link.active {
+  color: #fff;
+}
+html.sidebar-dark .ape-sidebar .sidebar-main-title > div {
+  background-color: #2e3344;
+}
+html.sidebar-dark .ape-sidebar .sidebar-main-title h4 {
+  color: #a5b4fc;
+}
+html.sidebar-dark .ape-sidebar .sidebar-main-title .sub-arrow {
+  color: #8a90a8;
+}
+html.sidebar-dark .ape-sidebar .sidebar-submenu li a,
+html.sidebar-dark .ape-sidebar .flyout-submenu ul li a {
+  color: #8a90a8;
+}
+html.sidebar-dark .ape-sidebar .sidebar-submenu li a:hover {
+  background: #2e3344;
+  color: #fff;
+}
+html.sidebar-dark .ape-sidebar .sidebar-submenu li a.active {
+  color: #fff;
+  background: rgba(90, 103, 245, 0.25);
+}
+html.sidebar-dark .ape-sidebar .sidebar-main::-webkit-scrollbar-thumb,
+html.sidebar-dark .ape-sidebar .flyout-submenu::-webkit-scrollbar-thumb {
+  background: #4a5066;
+}
+html.sidebar-dark .ape-sidebar .flyout-submenu {
+  background: #262b3d;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+html.sidebar-dark .ape-sidebar .flyout-submenu h6,
+html.sidebar-dark .ape-sidebar .flyout-subgroup-title {
+  color: #a5b4fc;
+  border-bottom-color: #2e3344;
+}
+html.sidebar-dark .ape-sidebar .flyout-submenu ul li a:hover {
+  background: #2e3344;
+  color: #fff;
+}
+html.sidebar-dark .ape-sidebar .flyout-submenu ul li a.active {
+  color: #fff;
+  background: rgba(90, 103, 245, 0.25);
+}
+html.sidebar-dark .ape-sidebar .toggle-sidebar {
+  color: #8a90a8;
+}
+html.sidebar-dark .ape-sidebar .toggle-sidebar:hover {
+  background: #2e3344;
+  color: #fff;
+}
+html.sidebar-dark .ape-sidebar .upgrade-card {
+  background-color: #2e3344;
+}
+html.sidebar-dark .ape-sidebar .upgrade-card h5 {
+  color: #e6e8f0;
+}
+html.sidebar-dark .ape-sidebar .upgrade-card p {
+  color: #8a90a8;
+}
+
 /* ===== 深色模式适配（非 scoped，避免 Vite 压缩拆分选择器） ===== */
 html.dark .ape-sidebar {
   background: #232838;
