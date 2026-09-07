@@ -136,6 +136,179 @@ async def upload_file(folder_id: int = Query(0, ge=0), file: UploadFile = File(.
     return success_response(data=_file_dict(item), msg="文件上传成功")
 
 
+# ---------------------------------------------------------------------------
+# Asset storage browsing (read/delete over physical upload directories)
+# ---------------------------------------------------------------------------
+
+ASSET_GROUPS: dict[str, dict] = {
+    "brand": {
+        "name": "品牌图片",
+        "root": lambda: Path(settings.FILE_STORAGE_DIR).parent / "brand",
+        "risk": "low",
+        "note": "登录页 Logo / 背景，删除后需重新上传",
+    },
+    "site-assets": {
+        "name": "官网站点素材",
+        "root": lambda: Path(settings.PLUGINS_UPLOAD_DIR).parent / "apehub_web" / "site-assets",
+        "risk": "low",
+        "note": "官网内容引用的图片，删除后对应位置显示破图",
+    },
+    "plugin-media": {
+        "name": "插件媒体",
+        "root": lambda: Path(settings.PLUGINS_UPLOAD_DIR).parent / "apehub_web" / "plugin-media",
+        "risk": "low",
+        "note": "插件市场图标 / 截图 / 二维码",
+    },
+    "plugins": {
+        "name": "插件安装包",
+        "root": lambda: Path(settings.PLUGINS_UPLOAD_DIR).parent / "apehub_web" / "plugins",
+        "risk": "high",
+        "note": "插件市场安装包，删除后插件无法下载，请谨慎操作",
+    },
+    "release-packages": {
+        "name": "版本发布包",
+        "root": lambda: Path(settings.PLUGINS_UPLOAD_DIR).parent / "apehub_web" / "release-packages",
+        "risk": "high",
+        "note": "官网安装下载页的安装包，删除后版本无法下载，请谨慎操作",
+    },
+    "system-plugins": {
+        "name": "底座插件包",
+        "root": lambda: Path(settings.PLUGINS_UPLOAD_DIR),
+        "risk": "medium",
+        "note": "底座插件上传的临时包，正常情况下安装后可清理",
+    },
+}
+
+
+def _asset_root(group: str) -> Path:
+    """Resolve a group's root directory, raising 404 for unknown groups."""
+    if group not in ASSET_GROUPS:
+        raise NotFoundException("素材分组不存在")
+    return ASSET_GROUPS[group]["root"]()
+
+
+def _safe_asset_path(group: str, relative: str) -> Path:
+    """Join a relative path onto the group root with traversal protection."""
+    root = _asset_root(group).resolve()
+    candidate = (root / relative).resolve()
+    if root != candidate and root not in candidate.parents:
+        raise NotFoundException("非法路径")
+    return candidate
+
+
+def _asset_file_dict(path: Path, root: Path) -> dict:
+    stat = path.stat()
+    rel = path.relative_to(root).as_posix()
+    return {
+        "path": rel,
+        "name": path.name,
+        "extension": path.suffix.lower().lstrip("."),
+        "size": stat.st_size,
+        "modified_at": datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc).isoformat(),
+    }
+
+
+def _asset_dir_dict(path: Path, root: Path) -> dict:
+    rel = path.relative_to(root).as_posix()
+    return {"path": rel, "name": path.name}
+
+
+@router.get("/assets/groups")
+async def asset_groups(user: User = Depends(require_permission("system:file:list"))):
+    """List asset storage groups (physical upload directories)."""
+    data = []
+    for key, conf in ASSET_GROUPS.items():
+        root = conf["root"]()
+        file_count = 0
+        total_size = 0
+        if root.is_dir():
+            for p in root.rglob("*"):
+                if p.is_file():
+                    file_count += 1
+                    try:
+                        total_size += p.stat().st_size
+                    except OSError:
+                        pass
+        data.append({
+            "key": key,
+            "name": conf["name"],
+            "risk": conf["risk"],
+            "note": conf["note"],
+            "exists": root.is_dir(),
+            "file_count": file_count,
+            "total_size": total_size,
+        })
+    return success_response(data=data)
+
+
+@router.get("/assets/list")
+async def list_assets(
+    group: str = Query(..., max_length=40),
+    path: str = Query("", max_length=300),
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_permission("system:file:list")),
+):
+    """List sub-directories and files under an asset directory."""
+    root = _asset_root(group)
+    if not root.is_dir():
+        return success_response(data={"dirs": [], "files": []})
+    target = _safe_asset_path(group, path)
+    if not target.is_dir():
+        raise NotFoundException("目录不存在")
+    dirs, files = [], []
+    for entry in sorted(target.iterdir(), key=lambda p: p.name):
+        if entry.is_dir():
+            dirs.append(_asset_dir_dict(entry, root))
+        elif entry.is_file():
+            files.append(_asset_file_dict(entry, root))
+    files.sort(key=lambda f: f["name"])
+    return success_response(data={"dirs": dirs, "files": files})
+
+
+@router.get("/assets/download")
+async def download_asset(
+    group: str = Query(..., max_length=40),
+    path: str = Query(..., max_length=300),
+    user: User = Depends(require_permission("system:file:download")),
+):
+    """Download an asset file."""
+    target = _safe_asset_path(group, path)
+    if not target.is_file():
+        raise NotFoundException("文件不存在")
+    media_type = "application/octet-stream"
+    if target.suffix.lower() in {".png", ".jpg", ".jpeg", ".gif", ".webp"}:
+        media_type = f"image/{target.suffix.lower().lstrip('.')}".replace("jpg", "jpeg")
+    return FileResponse(target, media_type=media_type, filename=target.name)
+
+
+@router.delete("/assets")
+async def delete_asset(
+    group: str = Query(..., max_length=40),
+    path: str = Query(..., max_length=300),
+    user: User = Depends(require_permission("system:file:delete")),
+):
+    """Delete an asset file (single file only, directories rejected)."""
+    target = _safe_asset_path(group, path)
+    if not target.is_file():
+        raise NotFoundException("文件不存在")
+    try:
+        target.unlink()
+        # 清理空的父目录（最多向上清 2 层，保留分组根目录）
+        parent = target.parent
+        root = ASSET_GROUPS[group]["root"]().resolve()
+        for _ in range(2):
+            if parent == root or root not in parent.parents:
+                break
+            try:
+                parent.rmdir()
+            except OSError:
+                break
+            parent = parent.parent
+    except OSError as exc:
+        raise AppException(msg=f"删除失败：{exc}", code=500)
+    return success_response(msg="文件已删除")
+
+
 @router.get("/{file_id}/download")
 async def download_file(file_id: int, db: Annotated[AsyncSession, Depends(get_db)], user: Annotated[User, Depends(require_permission("system:file:download"))]):
     item = await db.get(SystemFile, file_id)
@@ -148,7 +321,7 @@ async def download_file(file_id: int, db: Annotated[AsyncSession, Depends(get_db
 
 
 @router.delete("/{file_id}")
-async def delete_file(file_id: int, db: Annotated[AsyncSession, Depends(get_db)], user: Annotated[User, Depends(require_permission("system:file:delete"))]):
+async def delete_file(file_id: int, db: Annotated[AsyncSession, Depends(get_db)], user: User = Depends(require_permission("system:file:delete"))):
     item = await db.get(SystemFile, file_id)
     if not item or item.deleted_at:
         raise NotFoundException("文件不存在")

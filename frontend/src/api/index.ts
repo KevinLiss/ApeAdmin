@@ -117,6 +117,11 @@ export const uploadSystemFile = (file: File, folderId: number) => {
 }
 export const deleteSystemFile = (id: number) => request.delete(`/files/${id}`)
 export const downloadSystemFileUrl = (id: number) => `/api/v1/files/${id}/download`
+// ---- 素材存储（物理目录浏览） ----
+export const getAssetGroups = () => request.get('/files/assets/groups')
+export const getAssetList = (params: { group: string; path?: string }) => request.get('/files/assets/list', { params })
+export const deleteAsset = (group: string, path: string) => request.delete('/files/assets', { params: { group, path } })
+export const assetDownloadUrl = (group: string, path: string) => `/api/v1/files/assets/download?${new URLSearchParams({ group, path })}`
 
 // ---- 系统设置 ----
 export const getPublicSettings = () => request.get('/settings/public')
