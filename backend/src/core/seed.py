@@ -76,8 +76,10 @@ async def _seed_menus(db: AsyncSession) -> None:
 
     menus_data = [
         # (name, parent_key, type, path, component, permission, icon, sort)
-        # Dashboard (top-level)
-        ("系统仪表盘", None, "C", "/dashboard-monitor", "apeui/dashboard/Monitor", None, "Monitor", 1),
+        # Dashboard (top-level) — ``dashboard:view`` gates /api/v1/dashboard/*;
+        # without this permission entry non-superadmin roles can never be
+        # granted dashboard access (they would hit 403 on the landing page).
+        ("系统仪表盘", None, "C", "/dashboard-monitor", "apeui/dashboard/Monitor", "dashboard:view", "Monitor", 1),
         # System management
         ("系统管理", None, "M", "/system", None, None, "Setting", 10),
         ("用户管理", "系统管理", "C", "user", "system/user/index", "system:user:list", "User", 1),
@@ -207,7 +209,7 @@ async def _seed_missing_menus(db: AsyncSession) -> None:
     missing_menus = [
         # Restore the default landing page when it was previously nested
         # under the retired Apeadmin style-library menu.
-        ("系统仪表盘", None, "C", "/dashboard-monitor", "apeui/dashboard/Monitor", None, "Monitor", 1),
+        ("系统仪表盘", None, "C", "/dashboard-monitor", "apeui/dashboard/Monitor", "dashboard:view", "Monitor", 1),
         # MCP management additions
         ("提示词列表", "MCP 管理", "C", "prompts", "mcp/prompts", "mcp:prompts:list", "ChatLineSquare", 3),
         ("调用工具", "工具列表", "F", None, None, "mcp:tools:call", None, 1),
@@ -272,12 +274,17 @@ async def _seed_missing_menus(db: AsyncSession) -> None:
 
         # The dashboard component lives under the ``apeui`` frontend namespace
         # but is a core page, not an ApeUI plugin-owned menu. Restore it when a
-        # previous plugin toggle left the existing row hidden.
+        # previous plugin toggle left the existing row hidden, and backfill the
+        # ``dashboard:view`` permission on legacy installs where the row was
+        # seeded before the permission existed (non-superadmin roles otherwise
+        # can never be granted dashboard access).
         if name == "系统仪表盘" and pid == 0:
             dashboard = next((m for m in existing_menus if m.name == name and m.parent_id == 0), None)
             if dashboard:
                 dashboard.status = 1
                 dashboard.visible = 1
+                if dashboard.permission != permission:
+                    dashboard.permission = permission
                 continue
 
         # Skip if already exists (by parent id)
