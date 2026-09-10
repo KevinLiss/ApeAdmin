@@ -1,14 +1,3 @@
----
-AIGC:
-  ContentProducer: '001191110102MAD55U9H0F10002'
-  ContentPropagator: '001191110102MAD55U9H0F10002'
-  Label: '1'
-  ProduceID: '6721019d-9b32-4893-a967-9bd4b6fb48f9'
-  PropagateID: '6721019d-9b32-4893-a967-9bd4b6fb48f9'
-  ReservedCode1: '61b168dc-2531-4399-a867-142495f90901'
-  ReservedCode2: '61b168dc-2531-4399-a867-142495f90901'
----
-
 <div align="center">
   <br/>
   <img src="assets/logo.png" width="130" alt="ApeAdmin Logo" />
@@ -17,10 +6,10 @@ AIGC:
 </div>
 
 <p align="center">
-  <a href="https://apehub.finecv.cn/admin">在线体验</a> ·
-  <a href="http://apehub.finecv.cn/apehub-web">官网地址</a> ·
+  <a href="http://apehub.finecv.cn/apehub-web">apeadmin官网</a> ·
   <a href="http://apehub.finecv.cn/apehub-web/plugins.html">插件市场</a> ·
-  <a href="http://apehub.finecv.cn/apehub-web/docs-portal">快速开始</a> ·
+  <a href="http://apehub.finecv.cn/apehub-web/docs-portal">开发文档</a> ·
+    <a href="https://apehub.finecv.cn/admin">demo体验</a> ·
   <a href="#功能特性">功能</a> ·
   <a href="#架构">架构</a> ·
   <a href="#配置说明">配置</a> ·
