@@ -309,12 +309,14 @@ ASSET_GROUPS: dict[str, dict] = {
         "root": lambda: Path(settings.PLUGINS_UPLOAD_DIR).parent / "apehub_web" / "plugins",
         "risk": "high",
         "note": "插件市场安装包，删除后插件无法下载，请谨慎操作",
+        "hidden": True,  # 业务文件，由插件管理页专门维护，不在文件管理侧边栏展示
     },
     "release-packages": {
         "name": "版本发布包",
         "root": lambda: Path(settings.PLUGINS_UPLOAD_DIR).parent / "apehub_web" / "release-packages",
         "risk": "high",
         "note": "官网安装下载页的安装包，删除后版本无法下载，请谨慎操作",
+        "hidden": True,  # 业务文件，由版本发布页专门维护，不在文件管理侧边栏展示
     },
     "system-plugins": {
         "name": "底座插件包",
@@ -363,6 +365,8 @@ async def asset_groups(user: User = Depends(require_permission("system:file:list
     """List asset storage groups (physical upload directories)."""
     data = []
     for key, conf in ASSET_GROUPS.items():
+        if conf.get("hidden"):
+            continue
         root = conf["root"]()
         file_count = 0
         total_size = 0
