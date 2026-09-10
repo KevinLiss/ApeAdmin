@@ -364,18 +364,24 @@ async def list_assets(
 
 @router.get("/assets/download")
 async def download_asset(
+    user: Annotated[User, Depends(_download_auth)],
     group: str = Query(..., max_length=40),
     path: str = Query(..., max_length=300),
-    user: User = Depends(require_permission("system:file:download")),
+    preview: int = Query(0, ge=0, le=1),
 ):
-    """Download an asset file."""
+    """Download an asset file (preview=1 returns inline for direct rendering)."""
     target = _safe_asset_path(group, path)
     if not target.is_file():
         raise NotFoundException("文件不存在")
     media_type = "application/octet-stream"
-    if target.suffix.lower() in {".png", ".jpg", ".jpeg", ".gif", ".webp"}:
-        media_type = f"image/{target.suffix.lower().lstrip('.')}".replace("jpg", "jpeg")
-    return FileResponse(target, media_type=media_type, filename=target.name)
+    suffix = target.suffix.lower()
+    if suffix in {".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".ico"}:
+        media_type = f"image/{suffix.lstrip('.')}".replace("jpg", "jpeg")
+    elif suffix == ".pdf":
+        media_type = "application/pdf"
+    elif suffix in {".txt", ".md", ".csv", ".json", ".log", ".xml", ".yml", ".yaml"}:
+        media_type = "text/plain; charset=utf-8"
+    return FileResponse(target, media_type=media_type, filename=target.name, content_disposition_type="inline" if preview else "attachment")
 
 
 @router.delete("/assets")
@@ -411,6 +417,7 @@ async def download_file(
     file_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[User, Depends(_download_auth)],
+    preview: int = Query(0, ge=0, le=1),
 ):
     item = await db.get(SystemFile, file_id)
     if not item or item.deleted_at:
@@ -418,7 +425,9 @@ async def download_file(
     path = (Path(settings.FILE_STORAGE_DIR) / item.storage_key).resolve()
     if not path.is_file() or Path(settings.FILE_STORAGE_DIR).resolve() not in path.parents:
         raise NotFoundException("文件内容不存在")
-    return FileResponse(path, media_type=item.mime_type, filename=item.original_name)
+    media_type = item.mime_type or "application/octet-stream"
+    # preview=1 → Content-Disposition: inline,浏览器直接渲染图片/PDF/文本
+    return FileResponse(path, media_type=media_type, filename=item.original_name, content_disposition_type="inline" if preview else "attachment")
 
 
 @router.delete("/{file_id}")

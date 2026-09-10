@@ -37,7 +37,7 @@
             <el-table-column prop="mime_type" label="类型" width="180" />
             <el-table-column label="大小" width="120"><template #default="{ row }">{{ formatSize(row.size) }}</template></el-table-column>
             <el-table-column prop="created_at" label="上传时间" width="180" />
-            <el-table-column label="操作" width="210" fixed="right"><template #default="{ row }"><el-button link type="primary" @click="download(row)">下载</el-button><el-button link type="primary" @click="openMoveFile(row)">移动</el-button><el-button link type="danger" @click="removeFile(row)">删除</el-button></template></el-table-column>
+            <el-table-column label="操作" width="260" fixed="right"><template #default="{ row }"><el-button link type="primary" @click="previewFile(row)">预览</el-button><el-button link type="primary" @click="download(row)">下载</el-button><el-button link type="primary" @click="openMoveFile(row)">移动</el-button><el-button link type="danger" @click="removeFile(row)">删除</el-button></template></el-table-column>
           </el-table>
           <div class="table-footer"><span class="result-count">共 {{ total }} 个文件</span><el-pagination v-model:current-page="page" v-model:page-size="pageSize" :total="total" layout="prev, pager, next" @change="loadFiles" /></div>
         </template>
@@ -59,7 +59,7 @@
             <el-table-column label="路径" min-width="220" show-overflow-tooltip><template #default="{ row }"><span class="muted">{{ row.path }}</span></template></el-table-column>
             <el-table-column label="大小" width="120"><template #default="{ row }">{{ formatSize(row.size) }}</template></el-table-column>
             <el-table-column label="修改时间" width="180"><template #default="{ row }">{{ formatTime(row.modified_at) }}</template></el-table-column>
-            <el-table-column label="操作" width="150" fixed="right"><template #default="{ row }"><el-button link type="primary" @click="downloadAsset(row)">下载</el-button><el-button link type="danger" @click="removeAsset(row)">删除</el-button></template></el-table-column>
+            <el-table-column label="操作" width="200" fixed="right"><template #default="{ row }"><el-button link type="primary" @click="previewAsset(row)">预览</el-button><el-button link type="primary" @click="downloadAsset(row)">下载</el-button><el-button link type="danger" @click="removeAsset(row)">删除</el-button></template></el-table-column>
           </el-table>
           <div class="table-footer"><span class="result-count">共 {{ assetDirs.length }} 个目录、{{ assetFiles.length }} 个文件</span></div>
         </template>
@@ -85,13 +85,30 @@
     />
     <template #footer><el-button @click="moveDialog = false">取消</el-button><el-button type="primary" @click="confirmMove">移动</el-button></template>
   </el-dialog>
+  <el-dialog v-model="previewDialog" :title="previewName" width="860px" top="6vh" class="preview-dialog">
+    <div v-loading="previewLoading" class="preview-body">
+      <template v-if="previewType === 'image'">
+        <img :src="previewSrc" :alt="previewName" class="preview-image" @load="previewLoading = false" @error="previewError" />
+      </template>
+      <template v-else-if="previewType === 'pdf'">
+        <iframe :src="previewSrc" class="preview-iframe" @load="previewLoading = false"></iframe>
+      </template>
+      <template v-else-if="previewType === 'text'">
+        <pre class="preview-text" @load="previewLoading = false">{{ previewText }}</pre>
+      </template>
+      <template v-else>
+        <el-empty description="该类型文件暂不支持预览，请下载查看" />
+      </template>
+    </div>
+    <template #footer><el-button @click="previewDialog = false">关闭</el-button></template>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, FolderAdd, Upload, Document, Refresh, Picture, Folder, Back, Rank } from '@element-plus/icons-vue'
-import { createFileFolder, deleteSystemFile, getFileFolders, getFiles, uploadSystemFile, downloadSystemFileUrl, moveSystemFile, moveSystemFolder, getAssetGroups, getAssetList, deleteAsset, assetDownloadUrl } from '@/api'
+import { createFileFolder, deleteSystemFile, getFileFolders, getFiles, uploadSystemFile, downloadSystemFileUrl, previewSystemFileUrl, moveSystemFile, moveSystemFolder, getAssetGroups, getAssetList, deleteAsset, assetDownloadUrl, assetPreviewUrl } from '@/api'
 
 const loading = ref(false); const uploading = ref(false); const folders = ref<any[]>([]); const files = ref<any[]>([])
 const folderId = ref(0); const keyword = ref(''); const page = ref(1); const pageSize = ref(20); const total = ref(0)
@@ -133,6 +150,50 @@ async function confirmMove() {
 async function reloadFiles() { await Promise.all([loadFiles(), loadFolders()]) }
 function formatSize(size: number) { if (size < 1024) return `${size} B`; if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`; return `${(size / 1024 / 1024).toFixed(1)} MB` }
 
+// ---- 文件预览 ----
+const previewDialog = ref(false)
+const previewLoading = ref(false)
+const previewName = ref('')
+const previewType = ref<'image' | 'pdf' | 'text' | 'unsupported'>('unsupported')
+const previewSrc = ref('')
+const previewText = ref('')
+
+function previewTokenQuery() {
+  const token = localStorage.getItem('apeadmin_token')
+  return token ? `&token=${encodeURIComponent(token)}` : ''
+}
+const PREVIEW_IMAGE_EXTS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico']
+const PREVIEW_TEXT_EXTS = ['txt', 'md', 'csv', 'json', 'log', 'xml', 'yml', 'yaml', 'ini', 'conf', 'cfg']
+
+function classifyPreview(name: string): 'image' | 'pdf' | 'text' | 'unsupported' {
+  const ext = (name.split('.').pop() || '').toLowerCase()
+  if (PREVIEW_IMAGE_EXTS.includes(ext)) return 'image'
+  if (ext === 'pdf') return 'pdf'
+  if (PREVIEW_TEXT_EXTS.includes(ext)) return 'text'
+  return 'unsupported'
+}
+function openPreview(name: string, url: string) {
+  previewName.value = name
+  previewLoading.value = true
+  const type = classifyPreview(name)
+  previewType.value = type
+  if (type === 'text') {
+    fetch(url).then((r) => r.text()).then((t) => { previewText.value = t; previewLoading.value = false }).catch(() => { previewLoading.value = false; ElMessage.error('预览失败') })
+  } else if (type === 'image' || type === 'pdf') {
+    previewSrc.value = url
+  } else {
+    previewLoading.value = false
+  }
+  previewDialog.value = true
+}
+function previewFile(row: any) {
+  openPreview(row.name, `${previewSystemFileUrl(row.id)}${previewTokenQuery()}`)
+}
+function previewAsset(row: any) {
+  openPreview(row.name, `${assetPreviewUrl(currentGroup.value, row.path)}${previewTokenQuery()}`)
+}
+function previewError() { previewLoading.value = false; ElMessage.error('预览加载失败') }
+
 // ---- 素材存储浏览 ----
 const assetGroups = ref<any[]>([])
 const assetMode = ref(false)
@@ -150,6 +211,19 @@ async function loadAssets() {
     const data: any = await getAssetList({ group: currentGroup.value, path: currentAssetPath.value })
     assetDirs.value = data.dirs || []
     assetFiles.value = data.files || []
+  } catch {
+    // 目录不存在（可能已被删除）：清空列表并自动回退到分组根目录，避免停留在失效路径连环报错
+    assetDirs.value = []
+    assetFiles.value = []
+    if (currentAssetPath.value) {
+      currentAssetPath.value = ''
+      try {
+        const data: any = await getAssetList({ group: currentGroup.value, path: '' })
+        assetDirs.value = data.dirs || []
+        assetFiles.value = data.files || []
+        ElMessage.warning('目录已不存在，已返回根目录')
+      } catch { /* 根目录也失败则保持空列表 */ }
+    }
   } finally { loading.value = false }
 }
 function selectAssetGroup(group: any) {
@@ -218,4 +292,10 @@ onMounted(async () => { await Promise.all([loadFolders(), loadFiles(), loadAsset
 .tree-move { visibility: hidden; padding: 2px; }
 .tree-node:hover .tree-move { visibility: visible; }
 .move-tip { margin: 0 0 12px; color: #667085; font-size: 14px; }
+/* 文件预览 */
+.preview-body { min-height: 320px; max-height: 68vh; display: flex; align-items: center; justify-content: center; overflow: auto; background: #f8fafc; border-radius: 6px; }
+.preview-image { max-width: 100%; max-height: 66vh; object-fit: contain; border-radius: 4px; }
+.preview-iframe { width: 100%; height: 66vh; border: 0; border-radius: 4px; background: #fff; }
+.preview-text { width: 100%; max-height: 66vh; margin: 0; padding: 16px 20px; overflow: auto; background: #fff; border: 1px solid #e8edf5; border-radius: 4px; color: #344054; font-size: 13px; line-height: 1.7; white-space: pre-wrap; word-break: break-all; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.preview-dialog :deep(.el-dialog__body) { padding-top: 16px; }
 </style>
