@@ -1,14 +1,16 @@
 """System file and folder management API."""
 
 import hashlib
+import logging
 import re
 import secrets
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends, File, Query, UploadFile
+from fastapi import APIRouter, Depends, File, Query, Request, UploadFile
 from fastapi.responses import FileResponse
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,9 +21,16 @@ from src.core.exceptions import AppException, NotFoundException, success_respons
 from src.db import get_db
 from src.models import FileFolder, SystemFile, User
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/files", tags=["文件管理"])
 MAX_FILE_SIZE = 50 * 1024 * 1024
 ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "gif", "webp", "pdf", "doc", "docx", "xls", "xlsx", "zip", "txt", "csv"}
+ROOT_FOLDER_NAME = "全部文件"
+bearer_scheme = HTTPBearer(auto_error=False)
+
+# Module-level cache of the real root folder id (created lazily).
+_root_folder_id: Optional[int] = None
 
 
 class FolderInput(BaseModel):
@@ -55,22 +64,110 @@ async def _folder_exists(db: AsyncSession, folder_id: int) -> bool:
     return await db.scalar(select(func.count()).select_from(FileFolder).where(FileFolder.id == folder_id, FileFolder.deleted_at.is_(None))) > 0
 
 
+async def _ensure_root_folder(db: AsyncSession) -> int:
+    """Return the real root folder id, creating it lazily on first use.
+
+    ``folder_id=0`` means "root" in the UI, but ``sys_file.folder_id`` has a
+    foreign key to ``sys_file_folder.id`` (no row with id=0), so on MySQL an
+    insert with folder_id=0 raises a foreign-key error. We keep a single real
+    "全部文件" row as root and map the virtual 0 onto it.
+    """
+    global _root_folder_id
+    if _root_folder_id is not None:
+        # Verify it still exists (e.g. DB reset between restarts).
+        if await db.get(FileFolder, _root_folder_id) is not None:
+            return _root_folder_id
+        _root_folder_id = None
+    existing = (await db.execute(
+        select(FileFolder).where(FileFolder.name == ROOT_FOLDER_NAME, FileFolder.parent_id == 0, FileFolder.deleted_at.is_(None))
+    )).scalar_one_or_none()
+    if existing is not None:
+        _root_folder_id = existing.id
+        return existing.id
+    root = FileFolder(name=ROOT_FOLDER_NAME, parent_id=0, created_by=1)
+    db.add(root)
+    await db.commit()
+    await db.refresh(root)
+    _root_folder_id = root.id
+    return root.id
+
+
+async def _normalize_folder_id(db: AsyncSession, folder_id: int) -> int:
+    """Map ``0`` (UI root) to the real root folder id; validate others."""
+    if folder_id == 0:
+        return await _ensure_root_folder(db)
+    if not await _folder_exists(db, folder_id):
+        raise NotFoundException("目标文件夹不存在")
+    return folder_id
+
+
+async def _download_auth(
+    request: Request,
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> User:
+    """Auth dependency for downloads: accepts Bearer header OR ?token= query.
+
+    Keeps the same JWT + permission model, but tolerates query-string tokens
+    so the frontend can use plain <a href> direct-download links.
+    """
+    from src.core.deps import get_current_user
+    from src.core.exceptions import AuthException
+
+    if credentials is not None:
+        return await get_current_user(request, credentials, db)
+    token = request.query_params.get("token")
+    if not token:
+        raise AuthException("Missing authentication token")
+    from src.core.security import decode_token
+
+    payload = decode_token(token)
+    if not payload or payload.get("type") != "access":
+        raise AuthException("Invalid or expired token")
+    from src.crud import crud_user
+
+    user_id = payload.get("sub")
+    if not user_id:
+        raise AuthException("Invalid token payload")
+    user = await crud_user.get(db, int(user_id))
+    if not user:
+        raise AuthException("User not found")
+    if user.status != 1:
+        raise AuthException("Account disabled")
+    request.state.user = user
+    # Permission check (same as require_permission, kept local to avoid
+    # re-injecting the header-only dependency).
+    from src.core.config import settings as _settings
+    from src.core.exceptions import PermissionException
+
+    if user.username != _settings.SUPER_ADMIN_USERNAME:
+        user_permissions: set[str] = set()
+        for role in user.roles:
+            for menu in role.menus:
+                if menu.permission:
+                    user_permissions.add(menu.permission)
+        if "system:file:download" not in user_permissions:
+            raise PermissionException("无下载权限")
+    return user
+
+
 @router.get("/folders/tree")
 async def folder_tree(db: Annotated[AsyncSession, Depends(get_db)], user: Annotated[User, Depends(require_permission("system:file:list"))]):
+    root_id = await _ensure_root_folder(db)
     folders = (await db.execute(select(FileFolder).where(FileFolder.deleted_at.is_(None)).order_by(FileFolder.parent_id, FileFolder.name))).scalars().all()
-    nodes = {0: {"id": 0, "name": "全部文件", "parent_id": 0, "children": []}}
+    nodes = {root_id: {"id": root_id, "name": ROOT_FOLDER_NAME, "parent_id": 0, "children": []}}
     for folder in folders:
         nodes[folder.id] = _folder_dict(folder) | {"children": []}
     for folder in folders:
-        nodes.setdefault(folder.parent_id, nodes[0])["children"].append(nodes[folder.id])
-    return success_response(data=[nodes[0]])
+        if folder.parent_id in nodes:
+            nodes[folder.parent_id]["children"].append(nodes[folder.id])
+    return success_response(data=[nodes[root_id]])
 
 
 @router.post("/folders")
 async def create_folder(body: FolderInput, db: Annotated[AsyncSession, Depends(get_db)], user: Annotated[User, Depends(require_permission("system:file:create-folder"))]):
-    if not await _folder_exists(db, body.parent_id):
-        raise NotFoundException("父文件夹不存在")
-    folder = FileFolder(name=_clean_name(body.name), parent_id=body.parent_id, created_by=user.id)
+    parent_id = await _normalize_folder_id(db, body.parent_id)
+    folder = FileFolder(name=_clean_name(body.name), parent_id=parent_id, created_by=user.id)
     db.add(folder)
     await db.commit()
     await db.refresh(folder)
@@ -103,6 +200,7 @@ async def delete_folder(folder_id: int, db: Annotated[AsyncSession, Depends(get_
 
 @router.get("")
 async def list_files(folder_id: int = Query(0, ge=0), keyword: str = Query("", max_length=100), page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100), db: AsyncSession = Depends(get_db), user: User = Depends(require_permission("system:file:list"))):
+    folder_id = await _normalize_folder_id(db, folder_id)
     query = select(SystemFile).where(SystemFile.deleted_at.is_(None), SystemFile.folder_id == folder_id)
     if keyword:
         query = query.where(SystemFile.original_name.contains(keyword))
@@ -113,8 +211,7 @@ async def list_files(folder_id: int = Query(0, ge=0), keyword: str = Query("", m
 
 @router.post("/upload")
 async def upload_file(folder_id: int = Query(0, ge=0), file: UploadFile = File(...), db: AsyncSession = Depends(get_db), user: User = Depends(require_permission("system:file:upload"))):
-    if not await _folder_exists(db, folder_id):
-        raise NotFoundException("目标文件夹不存在")
+    folder_id = await _normalize_folder_id(db, folder_id)
     original_name = _clean_name(file.filename or "未命名文件")
     extension = Path(original_name).suffix.lower().lstrip(".")
     if extension not in ALLOWED_EXTENSIONS:
@@ -310,7 +407,11 @@ async def delete_asset(
 
 
 @router.get("/{file_id}/download")
-async def download_file(file_id: int, db: Annotated[AsyncSession, Depends(get_db)], user: Annotated[User, Depends(require_permission("system:file:download"))]):
+async def download_file(
+    file_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(_download_auth)],
+):
     item = await db.get(SystemFile, file_id)
     if not item or item.deleted_at:
         raise NotFoundException("文件不存在")
@@ -327,4 +428,62 @@ async def delete_file(file_id: int, db: Annotated[AsyncSession, Depends(get_db)]
         raise NotFoundException("文件不存在")
     item.deleted_at = datetime.now(timezone.utc)
     await db.commit()
+    # Physically remove the stored blob when possible (non-blocking on failure).
+    try:
+        path = (Path(settings.FILE_STORAGE_DIR) / item.storage_key).resolve()
+        root = Path(settings.FILE_STORAGE_DIR).resolve()
+        if path.is_file() and (root == path.parent or root in path.parents):
+            path.unlink()
+            # Clean up now-empty year/month parent dirs (best effort).
+            for _ in range(2):
+                if path.parent == root:
+                    break
+                try:
+                    path.parent.rmdir()
+                except OSError:
+                    break
+                path = path.parent
+    except OSError as exc:
+        logger.warning("物理删除文件失败 file_id=%s storage_key=%s: %s", file_id, item.storage_key, exc)
     return success_response(msg="文件已删除")
+
+
+@router.post("/{file_id}/move")
+async def move_file(file_id: int, body: MoveInput, db: Annotated[AsyncSession, Depends(get_db)], user: User = Depends(require_permission("system:file:move"))):
+    """Move a file into another folder."""
+    item = await db.get(SystemFile, file_id)
+    if not item or item.deleted_at:
+        raise NotFoundException("文件不存在")
+    target_id = await _normalize_folder_id(db, body.folder_id)
+    if target_id == item.folder_id:
+        return success_response(msg="文件已在目标文件夹")
+    item.folder_id = target_id
+    await db.commit()
+    return success_response(msg="文件已移动")
+
+
+@router.post("/folders/{folder_id}/move")
+async def move_folder(folder_id: int, body: MoveInput, db: Annotated[AsyncSession, Depends(get_db)], user: User = Depends(require_permission("system:file:move"))):
+    """Move a folder (and its subtree) under another folder (or root)."""
+    folder = await db.get(FileFolder, folder_id)
+    if not folder or folder.deleted_at:
+        raise NotFoundException("文件夹不存在")
+    if folder_id == (await _ensure_root_folder(db)):
+        raise AppException(msg="根文件夹不可移动", code=400)
+    target_id = await _normalize_folder_id(db, body.folder_id)
+    if target_id == folder_id:
+        raise AppException(msg="不能移动到自身", code=400)
+    # Prevent moving into its own subtree (would create a cycle).
+    ancestor = target_id
+    while ancestor:
+        if ancestor == folder_id:
+            raise AppException(msg="不能移动到自身子文件夹中", code=400)
+        if ancestor == 0:
+            break
+        parent = await db.get(FileFolder, ancestor)
+        if not parent or parent.deleted_at:
+            break
+        ancestor = parent.parent_id
+    folder.parent_id = target_id
+    await db.commit()
+    return success_response(msg="文件夹已移动")

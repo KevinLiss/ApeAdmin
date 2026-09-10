@@ -11,7 +11,14 @@
     <div class="file-layout" v-loading="loading">
       <aside class="folder-panel">
         <div class="panel-title"><span>目录</span><el-tag size="small" type="info">{{ folderCount }}</el-tag></div>
-        <el-tree :data="folders" node-key="id" :props="{ label: 'name', children: 'children' }" default-expand-all @node-click="selectFolder" />
+        <el-tree :data="folders" node-key="id" :props="{ label: 'name', children: 'children' }" default-expand-all>
+          <template #default="{ data }">
+            <span class="tree-node">
+              <span class="tree-label" @click="selectFolder(data)">{{ data.name }}</span>
+              <el-button v-if="data.id !== (folders[0]?.id || 0)" link size="small" class="tree-move" title="移动文件夹" @click.stop="openMoveFolder(data)"><el-icon><Rank /></el-icon></el-button>
+            </span>
+          </template>
+        </el-tree>
         <div class="panel-title asset-title"><span>素材存储</span><el-tag size="small" type="warning">{{ assetGroups.length }}</el-tag></div>
         <div class="asset-list">
           <div v-for="g in assetGroups" :key="g.key" class="asset-node" :class="{ active: assetMode && currentGroup === g.key }" @click="selectAssetGroup(g)">
@@ -30,7 +37,7 @@
             <el-table-column prop="mime_type" label="类型" width="180" />
             <el-table-column label="大小" width="120"><template #default="{ row }">{{ formatSize(row.size) }}</template></el-table-column>
             <el-table-column prop="created_at" label="上传时间" width="180" />
-            <el-table-column label="操作" width="150" fixed="right"><template #default="{ row }"><el-button link type="primary" @click="download(row)">下载</el-button><el-button link type="danger" @click="removeFile(row)">删除</el-button></template></el-table-column>
+            <el-table-column label="操作" width="210" fixed="right"><template #default="{ row }"><el-button link type="primary" @click="download(row)">下载</el-button><el-button link type="primary" @click="openMoveFile(row)">移动</el-button><el-button link type="danger" @click="removeFile(row)">删除</el-button></template></el-table-column>
           </el-table>
           <div class="table-footer"><span class="result-count">共 {{ total }} 个文件</span><el-pagination v-model:current-page="page" v-model:page-size="pageSize" :total="total" layout="prev, pager, next" @change="loadFiles" /></div>
         </template>
@@ -63,13 +70,28 @@
     <el-input v-model="folderName" maxlength="120" placeholder="请输入文件夹名称" @keyup.enter="createFolder" />
     <template #footer><el-button @click="folderDialog = false">取消</el-button><el-button type="primary" @click="createFolder">创建</el-button></template>
   </el-dialog>
+  <el-dialog v-model="moveDialog" :title="moveType === 'folder' ? '移动文件夹' : '移动文件'" width="480px">
+    <p class="move-tip">将「{{ moveName }}」移动到：</p>
+    <el-tree-select
+      v-model="moveTargetId"
+      :data="moveTreeData"
+      node-key="id"
+      :props="{ label: 'name', children: 'children' }"
+      :render-after-expand="false"
+      check-strictly
+      default-expand-all
+      style="width: 100%"
+      placeholder="请选择目标文件夹"
+    />
+    <template #footer><el-button @click="moveDialog = false">取消</el-button><el-button type="primary" @click="confirmMove">移动</el-button></template>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, FolderAdd, Upload, Document, Refresh, Picture, Folder, Back } from '@element-plus/icons-vue'
-import { createFileFolder, deleteSystemFile, getFileFolders, getFiles, uploadSystemFile, downloadSystemFileUrl, getAssetGroups, getAssetList, deleteAsset, assetDownloadUrl } from '@/api'
+import { Search, FolderAdd, Upload, Document, Refresh, Picture, Folder, Back, Rank } from '@element-plus/icons-vue'
+import { createFileFolder, deleteSystemFile, getFileFolders, getFiles, uploadSystemFile, downloadSystemFileUrl, moveSystemFile, moveSystemFolder, getAssetGroups, getAssetList, deleteAsset, assetDownloadUrl } from '@/api'
 
 const loading = ref(false); const uploading = ref(false); const folders = ref<any[]>([]); const files = ref<any[]>([])
 const folderId = ref(0); const keyword = ref(''); const page = ref(1); const pageSize = ref(20); const total = ref(0)
@@ -83,8 +105,32 @@ async function loadFiles() { loading.value = true; try { const data: any = await
 function selectFolder(node: any) { folderId.value = node.id; page.value = 1; loadFiles() }
 async function createFolder() { if (!folderName.value.trim()) return ElMessage.warning('请输入文件夹名称'); await createFileFolder({ name: folderName.value, parent_id: folderId.value }); ElMessage.success('创建成功'); folderDialog.value = false; folderName.value = ''; await loadFolders() }
 async function handleUpload(options: any) { uploading.value = true; try { await uploadSystemFile(options.file, folderId.value); ElMessage.success('上传成功'); await loadFiles() } finally { uploading.value = false } }
-async function download(row: any) { const token = localStorage.getItem('apeadmin_token'); const response = await fetch(downloadSystemFileUrl(row.id), { headers: token ? { Authorization: `Bearer ${token}` } : {} }); if (!response.ok) return ElMessage.error('下载失败'); const blob = await response.blob(); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = row.name; link.click(); URL.revokeObjectURL(link.href) }
-async function removeFile(row: any) { await ElMessageBox.confirm(`确认删除「${row.name}」吗？`, '删除确认'); await deleteSystemFile(row.id); ElMessage.success('已删除'); await loadFiles() }
+async function download(row: any) { const token = localStorage.getItem('apeadmin_token'); const link = document.createElement('a'); link.href = `${downloadSystemFileUrl(row.id)}?token=${encodeURIComponent(token || '')}`; link.download = row.name; document.body.appendChild(link); link.click(); link.remove() }
+async function removeFile(row: any) { await ElMessageBox.confirm(`确认删除「${row.name}」吗？删除后文件将无法恢复。`, '删除确认', { type: 'warning' }); await deleteSystemFile(row.id); ElMessage.success('已删除'); await loadFiles() }
+
+// ---- 移动文件 / 文件夹 ----
+const moveDialog = ref(false); const moveType = ref<'file' | 'folder'>('file'); const moveName = ref(''); const moveTargetId = ref(0)
+const moveFileId = ref(0); const moveFolderId = ref(0)
+const moveTreeData = computed(() => {
+  // 移动文件夹时排除自身及其子树
+  if (moveType.value === 'folder' && moveFolderId.value) {
+    return pruneTree(folders.value, moveFolderId.value)
+  }
+  return folders.value
+})
+function pruneTree(nodes: any[], excludeId: number): any[] {
+  return nodes.filter((n) => n.id !== excludeId).map((n) => ({ ...n, children: n.children ? pruneTree(n.children, excludeId) : [] }))
+}
+function openMoveFile(row: any) { moveType.value = 'file'; moveFileId.value = row.id; moveName.value = row.name; moveTargetId.value = folderId.value; moveDialog.value = true }
+function openMoveFolder(data: any) { moveType.value = 'folder'; moveFolderId.value = data.id; moveName.value = data.name; moveTargetId.value = folderId.value; moveDialog.value = true }
+async function confirmMove() {
+  if (!moveTargetId.value) return ElMessage.warning('请选择目标文件夹')
+  try {
+    if (moveType.value === 'file') { await moveSystemFile(moveFileId.value, moveTargetId.value) } else { await moveSystemFolder(moveFolderId.value, moveTargetId.value) }
+    ElMessage.success('移动成功'); moveDialog.value = false; await Promise.all([loadFolders(), loadFiles()])
+  } catch (e: any) { ElMessage.error(e?.message || '移动失败') }
+}
+async function reloadFiles() { await Promise.all([loadFiles(), loadFolders()]) }
 function formatSize(size: number) { if (size < 1024) return `${size} B`; if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`; return `${(size / 1024 / 1024).toFixed(1)} MB` }
 
 // ---- 素材存储浏览 ----
@@ -167,4 +213,9 @@ onMounted(async () => { await Promise.all([loadFolders(), loadFiles(), loadAsset
 .asset-path { display: flex; align-items: center; gap: 8px; }
 .file-name.folder { cursor: pointer; }
 .file-name.folder:hover span:last-child { color: #4f63e8; }
+.tree-node { display: flex; align-items: center; justify-content: space-between; flex: 1; padding-right: 6px; }
+.tree-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.tree-move { visibility: hidden; padding: 2px; }
+.tree-node:hover .tree-move { visibility: visible; }
+.move-tip { margin: 0 0 12px; color: #667085; font-size: 14px; }
 </style>

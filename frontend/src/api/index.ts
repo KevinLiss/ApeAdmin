@@ -117,6 +117,8 @@ export const uploadSystemFile = (file: File, folderId: number) => {
 }
 export const deleteSystemFile = (id: number) => request.delete(`/files/${id}`)
 export const downloadSystemFileUrl = (id: number) => `/api/v1/files/${id}/download`
+export const moveSystemFile = (id: number, folderId: number) => request.post(`/files/${id}/move`, { folder_id: folderId })
+export const moveSystemFolder = (id: number, folderId: number) => request.post(`/files/folders/${id}/move`, { folder_id: folderId })
 // ---- 素材存储（物理目录浏览） ----
 export const getAssetGroups = () => request.get('/files/assets/groups')
 export const getAssetList = (params: { group: string; path?: string }) => request.get('/files/assets/list', { params })
