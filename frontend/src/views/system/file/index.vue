@@ -221,8 +221,7 @@ async function loadAssets() {
         const data: any = await getAssetList({ group: currentGroup.value, path: '' })
         assetDirs.value = data.dirs || []
         assetFiles.value = data.files || []
-        ElMessage.warning('目录已不存在，已返回根目录')
-      } catch { /* 根目录也失败则保持空列表 */ }
+      } catch { /* 根目录也失败则保持空列表；错误提示由全局拦截器统一弹出 */ }
     }
   } finally { loading.value = false }
 }
