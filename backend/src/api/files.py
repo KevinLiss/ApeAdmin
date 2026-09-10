@@ -186,16 +186,64 @@ async def rename_folder(folder_id: int, body: FolderRename, db: Annotated[AsyncS
 
 @router.delete("/folders/{folder_id}")
 async def delete_folder(folder_id: int, db: Annotated[AsyncSession, Depends(get_db)], user: Annotated[User, Depends(require_permission("system:file:delete"))]):
+    """Delete a folder cascading to its whole subtree (folders + files).
+
+    All files under the subtree are soft-deleted (deleted_at) and their
+    physical blobs removed best-effort. The response carries the affected
+    counts so the frontend can show them to the user beforehand.
+    """
     folder = await db.get(FileFolder, folder_id)
     if not folder or folder.deleted_at:
         raise NotFoundException("文件夹不存在")
-    has_children = await db.scalar(select(func.count()).select_from(FileFolder).where(FileFolder.parent_id == folder_id, FileFolder.deleted_at.is_(None)))
-    has_files = await db.scalar(select(func.count()).select_from(SystemFile).where(SystemFile.folder_id == folder_id, SystemFile.deleted_at.is_(None)))
-    if has_children or has_files:
-        raise AppException(msg="文件夹不为空，请先移除其中内容", code=409)
-    folder.deleted_at = datetime.now(timezone.utc)
+    root_id = await _ensure_root_folder(db)
+    if folder_id == root_id:
+        raise AppException(msg="根文件夹不可删除", code=400)
+    # Collect the whole subtree of folder ids (BFS over parent_id).
+    all_folders = (await db.execute(
+        select(FileFolder).where(FileFolder.deleted_at.is_(None))
+    )).scalars().all()
+    children_map: dict[int, list[int]] = {}
+    for f in all_folders:
+        children_map.setdefault(f.parent_id, []).append(f.id)
+    to_delete: list[int] = []
+    queue = [folder_id]
+    while queue:
+        cur = queue.pop(0)
+        to_delete.append(cur)
+        queue.extend(children_map.get(cur, []))
+    folder_count = len(to_delete)
+    # All files living in any of these folders.
+    files = (await db.execute(
+        select(SystemFile).where(SystemFile.folder_id.in_(to_delete), SystemFile.deleted_at.is_(None))
+    )).scalars().all()
+    file_count = len(files)
+    now = datetime.now(timezone.utc)
+    for fid in to_delete:
+        f = await db.get(FileFolder, fid)
+        if f:
+            f.deleted_at = now
+    for item in files:
+        item.deleted_at = now
     await db.commit()
-    return success_response(msg="文件夹已删除")
+    # Best-effort physical removal of the file blobs.
+    storage_root = Path(settings.FILE_STORAGE_DIR).resolve()
+    for item in files:
+        try:
+            path = (storage_root / item.storage_key).resolve()
+            if path.is_file() and (storage_root == path.parent or storage_root in path.parents):
+                path.unlink()
+                parent = path.parent
+                for _ in range(2):
+                    if parent == storage_root:
+                        break
+                    try:
+                        parent.rmdir()
+                    except OSError:
+                        break
+                    parent = parent.parent
+        except OSError as exc:
+            logger.warning("级联删除物理文件失败 file_id=%s storage_key=%s: %s", item.id, item.storage_key, exc)
+    return success_response(data={"folder_count": folder_count, "file_count": file_count}, msg=f"已删除文件夹及其下 {file_count} 个文件")
 
 
 @router.get("")

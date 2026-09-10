@@ -15,7 +15,10 @@
           <template #default="{ data }">
             <span class="tree-node">
               <span class="tree-label" @click="selectFolder(data)">{{ data.name }}</span>
-              <el-button v-if="data.id !== (folders[0]?.id || 0)" link size="small" class="tree-move" title="移动文件夹" @click.stop="openMoveFolder(data)"><el-icon><Rank /></el-icon></el-button>
+              <span class="tree-actions">
+                <el-button v-if="data.id !== (folders[0]?.id || 0)" link size="small" class="tree-btn" title="移动文件夹" @click.stop="openMoveFolder(data)"><el-icon><Rank /></el-icon></el-button>
+                <el-button v-if="data.id !== (folders[0]?.id || 0)" link size="small" type="danger" class="tree-btn" title="删除文件夹" @click.stop="removeFolder(data)"><el-icon><Delete /></el-icon></el-button>
+              </span>
             </span>
           </template>
         </el-tree>
@@ -107,8 +110,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, FolderAdd, Upload, Document, Refresh, Picture, Folder, Back, Rank } from '@element-plus/icons-vue'
-import { createFileFolder, deleteSystemFile, getFileFolders, getFiles, uploadSystemFile, downloadSystemFileUrl, previewSystemFileUrl, moveSystemFile, moveSystemFolder, getAssetGroups, getAssetList, deleteAsset, assetDownloadUrl, assetPreviewUrl } from '@/api'
+import { Search, FolderAdd, Upload, Document, Refresh, Picture, Folder, Back, Rank, Delete } from '@element-plus/icons-vue'
+import { createFileFolder, deleteFileFolder, deleteSystemFile, getFileFolders, getFiles, uploadSystemFile, downloadSystemFileUrl, previewSystemFileUrl, moveSystemFile, moveSystemFolder, getAssetGroups, getAssetList, deleteAsset, assetDownloadUrl, assetPreviewUrl } from '@/api'
 
 const loading = ref(false); const uploading = ref(false); const folders = ref<any[]>([]); const files = ref<any[]>([])
 const folderId = ref(0); const keyword = ref(''); const page = ref(1); const pageSize = ref(20); const total = ref(0)
@@ -124,6 +127,16 @@ async function createFolder() { if (!folderName.value.trim()) return ElMessage.w
 async function handleUpload(options: any) { uploading.value = true; try { await uploadSystemFile(options.file, folderId.value); ElMessage.success('上传成功'); await loadFiles() } finally { uploading.value = false } }
 async function download(row: any) { const token = localStorage.getItem('apeadmin_token'); const link = document.createElement('a'); link.href = `${downloadSystemFileUrl(row.id)}?token=${encodeURIComponent(token || '')}`; link.download = row.name; document.body.appendChild(link); link.click(); link.remove() }
 async function removeFile(row: any) { await ElMessageBox.confirm(`确认删除「${row.name}」吗？删除后文件将无法恢复。`, '删除确认', { type: 'warning' }); await deleteSystemFile(row.id); ElMessage.success('已删除'); await loadFiles() }
+async function removeFolder(data: any) {
+  // 级联删除：整个文件夹树及其下所有文件
+  const tip = `确认删除文件夹「${data.name}」吗？\n\n文件夹下的所有子文件夹和文件将一并删除，且不可恢复。`
+  await ElMessageBox.confirm(tip, '删除文件夹确认', { type: 'warning', confirmButtonText: '删除文件夹及内容', cancelButtonText: '取消' })
+  await deleteFileFolder(data.id)
+  ElMessage.success('文件夹已删除')
+  // 若当前正浏览被删文件夹，退回根目录
+  if (folderId.value === data.id) { folderId.value = 0 }
+  await Promise.all([loadFolders(), loadFiles()])
+}
 
 // ---- 移动文件 / 文件夹 ----
 const moveDialog = ref(false); const moveType = ref<'file' | 'folder'>('file'); const moveName = ref(''); const moveTargetId = ref(0)
@@ -288,8 +301,9 @@ onMounted(async () => { await Promise.all([loadFolders(), loadFiles(), loadAsset
 .file-name.folder:hover span:last-child { color: #4f63e8; }
 .tree-node { display: flex; align-items: center; justify-content: space-between; flex: 1; padding-right: 6px; }
 .tree-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
-.tree-move { visibility: hidden; padding: 2px; }
-.tree-node:hover .tree-move { visibility: visible; }
+.tree-actions { display: flex; align-items: center; gap: 2px; visibility: hidden; }
+.tree-node:hover .tree-actions { visibility: visible; }
+.tree-btn { padding: 2px; }
 .move-tip { margin: 0 0 12px; color: #667085; font-size: 14px; }
 /* 文件预览 */
 .preview-body { min-height: 320px; max-height: 68vh; display: flex; align-items: center; justify-content: center; overflow: auto; background: #f8fafc; border-radius: 6px; }
