@@ -261,6 +261,11 @@ def create_app() -> FastAPI:
     async def root_redirect():
         if not is_installed():
             return RedirectResponse(url="/setup")
+        # Prefer a plugin-shipped public site (e.g. /apehub-web) when present:
+        # the plugin mounts its own static site; fall back to admin console.
+        route_paths = [getattr(r, "path", None) for r in app.routes]
+        if "/apehub-web" in route_paths or "/apehub-web/uploads" in route_paths:
+            return RedirectResponse(url="/apehub-web/")
         # Read admin_path from DB (runtime setting) instead of .env, so a
         # path changed in 系统设置 + backend restart redirects correctly.
         from src.crud.setting import crud_setting
