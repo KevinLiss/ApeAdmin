@@ -111,6 +111,16 @@
               </div>
             </el-form-item>
 
+            <el-form-item label="AI 会议 H5 地址">
+              <el-input v-model="form.aimeeting_h5_url" placeholder="如 https://meet.example.com 或 /h5">
+                <template #prepend>URL</template>
+              </el-input>
+              <div class="form-tip">
+                <el-icon><InfoFilled /></el-icon>
+                <span>AI 会议助手用户端（录音/转写/纪要）的访问地址，供会议参与者扫码或点击进入。</span>
+              </div>
+            </el-form-item>
+
             <el-form-item label="侧边栏主题">
               <el-radio-group v-model="form.sidebar_theme" @change="onSidebarThemeChange">
                 <el-radio-button label="light">浅色</el-radio-button>
@@ -207,6 +217,7 @@ const form = reactive({
   footer_text: 'ApeAdmin © 2026',
   login_bg: '',
   sidebar_theme: 'light',
+  aimeeting_h5_url: '',
 })
 
 const prefs = reactive({

@@ -33,6 +33,20 @@ dev = [
     "ruff>=0.6.0",
     "mypy>=1.11.0",
 ]
+# AI 会议助手（aimeeting 插件）运行时依赖：语音转写 + 说话人分离 + 流式识别。
+# 全部纯 CPU 推理（ctranslate2 / onnxruntime int8），无需 torch/CUDA。
+# 重建环境：pip install -e ".[meeting]"，模型另见 scripts/setup_aimeeting_env.sh
+meeting = [
+    "faster-whisper==1.2.1",
+    "ctranslate2==4.8.2",
+    "sherpa-onnx==1.13.7",
+    "onnxruntime==1.29.0",
+    "av==18.1.0",
+    "numpy==2.5.3",
+    "ffmpeg-python==0.2.0",
+    "tokenizers==0.23.2",
+    "huggingface_hub==1.30.0",
+]
 
 [project.scripts]
 apeadmin = "src.cli:main"

@@ -42,6 +42,7 @@ const staticRoutes: RouteRecordRaw[] = [
   { path: '/404', name: 'NotFound', component: () => import('@/views/error/404.vue'), meta: { title: '404' } },
   { path: '/', name: 'Layout', component: () => import('@/layout/index.vue'), redirect: '/dashboard-monitor', children: [
     { path: 'profile', name: 'Profile', component: () => import('@/views/system/profile/index.vue'), meta: { title: '个人中心', icon: 'User' } },
+    { path: 'aimeeting/detail/:id', name: 'AimeetingDetail', component: () => import('@/views/aimeeting/detail/index.vue'), meta: { title: '会议详情' } },
   ] },
   { path: '/:pathMatch(.*)*', name: 'CatchAll', component: () => import('@/views/error/404.vue'), meta: { title: '404' } },
 ]

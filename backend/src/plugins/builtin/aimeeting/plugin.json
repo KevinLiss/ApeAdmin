@@ -1,0 +1,31 @@
+{
+  "name": "aimeeting",
+  "display_name": "AI 会议助手",
+  "version": "1.2.0",
+  "description": "录音转写 + AI 会议纪要：开始会议进行录音 → 语音转写 → LLM 一句话总结 → 结构化会议纪要（结论/讨论要点/决议/遗留问题）",
+  "author": "ApeAdmin",
+  "dependencies": [],
+  "environment": {
+    "note": "运行时依赖在 backend/pyproject.toml [project.optional-dependencies].meeting 中声明；一键补齐：bash backend/scripts/setup_aimeeting_env.sh。后台「运行环境」页（GET /api/v1/aimeeting/env/check）可查看实时自检结果。",
+    "python_packages": [
+      "faster-whisper==1.2.1",
+      "ctranslate2==4.8.2",
+      "sherpa-onnx==1.13.7",
+      "onnxruntime==1.29.0",
+      "av==18.1.0",
+      "numpy==2.5.3",
+      "ffmpeg-python==0.2.0",
+      "tokenizers==0.23.2"
+    ],
+    "models": [
+      { "dir": "backend/models/faster-whisper-small", "required": true, "source": "HF: Systran/faster-whisper-small", "desc": "离线转写主模型（缺则转写不可用）" },
+      { "dir": "backend/models/sherpa-diarization", "required": false, "source": "内网拷贝（sherpa-onnx pyannote+Wespeaker ONNX）", "desc": "说话人分离（缺则不区分说话人）" },
+      { "dir": "backend/models/sherpa-streaming-zh-14m", "required": false, "source": "内网拷贝（sherpa-onnx 流式 zipformer zh 14M int8）", "desc": "会中实时流式识别（缺则仅离线转写）" }
+    ],
+    "env_vars": {
+      "AIMEETING_WHISPER_MODEL": "覆盖 whisper 模型目录",
+      "AIMEETING_DIARIZATION_MODEL": "覆盖说话人分离模型目录",
+      "AIMEETING_AUDIO_DIR": "覆盖录音存储目录"
+    }
+  }
+}
