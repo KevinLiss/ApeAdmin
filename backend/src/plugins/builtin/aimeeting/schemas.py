@@ -12,6 +12,7 @@ class MeetingCreate(BaseModel):
     title: str = Field(default="", max_length=200, description="会议标题（留空则按创建时间自动命名）")
     start_time: Optional[datetime] = Field(default=None, description="会议开始时间")
     participants: str = Field(default="", description="参会人（逗号分隔）")
+    device_id: str = Field(default="", max_length=200, description="创建设备标识（默认认领录音权）")
 
 
 class MeetingUpdate(BaseModel):
@@ -100,6 +101,7 @@ class RecordOut(BaseModel):
     segments_json: str
     transcript_status: str
     error: str
+    device_id: str = ""
     created_at: datetime
 
 
@@ -171,3 +173,9 @@ class MinutesOut(BaseModel):
     error: str
     created_at: datetime
     updated_at: datetime
+
+
+class MinutesUpdate(BaseModel):
+    """管理端：编辑会议纪要/总结（Markdown 原文保存）。"""
+    summary: Optional[str] = Field(default=None, description="一句话总结（不修改则省略）")
+    minutes: str = Field(default="", min_length=1, description="结构化会议纪要（Markdown）")

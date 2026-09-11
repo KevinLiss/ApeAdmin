@@ -7,7 +7,7 @@
 
     <!-- 操作栏 -->
     <div class="toolbar">
-      <el-button type="primary" @click="openCreate" v-permission="'aimeeting:meeting:create'">
+      <el-button type="primary" :loading="creating" @click="quickCreate" v-permission="'aimeeting:meeting:create'">
         <el-icon><Plus /></el-icon> 新建会议
       </el-button>
       <el-button @click="fetchList" :loading="loading">
@@ -83,7 +83,6 @@
             size="small"
             @click="openShare(row)"
           >分享会议</el-button>
-          <el-button link type="primary" size="small" @click="viewRecords(row)">记录</el-button>
           <el-button link type="primary" size="small" @click="goDetail(row)">详情</el-button>
           <el-button link type="danger" size="small" @click="handleDelete(row)" v-permission="'aimeeting:meeting:delete'">删除</el-button>
         </template>
@@ -102,30 +101,6 @@
         @current-change="fetchList"
       />
     </div>
-
-    <!-- 新建会议弹窗 -->
-    <el-dialog v-model="dialogVisible" title="新建会议" width="520px">
-      <el-form :model="form" label-width="90px">
-        <el-form-item label="会议标题" required>
-          <el-input v-model="form.title" placeholder="请输入会议标题" maxlength="200" />
-        </el-form-item>
-        <el-form-item label="参会人">
-          <el-input v-model="form.participants" placeholder="多个参会人请用逗号分隔" />
-        </el-form-item>
-        <el-form-item label="会议时间">
-          <el-date-picker
-            v-model="form.start_time"
-            type="datetime"
-            placeholder="选择开始时间"
-            style="width: 100%"
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="handleSave">保存</el-button>
-      </template>
-    </el-dialog>
 
     <!-- 分享会议弹窗（二维码 + 会议链接，支持多设备扫码进入共享录制） -->
     <el-dialog v-model="shareVisible" title="分享会议" width="360px" align-center>
@@ -147,48 +122,6 @@
       </template>
     </el-dialog>
 
-    <!-- 会议记录抽屉 -->
-    <el-drawer v-model="recordsVisible" :title="`会议记录 - ${recordsMeeting?.title || ''}`" size="640px">
-      <div v-loading="recordsLoading">
-        <template v-if="recordsMeeting">
-          <el-descriptions :column="2" size="small" border style="margin-bottom: 16px">
-            <el-descriptions-item label="会议编号">{{ recordsMeeting.meeting_code }}</el-descriptions-item>
-            <el-descriptions-item label="状态">
-              <el-tag :type="statusType(recordsMeeting.status)" size="small">{{ statusText(recordsMeeting.status) }}</el-tag>
-            </el-descriptions-item>
-            <el-descriptions-item label="开始时间">{{ fmtDateTime(recordsMeeting.start_time) }}</el-descriptions-item>
-            <el-descriptions-item label="录音时长">{{ fmtDuration(recordsMeeting.audio_duration) }}</el-descriptions-item>
-          </el-descriptions>
-        </template>
-
-        <el-empty v-if="!recordsLoading && records.length === 0" description="暂无录音转写记录" />
-        <el-timeline v-else style="padding-left: 4px">
-          <el-timeline-item
-            v-for="(rec, idx) in records"
-            :key="rec.id"
-            :timestamp="`第 ${idx + 1} 段 · ${fmtDateTime(rec.created_at)}`"
-            placement="top"
-          >
-            <div class="record-item">
-              <div class="record-meta">
-                <el-tag :type="transcriptType(rec.transcript_status)" size="small">
-                  {{ transcriptText(rec.transcript_status) }}
-                </el-tag>
-                <span class="text-muted">时长 {{ fmtDuration(rec.audio_duration) }}</span>
-                <span class="text-muted">偏移 {{ fmtDuration(rec.offset_sec) }}</span>
-              </div>
-              <p class="record-content pre-wrap">{{ rec.transcript || '（本段无转写文本）' }}</p>
-              <p v-if="rec.transcript_status === 'failed' && rec.error" class="record-error">{{ rec.error }}</p>
-            </div>
-          </el-timeline-item>
-        </el-timeline>
-
-        <el-card v-if="recordsMeeting?.transcript_text" shadow="never" class="full-transcript">
-          <template #header><span>完整转写文本</span></template>
-          <div class="pre-wrap transcript-text">{{ recordsMeeting.transcript_text }}</div>
-        </el-card>
-      </div>
-    </el-drawer>
   </div>
 </template>
 
@@ -201,30 +134,17 @@ import request from '@/api/request'
 
 const router = useRouter()
 const loading = ref(false)
-const saving = ref(false)
 const tableData = ref<any[]>([])
 const total = ref(0)
 const page = ref(1)
 const pageSize = ref(20)
-const dialogVisible = ref(false)
+const creating = ref(false)
 const selectedRows = ref<any[]>([])
 const batchDeleting = ref(false)
-
-// 会议记录抽屉
-const recordsVisible = ref(false)
-const recordsLoading = ref(false)
-const recordsMeeting = ref<any | null>(null)
-const records = ref<any[]>([])
 
 const filters = reactive({
   status: '',
   keyword: '',
-})
-
-const form = reactive({
-  title: '',
-  participants: '',
-  start_time: null as string | null,
 })
 
 function statusType(s: string) {
@@ -233,15 +153,19 @@ function statusType(s: string) {
 function statusText(s: string) {
   return s === 'scheduled' ? '待开始' : s === 'in_progress' ? '进行中' : s === 'ended' ? '已结束' : s === 'cancelled' ? '已取消' : s
 }
-function transcriptType(s?: string) {
-  return s === 'success' ? 'success' : s === 'failed' ? 'danger' : s === 'processing' ? 'warning' : 'info'
-}
-function transcriptText(s?: string) {
-  return s === 'success' ? '已完成' : s === 'failed' ? '失败' : s === 'processing' ? '转写中' : '未转写'
-}
 function fmtDateTime(v?: string | null) {
   if (!v) return '—'
-  return String(v).replace('T', ' ').slice(0, 16)
+  // 后端混存两类时间：SQLite CURRENT_TIMESTAMP 为 naive UTC（无时区后缀），
+  // datetime.now(utc) 序列化带 +00:00/Z。naive 串按 UTC 解析后转本地时区显示，
+  // 修复管理端「差 8 小时」问题。
+  const raw = String(v)
+  let s = raw.replace('T', ' ').slice(0, 19)
+  const hasTz = /[zZ]$|[+-]\d{2}:?\d{2}$/.test(raw)
+  if (!hasTz) s += 'Z'
+  const d = new Date(s.replace(' ', 'T'))
+  if (Number.isNaN(d.getTime())) return raw.replace('T', ' ').slice(0, 16)
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
 }
 function fmtDuration(sec?: number) {
   if (!sec) return '—'
@@ -275,15 +199,30 @@ function onSelectionChange(rows: any[]) {
   selectedRows.value = rows
 }
 
-function openCreate() {
-  Object.assign(form, { title: '', participants: '', start_time: null })
-  dialogVisible.value = true
+/** 新建会议：不弹表单，直接创建（标题留空后端自动命名）并跳转 H5 会议页 */
+async function quickCreate() {
+  creating.value = true
+  try {
+    const res: any = await request.post('/aimeeting/meetings', {})
+    if (res?.id) {
+      await fetchList()
+      window.location.href = meetingH5Url(res.id)
+    }
+  } catch {
+    // handled by interceptor
+  } finally {
+    creating.value = false
+  }
 }
 
-/** H5 用户端地址：优先读 VITE_H5_BASE，默认与当前主机同款的 5177 端口 */
+/** H5 用户端地址：优先读 VITE_H5_BASE。
+ * 开发环境默认同主机 5177（vite dev server）；生产环境把 H5 dist 与管理端放同域
+ * （不同 base 路径或子域名），不设 VITE_H5_BASE 时自动回退为当前 origin。 */
 const H5_BASE =
   (import.meta.env?.VITE_H5_BASE as string) ||
-  `${window.location.protocol}//${window.location.hostname}:5177`
+  (import.meta.env?.DEV
+    ? `${window.location.protocol}//${window.location.hostname}:5177`
+    : window.location.origin)
 
 function meetingH5Url(meetingId: number) {
   return `${H5_BASE}/meeting/${meetingId}`
@@ -322,31 +261,6 @@ async function copyShareLink() {
   }
 }
 
-async function handleSave() {
-  if (!form.title.trim()) {
-    ElMessage.warning('请输入会议标题')
-    return
-  }
-  saving.value = true
-  try {
-    const payload: any = {
-      title: form.title.trim(),
-      participants: form.participants,
-    }
-    if (form.start_time) payload.start_time = form.start_time
-    const res: any = await request.post('/aimeeting/meetings', payload)
-    ElMessage.success('创建成功，分享二维码或链接即可进入会议')
-    dialogVisible.value = false
-    await fetchList()
-    // 创建成功后弹出分享框：扫二维码 / 复制链接，多设备可同时进入共享录制
-    if (res?.id) openShare(res)
-  } catch {
-    // handled by interceptor
-  } finally {
-    saving.value = false
-  }
-}
-
 async function handleDelete(row: any) {
   await ElMessageBox.confirm(`确定删除会议「${row.title}」吗？删除后其录音转写记录与纪要一并删除。`, '提示', { type: 'warning' })
   await request.delete(`/aimeeting/meetings/${row.id}`)
@@ -378,21 +292,6 @@ async function handleBatchDelete() {
     // handled by interceptor
   } finally {
     batchDeleting.value = false
-  }
-}
-
-async function viewRecords(row: any) {
-  recordsMeeting.value = row
-  recordsVisible.value = true
-  recordsLoading.value = true
-  records.value = []
-  try {
-    const data: any = await request.get(`/aimeeting/meetings/${row.id}/records`)
-    records.value = Array.isArray(data) ? data : []
-  } catch {
-    // handled by interceptor
-  } finally {
-    recordsLoading.value = false
   }
 }
 
@@ -435,36 +334,6 @@ onMounted(() => {
 .pre-wrap {
   white-space: pre-wrap;
   word-break: break-word;
-}
-.record-item .record-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
-}
-.record-item .record-meta .text-muted {
-  color: #999;
-  font-size: 12px;
-}
-.record-content {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.7;
-  color: #333;
-}
-.record-error {
-  margin: 4px 0 0;
-  font-size: 12px;
-  color: #f56c6c;
-}
-.full-transcript {
-  margin-top: 16px;
-}
-.transcript-text {
-  font-size: 13px;
-  line-height: 1.8;
-  max-height: 320px;
-  overflow: auto;
 }
 /* 分享会议弹窗 */
 .share-body {

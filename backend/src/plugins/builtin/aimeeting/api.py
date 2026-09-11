@@ -13,7 +13,7 @@ import json
 import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from sqlalchemy import func, select
@@ -48,6 +48,7 @@ from src.plugins.builtin.aimeeting.schemas import (
     MeetingStatusUpdate,
     MeetingUpdate,
     MinutesOut,
+    MinutesUpdate,
     RecordOut,
     SpeakerOut,
     SpeakerUpdate,
@@ -1025,6 +1026,8 @@ async def get_meeting(
     ).scalars().all()
 
     data = MeetingOut.model_validate(meeting).model_dump(mode="json")
+    # 句级结构化转写（管理端详情页「会议记录 → 对话流」渲染，含说话人）
+    data["transcript_json"] = meeting.transcript_json or ""
     data["record_count"] = record_count
     data["minutes_status"] = minutes_row.status if minutes_row else "none"
     data["minutes"] = (
@@ -1242,3 +1245,157 @@ async def get_meeting_minutes(
     if not minutes_row:
         return success_response(data=None)
     return success_response(data=MinutesOut.model_validate(minutes_row).model_dump(mode="json"))
+
+
+@router.put("/meetings/{meeting_id}/minutes")
+async def update_meeting_minutes(
+    meeting_id: int,
+    body: MinutesUpdate,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    _perm: Annotated[User, Depends(_require_perm("aimeeting:minutes:generate"))],
+):
+    """管理端：人工修改会议纪要/总结（Markdown 原文直接覆盖保存）。"""
+    await _get_meeting_or_404(db, meeting_id)
+    minutes_row = (
+        await db.execute(
+            select(AimeetingMinutes).where(AimeetingMinutes.meeting_id == meeting_id)
+        )
+    ).scalars().first()
+    if not minutes_row:
+        raise HTTPException(status_code=404, detail="该会议尚未生成纪要，无法编辑")
+    minutes_row.minutes = body.minutes
+    if body.summary is not None:
+        minutes_row.summary = body.summary
+    minutes_row.status = "success"
+    minutes_row.error = ""
+    minutes_row.generated_by = user.id
+    await db.commit()
+    await db.refresh(minutes_row)
+    return success_response(
+        data=MinutesOut.model_validate(minutes_row).model_dump(mode="json"),
+        msg="纪要已保存",
+    )
+
+
+def _local_dt(dt: Optional[datetime]) -> str:
+    """把存储的 UTC 时间转服务器本地时区显示串（导出文档用）。"""
+    if not dt:
+        return ""
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone().strftime("%Y-%m-%d %H:%M")
+
+
+def _minutes_to_docx(meeting: AimeetingMeeting, minutes_row: AimeetingMinutes) -> bytes:
+    """把会议纪要（Markdown）渲染为 Word 文档字节流。
+
+    仅做轻量 Markdown 解析（标题/列表/普通段落），足够覆盖四板块纪要。
+    """
+    import io
+    import re
+
+    from docx import Document
+    from docx.shared import Pt, RGBColor
+
+    doc = Document()
+    # 标题与元信息
+    h = doc.add_heading(meeting.title or "会议纪要", level=0)
+    meta_lines = [f"会议编号：{meeting.meeting_code}"]
+    if meeting.actual_start:
+        meta_lines.append(f"开始时间：{_local_dt(meeting.actual_start)}")
+    if meeting.actual_end:
+        meta_lines.append(f"结束时间：{_local_dt(meeting.actual_end)}")
+    meta_lines.append(f"录音时长：{meeting.audio_duration // 60} 分 {meeting.audio_duration % 60} 秒")
+    if meeting.participants:
+        meta_lines.append(f"参会人：{meeting.participants}")
+    for line in meta_lines:
+        p = doc.add_paragraph(line)
+        p.runs[0].font.size = Pt(9)
+        p.runs[0].font.color.rgb = RGBColor(0x88, 0x88, 0x88)
+
+    if minutes_row.summary:
+        doc.add_heading("会议总结", level=1)
+        doc.add_paragraph(minutes_row.summary)
+
+    doc.add_heading("会议纪要", level=1)
+    md = minutes_row.minutes or ""
+    for raw in md.splitlines():
+        line = raw.rstrip()
+        t = line.strip()
+        if not t:
+            continue
+        m = re.match(r"^(#{1,4})\s*(.*)$", t)
+        if m:
+            doc.add_heading(m[2], level=min(len(m[1]), 4))
+            continue
+        m = re.match(r"^[-*+]\s+(.*)$", t)
+        if m:
+            doc.add_paragraph(m[1], style="List Bullet")
+            continue
+        m = re.match(r"^\d+[.、]\s*(.*)$", t)
+        if m:
+            doc.add_paragraph(m[1], style="List Number")
+            continue
+        # 普通段落：去掉行内 **加粗** 标记后写入
+        doc.add_paragraph(re.sub(r"\*\*(.+?)\*\*", r"\1", t))
+
+    buf = io.BytesIO()
+    doc.save(buf)
+    return buf.getvalue()
+
+
+@router.get("/meetings/{meeting_id}/minutes/export")
+async def export_meeting_minutes(
+    meeting_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    _perm: Annotated[User, Depends(_require_perm("aimeeting:minutes:list"))],
+    fmt: str = Query(default="md", pattern="^(md|docx)$", description="导出格式：md / docx"),
+):
+    """管理端：导出会议纪要为 Markdown 或 Word 文档。"""
+    from urllib.parse import quote
+
+    meeting = await _get_meeting_or_404(db, meeting_id)
+    minutes_row = (
+        await db.execute(
+            select(AimeetingMinutes).where(AimeetingMinutes.meeting_id == meeting_id)
+        )
+    ).scalars().first()
+    if not minutes_row or not (minutes_row.minutes or minutes_row.summary):
+        raise HTTPException(status_code=404, detail="该会议尚无纪要，无法导出")
+
+    safe_title = (meeting.title or f"meeting_{meeting_id}").replace("/", "_").replace("\\", "_")[:60]
+    # RFC 5987 文件名编码，避免中文文件名乱码
+    filename_star = f"filename*=UTF-8''{quote(safe_title + ' 纪要.' + ('docx' if fmt == 'docx' else 'md'))}"
+
+    if fmt == "docx":
+        from fastapi.responses import Response
+
+        content = _minutes_to_docx(meeting, minutes_row)
+        return Response(
+            content=content,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={"Content-Disposition": f"attachment; {filename_star}"},
+        )
+
+    md_parts = [f"# {meeting.title}", ""]
+    meta = [f"- 会议编号：{meeting.meeting_code}"]
+    if meeting.actual_start:
+        meta.append(f"- 开始时间：{_local_dt(meeting.actual_start)}")
+    if meeting.actual_end:
+        meta.append(f"- 结束时间：{_local_dt(meeting.actual_end)}")
+    meta.append(f"- 录音时长：{meeting.audio_duration // 60} 分 {meeting.audio_duration % 60} 秒")
+    if meeting.participants:
+        meta.append(f"- 参会人：{meeting.participants}")
+    md_parts += meta + [""]
+    if minutes_row.summary:
+        md_parts += ["## 会议总结", "", minutes_row.summary, ""]
+    md_parts += ["## 会议纪要", "", minutes_row.minutes or "（无）", ""]
+    from fastapi.responses import Response
+
+    return Response(
+        content="\n".join(md_parts).encode("utf-8"),
+        media_type="text/markdown; charset=utf-8",
+        headers={"Content-Disposition": f"attachment; {filename_star}"},
+    )
