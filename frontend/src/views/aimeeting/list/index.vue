@@ -74,20 +74,6 @@
           <span>{{ fmtDuration(row.audio_duration) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="转写" width="90" align="center">
-        <template #default="{ row }">
-          <el-tag :type="transcriptType(row.transcript_status)" size="small">
-            {{ transcriptText(row.transcript_status) }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column label="纪要" width="90" align="center">
-        <template #default="{ row }">
-          <el-tag :type="minutesType(row.minutes_status)" size="small">
-            {{ minutesText(row.minutes_status) }}
-          </el-tag>
-        </template>
-      </el-table-column>
       <el-table-column label="操作" width="200" fixed="right">
         <template #default="{ row }">
           <el-button
@@ -252,12 +238,6 @@ function transcriptType(s?: string) {
 }
 function transcriptText(s?: string) {
   return s === 'success' ? '已完成' : s === 'failed' ? '失败' : s === 'processing' ? '转写中' : '未转写'
-}
-function minutesType(s?: string) {
-  return s === 'success' ? 'success' : s === 'failed' ? 'danger' : s === 'pending' ? 'warning' : 'info'
-}
-function minutesText(s?: string) {
-  return s === 'success' ? '已生成' : s === 'failed' ? '失败' : s === 'pending' ? '生成中' : '未生成'
 }
 function fmtDateTime(v?: string | null) {
   if (!v) return '—'
