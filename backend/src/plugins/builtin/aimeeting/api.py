@@ -11,7 +11,7 @@
 import asyncio
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Annotated
 
@@ -61,6 +61,7 @@ from src.plugins.builtin.aimeeting.services import (
     speaker_code,
     transcribe_record_async,
 )
+from src.plugins.builtin.aimeeting.streaming import active_stream_snapshot, stream_recording_state
 
 router = APIRouter(prefix="/aimeeting", tags=["AI 会议助手"])
 
@@ -104,7 +105,26 @@ def _sanitize_client_meeting(data: dict) -> dict:
     data.pop("transcript_text", None)
     data.pop("creator_id", None)
     data.pop("creator_name", None)
+    data.pop("recorder_device_id", None)
     return data
+
+
+def _require_recorder(meeting: AimeetingMeeting, device_id: str) -> None:
+    """单录制方守卫：他设备正在推流时，拒绝本机写时间轴（录音/切片上传）。
+
+    - 无人推流：放行，并把 recorder_device_id 认领给本机（录制权可接管）。
+    - 同设备：放行（重连/切片续传）。
+    - 他设备活跃：409 + code=recording_by_other，前端据此切只读观看态。
+    """
+    active, holder = stream_recording_state(meeting.id)
+    if active and holder != device_id:
+        raise HTTPException(
+            status_code=409,
+            detail="另一台设备正在录音，本页仅可查看",
+            headers={"X-Recording-By": "other"},
+        )
+    if device_id and meeting.recorder_device_id != device_id:
+        meeting.recorder_device_id = device_id
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -131,7 +151,11 @@ async def client_create_meeting(
     body: MeetingCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
-    """用户端：创建会议（名称可选，留空按时间自动命名）。"""
+    """用户端：创建会议（名称可选，留空按时间自动命名）。
+
+    创建设备默认认领录音权（recorder_device_id）；但录音权非绑定死——
+    若创建设备后续无人推流，其他进入者点开始录音可接管（单录制方规则）。
+    """
     # 生成唯一会议编号
     code = generate_meeting_code()
     while True:
@@ -149,10 +173,12 @@ async def client_create_meeting(
         title=title,
         meeting_code=code,
         participants=body.participants,
-        start_time=body.start_time,
+        # 用户端建会即录语义：未显式传预定时间时以创建时刻为开始时间（修 D4：列表「开始时间」列全「—」）
+        start_time=body.start_time or _now(),
         status=MeetingStatus.SCHEDULED,
         creator_id=0,
         creator_name="用户端",
+        recorder_device_id=body.device_id.strip()[:200],
     )
     db.add(meeting)
     await db.commit()
@@ -198,11 +224,12 @@ async def client_upload_audio(
     接口立即返回（转写后台异步），前端轮询 /client/meetings/{id} 获取
     最新 transcript_json 渲染实时对话流。
 
-    多设备共享：任意进入同一会议的设备都可上传切片，各设备录音按
-    自身偏移落在共享时间轴上，合并后所有设备看到同一条转写流。
+    单录制方：同一时刻只允许持有录音权的设备上传切片（他设备推流期间拒绝，
+    无人推流时本机上传即自动认领），各切片按 offset 落在共享时间轴上合并。
     """
     meeting = await _get_meeting_or_404(db, meeting_id)
     _require_meeting_active(meeting)
+    _require_recorder(meeting, device_id.strip())
 
     # 会议状态流转：进行中
     if meeting.status == MeetingStatus.SCHEDULED:
@@ -255,16 +282,20 @@ async def client_start_meeting(
     body: DeviceBind,
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
-    """用户端：正式开始会议（开始计时，状态流转 scheduled → in_progress）。"""
+    """用户端：正式开始会议（开始计时，状态流转 scheduled → in_progress）。
+
+    单录制方：他设备正在推流时拒绝（409）；无人录制时本机开始即自动认领录音权。
+    """
     meeting = await _get_meeting_or_404(db, meeting_id)
 
     if meeting.status == MeetingStatus.ENDED:
         raise HTTPException(status_code=409, detail="会议已结束")
+    _require_recorder(meeting, body.device_id.strip())
     if meeting.status != MeetingStatus.IN_PROGRESS:
         meeting.status = MeetingStatus.IN_PROGRESS
-        meeting.actual_start = meeting.actual_start or _now()
-        await db.commit()
-        await db.refresh(meeting)
+    meeting.actual_start = meeting.actual_start or _now()
+    await db.commit()
+    await db.refresh(meeting)
 
     return success_response(
         data={"status": meeting.status, "actual_start": meeting.actual_start.isoformat() if meeting.actual_start else None},
@@ -314,6 +345,58 @@ async def client_finish_meeting(
         data={"status": meeting.status, "transcripts_done": True if not has_records else None},
         msg="会议已结束" + ("" if has_records else "，会议记录已存档"),
     )
+
+
+@router.get("/client/meetings/my")
+async def client_my_meetings(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    device_id: str = Query(..., min_length=8, max_length=200),
+    limit: int = Query(30, ge=1, le=100),
+):
+    """用户端：我的会议历史——与本设备有关联的会议（录过音/传过切片/记过重点）。
+
+    无账号体系下 device_id 即身份；按最近活跃排序，供 H5 首页「我的会议」列表。
+    注意：本路由必须注册在 /{meeting_id} 之前，否则 "my" 会被按 int 解析。
+    """
+    dev = device_id.strip()
+    # 三个来源的会议 ID 并集：录音权归属 / 录音记录 / 重点与标记
+    ids: set[int] = set()
+    ids.update(
+        (await db.execute(
+            select(AimeetingMeeting.id).where(
+                AimeetingMeeting.recorder_device_id == dev,
+                AimeetingMeeting.is_deleted == False,  # noqa: E712
+            )
+        )).scalars().all()
+    )
+    for model in (AimeetingMinuteRecord, AimeetingHighlight, AimeetingMark):
+        ids.update(
+            (await db.execute(
+                select(model.meeting_id)
+                .where(
+                    model.device_id == dev,
+                    model.is_deleted == False,  # noqa: E712
+                )
+                .distinct()
+            )).scalars().all()
+        )
+    if not ids:
+        return success_response(data=[])
+    rows = (
+        await db.execute(
+            select(AimeetingMeeting)
+            .where(
+                AimeetingMeeting.id.in_(ids),
+                AimeetingMeeting.is_deleted == False,  # noqa: E712
+            )
+            .order_by(AimeetingMeeting.updated_at.desc())
+            .limit(limit)
+        )
+    ).scalars().all()
+    data = [MeetingOut.model_validate(m).model_dump(mode="json") for m in rows]
+    for d in data:
+        _sanitize_client_meeting(d)
+    return success_response(data=data)
 
 
 @router.get("/client/meetings/{meeting_id}")
@@ -380,6 +463,13 @@ async def client_get_meeting(
     ]
     data["processing_count"] = processing_count
     data["failed_count"] = failed_count
+    # 单录制方状态（供前端决定录音按钮 vs 只读观看条；不泄露他设备 ID）
+    active, holder = stream_recording_state(meeting.id)
+    data["recording_active"] = active
+    data["recording_by_me"] = bool(active and holder == device_id.strip())
+    data["recorder_claimed"] = bool(meeting.recorder_device_id)
+    # 本机是否为录音权归属设备（创建/认领方；无人推流时可直接开始录音）
+    data["recorder_is_me"] = bool(device_id.strip()) and meeting.recorder_device_id == device_id.strip()
     _sanitize_client_meeting(data)
     return success_response(data=data)
 
@@ -654,6 +744,169 @@ async def check_environment(
     from src.plugins.builtin.aimeeting.envcheck import check_env
 
     return success_response(data=check_env())
+
+
+@router.get("/dashboard/stats")
+async def dashboard_stats(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    _perm: Annotated[User, Depends(_require_perm("aimeeting:meeting:list"))],
+):
+    """管理端：AI 会议数据面板统计（总览卡片 / 状态分布 / 近14天趋势 / 进行中与实时录制 / 转写健康）。"""
+    not_deleted = AimeetingMeeting.is_deleted == False  # noqa: E712
+    rec_not_deleted = AimeetingMinuteRecord.is_deleted == False  # noqa: E712
+    now_utc = _now()
+    today_start = now_utc.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    # ── 总览卡片 ──
+    total_meetings = (await db.execute(
+        select(func.count(AimeetingMeeting.id)).where(not_deleted)
+    )).scalar() or 0
+    status_rows = (await db.execute(
+        select(AimeetingMeeting.status, func.count(AimeetingMeeting.id))
+        .where(not_deleted).group_by(AimeetingMeeting.status)
+    )).all()
+    by_status = {s: c for s, c in status_rows}
+    today_created = (await db.execute(
+        select(func.count(AimeetingMeeting.id)).where(not_deleted, AimeetingMeeting.created_at >= today_start)
+    )).scalar() or 0
+    total_record_sec = (await db.execute(
+        select(func.coalesce(func.sum(AimeetingMeeting.audio_duration), 0)).where(not_deleted)
+    )).scalar() or 0
+
+    # ── 转写健康（records 维度）──
+    rec_status_rows = (await db.execute(
+        select(AimeetingMinuteRecord.transcript_status, func.count(AimeetingMinuteRecord.id))
+        .where(rec_not_deleted).group_by(AimeetingMinuteRecord.transcript_status)
+    )).all()
+    rec_by_status = {s: c for s, c in rec_status_rows}
+    total_records = sum(rec_by_status.values())
+
+    # ── 重点/标记/纪要 ──
+    highlights_total = (await db.execute(
+        select(func.count(AimeetingHighlight.id)).where(AimeetingHighlight.is_deleted == False)  # noqa: E712
+    )).scalar() or 0
+    marks_total = (await db.execute(
+        select(func.count(AimeetingMark.id)).where(AimeetingMark.is_deleted == False)  # noqa: E712
+    )).scalar() or 0
+    minutes_done = (await db.execute(
+        select(func.count(func.distinct(AimeetingMinutes.meeting_id)))
+        .where(AimeetingMinutes.status == "success")
+    )).scalar() or 0
+
+    # ── 近 14 天创建趋势（按 UTC 日期分组；SQLite date() 截断 created_at）──
+    trend_rows = (await db.execute(
+        select(
+            func.date(AimeetingMeeting.created_at).label("d"),
+            func.count(AimeetingMeeting.id),
+        ).where(not_deleted, AimeetingMeeting.created_at >= today_start - timedelta(days=13))
+        .group_by("d").order_by("d")
+    )).all()
+    trend_map = {str(d): c for d, c in trend_rows}
+    trend = []
+    for i in range(13, -1, -1):
+        day = (today_start - timedelta(days=i)).strftime("%Y-%m-%d")
+        trend.append({"date": day[5:], "count": trend_map.get(day, 0)})
+
+    # ── 实时推流中的会议（进程内注册表，秒级新鲜）──
+    snapshot = active_stream_snapshot()
+    live_items = []
+    if snapshot:
+        live_meetings = (await db.execute(
+            select(AimeetingMeeting).where(AimeetingMeeting.id.in_(list(snapshot.keys())), not_deleted)
+        )).scalars().all()
+        for m in live_meetings:
+            info = snapshot[m.id]
+            live_items.append({
+                "id": m.id, "title": m.title, "meeting_code": m.meeting_code,
+                "audio_duration": m.audio_duration,
+                "stream_end_sec": round(info["end_sec"], 1),
+                "idle_sec": info["idle_sec"],
+            })
+
+    # ── 进行中会议列表（status=in_progress，含未在推流的）──
+    in_progress_rows = (await db.execute(
+        select(AimeetingMeeting).where(not_deleted, AimeetingMeeting.status == MeetingStatus.IN_PROGRESS)
+        .order_by(AimeetingMeeting.actual_start.desc().nullslast(), AimeetingMeeting.id.desc())
+        .limit(20)
+    )).scalars().all()
+    in_progress = []
+    for m in in_progress_rows:
+        active, _holder = stream_recording_state(m.id)
+        in_progress.append({
+            "id": m.id, "title": m.title, "meeting_code": m.meeting_code,
+            "actual_start": m.actual_start.isoformat() if m.actual_start else None,
+            "audio_duration": m.audio_duration,
+            "transcript_status": m.transcript_status,
+            "diarization_status": m.diarization_status,
+            "live": active,
+        })
+
+    # ── 录音时长 Top5 会议 ──
+    top_rows = (await db.execute(
+        select(AimeetingMeeting.id, AimeetingMeeting.title, AimeetingMeeting.audio_duration,
+               AimeetingMeeting.status, AimeetingMeeting.meeting_code)
+        .where(not_deleted, AimeetingMeeting.audio_duration > 0)
+        .order_by(AimeetingMeeting.audio_duration.desc()).limit(5)
+    )).all()
+    top_ids = [r[0] for r in top_rows]
+    speaker_counts: dict[int, int] = {}
+    if top_ids:
+        sc_rows = (await db.execute(
+            select(AimeetingSpeaker.meeting_id, func.count(AimeetingSpeaker.id))
+            .where(AimeetingSpeaker.meeting_id.in_(top_ids), AimeetingSpeaker.is_deleted == False)  # noqa: E712
+            .group_by(AimeetingSpeaker.meeting_id)
+        )).all()
+        speaker_counts = {mid: c for mid, c in sc_rows}
+    top_meetings = [
+        {"id": r[0], "title": r[1], "audio_duration": r[2], "status": r[3],
+         "meeting_code": r[4], "speaker_count": speaker_counts.get(r[0], 0)} for r in top_rows
+    ]
+
+    # ── 最近失败转写片段（最多 5 条，附会议标题）──
+    failed_rows = (await db.execute(
+        select(AimeetingMinuteRecord.id, AimeetingMinuteRecord.meeting_id,
+               AimeetingMinuteRecord.error, AimeetingMinuteRecord.updated_at, AimeetingMeeting.title)
+        .join(AimeetingMeeting, AimeetingMeeting.id == AimeetingMinuteRecord.meeting_id)
+        .where(rec_not_deleted, AimeetingMinuteRecord.transcript_status == TranscriptStatus.FAILED)
+        .order_by(AimeetingMinuteRecord.id.desc()).limit(5)
+    )).all()
+    recent_failed = [
+        {
+            "record_id": r[0], "meeting_id": r[1], "meeting_title": r[4],
+            "error": (r[2] or "")[:200],
+            "at": r[3].isoformat() if r[3] else None,
+        } for r in failed_rows
+    ]
+
+    return success_response(data={
+        "overview": {
+            "total_meetings": total_meetings,
+            "in_progress": by_status.get(MeetingStatus.IN_PROGRESS, 0),
+            "live_streaming": len(snapshot),
+            "scheduled": by_status.get(MeetingStatus.SCHEDULED, 0),
+            "ended": by_status.get(MeetingStatus.ENDED, 0),
+            "cancelled": by_status.get(MeetingStatus.CANCELLED, 0),
+            "today_created": today_created,
+            "total_record_sec": int(total_record_sec),
+            "records_total": total_records,
+            "records_success": rec_by_status.get(TranscriptStatus.SUCCESS, 0),
+            "records_processing": rec_by_status.get(TranscriptStatus.PROCESSING, 0),
+            "records_failed": rec_by_status.get(TranscriptStatus.FAILED, 0),
+            "highlights_total": highlights_total,
+            "marks_total": marks_total,
+            "minutes_done": minutes_done,
+        },
+        "status_distribution": [
+            {"status": s, "count": c} for s, c in sorted(by_status.items())
+        ],
+        "trend_14d": trend,
+        "live_meetings": live_items,
+        "in_progress_meetings": in_progress,
+        "top_meetings": top_meetings,
+        "recent_failed": recent_failed,
+        "server_time": now_utc.isoformat(),
+    })
 
 
 @router.get("/meetings")

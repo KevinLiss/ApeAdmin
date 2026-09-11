@@ -37,6 +37,7 @@ async def seed_aimeeting_data(db: AsyncSession) -> None:
 
     # ── 2. 子菜单 + 按钮权限 ──────────────────────────────────
     menu_specs = [
+        ("数据面板", "AI 会议", "C", "dashboard", "aimeeting/dashboard/index", "aimeeting:meeting:list", "DataAnalysis", 0),
         ("会议管理", "AI 会议", "C", "list", "aimeeting/list/index", "aimeeting:meeting:list", "Calendar", 1),
         ("新增会议", "会议管理", "F", None, None, "aimeeting:meeting:create", None, 1),
         ("编辑会议", "会议管理", "F", None, None, "aimeeting:meeting:edit", None, 2),

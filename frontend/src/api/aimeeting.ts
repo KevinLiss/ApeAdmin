@@ -33,3 +33,6 @@ export const getMeetingMinutes = (meetingId: number) =>
   request.get(`/aimeeting/meetings/${meetingId}/minutes`)
 export const generateMeetingMinutes = (meetingId: number) =>
   request.post(`/aimeeting/meetings/${meetingId}/minutes/generate`)
+// ---------- 数据面板 ----------
+export const getDashboardStats = () =>
+  request.get('/aimeeting/dashboard/stats')
