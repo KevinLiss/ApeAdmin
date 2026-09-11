@@ -92,38 +92,18 @@ async def _get_meeting_by_code_or_404(db: AsyncSession, meeting_code: str) -> Ai
     return meeting
 
 
-async def _check_device(meeting: AimeetingMeeting, device_id: str):
-    """轻量设备校验（不提交，改由调用方统一 commit）。"""
-    if not meeting.device_id:
-        meeting.device_id = device_id
-    elif meeting.device_id != device_id:
-        raise HTTPException(status_code=403, detail="该会议已绑定其他设备")
-
-
-async def _check_meeting(db: AsyncSession, meeting: AimeetingMeeting, device_id: str):
-    """校验设备访问权限并绑定。
-
-    注意：首次绑定会触发 ``db.commit()``，此时 ``updated_at`` 等由数据库
-    ``onupdate`` 生成的字段会过期，必须在 commit 后 ``refresh`` 整个对象，
-    否则后续 ``MeetingOut.model_validate`` 序列化时访问过期属性会触发
-    MissingGreenlet。
-    """
-    if not meeting.device_id:
-        meeting.device_id = device_id
-        await db.commit()
-        await db.refresh(meeting)
-    elif meeting.device_id != device_id:
-        raise HTTPException(status_code=403, detail="该会议已绑定其他设备")
+def _require_meeting_active(meeting: AimeetingMeeting):
+    """已结束/已取消的会议不允许再写入新内容。"""
+    if meeting.status == MeetingStatus.ENDED:
+        raise HTTPException(status_code=409, detail="会议已结束")
 
 
 def _sanitize_client_meeting(data: dict) -> dict:
     """用户端只暴露必要字段（transcript_json 由 client_get_meeting 保留，
     实时对话流数据源，勿在此处删除）。"""
     data.pop("transcript_text", None)
-    data.pop("device_id", None)
     data.pop("creator_id", None)
     data.pop("creator_name", None)
-    data.pop("audio_file", None)
     return data
 
 
@@ -136,9 +116,12 @@ async def client_lookup_meeting(
     body: MeetingLookup,
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
-    """用户端：输入会议编号查询会议（无感绑定设备）。"""
+    """用户端：输入会议编号查询会议。
+
+    多设备共享：查询即进入，不再做设备绑定校验——同一会议编号可被任意
+    数量设备同时访问，各自录音上传后按 offset 时间轴合并共享转写流。
+    """
     meeting = await _get_meeting_by_code_or_404(db, body.meeting_code.strip().upper())
-    await _check_meeting(db, meeting, body.device_id)
     data = MeetingOut.model_validate(meeting).model_dump(mode="json")
     return success_response(data=_sanitize_client_meeting(data))
 
@@ -188,7 +171,6 @@ async def client_rename_meeting(
 ):
     """用户端：修改会议名称（全程可改）。"""
     meeting = await _get_meeting_or_404(db, meeting_id)
-    await _check_device(meeting, body.device_id)
     new_title = body.title.strip()
     if not new_title:
         raise HTTPException(status_code=422, detail="会议名称不能为空")
@@ -206,7 +188,7 @@ async def client_upload_audio(
     meeting_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
     file: UploadFile = File(...),
-    device_id: str = Form(...),
+    device_id: str = Form(default=""),
     duration: int = Form(default=0),
     offset_sec: int = Form(default=0, ge=0),
 ):
@@ -215,9 +197,12 @@ async def client_upload_audio(
     15 秒实时切片方案：前端每 15 秒上传一段，携带会议内偏移秒数。
     接口立即返回（转写后台异步），前端轮询 /client/meetings/{id} 获取
     最新 transcript_json 渲染实时对话流。
+
+    多设备共享：任意进入同一会议的设备都可上传切片，各设备录音按
+    自身偏移落在共享时间轴上，合并后所有设备看到同一条转写流。
     """
     meeting = await _get_meeting_or_404(db, meeting_id)
-    await _check_device(meeting, device_id)
+    _require_meeting_active(meeting)
 
     # 会议状态流转：进行中
     if meeting.status == MeetingStatus.SCHEDULED:
@@ -272,7 +257,6 @@ async def client_start_meeting(
 ):
     """用户端：正式开始会议（开始计时，状态流转 scheduled → in_progress）。"""
     meeting = await _get_meeting_or_404(db, meeting_id)
-    await _check_device(meeting, body.device_id)
 
     if meeting.status == MeetingStatus.ENDED:
         raise HTTPException(status_code=409, detail="会议已结束")
@@ -300,7 +284,8 @@ async def client_finish_meeting(
     按序执行（含等待在途转写，最长 90 秒），前端轮询 transcript 接口看进度。
     """
     meeting = await _get_meeting_or_404(db, meeting_id)
-    await _check_device(meeting, body.device_id)
+    if meeting.status == MeetingStatus.ENDED:
+        raise HTTPException(status_code=409, detail="会议已结束")
 
     # 是否存在录音记录（无录音则跳过语音链路）
     has_records = (
@@ -335,11 +320,10 @@ async def client_finish_meeting(
 async def client_get_meeting(
     meeting_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-    device_id: str = Query(..., min_length=8),
+    device_id: str = Query(default="", max_length=200),
 ):
     """用户端：查询会议详情（含实时对话流、转写进度、纪要状态、说话人）。"""
     meeting = await _get_meeting_or_404(db, meeting_id)
-    await _check_meeting(db, meeting, device_id)
 
     minutes_row = (
         await db.execute(
@@ -404,7 +388,7 @@ async def client_get_meeting(
 async def client_get_transcript(
     meeting_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-    device_id: str = Query(..., min_length=8),
+    device_id: str = Query(default="", max_length=200),
     after_id: int = Query(default=0, ge=0, description="只返回 id 大于此值的片段（增量轮询）"),
 ):
     """用户端：轮询接口——轻量返回最新句级转写（实时对话流增量渲染）。
@@ -413,7 +397,6 @@ async def client_get_transcript(
     后端只返回比它新的片段，避免每 5s 全量重传整场会议转写（P2 卡顿根因）。
     """
     meeting = await _get_meeting_or_404(db, meeting_id)
-    await _check_device(meeting, device_id)
 
     processing_count = (
         await db.execute(
@@ -477,11 +460,10 @@ async def client_update_speaker(
     speaker_id: int,
     body: SpeakerUpdate,
     db: Annotated[AsyncSession, Depends(get_db)],
-    device_id: str = Query(..., min_length=8),
+    device_id: str = Query(default="", max_length=200),
 ):
     """用户端：修改说话人显示名称（如「说话人1」→「张三」）。"""
     meeting = await _get_meeting_or_404(db, meeting_id)
-    await _check_device(meeting, device_id)
 
     speaker = await db.get(AimeetingSpeaker, speaker_id)
     if not speaker or speaker.meeting_id != meeting.id or speaker.is_deleted:
@@ -508,7 +490,7 @@ async def client_create_highlight(
 ):
     """用户端：记重点——把当前时间点标记为重点，供会后快速回顾。"""
     meeting = await _get_meeting_or_404(db, meeting_id)
-    await _check_device(meeting, body.device_id)
+    _require_meeting_active(meeting)
 
     # 就近匹配当前时间点对应的转写片段（transcript_json 数组下标）
     segment_idx = -1
@@ -547,11 +529,10 @@ async def client_delete_highlight(
     meeting_id: int,
     highlight_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-    device_id: str = Query(..., min_length=8),
+    device_id: str = Query(default="", max_length=200),
 ):
     """用户端：取消重点标记（软删除）。"""
     meeting = await _get_meeting_or_404(db, meeting_id)
-    await _check_device(meeting, device_id)
     hl = await db.get(AimeetingHighlight, highlight_id)
     if not hl or hl.meeting_id != meeting.id or hl.is_deleted:
         raise HTTPException(status_code=404, detail="标记不存在")
@@ -564,11 +545,10 @@ async def client_delete_highlight(
 async def client_list_highlights(
     meeting_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-    device_id: str = Query(..., min_length=8),
+    device_id: str = Query(default="", max_length=200),
 ):
     """用户端：查询全部重点标记（含关联转写文本）。"""
     meeting = await _get_meeting_or_404(db, meeting_id)
-    await _check_device(meeting, device_id)
     result = await db.execute(
         select(AimeetingHighlight)
         .where(
@@ -603,7 +583,7 @@ async def client_create_mark(
 ):
     """用户端：在指定时间点插入自定义标记（如「待办」「疑问」）。"""
     meeting = await _get_meeting_or_404(db, meeting_id)
-    await _check_device(meeting, body.device_id)
+    _require_meeting_active(meeting)
     mark = AimeetingMark(
         meeting_id=meeting.id,
         offset_sec=body.offset_sec,
@@ -624,11 +604,10 @@ async def client_delete_mark(
     meeting_id: int,
     mark_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-    device_id: str = Query(..., min_length=8),
+    device_id: str = Query(default="", max_length=200),
 ):
     """用户端：删除自定义标记。"""
     meeting = await _get_meeting_or_404(db, meeting_id)
-    await _check_device(meeting, device_id)
     mark = await db.get(AimeetingMark, mark_id)
     if not mark or mark.meeting_id != meeting.id or mark.is_deleted:
         raise HTTPException(status_code=404, detail="标记不存在")
@@ -641,11 +620,10 @@ async def client_delete_mark(
 async def client_list_marks(
     meeting_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-    device_id: str = Query(..., min_length=8),
+    device_id: str = Query(default="", max_length=200),
 ):
     """用户端：获取会议自定义标记列表。"""
     meeting = await _get_meeting_or_404(db, meeting_id)
-    await _check_device(meeting, device_id)
     result = await db.execute(
         select(AimeetingMark)
         .where(

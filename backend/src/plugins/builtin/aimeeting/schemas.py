@@ -20,11 +20,10 @@ class MeetingUpdate(BaseModel):
     participants: Optional[str] = None
     start_time: Optional[datetime] = None
 
-
 class MeetingRename(BaseModel):
     """用户端修改会议名称（全程可改）。"""
     title: str = Field(..., min_length=1, max_length=200, description="新会议名称")
-    device_id: str = Field(..., min_length=8, max_length=200, description="设备标识")
+    device_id: str = Field(default="", max_length=200, description="设备标识（可选，仅记录来源）")
 
 
 class MeetingBatchDelete(BaseModel):
@@ -51,42 +50,39 @@ class MeetingOut(BaseModel):
     meeting_code: str
     participants: str
     start_time: Optional[datetime]
-    end_time: Optional[datetime]
     status: str
     actual_start: Optional[datetime]
     actual_end: Optional[datetime]
-    audio_file: str
     audio_duration: int
     transcript_text: str
     transcript_status: str
     # 转写修订号：已合并片段被修改（精修/说话人回填）时自增，前端据此判断是否需全量刷新
     transcript_revision: int = 0
     diarization_status: str
-    device_id: str
     creator_id: int
     creator_name: str
     created_at: datetime
     updated_at: datetime
 
 
-# ── 用户端无感登录 ───────────────────────────────────────────────────────
+# ── 用户端进入会议（多设备共享） ─────────────────────────────────────────
 
 class DeviceBind(BaseModel):
-    """用户端设备标识（无感登录）。"""
-    device_id: str = Field(..., min_length=8, max_length=200, description="设备标识（指纹）")
+    """用户端设备标识（录音归属追溯用，不再作为绑定凭证）。"""
+    device_id: str = Field(default="", max_length=200, description="设备标识（可选，仅记录来源）")
 
 
 class MeetingLookup(BaseModel):
     """用户端通过会议编号查询会议。"""
     meeting_code: str = Field(..., min_length=1, max_length=32, description="会议编号")
-    device_id: str = Field(..., min_length=8, max_length=200, description="设备标识")
+    device_id: str = Field(default="", max_length=200, description="设备标识（可选，兼容旧前端）")
 
 
 # ── 录音转写 ─────────────────────────────────────────────────────────────
 
 class AudioUpload(BaseModel):
     """录音文件上传（multipart 中附带元数据）。"""
-    device_id: str = Field(..., min_length=8, max_length=200, description="设备标识")
+    device_id: str = Field(default="", max_length=200, description="设备标识（可选，仅记录来源）")
     duration: int = Field(default=0, ge=0, description="录音时长（秒）")
     offset_sec: int = Field(default=0, ge=0, description="本段在会议内的时间偏移（秒，实时切片累计）")
 
@@ -123,7 +119,7 @@ class SpeakerOut(BaseModel):
 
 class HighlightCreate(BaseModel):
     """创建重点标记。"""
-    device_id: str = Field(..., min_length=8, max_length=200, description="设备标识")
+    device_id: str = Field(default="", max_length=200, description="设备标识（可选，仅记录来源）")
     offset_sec: int = Field(..., ge=0, description="标记时会议内时间偏移（秒）")
     text_snapshot: str = Field(default="", max_length=2000, description="标记时点转写文本快照")
     note: str = Field(default="", max_length=500, description="备注（可选）")
@@ -144,7 +140,7 @@ class HighlightOut(BaseModel):
 
 class MarkCreate(BaseModel):
     """创建自定义标记。"""
-    device_id: str = Field(..., min_length=8, max_length=200, description="设备标识")
+    device_id: str = Field(default="", max_length=200, description="设备标识（可选，仅记录来源）")
     offset_sec: int = Field(..., ge=0, description="标记时会议内时间偏移（秒）")
     content: str = Field(..., min_length=1, max_length=500, description="标记内容")
 

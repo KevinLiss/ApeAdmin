@@ -70,6 +70,37 @@ class AimeetingPlugin(PluginInterface):
                     )
                     logger.info(f"[aimeeting] migration: {table}.{column} added")
 
+            # 废弃列清理（幂等）：多设备共享改造后不再使用的字段。
+            # - end_time：预定结束时间，创建表单从未录入、前端从未展示
+            # - audio_file：合并录音路径，只写不读（路径由 m{id}_merged.wav 约定推导）
+            # - device_id：会议级设备绑定（旧「单设备绑定」机制遗留，已改为多设备共享）
+            _drop_columns = [
+                ("aimeeting_meetings", "end_time"),
+                ("aimeeting_meetings", "audio_file"),
+                ("aimeeting_meetings", "device_id"),
+            ]
+
+            async def _drop_column(table: str, column: str) -> None:
+                def _has(sync_conn, _t=table, _c=column) -> bool:
+                    return any(c["name"] == _c for c in inspect(sync_conn).get_columns(_t))
+
+                if not await conn.run_sync(_has):
+                    return
+                # SQLite DROP COLUMN 要求列上无索引：先删该列的自动索引
+                idx_names = await conn.run_sync(
+                    lambda sc, _t=table: [
+                        i["name"] for i in inspect(sc).get_indexes(_t)
+                        if [c.upper() for c in i["column_names"]] == [column.upper()]
+                    ]
+                )
+                for idx in idx_names:
+                    await conn.execute(text(f"DROP INDEX IF EXISTS {idx}"))
+                await conn.execute(text(f"ALTER TABLE {table} DROP COLUMN {column}"))
+                logger.info(f"[aimeeting] migration: {table}.{column} dropped")
+
+            for table, column in _drop_columns:
+                await _drop_column(table, column)
+
         async with SessionLocal() as db:
             await seed_aimeeting_data(db)
             await db.commit()

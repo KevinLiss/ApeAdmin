@@ -282,6 +282,12 @@ async def merge_transcript_to_meeting(db: AsyncSession, meeting: AimeetingMeetin
     则视为已合并」的规则初始化元字段，避免首次增量把旧片段重复追加。
     """
     # ── 读取现有 transcript_json，分离隐藏元字段与真实片段 ──
+    # D7 竞态修复：expire_on_commit=False 下 meeting 可能是早前快照（后台精修/
+    # 分离在别的时间点提交过），读旧值整体写回会覆盖他人已提交的修改 → 读前同步。
+    await db.refresh(
+        meeting,
+        attribute_names=["transcript_json", "transcript_text", "transcript_revision"],
+    )
     try:
         old_json = json.loads(meeting.transcript_json or "[]")
     except json.JSONDecodeError:
@@ -384,6 +390,12 @@ async def update_merged_segment(
     定位规则：匹配 start/end 落在容差内的片段（浮点时间戳），替换 text。
     若找不到（精修在 merge 前到达），直接追加为新片段，避免丢失。
     """
+    # D7 竞态修复：精修是后台任务，执行时 meeting 内存态可能早于其他提交，
+    # 写前同步转写列，避免过期快照覆盖新片段/speaker 回填。
+    await db.refresh(
+        meeting,
+        attribute_names=["transcript_json", "transcript_text", "transcript_revision"],
+    )
     try:
         old_json = json.loads(meeting.transcript_json or "[]")
     except json.JSONDecodeError:
@@ -523,6 +535,19 @@ async def _run_diarization_inner(
             await db.commit()
             return False
 
+        # ── 回填前重读最新转写（D7 竞态修复）──
+        # 模型在 to_thread 里跑数秒到数分钟，期间 merge/refine 可能已提交新片段
+        # 或精修文本；session 配了 expire_on_commit=False，meeting 内存里的
+        # transcript_json 还是启动时刻的旧快照，直接写回会把他人改动整体覆盖
+        # （会议46 E2E 实测：精修文本被覆盖回初稿、speaker 回填丢失）。
+        # 会议级锁只串行化分离之间，不防「分离 vs merge/refine」，故写前必须刷新。
+        # 注意：只刷转写三列——audio_file/audio_duration 是步骤 2 _merge_audio_files
+        # 刚在内存设置、尚未 commit 的值，全量 refresh 会把它们冲回旧值（会议47 实测踩过）。
+        await db.refresh(
+            meeting,
+            attribute_names=["transcript_json", "transcript_text", "transcript_revision"],
+        )
+
         # 4. 对齐到句级转写（增量模式只回填窗口内片段，历史已分离 speaker 不动）
         speaker_changed = False
         if meeting.transcript_json:
@@ -653,7 +678,6 @@ def _merge_audio_files(meeting: AimeetingMeeting, records) -> Path:
             wf.setsampwidth(2)
             wf.setframerate(16000)
             wf.writeframes(pcm.tobytes())
-        meeting.audio_file = str(output_path)
         meeting.audio_duration = int(total_sec)
         return output_path
 
@@ -687,7 +711,6 @@ def _merge_audio_files(meeting: AimeetingMeeting, records) -> Path:
             wf.setframerate(16000)
             wf.writeframes(pcm.tobytes())
 
-    meeting.audio_file = str(output_path)
     meeting.audio_duration = int(total_sec)
     return output_path
 

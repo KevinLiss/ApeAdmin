@@ -7,8 +7,8 @@
 （结论、讨论要点、决议、遗留问题）
 
 数据模型设计：
-- ``aimeeting_meetings``：会议主表。用户端通过「会议编号 + 设备标识」访问；
-  管理端用于管理历史会议、查看转写文本与纪要。
+- ``aimeeting_meetings``：会议主表。用户端通过「会议编号」访问（多设备可同时进入、
+  共享录制）；管理端用于管理历史会议、查看转写文本与纪要。
 - ``aimeeting_records``：录音文件与语音转写结果。一次会议可有多次录音/转写片段，
   最终合并为完整转写文本。
 - ``aimeeting_minutes``：AI 生成的会议总结（一句话）与结构化会议纪要（结论/讨论要点/决议/遗留问题）。
@@ -57,9 +57,6 @@ class AimeetingMeeting(IDMixin, TimestampMixin, Base):
     start_time: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True, comment="会议开始时间（用户填写）"
     )
-    end_time: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True, comment="会议结束时间"
-    )
 
     # 会议状态
     status: Mapped[str] = mapped_column(
@@ -73,7 +70,6 @@ class AimeetingMeeting(IDMixin, TimestampMixin, Base):
     )
 
     # 录音转写
-    audio_file: Mapped[str] = mapped_column(String(500), default="", comment="录音文件路径（合并后的完整录音）")
     audio_duration: Mapped[int] = mapped_column(Integer, default=0, comment="录音总时长（秒）")
     transcript_text: Mapped[str] = mapped_column(Text, default="", comment="完整语音转写文本")
     transcript_status: Mapped[str] = mapped_column(
@@ -96,9 +92,6 @@ class AimeetingMeeting(IDMixin, TimestampMixin, Base):
     # 创建人（后台管理创建/用户端创建时记录）
     creator_id: Mapped[int] = mapped_column(Integer, nullable=False, default=0, index=True, comment="创建人ID")
     creator_name: Mapped[str] = mapped_column(String(100), default="", comment="创建人名称")
-    # 用户端无感登录设备标识
-    device_id: Mapped[str] = mapped_column(String(200), default="", index=True, comment="设备标识（无感登录）")
-
     # 软删除
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, comment="软删除")
 

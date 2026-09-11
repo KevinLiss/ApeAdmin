@@ -88,15 +88,15 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="180" fixed="right">
+      <el-table-column label="操作" width="200" fixed="right">
         <template #default="{ row }">
           <el-button
             v-if="row.status === 'scheduled' || row.status === 'in_progress'"
             link
             type="success"
             size="small"
-            @click="openH5Meeting(row.id)"
-          >进入会议</el-button>
+            @click="openShare(row)"
+          >分享会议</el-button>
           <el-button link type="primary" size="small" @click="viewRecords(row)">记录</el-button>
           <el-button link type="primary" size="small" @click="goDetail(row)">详情</el-button>
           <el-button link type="danger" size="small" @click="handleDelete(row)" v-permission="'aimeeting:meeting:delete'">删除</el-button>
@@ -138,6 +138,26 @@
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="saving" @click="handleSave">保存</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 分享会议弹窗（二维码 + 会议链接，支持多设备扫码进入共享录制） -->
+    <el-dialog v-model="shareVisible" title="分享会议" width="360px" align-center>
+      <div v-if="shareMeeting" class="share-body">
+        <p class="share-title">{{ shareMeeting.title }}</p>
+        <p class="share-code">会议编号：{{ shareMeeting.meeting_code }}</p>
+        <div class="share-qr">
+          <img v-if="shareQrDataUrl" :src="shareQrDataUrl" alt="会议二维码" width="220" height="220" />
+          <p v-else class="text-muted">二维码生成中…</p>
+        </div>
+        <p class="share-tip">手机扫码或在其他设备打开链接即可进入会议<br />多台设备可同时录音，转写内容实时共享</p>
+        <div class="share-link-row">
+          <el-input :model-value="shareUrl" readonly size="small" />
+          <el-button type="primary" size="small" @click="copyShareLink">复制</el-button>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="shareVisible = false">关闭</el-button>
       </template>
     </el-dialog>
 
@@ -285,8 +305,41 @@ const H5_BASE =
   (import.meta.env?.VITE_H5_BASE as string) ||
   `${window.location.protocol}//${window.location.hostname}:5177`
 
-function openH5Meeting(meetingId: number) {
-  window.open(`${H5_BASE}/meeting/${meetingId}`, '_blank')
+function meetingH5Url(meetingId: number) {
+  return `${H5_BASE}/meeting/${meetingId}`
+}
+
+// ── 分享会议（二维码 + 链接，多设备扫码共享录制） ──
+const shareVisible = ref(false)
+const shareMeeting = ref<any | null>(null)
+const shareUrl = ref('')
+const shareQrDataUrl = ref('')
+
+async function openShare(row: any) {
+  shareMeeting.value = row
+  shareUrl.value = meetingH5Url(row.id)
+  shareQrDataUrl.value = ''
+  shareVisible.value = true
+  try {
+    const QRCode = (await import('qrcode')).default
+    shareQrDataUrl.value = await QRCode.toDataURL(shareUrl.value, {
+      width: 440,
+      margin: 2,
+      color: { dark: '#1a1a1a', light: '#ffffff' },
+    })
+  } catch {
+    ElMessage.error('二维码生成失败，可直接复制链接分享')
+  }
+}
+
+async function copyShareLink() {
+  try {
+    await navigator.clipboard.writeText(shareUrl.value)
+    ElMessage.success('会议链接已复制')
+  } catch {
+    // 剪贴板不可用（非安全上下文）时退化为选中文本
+    ElMessage.warning('复制失败，请手动选中文本复制')
+  }
 }
 
 async function handleSave() {
@@ -302,12 +355,11 @@ async function handleSave() {
     }
     if (form.start_time) payload.start_time = form.start_time
     const res: any = await request.post('/aimeeting/meetings', payload)
-    ElMessage.success('创建成功，已跳转 H5 会议页面')
+    ElMessage.success('创建成功，分享二维码或链接即可进入会议')
     dialogVisible.value = false
     await fetchList()
-    // 创建成功后跳转到 H5 会议页面（首次打开自动绑定当前设备，即可开始录音转写）
-    const meetingId = res?.id
-    if (meetingId) openH5Meeting(meetingId)
+    // 创建成功后弹出分享框：扫二维码 / 复制链接，多设备可同时进入共享录制
+    if (res?.id) openShare(res)
   } catch {
     // handled by interceptor
   } finally {
@@ -433,5 +485,43 @@ onMounted(() => {
   line-height: 1.8;
   max-height: 320px;
   overflow: auto;
+}
+/* 分享会议弹窗 */
+.share-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.share-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+.share-code {
+  margin: 0;
+  font-size: 12px;
+  color: #999;
+}
+.share-qr {
+  padding: 8px;
+  border: 1px solid var(--el-border-color-light);
+  border-radius: 8px;
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.share-tip {
+  margin: 0;
+  font-size: 12px;
+  color: #999;
+  text-align: center;
+  line-height: 1.6;
+}
+.share-link-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
 }
 </style>

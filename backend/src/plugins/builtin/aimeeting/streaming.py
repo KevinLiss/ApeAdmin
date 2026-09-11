@@ -328,13 +328,18 @@ class StreamingSession:
                 meeting = await db.get(AimeetingMeeting, self.meeting_id)
                 if meeting:
                     await update_merged_segment(db, meeting, start, end, refined)
-            await self.ws.send_json({
-                "type": "refined",
-                "text": refined,
-                "start": round(start, 2),
-                "end": round(end, 2),
-                "record_id": record_id,
-            })
+            try:
+                await self.ws.send_json({
+                    "type": "refined",
+                    "text": refined,
+                    "start": round(start, 2),
+                    "end": round(end, 2),
+                    "record_id": record_id,
+                })
+            except Exception:  # noqa: BLE001
+                # WS 已关闭（用户停止后等不到精修帧即断开）属正常情况：
+                # 数据库已写入精修文本且 revision 自增，前端恢复后经全量刷新可见。
+                logger.debug(f"[streaming] 精修帧推送跳过（连接已关）record={record_id}")
         except Exception as exc:  # noqa: BLE001
             logger.warning(f"[streaming] 精修失败 record={record_id}: {exc}")
 
@@ -385,18 +390,15 @@ async def ws_stream(websocket: WebSocket):
             await websocket.close()
             return
 
-        # 校验会议 + 绑定设备（复用现有逻辑）
+        # 校验会议（多设备共享：不再做设备绑定，任意设备可同时推流）
         async with get_db_context() as db:
             meeting = await db.get(AimeetingMeeting, meeting_id)
             if not meeting or meeting.is_deleted:
                 await websocket.send_json({"type": "error", "message": "会议不存在"})
                 await websocket.close()
                 return
-            if not meeting.device_id:
-                meeting.device_id = device_id
-                await db.commit()
-            elif meeting.device_id != device_id:
-                await websocket.send_json({"type": "error", "message": "该会议已绑定其他设备"})
+            if meeting.status == "ended":
+                await websocket.send_json({"type": "error", "message": "会议已结束"})
                 await websocket.close()
                 return
 
