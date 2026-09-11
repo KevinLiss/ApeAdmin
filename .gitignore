@@ -16,6 +16,8 @@ build/
 venv/
 env/
 runtimes/
+# 例外：管理端「运行环境」页面目录不是虚拟环境
+!frontend/src/views/aimeeting/env/
 
 # Database
 *.db
