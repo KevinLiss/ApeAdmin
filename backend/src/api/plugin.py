@@ -3,7 +3,6 @@
 import json
 import os
 import sys
-import tempfile
 import time
 from pathlib import Path
 from typing import Annotated
@@ -250,65 +249,28 @@ async def restart_server(
 ):
     """Restart the backend server process.
 
-    Priority:
-    1. systemd-managed (production): spawn a detached script that runs
-       `systemctl restart apeadmin`, then let this process exit so systemd
-       fully controls the lifecycle.
-    2. Direct relaunch (dev / no systemd): spawn a detached restart script
-       that waits for the current process to exit, then relaunches uvicorn.
+    Cross-platform (see src/core/runtime.py):
+    1. systemd-managed (Linux production): `systemctl restart apeadmin`
+    2. Direct relaunch (dev / no systemd, POSIX): relaunch uvicorn on the
+       same host/port currently bound (no hardcoded 8000)
+    3. Windows: PowerShell detached relaunch
 
+    Script output is logged to the OS temp dir for diagnosability.
     The response is sent before the actual restart happens.
     """
     import asyncio
-    import stat
+
+    from src.core.runtime import spawn_restart
 
     project_root = Path(__file__).resolve().parents[2]  # backend/
     python_bin = sys.executable
 
-    # ---- Detect systemd-managed service (production) ----
-    detect = await asyncio.create_subprocess_exec(
-        "bash", "-c",
-        "command -v systemctl >/dev/null 2>&1 && systemctl list-unit-files 2>/dev/null | grep -q apeadmin && echo systemd || echo direct",
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.DEVNULL,
-    )
-    out, _ = await detect.communicate()
-    managed_by_systemd = (out.decode().strip() == "systemd")
-
-    if managed_by_systemd:
-        restart_script = Path(tempfile.gettempdir()) / "apeadmin_systemd_restart.sh"
-        script_content = """#!/bin/bash
-# ApeAdmin systemd-managed restart
-sleep 2
-systemctl restart apeadmin
-"""
-    else:
-        # Fallback: direct uvicorn relaunch
-        restart_script = Path(tempfile.gettempdir()) / "apeadmin_restart.sh"
-        script_content = f"""#!/bin/bash
-# ApeAdmin auto-restart script (no systemd)
-# Waits for the old process to exit, then relaunches uvicorn
-
-# Wait a moment for the old process to shut down gracefully
-sleep 2
-
-# Relaunch uvicorn
-cd "{project_root}"
-exec "{python_bin}" -m uvicorn src.main:app --host 127.0.0.1 --port 8000 </dev/null >> /tmp/apeadmin_backend.log 2>&1
-"""
-    restart_script.write_text(script_content)
-    restart_script.chmod(restart_script.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
-
-    # Spawn the restart script as a detached process
-    proc = await asyncio.create_subprocess_exec(
-        "bash", str(restart_script),
-        stdin=asyncio.subprocess.DEVNULL,
-        stdout=asyncio.subprocess.DEVNULL,
-        stderr=asyncio.subprocess.DEVNULL,
-        start_new_session=True,  # Detach from parent process group
-    )
+    restart_info = await spawn_restart(project_root, python_bin)
     logger = __import__("loguru").logger
-    logger.info(f"Restart script spawned (pid={proc.pid}, mode={'systemd' if managed_by_systemd else 'direct'}), shutting down in 1s...")
+    logger.info(
+        f"Restart script spawned (mode={restart_info['mode']}, "
+        f"pid={restart_info['spawner_pid']}), shutting down in 1s..."
+    )
 
     # Schedule self-termination after a short delay (let the response go out)
     async def _delayed_exit():
@@ -319,7 +281,13 @@ exec "{python_bin}" -m uvicorn src.main:app --host 127.0.0.1 --port 8000 </dev/n
     asyncio.create_task(_delayed_exit())
 
     return success_response(
-        data={"old_pid": os.getpid(), "mode": "systemd" if managed_by_systemd else "direct"},
+        data={
+            "old_pid": os.getpid(),
+            "mode": restart_info["mode"],
+            "log": restart_info.get("log"),
+            **({"host": restart_info["host"], "port": restart_info["port"]}
+               if "port" in restart_info else {}),
+        },
         msg="后端正在重启，请等待约 5 秒后刷新页面",
     )
 

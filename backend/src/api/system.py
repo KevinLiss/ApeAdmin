@@ -224,39 +224,18 @@ async def upload_update(
     shutil.rmtree(str(extract_dir), ignore_errors=True)
     tmp_pkg.unlink(missing_ok=True)
 
-    # ---- Spawn restart script ----
-    import stat
+    # ---- Spawn restart script (cross-platform, see src/core/runtime.py) ----
+    import asyncio
 
-    restart_script = Path(tempfile.gettempdir()) / "apeadmin_update_restart.sh"
+    from src.core.runtime import spawn_restart
+
+    project_root = Path(__file__).resolve().parents[2]  # backend/ or deploy root
     python_bin = sys.executable
-
-    script_content = f"""#!/bin/bash
-# ApeAdmin version update restart script
-sleep 2
-
-# Try systemd restart first (production)
-if command -v systemctl &>/dev/null && systemctl list-unit-files | grep -q apeadmin; then
-    systemctl restart apeadmin
-    exit 0
-fi
-
-# Fallback: direct uvicorn restart
-cd "{project_root}"
-exec "{python_bin}" -m uvicorn src.main:app --host 127.0.0.1 --port 8000 </dev/null >> /tmp/apeadmin_backend.log 2>&1
-"""
-    restart_script.write_text(script_content)
-    restart_script.chmod(
-        restart_script.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH
+    restart_info = await spawn_restart(project_root, python_bin)
+    logger.info(
+        f"Update restart script spawned (mode={restart_info['mode']}, "
+        f"pid={restart_info['spawner_pid']}), shutting down in 1s..."
     )
-
-    proc = await asyncio.create_subprocess_exec(
-        "bash", str(restart_script),
-        stdin=asyncio.subprocess.DEVNULL,
-        stdout=asyncio.subprocess.DEVNULL,
-        stderr=asyncio.subprocess.DEVNULL,
-        start_new_session=True,
-    )
-    logger.info(f"Update restart script spawned (pid={proc.pid}), shutting down in 1s...")
 
     # Schedule self-termination
     async def _delayed_exit():
@@ -270,6 +249,8 @@ exec "{python_bin}" -m uvicorn src.main:app --host 127.0.0.1 --port 8000 </dev/n
         data={
             "old_pid": os.getpid(),
             "backup_dir": str(backup_dir),
+            "restart_mode": restart_info["mode"],
+            "restart_log": restart_info.get("log"),
         },
         msg="版本更新完成，后端正在重启，请等待约 5 秒后刷新页面",
     )
