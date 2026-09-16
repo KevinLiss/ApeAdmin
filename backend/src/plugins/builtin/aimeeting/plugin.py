@@ -57,6 +57,8 @@ class AimeetingPlugin(PluginInterface):
             _column_migrations = [
                 # (表名, 列名, DDL 类型与默认值)
                 ("aimeeting_meetings", "transcript_revision", "INTEGER NOT NULL DEFAULT 0"),
+                # 单录制方（2026-09-11 产品决策）：录音权归属设备
+                ("aimeeting_meetings", "recorder_device_id", "VARCHAR(200) NOT NULL DEFAULT ''"),
             ]
             for table, column, ddl in _column_migrations:
                 def _has_column(sync_conn, _t=table, _c=column) -> bool:
@@ -69,6 +71,12 @@ class AimeetingPlugin(PluginInterface):
                         text(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}")
                     )
                     logger.info(f"[aimeeting] migration: {table}.{column} added")
+
+            # 新增列的索引补建（create_all 不给已存在表建索引；IF NOT EXISTS 幂等）
+            await conn.execute(text(
+                "CREATE INDEX IF NOT EXISTS ix_aimeeting_meetings_recorder_device_id "
+                "ON aimeeting_meetings (recorder_device_id)"
+            ))
 
             # 废弃列清理（幂等）：多设备共享改造后不再使用的字段。
             # - end_time：预定结束时间，创建表单从未录入、前端从未展示

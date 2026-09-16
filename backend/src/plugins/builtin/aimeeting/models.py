@@ -7,8 +7,10 @@
 （结论、讨论要点、决议、遗留问题）
 
 数据模型设计：
-- ``aimeeting_meetings``：会议主表。用户端通过「会议编号」访问（多设备可同时进入、
-  共享录制）；管理端用于管理历史会议、查看转写文本与纪要。
+- ``aimeeting_meetings``：会议主表。用户端通过「会议编号」访问（共享进入：任意设备
+  可进入查看转写流、记重点，但**同一时刻只允许一路录音**——录制方由
+  ``recorder_device_id`` 记录，第一台开始录音的设备自动认领，录制方停止/掉线后
+  其他设备可接管续录）；管理端用于管理历史会议、查看转写文本与纪要。
 - ``aimeeting_records``：录音文件与语音转写结果。一次会议可有多次录音/转写片段，
   最终合并为完整转写文本。
 - ``aimeeting_minutes``：AI 生成的会议总结（一句话）与结构化会议纪要（结论/讨论要点/决议/遗留问题）。
@@ -71,6 +73,12 @@ class AimeetingMeeting(IDMixin, TimestampMixin, Base):
 
     # 录音转写
     audio_duration: Mapped[int] = mapped_column(Integer, default=0, comment="录音总时长（秒）")
+    # 单录制方（共享进入只读方案的权限依据）：当前/最近持有录音权的设备。
+    # 为空表示无人认领（管理端建会或录制方已释放）；任何设备可通过 /start 或
+    # WS hello 认领；仅当该设备仍有活跃推流（进程内会话注册表）时他人被拒录。
+    recorder_device_id: Mapped[str] = mapped_column(
+        String(200), default="", index=True, comment="录制方设备标识（空=未认领/已释放）"
+    )
     transcript_text: Mapped[str] = mapped_column(Text, default="", comment="完整语音转写文本")
     transcript_status: Mapped[str] = mapped_column(
         String(20), default=TranscriptStatus.PENDING, comment="转写状态"

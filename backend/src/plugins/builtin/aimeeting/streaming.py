@@ -162,6 +162,16 @@ _refine_sem = asyncio.Semaphore(1)
 _REFINE_MAX_PENDING = 3
 _refine_pending = 0
 
+# ── 静音/噪声门（反幻听）─────────────────────────────────────────────
+# sherpa-onnx zipformer 对底噪敏感：安静房间里的环境噪声（实测帧 RMS 峰值 <600，
+# int16 满量程 32767）会被它"幻听"出「老/爷爷/人」等单字（会议 55 复现）。
+# 对策：帧能量门控——低能帧不进识别器也不进段缓存（等价于"人没说话不喂音频"），
+# 语音帧带 1.5s hangover 尾巴（保留轻声句尾）；段定稿时有效语音太短直接丢弃。
+# 阈值标定（100ms 帧 RMS）：真实说话 P50≈320 / P95≈2200；安静噪声 max<600。
+_VOICE_RMS = 400        # 帧 RMS 高于此视为语音帧
+_HANGOVER_FRAMES = 15   # 语音结束后继续放行的拖尾帧数（帧=100ms → 1.5s）
+_MIN_SPEECH_SEC = 0.6   # 段内有效语音不足 0.6s 视为噪声幻听，整段丢弃
+
 
 def _get_streaming_recognizer():
     """懒加载 sherpa-onnx 流式识别器（创建后只读，GIL 保护并发访问）。"""
@@ -216,6 +226,11 @@ class StreamingSession:
         self._seg_lock = asyncio.Lock()
         # 会话唯一标识：段 wav 文件名后缀，避免重连后 segment_no 重复导致同名覆盖（B2）
         self._uid = uuid.uuid4().hex[:8]
+        # ── 噪声门状态（见 _VOICE_RMS 注释）──
+        self._gate_open = False   # 当前帧是否放行（语音中或 hangover 拖尾内）
+        self._hangover = 0        # 语音结束后剩余拖尾帧数
+        self._seg_speech_sec = 0.0  # 当前段累计有效语音秒数（定稿时判噪声段）
+        self._last_partial = ""   # 上次推送的 partial 文本（去重防刷屏）
 
     # ── 录制方注册（单录制方守卫的进程内实时判据）────────────────────
     def register(self) -> None:
@@ -263,36 +278,81 @@ class StreamingSession:
             while self.recognizer.is_ready(self.stream):
                 self.recognizer.decode_stream(self.stream)
             tail_text = self.recognizer.get_result(self.stream).strip()
-            if tail_text:
+            if tail_text and self._seg_speech_sec >= _MIN_SPEECH_SEC:
                 await self._finalize_segment(tail_text)
+            elif tail_text:
+                logger.debug(
+                    f"[streaming] 收尾噪声段丢弃 meeting={self.meeting_id} "
+                    f"speech={self._seg_speech_sec:.2f}s text={tail_text[:10]!r}"
+                )
         except Exception as exc:  # noqa: BLE001
             logger.warning(f"[streaming] close 冲刷失败 meeting={self.meeting_id}: {exc}")
 
     # ── 主循环：接收音频 ─────────────────────────────────────────────
     async def feed(self, samples: bytes):
-        """处理一帧 PCM16 音频（来自 WebSocket 二进制帧）。"""
+        """处理一帧 PCM16 音频（来自 WebSocket 二进制帧），带噪声门控。
+
+        门控策略（反幻听，见 _VOICE_RMS 注释）：按 100ms 帧算 RMS，只把
+        「语音帧 + 1.5s hangover + 段内静音期补零」喂给 zipformer——噪声
+        进不了初稿识别器（会议 55 实测底噪幻听「老/爷爷/人」的根因）；
+        补零让 endpoint 尾部静音计时正常推进（否则说完话永远不触发定稿）。
+        段缓存（wav）仍存**全量帧**：二遍精修交给 whisper vad_filter 处理，
+        声纹分离也需要连续时间轴，切帧喂 ASR 只影响初稿质量（draft 可缺
+        轻声字，refined 用全量音频修正）。
+        段定稿时有效语音（真正超阈值的帧）不足 _MIN_SPEECH_SEC → 判为噪声
+        幻听段，整段丢弃不落库。
+        """
         if self.stream is None or self.closed:
             return
-        # bytes → int16 list（sherpa-onnx accept_waveform 需要 Sequence[float]）
         if len(samples) < 2:
             return
-        ints = list(struct.unpack(f"<{len(samples) // 2}h", samples))
-        if not ints:
+        arr = np.frombuffer(samples, dtype=np.int16)
+        if arr.size == 0:
             return
+        arr_f = arr.astype(np.float32)
 
-        self._elapsed_sec += len(ints) / SAMPLE_RATE
-        self.stream.accept_waveform(SAMPLE_RATE, ints)
+        self._elapsed_sec += arr.size / SAMPLE_RATE
         # 心跳 + 时间轴末端同步（单录制方判据 / 接管续录起点）
         self._sync_stream_end()
-        # 当前段缓存（供二遍精修）
-        self.cur_segment_samples.extend(ints)
+        # 段缓存收全量音频（精修 wav / 分离合并用）
+        self.cur_segment_samples.extend(arr.tolist())
+
+        FRAME = 1600  # 100ms
+        voiced: list[int] = []
+        filler_zeros = 0  # 门关闭时补喂的零采样（维持 endpoint 计时）
+        n_full = arr_f.size // FRAME
+        blocks = (
+            [arr_f[i * FRAME:(i + 1) * FRAME] for i in range(n_full)]
+            + ([arr_f[n_full * FRAME:]] if n_full * FRAME < arr_f.size else [])
+        )
+        for blk in blocks:
+            rms = float(np.sqrt(np.mean(blk * blk)))
+            if rms >= _VOICE_RMS:
+                self._hangover = _HANGOVER_FRAMES
+                self._gate_open = True
+                self._seg_speech_sec += blk.size / SAMPLE_RATE
+            elif self._hangover > 0:
+                self._hangover -= 1
+            else:
+                self._gate_open = False
+            if self._gate_open:
+                voiced.extend(blk.astype(np.int16).tolist())
+            elif self._seg_speech_sec > 0:
+                # 段内已有语音 → 静音帧补零，让 endpoint 的 trailing silence 计时推进
+                filler_zeros += blk.size
+
+        if voiced:
+            self.stream.accept_waveform(SAMPLE_RATE, voiced)
+        if filler_zeros:
+            self.stream.accept_waveform(SAMPLE_RATE, [0] * filler_zeros)
 
         # 解码到就绪
         while self.recognizer.is_ready(self.stream):
             self.recognizer.decode_stream(self.stream)
 
         result = self.recognizer.get_result(self.stream).strip()
-        if result:
+        if result and result != self._last_partial:
+            self._last_partial = result
             await self.ws.send_json({
                 "type": "partial",
                 "text": result,
@@ -302,12 +362,22 @@ class StreamingSession:
         # endpoint 检测：一句话说完了，定稿
         if self.recognizer.is_endpoint(self.stream):
             final_text = self.recognizer.get_result(self.stream).strip()
-            if final_text:
+            if final_text and self._seg_speech_sec >= _MIN_SPEECH_SEC:
                 await self._finalize_segment(final_text)
+            elif final_text:
+                # 有效语音太短（咔哒声/短噪声诱发的幻听字）→ 整段丢弃不落库
+                logger.debug(
+                    f"[streaming] 噪声段丢弃 meeting={self.meeting_id} seg={self.segment_no} "
+                    f"speech={self._seg_speech_sec:.2f}s text={final_text[:10]!r}"
+                )
             self.recognizer.reset(self.stream)
             self.segment_no += 1
             self.cur_segment_start = self.base_offset + self._elapsed_sec
             self.cur_segment_samples = []
+            self._seg_speech_sec = 0.0
+            self._gate_open = False
+            self._hangover = 0
+            self._last_partial = ""
 
     # ── 段定稿 ──────────────────────────────────────────────────────
     async def _finalize_segment(self, text: str):

@@ -189,9 +189,22 @@ async def transcribe_record_async(record_id: int) -> None:
             record_obj.transcript_status = TranscriptStatus.SUCCESS
             record_obj.error = ""
         except Exception as exc:  # noqa: BLE001
-            logger.exception(f"[Aimeeting] 后台转写失败 record={record_id}: {exc}")
-            record_obj.transcript_status = TranscriptStatus.FAILED
-            record_obj.error = f"转写失败：{exc}"
+            # 首次失败自动重试一次（模型加载/文件句柄等多为瞬态错误），仍失败才落 failed
+            logger.warning(f"[Aimeeting] 转写失败 record={record_id}，重试一次: {exc}")
+            try:
+                await asyncio.sleep(2.0)
+                async with _transcribe_sem:
+                    segments_data = await asyncio.to_thread(
+                        _transcribe_sync, record_obj.audio_path, record_obj.offset_sec
+                    )
+                record_obj.transcript = "\n".join(s["text"] for s in segments_data if s["text"].strip())
+                record_obj.segments_json = json.dumps(segments_data, ensure_ascii=False)
+                record_obj.transcript_status = TranscriptStatus.SUCCESS
+                record_obj.error = ""
+            except Exception as exc2:  # noqa: BLE001
+                logger.exception(f"[Aimeeting] 后台转写重试仍失败 record={record_id}: {exc2}")
+                record_obj.transcript_status = TranscriptStatus.FAILED
+                record_obj.error = f"转写失败：{exc2}"
         await db.commit()
 
         # 合并到会议句级转写（实时对话流数据源）
