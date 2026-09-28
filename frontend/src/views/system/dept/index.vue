@@ -2,7 +2,7 @@
   <el-card shadow="never" class="page-card">
     <div class="toolbar">
       <el-button type="success" @click="openDialog()">
-        <el-icon><Plus /></el-icon>新增部门
+        <el-icon><Plus /></el-icon>{{ t('system.dept.createDept') }}
       </el-button>
     </div>
 
@@ -13,67 +13,70 @@
       :tree-props="{ children: 'children' }"
       default-expand-all
     >
-      <el-table-column prop="name" label="部门名称" min-width="180" />
-      <el-table-column prop="leader" label="负责人" min-width="100" />
-      <el-table-column prop="phone" label="联系电话" min-width="130" />
-      <el-table-column prop="sort" label="排序" width="70" />
-      <el-table-column label="状态" width="80">
+      <el-table-column prop="name" :label="t('system.dept.deptName')" min-width="180" />
+      <el-table-column prop="leader" :label="t('system.dept.leader')" min-width="100" />
+      <el-table-column prop="phone" :label="t('system.dept.phone')" min-width="130" />
+      <el-table-column prop="sort" :label="t('system.dept.sort')" width="70" />
+      <el-table-column :label="t('system.dept.status')" width="80">
         <template #default="{ row }">
           <el-tag :type="row.status === 1 ? 'success' : 'danger'" size="small">
-            {{ row.status === 1 ? '启用' : '禁用' }}
+            {{ row.status === 1 ? t('system.dept.active') : t('system.dept.disabled') }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="160" fixed="right">
+      <el-table-column :label="t('common.action.actions')" width="160" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="openDialog(row)">编辑</el-button>
-          <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
+          <el-button link type="primary" @click="openDialog(row)">{{ t('common.action.edit') }}</el-button>
+          <el-button link type="danger" @click="handleDelete(row)">{{ t('common.action.delete') }}</el-button>
         </template>
       </el-table-column>
     </el-table>
   </el-card>
 
-  <el-dialog v-model="dialogVisible" :title="editingId ? '编辑部门' : '新增部门'" width="480px">
+  <el-dialog v-model="dialogVisible" :title="editingId ? t('system.dept.editDept') : t('system.dept.createDept')" width="480px">
     <el-form ref="formRef" :model="form" :rules="rules" label-width="90px">
-      <el-form-item label="上级部门">
+      <el-form-item :label="t('system.dept.parentDept')">
         <el-tree-select
           v-model="form.parent_id"
           :data="parentOptions"
           :props="{ label: 'name', children: 'children' }"
           check-strictly
           clearable
-          placeholder="选择上级（留空为顶级）"
+          :placeholder="t('system.dept.parentPlaceholder')"
           style="width: 100%"
         />
       </el-form-item>
-      <el-form-item label="部门名称" prop="name">
+      <el-form-item :label="t('system.dept.deptName')" prop="name">
         <el-input v-model="form.name" />
       </el-form-item>
-      <el-form-item label="负责人">
+      <el-form-item :label="t('system.dept.leader')">
         <el-input v-model="form.leader" />
       </el-form-item>
-      <el-form-item label="联系电话">
+      <el-form-item :label="t('system.dept.phone')">
         <el-input v-model="form.phone" />
       </el-form-item>
-      <el-form-item label="排序">
+      <el-form-item :label="t('system.dept.sort')">
         <el-input-number v-model="form.sort" :min="0" />
       </el-form-item>
-      <el-form-item label="状态">
+      <el-form-item :label="t('system.dept.status')">
         <el-switch v-model="form.status" :active-value="1" :inactive-value="0" />
       </el-form-item>
     </el-form>
     <template #footer>
-      <el-button @click="dialogVisible = false">取消</el-button>
-      <el-button type="primary" :loading="saving" @click="handleSave">保存</el-button>
+      <el-button @click="dialogVisible = false">{{ t('common.action.cancel') }}</el-button>
+      <el-button type="primary" :loading="saving" @click="handleSave">{{ t('common.action.save') }}</el-button>
     </template>
   </el-dialog>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { getDeptTree, createDept, updateDept, deleteDept } from '@/api'
+
+const { t } = useI18n()
 
 const tree = ref<any[]>([])
 const loading = ref(false)
@@ -93,7 +96,7 @@ const form = reactive({
 })
 
 const rules: FormRules = {
-  name: [{ required: true, message: '请输入部门名称', trigger: 'blur' }],
+  name: [{ required: true, message: () => t('common.validation.required', { name: t('system.dept.deptName') }), trigger: 'blur' }],
 }
 
 async function fetchData() {
@@ -101,7 +104,7 @@ async function fetchData() {
   try {
     const data: any = await getDeptTree()
     tree.value = data || []
-    parentOptions.value = [{ id: 0, name: '顶级', children: data || [] }]
+    parentOptions.value = [{ id: 0, name: t('system.dept.topLevel'), children: data || [] }]
   } finally {
     loading.value = false
   }
@@ -134,10 +137,10 @@ async function handleSave() {
       }
       if (editingId.value) {
         await updateDept(editingId.value, payload)
-        ElMessage.success('更新成功')
+        ElMessage.success(t('common.message.updateSuccess'))
       } else {
         await createDept(payload)
-        ElMessage.success('创建成功')
+        ElMessage.success(t('common.message.createSuccess'))
       }
       dialogVisible.value = false
       fetchData()
@@ -148,9 +151,9 @@ async function handleSave() {
 }
 
 async function handleDelete(row: any) {
-  await ElMessageBox.confirm(`确定删除部门「${row.name}」吗？`, '提示', { type: 'warning' })
+  await ElMessageBox.confirm(t('system.dept.deleteConfirm', { name: row.name }), t('common.action.tip'), { type: 'warning' })
   await deleteDept(row.id)
-  ElMessage.success('删除成功')
+  ElMessage.success(t('common.message.deleteSuccess'))
   fetchData()
 }
 

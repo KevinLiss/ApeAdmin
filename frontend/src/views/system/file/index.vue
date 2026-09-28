@@ -1,80 +1,80 @@
 <template>
   <section class="file-page">
     <header class="page-heading">
-      <div><p class="eyebrow">SYSTEM STORAGE</p><h1>文件管理</h1><p class="heading-copy">集中管理系统上传文件与目录</p></div>
-      <div class="heading-stats"><span><strong>{{ total }}</strong> 个文件</span><i></i><span><strong>{{ folderCount }}</strong> 个文件夹</span></div>
+      <div><p class="eyebrow">SYSTEM STORAGE</p><h1>{{ t('system.file.title') }}</h1><p class="heading-copy">{{ t('system.file.subtitle') }}</p></div>
+      <div class="heading-stats"><span><strong>{{ total }}</strong> {{ t('system.file.fileUnit') }}</span><i></i><span><strong>{{ folderCount }}</strong> {{ t('system.file.folderUnit') }}</span></div>
     </header>
     <div class="toolbar">
-      <div class="search-box"><el-icon><Search /></el-icon><el-input v-model="keyword" clearable placeholder="搜索当前文件夹" @keyup.enter="loadFiles" /><el-button type="primary" @click="loadFiles">查询</el-button></div>
-      <div class="toolbar-right"><el-button @click="folderDialog = true"><el-icon><FolderAdd /></el-icon>新建文件夹</el-button><el-upload :show-file-list="false" :http-request="handleUpload" :disabled="uploading"><el-button type="primary" :loading="uploading"><el-icon><Upload /></el-icon>上传文件</el-button></el-upload></div>
+      <div class="search-box"><el-icon><Search /></el-icon><el-input v-model="keyword" clearable :placeholder="t('system.file.searchPlaceholder')" @keyup.enter="loadFiles" /><el-button type="primary" @click="loadFiles">{{ t('common.action.query') }}</el-button></div>
+      <div class="toolbar-right"><el-button @click="folderDialog = true"><el-icon><FolderAdd /></el-icon>{{ t('system.file.createFolder') }}</el-button><el-upload :show-file-list="false" :http-request="handleUpload" :disabled="uploading"><el-button type="primary" :loading="uploading"><el-icon><Upload /></el-icon>{{ t('system.file.upload') }}</el-button></el-upload></div>
     </div>
     <div class="file-layout" v-loading="loading">
       <aside class="folder-panel">
-        <div class="panel-title"><span>目录</span><el-tag size="small" type="info">{{ folderCount }}</el-tag></div>
+        <div class="panel-title"><span>{{ t('system.file.directory') }}</span><el-tag size="small" type="info">{{ folderCount }}</el-tag></div>
         <el-tree :data="folders" node-key="id" :props="{ label: 'name', children: 'children' }" default-expand-all>
           <template #default="{ data }">
             <span class="tree-node">
               <span class="tree-label" @click="selectFolder(data)">{{ data.name }}</span>
               <span class="tree-actions">
-                <el-button v-if="data.id !== (folders[0]?.id || 0)" link size="small" class="tree-btn" title="移动文件夹" @click.stop="openMoveFolder(data)"><el-icon><Rank /></el-icon></el-button>
-                <el-button v-if="data.id !== (folders[0]?.id || 0)" link size="small" type="danger" class="tree-btn" title="删除文件夹" @click.stop="removeFolder(data)"><el-icon><Delete /></el-icon></el-button>
+                <el-button v-if="data.id !== (folders[0]?.id || 0)" link size="small" class="tree-btn" :title="t('system.file.moveFolderTitle')" @click.stop="openMoveFolder(data)"><el-icon><Rank /></el-icon></el-button>
+                <el-button v-if="data.id !== (folders[0]?.id || 0)" link size="small" type="danger" class="tree-btn" :title="t('system.file.deleteFolderTitle')" @click.stop="removeFolder(data)"><el-icon><Delete /></el-icon></el-button>
               </span>
             </span>
           </template>
         </el-tree>
-        <div class="panel-title asset-title"><span>素材存储</span><el-tag size="small" type="warning">{{ assetGroups.length }}</el-tag></div>
+        <div class="panel-title asset-title"><span>{{ t('system.file.assetStorage') }}</span><el-tag size="small" type="warning">{{ assetGroups.length }}</el-tag></div>
         <div class="asset-list">
           <div v-for="g in assetGroups" :key="g.key" class="asset-node" :class="{ active: assetMode && currentGroup === g.key }" @click="selectAssetGroup(g)">
             <el-icon><Picture /></el-icon>
             <span class="asset-name">{{ g.name }}</span>
-            <el-tooltip v-if="g.risk === 'high'" content="业务文件，删除会影响下载，请谨慎操作"><el-tag size="small" type="danger" effect="plain">风险</el-tag></el-tooltip>
+            <el-tooltip v-if="g.risk === 'high'" :content="t('system.file.riskTooltip')"><el-tag size="small" type="danger" effect="plain">{{ t('system.file.risk') }}</el-tag></el-tooltip>
             <span class="asset-count">{{ g.file_count }}</span>
           </div>
         </div>
       </aside>
       <main class="content-panel">
         <template v-if="!assetMode">
-          <div class="content-heading"><div><span class="muted">当前位置</span><h2>{{ currentFolderName }}</h2></div><el-button text @click="loadFiles"><el-icon><Refresh /></el-icon>刷新</el-button></div>
-          <el-table :data="files" class="file-table" empty-text="当前文件夹暂无文件">
-            <el-table-column label="名称" min-width="300"><template #default="{ row }"><div class="file-name"><span class="file-icon"><el-icon><Document /></el-icon></span><span>{{ row.name }}</span></div></template></el-table-column>
-            <el-table-column prop="mime_type" label="类型" width="180" />
-            <el-table-column label="大小" width="120"><template #default="{ row }">{{ formatSize(row.size) }}</template></el-table-column>
-            <el-table-column prop="created_at" label="上传时间" width="180" />
-            <el-table-column label="操作" width="260" fixed="right"><template #default="{ row }"><el-button link type="primary" @click="previewFile(row)">预览</el-button><el-button link type="primary" @click="download(row)">下载</el-button><el-button link type="primary" @click="openMoveFile(row)">移动</el-button><el-button link type="danger" @click="removeFile(row)">删除</el-button></template></el-table-column>
+          <div class="content-heading"><div><span class="muted">{{ t('system.file.currentLocation') }}</span><h2>{{ currentFolderName }}</h2></div><el-button text @click="loadFiles"><el-icon><Refresh /></el-icon>{{ t('common.action.refresh') }}</el-button></div>
+          <el-table :data="files" class="file-table" :empty-text="t('system.file.noFiles')">
+            <el-table-column :label="t('common.action.name')" min-width="300"><template #default="{ row }"><div class="file-name"><span class="file-icon"><el-icon><Document /></el-icon></span><span>{{ row.name }}</span></div></template></el-table-column>
+            <el-table-column prop="mime_type" :label="t('system.file.fileType')" width="180" />
+            <el-table-column :label="t('system.file.fileSize')" width="120"><template #default="{ row }">{{ formatSize(row.size) }}</template></el-table-column>
+            <el-table-column prop="created_at" :label="t('system.file.uploadTime')" width="180" />
+            <el-table-column :label="t('common.action.actions')" width="260" fixed="right"><template #default="{ row }"><el-button link type="primary" @click="previewFile(row)">{{ t('system.file.preview') }}</el-button><el-button link type="primary" @click="download(row)">{{ t('common.action.download') }}</el-button><el-button link type="primary" @click="openMoveFile(row)">{{ t('common.action.move') }}</el-button><el-button link type="danger" @click="removeFile(row)">{{ t('common.action.delete') }}</el-button></template></el-table-column>
           </el-table>
-          <div class="table-footer"><span class="result-count">共 {{ total }} 个文件</span><el-pagination v-model:current-page="page" v-model:page-size="pageSize" :total="total" layout="prev, pager, next" @change="loadFiles" /></div>
+          <div class="table-footer"><span class="result-count">{{ t('system.file.totalFiles', { count: total }) }}</span><el-pagination v-model:current-page="page" v-model:page-size="pageSize" :total="total" layout="prev, pager, next" @change="loadFiles" /></div>
         </template>
         <template v-else>
           <div class="content-heading">
             <div>
-              <span class="muted">素材存储 / {{ currentGroupInfo?.name }}</span>
-              <h2 class="asset-path">{{ currentAssetPathLabel }}<el-button v-if="currentAssetPath" link size="small" @click="upAssetDir"><el-icon><Back /></el-icon>上一级</el-button></h2>
+              <span class="muted">{{ t('system.file.assetStorage') }} / {{ currentGroupInfo?.name }}</span>
+              <h2 class="asset-path">{{ currentAssetPathLabel }}<el-button v-if="currentAssetPath" link size="small" @click="upAssetDir"><el-icon><Back /></el-icon>{{ t('system.file.upLevel') }}</el-button></h2>
             </div>
-            <el-button text @click="loadAssets"><el-icon><Refresh /></el-icon>刷新</el-button>
+            <el-button text @click="loadAssets"><el-icon><Refresh /></el-icon>{{ t('common.action.refresh') }}</el-button>
           </div>
           <el-alert v-if="currentGroupInfo" :type="currentGroupInfo.risk === 'high' ? 'warning' : 'info'" :title="currentGroupInfo.note" :closable="false" class="asset-alert" />
-          <el-table :data="assetDirs" class="file-table" empty-text="该目录为空">
-            <el-table-column label="文件夹" min-width="300"><template #default="{ row }"><div class="file-name folder" @click="enterAssetDir(row.path)"><span class="file-icon"><el-icon><Folder /></el-icon></span><span>{{ row.name }}</span></div></template></el-table-column>
-            <el-table-column label="操作" width="80"><template #default="{ row }"><el-button link type="primary" @click="enterAssetDir(row.path)">进入</el-button></template></el-table-column>
+          <el-table :data="assetDirs" class="file-table" :empty-text="t('system.file.dirEmpty')">
+            <el-table-column :label="t('system.file.folderColumn')" min-width="300"><template #default="{ row }"><div class="file-name folder" @click="enterAssetDir(row.path)"><span class="file-icon"><el-icon><Folder /></el-icon></span><span>{{ row.name }}</span></div></template></el-table-column>
+            <el-table-column :label="t('common.action.actions')" width="80"><template #default="{ row }"><el-button link type="primary" @click="enterAssetDir(row.path)">{{ t('system.file.enter') }}</el-button></template></el-table-column>
           </el-table>
           <el-table :data="assetFiles" class="file-table">
-            <el-table-column label="文件名" min-width="300"><template #default="{ row }"><div class="file-name"><span class="file-icon"><el-icon><Document /></el-icon></span><span>{{ row.name }}</span></div></template></el-table-column>
-            <el-table-column label="路径" min-width="220" show-overflow-tooltip><template #default="{ row }"><span class="muted">{{ row.path }}</span></template></el-table-column>
-            <el-table-column label="大小" width="120"><template #default="{ row }">{{ formatSize(row.size) }}</template></el-table-column>
-            <el-table-column label="修改时间" width="180"><template #default="{ row }">{{ formatTime(row.modified_at) }}</template></el-table-column>
-            <el-table-column label="操作" width="200" fixed="right"><template #default="{ row }"><el-button link type="primary" @click="previewAsset(row)">预览</el-button><el-button link type="primary" @click="downloadAsset(row)">下载</el-button><el-button link type="danger" @click="removeAsset(row)">删除</el-button></template></el-table-column>
+            <el-table-column :label="t('system.file.fileName')" min-width="300"><template #default="{ row }"><div class="file-name"><span class="file-icon"><el-icon><Document /></el-icon></span><span>{{ row.name }}</span></div></template></el-table-column>
+            <el-table-column :label="t('system.file.path')" min-width="220" show-overflow-tooltip><template #default="{ row }"><span class="muted">{{ row.path }}</span></template></el-table-column>
+            <el-table-column :label="t('system.file.fileSize')" width="120"><template #default="{ row }">{{ formatSize(row.size) }}</template></el-table-column>
+            <el-table-column :label="t('system.file.modifyTime')" width="180"><template #default="{ row }">{{ formatTime(row.modified_at) }}</template></el-table-column>
+            <el-table-column :label="t('common.action.actions')" width="200" fixed="right"><template #default="{ row }"><el-button link type="primary" @click="previewAsset(row)">{{ t('system.file.preview') }}</el-button><el-button link type="primary" @click="downloadAsset(row)">{{ t('common.action.download') }}</el-button><el-button link type="danger" @click="removeAsset(row)">{{ t('common.action.delete') }}</el-button></template></el-table-column>
           </el-table>
-          <div class="table-footer"><span class="result-count">共 {{ assetDirs.length }} 个目录、{{ assetFiles.length }} 个文件</span></div>
+          <div class="table-footer"><span class="result-count">{{ t('system.file.dirsAndFiles', { dirCount: assetDirs.length, fileCount: assetFiles.length }) }}</span></div>
         </template>
       </main>
     </div>
   </section>
-  <el-dialog v-model="folderDialog" title="新建文件夹" width="420px">
-    <el-input v-model="folderName" maxlength="120" placeholder="请输入文件夹名称" @keyup.enter="createFolder" />
-    <template #footer><el-button @click="folderDialog = false">取消</el-button><el-button type="primary" @click="createFolder">创建</el-button></template>
+  <el-dialog v-model="folderDialog" :title="t('system.file.createFolder')" width="420px">
+    <el-input v-model="folderName" maxlength="120" :placeholder="t('system.file.folderNamePlaceholder')" @keyup.enter="createFolder" />
+    <template #footer><el-button @click="folderDialog = false">{{ t('common.action.cancel') }}</el-button><el-button type="primary" @click="createFolder">{{ t('system.file.createBtn') }}</el-button></template>
   </el-dialog>
-  <el-dialog v-model="moveDialog" :title="moveType === 'folder' ? '移动文件夹' : '移动文件'" width="480px">
-    <p class="move-tip">将「{{ moveName }}」移动到：</p>
+  <el-dialog v-model="moveDialog" :title="moveType === 'folder' ? t('system.file.moveFolderTitle') : t('system.file.moveFileTitle')" width="480px">
+    <p class="move-tip">{{ t('system.file.moveToTip', { name: moveName }) }}</p>
     <el-tree-select
       v-model="moveTargetId"
       :data="moveTreeData"
@@ -84,9 +84,9 @@
       check-strictly
       default-expand-all
       style="width: 100%"
-      placeholder="请选择目标文件夹"
+      :placeholder="t('system.file.selectTargetFolder')"
     />
-    <template #footer><el-button @click="moveDialog = false">取消</el-button><el-button type="primary" @click="confirmMove">移动</el-button></template>
+    <template #footer><el-button @click="moveDialog = false">{{ t('common.action.cancel') }}</el-button><el-button type="primary" @click="confirmMove">{{ t('common.action.move') }}</el-button></template>
   </el-dialog>
   <el-dialog v-model="previewDialog" :title="previewName" width="860px" top="6vh" class="preview-dialog">
     <div v-loading="previewLoading" class="preview-body">
@@ -100,39 +100,41 @@
         <pre class="preview-text" @load="previewLoading = false">{{ previewText }}</pre>
       </template>
       <template v-else>
-        <el-empty description="该类型文件暂不支持预览，请下载查看" />
+        <el-empty :description="t('system.file.unsupportedPreview')" />
       </template>
     </div>
-    <template #footer><el-button @click="previewDialog = false">关闭</el-button></template>
+    <template #footer><el-button @click="previewDialog = false">{{ t('common.action.close') }}</el-button></template>
   </el-dialog>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, FolderAdd, Upload, Document, Refresh, Picture, Folder, Back, Rank, Delete } from '@element-plus/icons-vue'
 import { createFileFolder, deleteFileFolder, deleteSystemFile, getFileFolders, getFiles, uploadSystemFile, downloadSystemFileUrl, previewSystemFileUrl, moveSystemFile, moveSystemFolder, getAssetGroups, getAssetList, deleteAsset, assetDownloadUrl, assetPreviewUrl } from '@/api'
+const { t } = useI18n()
 
 const loading = ref(false); const uploading = ref(false); const folders = ref<any[]>([]); const files = ref<any[]>([])
 const folderId = ref(0); const keyword = ref(''); const page = ref(1); const pageSize = ref(20); const total = ref(0)
 const folderDialog = ref(false); const folderName = ref('')
 const folderCount = computed(() => countFolders(folders.value))
 function countFolders(nodes: any[]): number { return nodes.reduce((sum, node) => sum + (node.id === 0 ? 0 : 1) + countFolders(node.children || []), 0) }
-const currentFolderName = computed(() => findName(folders.value, folderId.value) || '全部文件')
+const currentFolderName = computed(() => findName(folders.value, folderId.value) || t('system.file.allFiles'))
 function findName(nodes: any[], id: number): string { for (const node of nodes) { if (node.id === id) return node.name; const name = findName(node.children || [], id); if (name) return name } return '' }
 async function loadFolders() { const data: any = await getFileFolders(); folders.value = data || [] }
 async function loadFiles() { loading.value = true; try { const data: any = await getFiles({ folder_id: folderId.value, keyword: keyword.value, page: page.value, page_size: pageSize.value }); files.value = data.items || []; total.value = data.total || 0 } finally { loading.value = false } }
 function selectFolder(node: any) { assetMode.value = false; folderId.value = node.id; page.value = 1; loadFiles() }
-async function createFolder() { if (!folderName.value.trim()) return ElMessage.warning('请输入文件夹名称'); await createFileFolder({ name: folderName.value, parent_id: folderId.value }); ElMessage.success('创建成功'); folderDialog.value = false; folderName.value = ''; await loadFolders() }
-async function handleUpload(options: any) { uploading.value = true; try { await uploadSystemFile(options.file, folderId.value); ElMessage.success('上传成功'); await loadFiles() } finally { uploading.value = false } }
+async function createFolder() { if (!folderName.value.trim()) return ElMessage.warning(t('system.file.inputFolderName')); await createFileFolder({ name: folderName.value, parent_id: folderId.value }); ElMessage.success(t('system.file.folderCreated')); folderDialog.value = false; folderName.value = ''; await loadFolders() }
+async function handleUpload(options: any) { uploading.value = true; try { await uploadSystemFile(options.file, folderId.value); ElMessage.success(t('system.file.uploadSuccess')); await loadFiles() } finally { uploading.value = false } }
 async function download(row: any) { const token = localStorage.getItem('apeadmin_token'); const link = document.createElement('a'); link.href = `${downloadSystemFileUrl(row.id)}?token=${encodeURIComponent(token || '')}`; link.download = row.name; document.body.appendChild(link); link.click(); link.remove() }
-async function removeFile(row: any) { await ElMessageBox.confirm(`确认删除「${row.name}」吗？删除后文件将无法恢复。`, '删除确认', { type: 'warning' }); await deleteSystemFile(row.id); ElMessage.success('已删除'); await loadFiles() }
+async function removeFile(row: any) { await ElMessageBox.confirm(t('system.file.deleteConfirm', { name: row.name }), t('system.file.deleteConfirmTitle'), { type: 'warning' }); await deleteSystemFile(row.id); ElMessage.success(t('system.file.deleted')); await loadFiles() }
 async function removeFolder(data: any) {
   // 级联删除：整个文件夹树及其下所有文件
-  const tip = `确认删除文件夹「${data.name}」吗？\n\n文件夹下的所有子文件夹和文件将一并删除，且不可恢复。`
-  await ElMessageBox.confirm(tip, '删除文件夹确认', { type: 'warning', confirmButtonText: '删除文件夹及内容', cancelButtonText: '取消' })
+  const tip = t('system.file.deleteFolderConfirm', { name: data.name }) + '\n\n' + t('system.file.deleteFolderAndContents')
+  await ElMessageBox.confirm(tip, t('system.file.deleteFolderConfirmTitle'), { type: 'warning', confirmButtonText: t('system.file.deleteFolderAndContents'), cancelButtonText: t('common.action.cancel') })
   await deleteFileFolder(data.id)
-  ElMessage.success('文件夹已删除')
+  ElMessage.success(t('system.file.deleted'))
   // 若当前正浏览被删文件夹，退回根目录
   if (folderId.value === data.id) { folderId.value = 0 }
   await Promise.all([loadFolders(), loadFiles()])
@@ -154,11 +156,11 @@ function pruneTree(nodes: any[], excludeId: number): any[] {
 function openMoveFile(row: any) { moveType.value = 'file'; moveFileId.value = row.id; moveName.value = row.name; moveTargetId.value = folderId.value; moveDialog.value = true }
 function openMoveFolder(data: any) { moveType.value = 'folder'; moveFolderId.value = data.id; moveName.value = data.name; moveTargetId.value = folderId.value; moveDialog.value = true }
 async function confirmMove() {
-  if (!moveTargetId.value) return ElMessage.warning('请选择目标文件夹')
+  if (!moveTargetId.value) return ElMessage.warning(t('system.file.selectTargetFolder'))
   try {
     if (moveType.value === 'file') { await moveSystemFile(moveFileId.value, moveTargetId.value) } else { await moveSystemFolder(moveFolderId.value, moveTargetId.value) }
-    ElMessage.success('移动成功'); moveDialog.value = false; await Promise.all([loadFolders(), loadFiles()])
-  } catch (e: any) { ElMessage.error(e?.message || '移动失败') }
+    ElMessage.success(t('system.file.moved')); moveDialog.value = false; await Promise.all([loadFolders(), loadFiles()])
+  } catch (e: any) { ElMessage.error(e?.message || t('system.file.moveFailed')) }
 }
 async function reloadFiles() { await Promise.all([loadFiles(), loadFolders()]) }
 function formatSize(size: number) { if (size < 1024) return `${size} B`; if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`; return `${(size / 1024 / 1024).toFixed(1)} MB` }
@@ -205,7 +207,7 @@ function previewFile(row: any) {
 function previewAsset(row: any) {
   openPreview(row.name, `${assetPreviewUrl(currentGroup.value, row.path)}${previewTokenQuery()}`)
 }
-function previewError() { previewLoading.value = false; ElMessage.error('预览加载失败') }
+function previewError() { previewLoading.value = false; ElMessage.error(t('system.file.previewLoadFailed')) }
 
 // ---- 素材存储浏览 ----
 const assetGroups = ref<any[]>([])
@@ -215,7 +217,7 @@ const currentAssetPath = ref('')
 const assetDirs = ref<any[]>([])
 const assetFiles = ref<any[]>([])
 const currentGroupInfo = computed(() => assetGroups.value.find((g) => g.key === currentGroup.value))
-const currentAssetPathLabel = computed(() => (currentAssetPath.value ? currentAssetPath.value + '/' : '根目录'))
+const currentAssetPathLabel = computed(() => (currentAssetPath.value ? currentAssetPath.value + '/' : t('system.file.rootDir')))
 
 async function loadAssetGroups() { const data: any = await getAssetGroups(); assetGroups.value = data || [] }
 async function loadAssets() {
@@ -255,7 +257,7 @@ function upAssetDir() {
 async function downloadAsset(row: any) {
   const token = localStorage.getItem('apeadmin_token')
   const response = await fetch(assetDownloadUrl(currentGroup.value, row.path), { headers: token ? { Authorization: `Bearer ${token}` } : {} })
-  if (!response.ok) return ElMessage.error('下载失败')
+  if (!response.ok) return ElMessage.error(t('system.file.downloadFailed'))
   const blob = await response.blob()
   const link = document.createElement('a')
   link.href = URL.createObjectURL(blob)
@@ -266,15 +268,15 @@ async function downloadAsset(row: any) {
 async function removeAsset(row: any) {
   const highRisk = currentGroupInfo.value?.risk === 'high'
   const tip = highRisk
-    ? `该文件属于业务安装包，删除后对应插件/版本将无法下载，且不可恢复！\n\n文件：${row.path}`
-    : `确认删除「${row.path}」吗？删除后不可恢复。`
-  const action = await ElMessageBox.confirm(tip, highRisk ? '高风险删除确认' : '删除确认', { type: highRisk ? 'warning' : 'warning', confirmButtonText: highRisk ? '我已知晓风险，删除' : '删除' }).catch(() => null)
+    ? t('system.file.highRiskDeleteTip', { path: row.path })
+    : t('system.file.deleteConfirm', { name: row.path })
+  const action = await ElMessageBox.confirm(tip, highRisk ? t('system.file.highRiskDeleteTitle') : t('system.file.deleteConfirmTitle'), { type: highRisk ? 'warning' : 'warning', confirmButtonText: highRisk ? t('system.file.confirmRiskDelete') : t('common.action.delete') }).catch(() => null)
   if (!action) return
   if (highRisk) {
-    await ElMessageBox.prompt(`请输入文件名「${row.name}」以确认删除`, '二次确认', { confirmButtonText: '确认删除', cancelButtonText: '取消', inputPattern: new RegExp(`^${row.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`), inputErrorMessage: '文件名不匹配' })
+    await ElMessageBox.prompt(t('system.file.inputNameToDelete', { name: row.name }), t('system.file.secondConfirm'), { confirmButtonText: t('system.file.confirmDelete'), cancelButtonText: t('common.action.cancel'), inputPattern: new RegExp(`^${row.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`), inputErrorMessage: t('system.file.nameMismatch') })
   }
   await deleteAsset(currentGroup.value, row.path)
-  ElMessage.success('已删除')
+  ElMessage.success(t('system.file.deleted'))
   await Promise.all([loadAssets(), loadAssetGroups()])
 }
 function formatTime(iso: string) { return iso ? iso.replace('T', ' ').slice(0, 16) : '-' }

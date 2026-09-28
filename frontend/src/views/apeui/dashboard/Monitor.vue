@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard-monitor">
-    <PageHeader title="系统仪表盘" :breadcrumb="['系统仪表盘']" />
+    <PageHeader :title="t('dashboard.title')" :breadcrumb="[t('dashboard.title')]" />
 
     <div class="dash-container">
       <!-- Row 1: 欢迎回来 (10/24) + CPU 使用 (7/24) + 内存使用 (7/24) -->
@@ -10,16 +10,16 @@
           <div class="ape-card profile-greeting">
             <div class="greeting-body">
               <div class="greeting-text">
-                <h1>欢迎回来，{{ displayName }}</h1>
-                <p>{{ sysData.system?.hostname || 'ApeAdmin' }} · 运行 {{ formatUptime(sysData.system?.uptime_seconds || 0) }}</p>
+                <h1>{{ t('dashboard.welcome', { name: displayName }) }}</h1>
+                <p>{{ sysData.system?.hostname || 'ApeAdmin' }} · {{ t('dashboard.running') }} {{ formatUptime(sysData.system?.uptime_seconds || 0) }}</p>
                 <div class="greeting-stats">
                   <div class="gs-item">
-                    <span class="gs-label">进程数</span>
+                    <span class="gs-label">{{ t('dashboard.processes') }}</span>
                     <span class="gs-value">{{ sysData.system?.process_count || 0 }}</span>
                   </div>
                   <div class="gs-divider"></div>
                   <div class="gs-item">
-                    <span class="gs-label">操作系统</span>
+                    <span class="gs-label">{{ t('dashboard.os') }}</span>
                     <span class="gs-value">{{ sysData.system?.os || '-' }}</span>
                   </div>
                 </div>
@@ -35,26 +35,26 @@
         <el-col :xs="24" :sm="12" :lg="7">
           <div class="ape-card metric-card">
             <div class="card-header">
-              <h3>CPU 使用情况</h3>
-              <span class="metric-badge" :class="getMetricClass(sysData.cpu?.percent || 0)">实时</span>
+              <h3>{{ t('dashboard.cpu') }}</h3>
+              <span class="metric-badge" :class="getMetricClass(sysData.cpu?.percent || 0)">{{ t('dashboard.realtime') }}</span>
             </div>
             <div class="card-body">
               <v-chart class="metric-chart" :option="cpuChartOption" autoresize />
               <div class="metric-info">
                 <div class="mi-item">
-                  <span class="mi-label">使用率</span>
+                  <span class="mi-label">{{ t('dashboard.usage') }}</span>
                   <span class="mi-value">{{ sysData.cpu?.percent || 0 }}%</span>
                 </div>
                 <div class="mi-item">
-                  <span class="mi-label">物理核心</span>
+                  <span class="mi-label">{{ t('dashboard.physicalCores') }}</span>
                   <span class="mi-value">{{ sysData.cpu?.cores_physical || 0 }}</span>
                 </div>
                 <div class="mi-item">
-                  <span class="mi-label">逻辑核心</span>
+                  <span class="mi-label">{{ t('dashboard.logicalCores') }}</span>
                   <span class="mi-value">{{ sysData.cpu?.cores_logical || 0 }}</span>
                 </div>
                 <div class="mi-item">
-                  <span class="mi-label">负载均衡</span>
+                  <span class="mi-label">{{ t('dashboard.loadAvg') }}</span>
                   <span class="mi-value">{{ (sysData.cpu?.load_avg || [0,0,0]).join(' / ') }}</span>
                 </div>
               </div>
@@ -66,26 +66,26 @@
         <el-col :xs="24" :sm="12" :lg="7">
           <div class="ape-card metric-card">
             <div class="card-header">
-              <h3>内存使用情况</h3>
-              <span class="metric-badge" :class="getMetricClass(sysData.memory?.percent || 0)">实时</span>
+              <h3>{{ t('dashboard.memory') }}</h3>
+              <span class="metric-badge" :class="getMetricClass(sysData.memory?.percent || 0)">{{ t('dashboard.realtime') }}</span>
             </div>
             <div class="card-body">
               <v-chart class="metric-chart" :option="memChartOption" autoresize />
               <div class="metric-info">
                 <div class="mi-item">
-                  <span class="mi-label">已用</span>
+                  <span class="mi-label">{{ t('dashboard.usedDisk') }}</span>
                   <span class="mi-value">{{ formatBytes(sysData.memory?.used || 0) }}</span>
                 </div>
                 <div class="mi-item">
-                  <span class="mi-label">可用</span>
+                  <span class="mi-label">{{ t('dashboard.freeDisk') }}</span>
                   <span class="mi-value">{{ formatBytes(sysData.memory?.available || 0) }}</span>
                 </div>
                 <div class="mi-item">
-                  <span class="mi-label">总量</span>
+                  <span class="mi-label">{{ t('dashboard.total') }}</span>
                   <span class="mi-value">{{ formatBytes(sysData.memory?.total || 0) }}</span>
                 </div>
                 <div class="mi-item">
-                  <span class="mi-label">使用率</span>
+                  <span class="mi-label">{{ t('dashboard.usage') }}</span>
                   <span class="mi-value">{{ sysData.memory?.percent || 0 }}%</span>
                 </div>
               </div>
@@ -100,26 +100,26 @@
         <el-col :xs="24" :sm="12" :lg="8">
           <div class="ape-card metric-card">
             <div class="card-header">
-              <h3>磁盘情况</h3>
+              <h3>{{ t('dashboard.disk') }}</h3>
               <span class="metric-badge" :class="getMetricClass(sysData.disk?.percent || 0)">/</span>
             </div>
             <div class="card-body">
               <v-chart class="metric-chart" :option="diskChartOption" autoresize />
               <div class="metric-info">
                 <div class="mi-item">
-                  <span class="mi-label">已用</span>
+                  <span class="mi-label">{{ t('dashboard.usedDisk') }}</span>
                   <span class="mi-value">{{ formatBytes(sysData.disk?.used || 0) }}</span>
                 </div>
                 <div class="mi-item">
-                  <span class="mi-label">可用</span>
+                  <span class="mi-label">{{ t('dashboard.freeDisk') }}</span>
                   <span class="mi-value">{{ formatBytes(sysData.disk?.free || 0) }}</span>
                 </div>
                 <div class="mi-item">
-                  <span class="mi-label">总量</span>
+                  <span class="mi-label">{{ t('dashboard.total') }}</span>
                   <span class="mi-value">{{ formatBytes(sysData.disk?.total || 0) }}</span>
                 </div>
                 <div class="mi-item">
-                  <span class="mi-label">使用率</span>
+                  <span class="mi-label">{{ t('dashboard.usage') }}</span>
                   <span class="mi-value">{{ sysData.disk?.percent || 0 }}%</span>
                 </div>
               </div>
@@ -131,26 +131,26 @@
         <el-col :xs="24" :sm="12" :lg="8">
           <div class="ape-card metric-card">
             <div class="card-header">
-              <h3>网络情况</h3>
-              <span class="metric-badge">实时</span>
+              <h3>{{ t('dashboard.network') }}</h3>
+              <span class="metric-badge">{{ t('dashboard.realtime') }}</span>
             </div>
             <div class="card-body">
               <v-chart class="metric-chart" :option="netChartOption" autoresize />
               <div class="metric-info">
                 <div class="mi-item">
-                  <span class="mi-label">发送速率</span>
+                  <span class="mi-label">{{ t('dashboard.sentRate') }}</span>
                   <span class="mi-value">{{ formatBytes(sysData.network?.sent_rate || 0) }}/s</span>
                 </div>
                 <div class="mi-item">
-                  <span class="mi-label">接收速率</span>
+                  <span class="mi-label">{{ t('dashboard.recvRate') }}</span>
                   <span class="mi-value">{{ formatBytes(sysData.network?.recv_rate || 0) }}/s</span>
                 </div>
                 <div class="mi-item">
-                  <span class="mi-label">累计发送</span>
+                  <span class="mi-label">{{ t('dashboard.totalSent') }}</span>
                   <span class="mi-value">{{ formatBytes(sysData.network?.bytes_sent || 0) }}</span>
                 </div>
                 <div class="mi-item">
-                  <span class="mi-label">累计接收</span>
+                  <span class="mi-label">{{ t('dashboard.totalRecv') }}</span>
                   <span class="mi-value">{{ formatBytes(sysData.network?.bytes_recv || 0) }}</span>
                 </div>
               </div>
@@ -162,28 +162,28 @@
         <el-col :xs="24" :sm="24" :lg="8">
           <div class="ape-card info-card">
             <div class="card-header">
-              <h3>系统信息</h3>
+              <h3>{{ t('dashboard.systemInfo') }}</h3>
             </div>
             <div class="card-body">
               <div class="info-list">
                 <div class="info-item">
-                  <span class="info-label"><el-icon><Cpu /></el-icon> 主机名</span>
+                  <span class="info-label"><el-icon><Cpu /></el-icon> {{ t('dashboard.hostname') }}</span>
                   <span class="info-value">{{ sysData.system?.hostname || '-' }}</span>
                 </div>
                 <div class="info-item">
-                  <span class="info-label"><el-icon><Monitor /></el-icon> 操作系统</span>
+                  <span class="info-label"><el-icon><Monitor /></el-icon> {{ t('dashboard.os') }}</span>
                   <span class="info-value">{{ sysData.system?.os || '-' }}</span>
                 </div>
                 <div class="info-item">
-                  <span class="info-label"><el-icon><Timer /></el-icon> 运行时长</span>
+                  <span class="info-label"><el-icon><Timer /></el-icon> {{ t('dashboard.uptime') }}</span>
                   <span class="info-value">{{ formatUptime(sysData.system?.uptime_seconds || 0) }}</span>
                 </div>
                 <div class="info-item">
-                  <span class="info-label"><el-icon><Operation /></el-icon> 进程数</span>
+                  <span class="info-label"><el-icon><Operation /></el-icon> {{ t('dashboard.processes') }}</span>
                   <span class="info-value">{{ sysData.system?.process_count || 0 }}</span>
                 </div>
                 <div class="info-item">
-                  <span class="info-label"><el-icon><Coin /></el-icon> Swap 使用</span>
+                  <span class="info-label"><el-icon><Coin /></el-icon> {{ t('dashboard.swapUsage') }}</span>
                   <span class="info-value">
                     {{ formatBytes(sysData.memory?.swap_used || 0) }} / {{ formatBytes(sysData.memory?.swap_total || 0) }}
                     ({{ sysData.memory?.swap_percent || 0 }}%)
@@ -200,17 +200,17 @@
         <el-col :xs="24" :lg="12">
           <div class="ape-card list-card">
             <div class="card-header">
-              <h3>已安装插件</h3>
-              <span class="list-count">共 {{ sysData.plugins?.length || 0 }} 个</span>
+              <h3>{{ t('dashboard.installedPlugins') }}</h3>
+              <span class="list-count">{{ t('dashboard.totalCount', { count: sysData.plugins?.length || 0 }) }}</span>
             </div>
             <div class="card-body">
               <table class="info-table">
                 <thead>
                   <tr>
-                    <th>插件名称</th>
-                    <th>版本</th>
-                    <th>状态</th>
-                    <th>安装日期</th>
+                    <th>{{ t('dashboard.pluginName') }}</th>
+                    <th>{{ t('dashboard.version') }}</th>
+                    <th>{{ t('dashboard.status') }}</th>
+                    <th>{{ t('dashboard.installDate') }}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -224,13 +224,13 @@
                     <td>v{{ p.version }}</td>
                     <td>
                       <span class="status-tag" :class="p.enabled ? 'status-on' : 'status-off'">
-                        {{ p.enabled ? '已启用' : '已停用' }}
+                        {{ p.enabled ? t('dashboard.enabled') : t('dashboard.disabled') }}
                       </span>
                     </td>
                     <td>{{ p.created_at || '-' }}</td>
                   </tr>
                   <tr v-if="!sysData.plugins?.length">
-                    <td colspan="4" class="empty-row">暂无已安装插件</td>
+                    <td colspan="4" class="empty-row">{{ t('dashboard.noPlugins') }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -251,36 +251,36 @@
         <el-col :xs="24" :lg="12">
           <div class="ape-card list-card">
             <div class="card-header">
-              <h3>可用 MCP 列表</h3>
-              <span class="list-count">共 {{ sysData.mcp_tools?.length || 0 }} 个</span>
+              <h3>{{ t('dashboard.availableMcp') }}</h3>
+              <span class="list-count">{{ t('dashboard.totalCount', { count: sysData.mcp_tools?.length || 0 }) }}</span>
             </div>
             <div class="card-body">
               <table class="info-table">
                 <thead>
                   <tr>
-                    <th>工具名称</th>
-                    <th>描述</th>
-                    <th>所需权限</th>
+                    <th>{{ t('dashboard.toolName') }}</th>
+                    <th>{{ t('dashboard.description') }}</th>
+                    <th>{{ t('dashboard.requiredPermissions') }}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="t in pagedMcpTools" :key="t.name">
+                  <tr v-for="tool in pagedMcpTools" :key="tool.name">
                     <td>
                       <div class="table-primary">
                         <el-icon class="table-icon"><Connection /></el-icon>
-                        <span>{{ t.name }}</span>
+                        <span>{{ tool.name }}</span>
                       </div>
                     </td>
-                    <td class="desc-cell">{{ t.description || '-' }}</td>
+                    <td class="desc-cell">{{ tool.description || '-' }}</td>
                     <td>
                       <div class="perm-tags">
-                        <span v-for="p in (t.required_permissions || [])" :key="p" class="perm-tag">{{ p }}</span>
-                        <span v-if="!t.required_permissions?.length" class="perm-free">无需权限</span>
+                        <span v-for="p in (tool.required_permissions || [])" :key="p" class="perm-tag">{{ p }}</span>
+                        <span v-if="!tool.required_permissions?.length" class="perm-free">{{ t('dashboard.noPermissionRequired') }}</span>
                       </div>
                     </td>
                   </tr>
                   <tr v-if="!sysData.mcp_tools?.length">
-                    <td colspan="3" class="empty-row">暂无可用 MCP 工具</td>
+                    <td colspan="3" class="empty-row">{{ t('dashboard.noMcpTools') }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -304,18 +304,18 @@
         <el-col :span="24">
           <div class="ape-card list-card">
             <div class="card-header">
-              <h3>系统在线用户</h3>
-              <span class="list-count">最近 24 小时内 {{ sysData.online_users?.length || 0 }} 人在线</span>
+              <h3>{{ t('dashboard.onlineUsers') }}</h3>
+              <span class="list-count">{{ t('dashboard.recentOnline', { count: sysData.online_users?.length || 0 }) }}</span>
             </div>
             <div class="card-body">
               <table class="info-table">
                 <thead>
                   <tr>
-                    <th>用户名</th>
-                    <th>昵称</th>
-                    <th>最近登录时间</th>
-                    <th>登录 IP</th>
-                    <th>状态</th>
+                    <th>{{ t('dashboard.username') }}</th>
+                    <th>{{ t('dashboard.nickname') }}</th>
+                    <th>{{ t('dashboard.lastLoginTime') }}</th>
+                    <th>{{ t('dashboard.loginIp') }}</th>
+                    <th>{{ t('dashboard.status') }}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -331,12 +331,12 @@
                     <td>{{ u.last_login_ip || '-' }}</td>
                     <td>
                       <span class="status-tag status-on">
-                        <span class="online-dot"></span> 在线
+                        <span class="online-dot"></span> {{ t('dashboard.online') }}
                       </span>
                     </td>
                   </tr>
                   <tr v-if="!sysData.online_users?.length">
-                    <td colspan="5" class="empty-row">最近 24 小时内无用户登录</td>
+                    <td colspan="5" class="empty-row">{{ t('dashboard.noRecentUsers') }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -350,6 +350,7 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, reactive, computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import PageHeader from '../components/PageHeader.vue'
 import VChart from 'vue-echarts'
 import { use } from 'echarts/core'
@@ -363,6 +364,7 @@ import { useTheme } from '@/composables/useTheme'
 
 use([CanvasRenderer, GaugeChart, BarChart, LineChart, TooltipComponent, LegendComponent, GridComponent])
 
+const { t } = useI18n()
 const { isDark } = useTheme()
 
 // 深色模式下的配色
@@ -385,7 +387,7 @@ const DANGER = '#DC0808'
 
 // 当前登录用户（显示登录用户名）
 const userStore = useUserStore()
-const displayName = computed(() => userStore.username || '管理员')
+const displayName = computed(() => userStore.username || t('dashboard.admin'))
 
 // 系统数据（响应式）
 const sysData = reactive<any>({})
@@ -430,11 +432,11 @@ function formatUptime(seconds: number): string {
   const m = Math.floor((seconds % 3600) / 60)
   const s = Math.floor(seconds % 60)
   const parts: string[] = []
-  if (d) parts.push(`${d}天`)
-  if (h) parts.push(`${h}小时`)
-  if (m) parts.push(`${m}分钟`)
-  if (!d && !h) parts.push(`${s}秒`)
-  return parts.join(' ') || '0秒'
+  if (d) parts.push(`${d}${t('dashboard.unitDay')}`)
+  if (h) parts.push(`${h}${t('dashboard.unitHour')}`)
+  if (m) parts.push(`${m}${t('dashboard.unitMinute')}`)
+  if (!d && !h) parts.push(`${s}${t('dashboard.unitSecond')}`)
+  return parts.join(' ') || `0${t('dashboard.unitSecond')}`
 }
 
 // 根据使用率返回 CSS 类名
@@ -539,7 +541,7 @@ const diskChartOption = computed(() => ({
 const netChartOption = computed(() => ({
   series: [
     {
-      name: '发送',
+      name: t('dashboard.send'),
       type: 'line',
       data: netSentHistory.value,
       smooth: true,
@@ -557,7 +559,7 @@ const netChartOption = computed(() => ({
       },
     },
     {
-      name: '接收',
+      name: t('dashboard.receive'),
       type: 'line',
       data: netRecvHistory.value,
       smooth: true,
@@ -580,7 +582,7 @@ const netChartOption = computed(() => ({
   yAxis: { show: false },
   tooltip: { trigger: 'axis', formatter: (params: any) => params.map((p: any) => `${p.seriesName}: ${formatBytes(p.value)}/s`).join('<br/>') },
   legend: {
-    data: ['发送', '接收'],
+    data: [t('dashboard.send'), t('dashboard.receive')],
     bottom: 0,
     itemWidth: 12,
     itemHeight: 12,

@@ -2,7 +2,7 @@
   <el-card shadow="never" class="page-card">
     <div class="toolbar">
       <el-button type="success" @click="openDialog()" v-permission="'system:menu:add'">
-        <el-icon><Plus /></el-icon>新增菜单
+        <el-icon><Plus /></el-icon>{{ t('system.menu.createMenu') }}
       </el-button>
     </div>
 
@@ -13,35 +13,35 @@
       :tree-props="{ children: 'children' }"
       default-expand-all
     >
-      <el-table-column prop="name" label="菜单名称" min-width="180" />
-      <el-table-column label="类型" width="80">
+      <el-table-column prop="name" :label="t('system.menu.menuName')" min-width="180" />
+      <el-table-column :label="t('common.action.type')" width="80">
         <template #default="{ row }">
           <el-tag :type="typeTag[row.type]" size="small">{{ typeText[row.type] }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="path" label="路由" min-width="120" />
-      <el-table-column prop="component" label="组件路径" min-width="150" show-overflow-tooltip />
-      <el-table-column prop="permission" label="权限标识" min-width="150" />
-      <el-table-column prop="sort" label="排序" width="70" />
-      <el-table-column label="状态" width="80">
+      <el-table-column prop="path" :label="t('system.menu.route')" min-width="120" />
+      <el-table-column prop="component" :label="t('system.menu.componentPath')" min-width="150" show-overflow-tooltip />
+      <el-table-column prop="permission" :label="t('system.menu.permission')" min-width="150" />
+      <el-table-column prop="sort" :label="t('system.menu.sort')" width="70" />
+      <el-table-column :label="t('system.menu.status')" width="80">
         <template #default="{ row }">
           <el-tag :type="row.status === 1 ? 'success' : 'danger'" size="small">
-            {{ row.status === 1 ? '启用' : '禁用' }}
+            {{ row.status === 1 ? t('system.menu.active') : t('system.menu.disabled') }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="160" fixed="right">
+      <el-table-column :label="t('common.action.actions')" width="160" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="openDialog(row)" v-permission="'system:menu:edit'">编辑</el-button>
-          <el-button link type="danger" @click="handleDelete(row)" v-permission="'system:menu:delete'">删除</el-button>
+          <el-button link type="primary" @click="openDialog(row)" v-permission="'system:menu:edit'">{{ t('common.action.edit') }}</el-button>
+          <el-button link type="danger" @click="handleDelete(row)" v-permission="'system:menu:delete'">{{ t('common.action.delete') }}</el-button>
         </template>
       </el-table-column>
     </el-table>
   </el-card>
 
-  <el-dialog v-model="dialogVisible" :title="editingId ? '编辑菜单' : '新增菜单'" width="520px">
+  <el-dialog v-model="dialogVisible" :title="editingId ? t('system.menu.editMenu') : t('system.menu.createMenu')" width="520px">
     <el-form ref="formRef" :model="form" :rules="rules" label-width="90px">
-      <el-form-item label="父级菜单">
+      <el-form-item :label="t('system.menu.parentMenu')">
         <el-tree-select
           v-model="form.parent_id"
           :data="parentOptions"
@@ -49,54 +49,61 @@
           check-strictly
           clearable
           @clear="form.parent_id = 0"
-          placeholder="选择父级（留空为顶级）"
+          :placeholder="t('system.menu.parentPlaceholder')"
           style="width: 100%"
         />
       </el-form-item>
-      <el-form-item label="菜单类型">
+      <el-form-item :label="t('system.menu.menuType')">
         <el-radio-group v-model="form.type">
-          <el-radio value="M">目录</el-radio>
-          <el-radio value="C">菜单</el-radio>
-          <el-radio value="F">按钮</el-radio>
+          <el-radio value="M">{{ t('system.menu.typeDirectory') }}</el-radio>
+          <el-radio value="C">{{ t('system.menu.typeMenu') }}</el-radio>
+          <el-radio value="F">{{ t('system.menu.typeButton') }}</el-radio>
         </el-radio-group>
       </el-form-item>
-      <el-form-item label="菜单名称" prop="name">
+      <el-form-item :label="t('system.menu.menuName')" prop="name">
         <el-input v-model="form.name" />
       </el-form-item>
-      <el-form-item v-if="form.type !== 'F'" label="路由地址" prop="path">
-        <el-input v-model="form.path" placeholder="如: system/user" />
+      <el-form-item v-if="form.type !== 'F'" :label="t('system.menu.routeAddress')" prop="path">
+        <el-input v-model="form.path" :placeholder="t('system.menu.routeExample')" />
       </el-form-item>
-      <el-form-item v-if="form.type !== 'F'" label="组件路径" prop="component">
-        <el-input v-model="form.component" placeholder="如: system/plugin/index" />
+      <el-form-item v-if="form.type !== 'F'" :label="t('system.menu.componentPath')" prop="component">
+        <el-input v-model="form.component" :placeholder="t('system.menu.componentExample')" />
       </el-form-item>
-      <el-form-item v-if="form.type === 'F'" label="权限标识">
-        <el-input v-model="form.permission" placeholder="如: system:user:add" />
+      <el-form-item v-if="form.type === 'F'" :label="t('system.menu.permission')">
+        <el-input v-model="form.permission" :placeholder="t('system.menu.permissionPlaceholder')" />
       </el-form-item>
-      <el-form-item label="排序">
+      <el-form-item :label="t('system.menu.sort')">
         <el-input-number v-model="form.sort" :min="0" />
       </el-form-item>
-      <el-form-item label="状态">
+      <el-form-item :label="t('system.menu.status')">
         <el-switch v-model="form.status" :active-value="1" :inactive-value="0" />
       </el-form-item>
     </el-form>
     <template #footer>
-      <el-button @click="dialogVisible = false">取消</el-button>
-      <el-button type="primary" :loading="saving" @click="handleSave">保存</el-button>
+      <el-button @click="dialogVisible = false">{{ t('common.action.cancel') }}</el-button>
+      <el-button type="primary" :loading="saving" @click="handleSave">{{ t('common.action.save') }}</el-button>
     </template>
   </el-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { getMenuTree, createMenu, updateMenu, deleteMenu } from '@/api'
 import { useUserStore } from '@/stores/user'
 import { refreshDynamicRoutes } from '@/router'
 
+const { t } = useI18n()
+
 const userStore = useUserStore()
 
-const typeText: Record<string, string> = { M: '目录', C: '菜单', F: '按钮' }
+const typeText = computed<Record<string, string>>(() => ({
+  M: t('system.menu.typeDirectory'),
+  C: t('system.menu.typeMenu'),
+  F: t('system.menu.typeButton'),
+}))
 const typeTag: Record<string, string> = { M: 'info', C: 'primary', F: 'warning' }
 
 const tree = ref<any[]>([])
@@ -119,12 +126,12 @@ const form = reactive({
 })
 
 const rules: FormRules = {
-  name: [{ required: true, message: '请输入菜单名称', trigger: 'blur' }],
-  path: [{ required: true, message: '请输入路由地址', trigger: 'blur' }],
+  name: [{ required: true, message: () => t('common.validation.required', { name: t('system.menu.menuName') }), trigger: 'blur' }],
+  path: [{ required: true, message: () => t('common.validation.required', { name: t('system.menu.routeAddress') }), trigger: 'blur' }],
   component: [{
     validator: (_rule: any, value: string, callback: (err?: Error) => void) => {
       if (form.type === 'C' && !value) {
-        callback(new Error('菜单类型必须填写组件路径'))
+        callback(new Error(t('system.menu.componentRequired')))
       } else {
         callback()
       }
@@ -154,7 +161,7 @@ function removeBranch(nodes: any[], excludedId: number | null): any[] {
 }
 
 function buildParentOptions(excludedId: number | null = null) {
-  return [{ id: 0, name: '顶级', children: removeBranch(tree.value, excludedId) }]
+  return [{ id: 0, name: t('system.menu.topLevel'), children: removeBranch(tree.value, excludedId) }]
 }
 
 function openDialog(row?: any) {
@@ -189,10 +196,10 @@ async function handleSave() {
       }
       if (editingId.value) {
         await updateMenu(editingId.value, payload)
-        ElMessage.success('更新成功')
+        ElMessage.success(t('common.message.updateSuccess'))
       } else {
         await createMenu(payload)
-        ElMessage.success('创建成功')
+        ElMessage.success(t('common.message.createSuccess'))
       }
       dialogVisible.value = false
       await fetchData()
@@ -204,9 +211,9 @@ async function handleSave() {
 }
 
 async function handleDelete(row: any) {
-  await ElMessageBox.confirm(`确定删除菜单「${row.name}」吗？`, '提示', { type: 'warning' })
+  await ElMessageBox.confirm(t('system.menu.deleteConfirm', { name: row.name }), t('common.action.tip'), { type: 'warning' })
   await deleteMenu(row.id)
-  ElMessage.success('删除成功')
+  ElMessage.success(t('common.message.deleteSuccess'))
   await fetchData()
   await refreshMenuSidebar()
 }

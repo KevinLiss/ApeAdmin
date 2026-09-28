@@ -26,6 +26,7 @@ from starlette.concurrency import run_in_threadpool
 from src.core.config import settings
 from src.core.deps import require_permission
 from src.core.exceptions import ValidationException, success_response
+from src.core.i18n import get_locale, t
 from src.db import get_db
 from src.models import User
 from src.models.log import SysLog
@@ -95,8 +96,9 @@ async def upload_update(
     The response is sent before the actual restart happens.
     """
     # ---- Validate super admin (only super admin can update) ----
+    locale = get_locale(request)
     if user.username != settings.SUPER_ADMIN_USERNAME:
-        raise ValidationException("仅超级管理员可执行版本更新")
+        raise ValidationException(t("system.super_admin_only", locale))
 
     # ---- Validate file extension ----
     filename = file.filename or ""
@@ -108,12 +110,12 @@ async def upload_update(
             valid = True
             break
     if not valid:
-        raise ValidationException("仅支持 .tar.gz 格式的部署包")
+        raise ValidationException(t("system.tar_gz_only", locale))
 
     # ---- Read content with size check ----
     content = await file.read()
     if len(content) > _MAX_PKG_SIZE:
-        raise ValidationException(f"部署包大小不能超过 {_MAX_PKG_SIZE // (1024*1024)}MB")
+        raise ValidationException(t("system.package_too_large", locale))
 
     # ---- Save to temp file ----
     tmp_dir = Path(tempfile.gettempdir()) / "apeadmin_update"
@@ -133,13 +135,13 @@ async def upload_update(
             # Security: prevent path traversal (no absolute paths or ..)
             for member in tar.getmembers():
                 if member.name.startswith("/") or ".." in member.name:
-                    raise ValidationException(f"非法路径: {member.name}")
+                    raise ValidationException(t("system.invalid_path", locale, path=member.name))
             # Security: reject archive bombs (zip of highly compressible data).
             # Limit total uncompressed size to 1 GB, single files to 500 MB,
             # and member count to 50k entries.
             total_uncompressed = sum(m.size for m in tar.getmembers())
             if total_uncompressed > 1024 * 1024 * 1024 or len(tar.getmembers()) > 50_000:
-                raise ValidationException("部署包解压后体积过大或文件数过多，疑似恶意包")
+                raise ValidationException(t("system.suspicious_package", locale))
 
         # Cross-stack guard: users occasionally upload a plugin package
         # (or a Go-stack archive) where a deploy package is expected.
@@ -156,21 +158,21 @@ async def upload_update(
 
         await run_in_threadpool(_extract_update_package, tmp_pkg, extract_dir)
     except tarfile.ReadError:
-        raise ValidationException("无法解压，请检查文件是否为有效的 .tar.gz 包")
+        raise ValidationException(t("system.extract_failed", locale))
     except ValidationException:
         raise
     except Exception as exc:
-        raise ValidationException(f"解压失败: {exc}") from exc
+        raise ValidationException(t("system.extract_error", locale, error=str(exc))) from exc
 
     # Find the top-level directory inside the archive
     top_dirs = [d for d in extract_dir.iterdir() if d.is_dir()]
     if not top_dirs:
-        raise ValidationException("部署包为空或结构不正确")
+        raise ValidationException(t("system.empty_package", locale))
     pkg_root = top_dirs[0]  # e.g. apeadmin/
 
     # Must contain src/ directory
     if not (pkg_root / "src").is_dir():
-        raise ValidationException("部署包结构不正确：缺少 src/ 目录")
+        raise ValidationException(t("system.missing_src", locale))
 
     # ---- Backup current code ----
     backup_dir = project_root.parent / f"apeadmin_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
@@ -285,5 +287,5 @@ async def upload_update(
             "restart_mode": restart_info["mode"],
             "restart_log": restart_info.get("log"),
         },
-        msg="版本更新完成，后端正在重启，请等待约 5 秒后刷新页面",
+        msg=t("system.update_complete", locale),
     )

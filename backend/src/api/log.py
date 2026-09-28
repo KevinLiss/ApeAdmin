@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.deps import require_permission
 from src.core.exceptions import NotFoundException, success_response
+from src.core.i18n import t, get_locale
 from src.crud import crud_log
 from src.db import get_db
 from src.models import User
@@ -72,7 +73,7 @@ async def get_log(
     """Get a single log entry."""
     log = await crud_log.get(db, log_id)
     if not log:
-        raise NotFoundException("日志不存在")
+        raise NotFoundException(t("log.not_found"))
     return success_response(
         data={
             "id": log.id,
@@ -100,8 +101,8 @@ async def delete_log(
     """Delete a single log entry (hard delete)."""
     ok = await crud_log.delete(db, log_id, soft=False)
     if not ok:
-        raise NotFoundException("日志不存在")
-    return success_response(msg="删除成功")
+        raise NotFoundException(t("log.not_found"))
+    return success_response(msg=t("log.deleted"))
 
 
 @router.delete("")
@@ -113,4 +114,4 @@ async def clear_logs(
     stmt = sa_delete(crud_log.model)
     await db.execute(stmt)
     await db.commit()
-    return success_response(msg="已清空所有日志")
+    return success_response(msg=t("log.cleared"))

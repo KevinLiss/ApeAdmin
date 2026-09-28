@@ -1,7 +1,6 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import ElementPlus from 'element-plus'
-import zhCn from 'element-plus/es/locale/lang/zh-cn'
 import 'element-plus/dist/index.css'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import '@/styles/apeui-theme.css'
@@ -12,6 +11,11 @@ import router from './router'
 import { permissionDirective } from './directives/permission'
 import { initTheme } from './composables/useTheme'
 import { useSettingsStore } from './stores/settings'
+import i18n, { getLocale, setLocale } from './locales'
+
+// Element Plus locale maps
+import elZhCn from 'element-plus/es/locale/lang/zh-cn'
+import elEn from 'element-plus/es/locale/lang/en'
 
 const app = createApp(App)
 
@@ -26,7 +30,21 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 const pinia = createPinia()
 app.use(pinia)
 app.use(router)
-app.use(ElementPlus, { locale: zhCn })
+app.use(i18n)
+
+// Sync Element Plus locale with i18n locale
+const elLocaleMap: Record<string, any> = { 'zh-CN': elZhCn, 'en-US': elEn }
+app.use(ElementPlus, { locale: elLocaleMap[getLocale()] || elZhCn })
+
+// Apply initial locale attributes
+setLocale(getLocale())
+
+// Watch for locale changes to update Element Plus locale at runtime
+// (Element Plus locale is reactive via app.provide)
+import { watch } from 'vue'
+watch(() => (i18n.global.locale as any).value, (newLocale) => {
+  app.provide('elLocale', elLocaleMap[newLocale] || elZhCn)
+})
 
 // Register global directives
 app.directive('permission', permissionDirective)

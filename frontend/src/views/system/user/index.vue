@@ -4,47 +4,47 @@
     <div class="toolbar">
       <el-input
         v-model="query.keyword"
-        placeholder="搜索用户名/昵称"
+        :placeholder="t('system.user.searchPlaceholder')"
         clearable
         style="width: 220px"
         @keyup.enter="fetchData"
       />
       <el-button type="primary" @click="fetchData">
-        <el-icon><Search /></el-icon>查询
+        <el-icon><Search /></el-icon>{{ t('common.action.query') }}
       </el-button>
     <el-button type="success" @click="openDialog()" v-permission="'system:user:add'">
-      <el-icon><Plus /></el-icon>新增
+      <el-icon><Plus /></el-icon>{{ t('common.action.create') }}
     </el-button>
     </div>
 
     <!-- Table -->
     <el-table :data="list" v-loading="loading" stripe>
       <el-table-column prop="id" label="ID" width="60" />
-      <el-table-column prop="username" label="用户名" min-width="110" />
-      <el-table-column prop="nickname" label="昵称" min-width="110" />
-      <el-table-column label="部门" min-width="120">
+      <el-table-column prop="username" :label="t('system.user.username')" min-width="110" />
+      <el-table-column prop="nickname" :label="t('system.user.nickname')" min-width="110" />
+      <el-table-column :label="t('system.user.dept')" min-width="120">
         <template #default="{ row }">{{ row.dept?.name || '—' }}</template>
       </el-table-column>
-      <el-table-column label="角色" min-width="140">
+      <el-table-column :label="t('system.user.role')" min-width="140">
         <template #default="{ row }">
           <el-tag v-for="r in row.roles" :key="r.id" size="small" class="role-tag">{{ r.name }}</el-tag>
           <span v-if="!row.roles?.length">—</span>
         </template>
       </el-table-column>
-      <el-table-column label="状态" width="80">
+      <el-table-column :label="t('system.user.status')" width="80">
         <template #default="{ row }">
           <el-tag :type="row.status === 1 ? 'success' : 'danger'" size="small">
-            {{ row.status === 1 ? '启用' : '禁用' }}
+            {{ row.status === 1 ? t('system.user.active') : t('system.user.disabled') }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="created_at" label="创建时间" width="170">
+      <el-table-column prop="created_at" :label="t('system.user.createTime')" width="170">
         <template #default="{ row }">{{ formatTime(row.created_at) }}</template>
       </el-table-column>
-      <el-table-column label="操作" width="160" fixed="right">
+      <el-table-column :label="t('common.action.actions')" width="160" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="openDialog(row)" v-permission="'system:user:edit'">编辑</el-button>
-          <el-button link type="danger" @click="handleDelete(row)" v-permission="'system:user:delete'">删除</el-button>
+          <el-button link type="primary" @click="openDialog(row)" v-permission="'system:user:edit'">{{ t('common.action.edit') }}</el-button>
+          <el-button link type="danger" @click="handleDelete(row)" v-permission="'system:user:delete'">{{ t('common.action.delete') }}</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -64,40 +64,43 @@
   <!-- Dialog -->
   <el-dialog
     v-model="dialogVisible"
-    :title="editingId ? '编辑用户' : '新增用户'"
+    :title="editingId ? t('system.user.editUser') : t('system.user.createUser')"
     width="480px"
   >
     <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
-      <el-form-item label="用户名" prop="username">
+      <el-form-item :label="t('system.user.username')" prop="username">
         <el-input v-model="form.username" :disabled="!!editingId" />
       </el-form-item>
-      <el-form-item label="昵称" prop="nickname">
+      <el-form-item :label="t('system.user.nickname')" prop="nickname">
         <el-input v-model="form.nickname" />
       </el-form-item>
-      <el-form-item v-if="!editingId" label="密码" prop="password">
+      <el-form-item v-if="!editingId" :label="t('system.user.password')" prop="password">
         <el-input v-model="form.password" type="password" show-password />
       </el-form-item>
-      <el-form-item label="角色" prop="role_ids">
-        <el-select v-model="form.role_ids" multiple placeholder="选择角色" style="width: 100%">
+      <el-form-item :label="t('system.user.role')" prop="role_ids">
+        <el-select v-model="form.role_ids" multiple :placeholder="t('system.user.selectRole')" style="width: 100%">
           <el-option v-for="r in roleOptions" :key="r.id" :label="r.name" :value="r.id" />
         </el-select>
       </el-form-item>
-      <el-form-item label="状态">
+      <el-form-item :label="t('system.user.status')">
         <el-switch v-model="form.status" :active-value="1" :inactive-value="0" />
       </el-form-item>
     </el-form>
     <template #footer>
-      <el-button @click="dialogVisible = false">取消</el-button>
-      <el-button type="primary" :loading="saving" @click="handleSave">保存</el-button>
+      <el-button @click="dialogVisible = false">{{ t('common.action.cancel') }}</el-button>
+      <el-button type="primary" :loading="saving" @click="handleSave">{{ t('common.action.save') }}</el-button>
     </template>
   </el-dialog>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { getUsers, createUser, updateUser, deleteUser, getAllRoles } from '@/api'
+
+const { t } = useI18n()
 
 interface UserRow {
   id: number
@@ -128,8 +131,8 @@ const form = reactive({
 })
 
 const rules: FormRules = {
-  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+  username: [{ required: true, message: () => t('common.validation.required', { name: t('system.user.username') }), trigger: 'blur' }],
+  password: [{ required: true, message: () => t('common.validation.required', { name: t('system.user.password') }), trigger: 'blur' }],
 }
 
 async function fetchData() {
@@ -178,7 +181,7 @@ async function handleSave() {
           status: form.status,
           role_ids: form.role_ids,
         })
-        ElMessage.success('更新成功')
+        ElMessage.success(t('common.message.updateSuccess'))
       } else {
         await createUser({
           username: form.username,
@@ -187,7 +190,7 @@ async function handleSave() {
           role_ids: form.role_ids,
           status: form.status,
         })
-        ElMessage.success('创建成功')
+        ElMessage.success(t('common.message.createSuccess'))
       }
       dialogVisible.value = false
       fetchData()
@@ -198,9 +201,9 @@ async function handleSave() {
 }
 
 async function handleDelete(row: UserRow) {
-  await ElMessageBox.confirm(`确定删除用户「${row.username}」吗？`, '提示', { type: 'warning' })
+  await ElMessageBox.confirm(t('system.user.deleteConfirm', { name: row.username }), t('common.action.tip'), { type: 'warning' })
   await deleteUser(row.id)
-  ElMessage.success('删除成功')
+  ElMessage.success(t('common.message.deleteSuccess'))
   fetchData()
 }
 

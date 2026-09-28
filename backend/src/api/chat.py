@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.ai.agent import chat_non_stream, chat_stream
 from src.core.deps import get_current_user
 from src.core.exceptions import AppException, success_response
+from src.core.i18n import t, get_locale
 from src.crud.ai import crud_ai_provider
 from src.db import get_db
 from src.models import User
@@ -23,14 +24,14 @@ async def _get_provider(db: AsyncSession, provider_id: int | None):
     if provider_id:
         provider = await crud_ai_provider.get(db, provider_id)
         if not provider:
-            raise AppException("指定的模型供应商不存在", code=404)
+            raise AppException(t("chat.provider_not_found"), code=404)
         if provider.enabled != 1:
-            raise AppException("该模型供应商已被禁用", code=400)
+            raise AppException(t("chat.provider_disabled"), code=400)
         return provider
 
     provider = await crud_ai_provider.get_first_enabled(db)
     if not provider:
-        raise AppException("未配置任何可用的模型供应商，请先在「模型密钥管理」中添加", code=400)
+        raise AppException(t("chat.no_provider_configured"), code=400)
     return provider
 
 

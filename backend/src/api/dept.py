@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.deps import get_current_user, require_permission
 from src.core.exceptions import NotFoundException, success_response
+from src.core.i18n import t, get_locale
 from src.crud import crud_dept
 from src.db import get_db
 from src.models import Dept, User
@@ -55,7 +56,7 @@ async def create_dept(
 ):
     """Create a new department."""
     new_dept = await crud_dept.create(db, body.model_dump())
-    return success_response(data={"id": new_dept.id}, msg="创建成功")
+    return success_response(data={"id": new_dept.id}, msg=t("dept.created"))
 
 
 @router.put("/{dept_id}")
@@ -68,8 +69,8 @@ async def update_dept(
     """Update a department."""
     updated = await crud_dept.update(db, dept_id, body.model_dump(exclude_unset=True, exclude_none=True))
     if not updated:
-        raise NotFoundException("部门不存在")
-    return success_response(msg="更新成功")
+        raise NotFoundException(t("dept.not_found"))
+    return success_response(msg=t("dept.updated"))
 
 
 @router.delete("/{dept_id}")
@@ -81,5 +82,5 @@ async def delete_dept(
     """Soft-delete a department."""
     ok = await crud_dept.delete(db, dept_id, soft=True)
     if not ok:
-        raise NotFoundException("部门不存在")
-    return success_response(msg="删除成功")
+        raise NotFoundException(t("dept.not_found"))
+    return success_response(msg=t("dept.deleted"))

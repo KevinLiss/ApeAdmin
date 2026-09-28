@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.deps import get_current_user, require_permission
 from src.core.exceptions import ConflictException, NotFoundException, success_response
+from src.core.i18n import t, get_locale
 from src.crud import crud_role
 from src.db import get_db
 from src.models import User
@@ -70,11 +71,11 @@ async def create_role(
 ):
     """Create a new role."""
     if await crud_role.exists(db, code=body.code):
-        raise ConflictException(f"角色编码 '{body.code}' 已存在")
+        raise ConflictException(t("role.code_exists", code=body.code))
     new_role = await crud_role.create(db, body.model_dump(exclude={"menu_ids"}))
     if body.menu_ids:
         await crud_role.assign_menus(db, new_role.id, body.menu_ids)
-    return success_response(data={"id": new_role.id}, msg="创建成功")
+    return success_response(data={"id": new_role.id}, msg=t("role.created"))
 
 
 @router.get("/{role_id}")
@@ -86,7 +87,7 @@ async def get_role(
     """Get a single role with its menu IDs."""
     role = await crud_role.get(db, role_id)
     if not role:
-        raise NotFoundException("角色不存在")
+        raise NotFoundException(t("role.not_found"))
     from sqlalchemy import select
     menu_ids = [m.id for m in role.menus] if role.menus else []
     return success_response(
@@ -117,12 +118,12 @@ async def update_role(
 
     updated = await crud_role.update(db, role_id, update_data)
     if not updated:
-        raise NotFoundException("角色不存在")
+        raise NotFoundException(t("role.not_found"))
 
     if menu_ids is not None:
         await crud_role.assign_menus(db, role_id, menu_ids)
 
-    return success_response(msg="更新成功")
+    return success_response(msg=t("role.updated"))
 
 
 @router.delete("/{role_id}")
@@ -134,5 +135,5 @@ async def delete_role(
     """Soft-delete a role."""
     ok = await crud_role.delete(db, role_id, soft=True)
     if not ok:
-        raise NotFoundException("角色不存在")
-    return success_response(msg="删除成功")
+        raise NotFoundException(t("role.not_found"))
+    return success_response(msg=t("role.deleted"))

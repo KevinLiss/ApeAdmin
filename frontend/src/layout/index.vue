@@ -44,11 +44,14 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import ApeSidebar from '@/components/ApeSidebar.vue'
 import ApeHeader from '@/components/ApeHeader.vue'
 import { useUserStore } from '@/stores/user'
 import { useSettingsStore } from '@/stores/settings'
 import { useTheme } from '@/composables/useTheme'
+
+const { t } = useI18n()
 
 const router = useRouter()
 const route = useRoute()
@@ -109,11 +112,11 @@ onUnmounted(() => {
 
 function toggleTheme() {
   const dark = toggleDark()
-  ElMessage.info(dark ? '已切换深色模式' : '已切换浅色模式')
+  ElMessage.info(dark ? t('common.theme.toggleDark') : t('common.theme.toggleLight'))
 }
 
 function onUpgrade() {
-  ElMessage.info('升级功能开发中，敬请期待')
+  ElMessage.info(t('common.message.comingSoon'))
 }
 
 function onProfile() {
@@ -126,7 +129,7 @@ function onSettings() {
 
 async function onLogout() {
   await userStore.logout()
-  ElMessage.success('已退出登录')
+  ElMessage.success(t('auth.logoutSuccess'))
   router.push('/login')
 }
 </script>

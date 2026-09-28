@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.crypto import decrypt_api_key, encrypt_api_key, mask_api_key
 from src.core.deps import require_permission
 from src.core.exceptions import ConflictException, NotFoundException, success_response
+from src.core.i18n import t, get_locale
 from src.crud.ai import crud_ai_provider
 from src.db import get_db
 from src.models import User
@@ -79,7 +80,7 @@ async def create_provider(
     """Create a new AI provider."""
     exists = await crud_ai_provider.exists(db, name=body.name)
     if exists:
-        raise ConflictException(f"供应商 '{body.name}' 已存在")
+        raise ConflictException(t("ai_provider.name_exists", name=body.name))
 
     provider = await crud_ai_provider.create(db, {
         "name": body.name,
@@ -91,7 +92,7 @@ async def create_provider(
         "sort": body.sort,
         "remark": body.remark,
     })
-    return success_response(data={"id": provider.id}, msg="创建成功")
+    return success_response(data={"id": provider.id}, msg=t("ai_provider.created"))
 
 
 @router.put("/{provider_id}")
@@ -104,7 +105,7 @@ async def update_provider(
     """Update an AI provider."""
     provider = await crud_ai_provider.get(db, provider_id)
     if not provider:
-        raise NotFoundException("供应商不存在")
+        raise NotFoundException(t("ai_provider.not_found"))
 
     update_data: dict = {}
     if body.name is not None:
@@ -127,7 +128,7 @@ async def update_provider(
     if update_data:
         await crud_ai_provider.update(db, provider_id, update_data)
 
-    return success_response(msg="更新成功")
+    return success_response(msg=t("ai_provider.updated"))
 
 
 @router.delete("/{provider_id}")
@@ -139,9 +140,9 @@ async def delete_provider(
     """Delete an AI provider (hard delete)."""
     provider = await crud_ai_provider.get(db, provider_id)
     if not provider:
-        raise NotFoundException("供应商不存在")
+        raise NotFoundException(t("ai_provider.not_found"))
     await crud_ai_provider.delete(db, provider_id, soft=False)
-    return success_response(msg="删除成功")
+    return success_response(msg=t("ai_provider.deleted"))
 
 
 @router.post("/{provider_id}/test")
@@ -155,7 +156,7 @@ async def test_provider(
 
     provider = await crud_ai_provider.get(db, provider_id)
     if not provider:
-        raise NotFoundException("供应商不存在")
+        raise NotFoundException(t("ai_provider.not_found"))
 
     api_key = decrypt_api_key(provider.api_key_enc)
     base_url = provider.base_url or "https://api.deepseek.com"
@@ -169,8 +170,8 @@ async def test_provider(
             resp.raise_for_status()
             data = resp.json()
             models = [m.get("id", "") for m in data.get("data", [])]
-            return success_response(data={"ok": True, "models": models}, msg="连通成功")
+            return success_response(data={"ok": True, "models": models}, msg=t("ai_provider.test_ok"))
     except httpx.HTTPStatusError as e:
-        return success_response(data={"ok": False, "error": f"HTTP {e.response.status_code}"}, msg="连通失败")
+        return success_response(data={"ok": False, "error": f"HTTP {e.response.status_code}"}, msg=t("ai_provider.test_failed"))
     except Exception as e:
-        return success_response(data={"ok": False, "error": str(e)}, msg="连通失败")
+        return success_response(data={"ok": False, "error": str(e)}, msg=t("ai_provider.test_failed"))

@@ -94,6 +94,7 @@ class Menu(IDMixin, TimestampMixin, Base):
     sort: Mapped[int] = mapped_column(Integer, default=0, comment="排序")
     visible: Mapped[int] = mapped_column(Integer, default=1, comment="是否可见: 0=隐藏 1=显示")
     status: Mapped[int] = mapped_column(Integer, default=1, comment="状态: 0=禁用 1=启用")
+    i18n_key: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, comment="国际化键")
 
     # Self-referential relationship removed; tree built in application layer
     roles: Mapped[list["Role"]] = relationship(secondary=role_menu, back_populates="menus")

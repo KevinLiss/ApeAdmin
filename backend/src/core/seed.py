@@ -22,6 +22,82 @@ from src.models.setting import Setting
 
 _REMOVED_COMPONENT_PREFIX = "apeui/components/pages/"
 
+# Menu name → i18n key mapping for internationalization.
+# Frontend looks up the key in locales/{locale}/menu.json; if no key is set,
+# it falls back to the original ``name`` column.
+_MENU_I18N_KEYS: dict[str, str] = {
+    # Dashboard
+    "系统仪表盘": "menu.dashboard",
+    # System management
+    "系统管理": "menu.system.label",
+    "用户管理": "menu.system.user",
+    "新增用户": "menu.system.userAdd",
+    "编辑用户": "menu.system.userEdit",
+    "删除用户": "menu.system.userDelete",
+    "重置密码": "menu.system.userResetPassword",
+    "角色管理": "menu.system.role",
+    "新增角色": "menu.system.roleAdd",
+    "编辑角色": "menu.system.roleEdit",
+    "删除角色": "menu.system.roleDelete",
+    "菜单管理": "menu.system.menu",
+    "新增菜单": "menu.system.menuAdd",
+    "编辑菜单": "menu.system.menuEdit",
+    "删除菜单": "menu.system.menuDelete",
+    "部门管理": "menu.system.dept",
+    "新增部门": "menu.system.deptAdd",
+    "编辑部门": "menu.system.deptEdit",
+    "删除部门": "menu.system.deptDelete",
+    "系统设置": "menu.system.settings",
+    "编辑设置": "menu.system.settingsEdit",
+    "文件管理": "menu.system.file",
+    "上传文件": "menu.system.fileUpload",
+    "新建文件夹": "menu.system.fileCreateFolder",
+    "重命名文件": "menu.system.fileRename",
+    "移动文件": "menu.system.fileMove",
+    "删除文件": "menu.system.fileDelete",
+    "下载文件": "menu.system.fileDownload",
+    "系统日志": "menu.system.log",
+    "删除日志": "menu.system.logDelete",
+    # Plugin management
+    "插件管理": "menu.plugin.label",
+    "启用/禁用插件": "menu.plugin.toggle",
+    "插件配置": "menu.plugin.config",
+    "导入插件": "menu.plugin.import",
+    "删除插件": "menu.plugin.delete",
+    "重启后端": "menu.plugin.restart",
+    # MCP
+    "MCP 管理": "menu.mcp.label",
+    "工具列表": "menu.mcp.tools",
+    "资源列表": "menu.mcp.resources",
+    "提示词列表": "menu.mcp.prompts",
+    "调用日志": "menu.mcp.auditLogs",
+    # AI
+    "AI 助手": "menu.ai.label",
+    "AI 全能助手": "menu.ai.chat",
+    "模型密钥管理": "menu.ai.providers",
+    "新增模型密钥": "menu.ai.providerAdd",
+    "编辑模型密钥": "menu.ai.providerEdit",
+    "删除模型密钥": "menu.ai.providerDelete",
+    # ApeHub
+    "ApeHub 管理": "menu.apehub.label",
+    "官网配置": "menu.apehub.config",
+    "内容管理": "menu.apehub.content",
+    "文档管理": "menu.apehub.docs",
+    "插件审核": "menu.apehub.plugins",
+    "提现审核": "menu.apehub.withdrawals",
+    "用户列表": "menu.apehub.users",
+    "收入明细": "menu.apehub.incomes",
+    "提交插件": "menu.apehub.submitPlugin",
+    "订单列表": "menu.apehub.orders",
+    "申请提现": "menu.apehub.withdrawalCreate",
+    # Dev example
+    "插件示例": "menu.devExample.label",
+    "备忘录管理": "menu.devExample.notes",
+    "新增备忘录": "menu.devExample.noteAdd",
+    "编辑备忘录": "menu.devExample.noteEdit",
+    "删除备忘录": "menu.devExample.noteDelete",
+}
+
 
 def _is_removed_component_menu(component: str | None) -> bool:
     """Identify legacy static component-demo menus retired from the product."""
@@ -175,6 +251,7 @@ async def _seed_menus(db: AsyncSession) -> None:
             sort=sort,
             visible=1,
             status=1,
+            i18n_key=_MENU_I18N_KEYS.get(name),
         )
         db.add(menu)
         await db.flush()  # Get the ID
@@ -303,6 +380,7 @@ async def _seed_missing_menus(db: AsyncSession) -> None:
             sort=sort,
             visible=1,
             status=1,
+            i18n_key=_MENU_I18N_KEYS.get(name),
         )
         db.add(menu)
         await db.flush()

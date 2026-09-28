@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="visible"
-    title="版本更新"
+    :title="t('common.versionUpdate.title')"
     width="520px"
     :close-on-click-modal="false"
     :close-on-press-escape="!uploading"
@@ -12,15 +12,15 @@
     <!-- Current version info -->
     <div v-loading="loading" class="version-info">
       <div class="version-row">
-        <span class="version-label">当前版本</span>
+        <span class="version-label">{{ t('common.versionUpdate.currentVersion') }}</span>
         <span class="version-value">{{ versionData?.current_version || '--' }}</span>
       </div>
       <div class="version-row">
-        <span class="version-label">应用名称</span>
+        <span class="version-label">{{ t('common.versionUpdate.appName') }}</span>
         <span class="version-value">{{ versionData?.app_name || '--' }}</span>
       </div>
       <div class="version-row">
-        <span class="version-label">底座类型</span>
+        <span class="version-label">{{ t('common.versionUpdate.runtimeType') }}</span>
         <span class="version-value">{{ runtimeLabel }}</span>
       </div>
       <div class="version-row">
@@ -43,11 +43,11 @@
     >
       <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
       <div class="el-upload__text">
-        拖拽部署包到此处，或<em>点击选择</em>
+        {{ t('common.versionUpdate.dragFileHere') }}<em>{{ t('common.versionUpdate.clickToSelect') }}</em>
       </div>
       <template #tip>
         <div class="el-upload__tip">
-          仅支持 Python 版 .tar.gz 升级包（build_deploy_package.sh 生成），最大 200MB；插件包（含 plugin.json）请到「插件管理 → 导入插件」
+          {{ t('common.versionUpdate.uploadTip') }}
         </div>
       </template>
     </el-upload>
@@ -81,14 +81,14 @@
     <!-- Actions -->
     <template #footer>
       <div class="dialog-footer">
-        <el-button @click="handleClose" :disabled="uploading">关闭</el-button>
+        <el-button @click="handleClose" :disabled="uploading">{{ t('common.action.close') }}</el-button>
         <el-button
           type="primary"
           :loading="uploading"
           :disabled="!selectedFile || !!successMsg"
           @click="handleUpload"
         >
-          {{ uploading ? '上传中...' : '开始更新' }}
+          {{ uploading ? t('common.versionUpdate.uploading') : t('common.versionUpdate.startUpdate') }}
         </el-button>
       </div>
     </template>
@@ -98,6 +98,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import type { UploadFile, UploadFiles, UploadRawFile } from 'element-plus'
 import { getSystemVersion, uploadSystemUpdate } from '@/api'
 import { pollBackendHealth } from '@/utils/restart'
@@ -108,6 +109,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
 }>()
+
+const { t } = useI18n()
 
 const visible = ref(props.modelValue)
 watch(() => props.modelValue, (val) => {
@@ -127,8 +130,8 @@ const versionData = ref<any>(null)
 // Base-stack identity label: backend reports runtime="python"|"go".
 const runtimeLabel = computed(() => {
   const rt = String(versionData.value?.runtime || 'python').toLowerCase()
-  if (rt === 'go') return 'Go 版（ApeAdmin-Gin）'
-  if (rt === 'python') return 'Python 版（FastAPI）'
+  if (rt === 'go') return t('common.versionUpdate.runtimeGo')
+  if (rt === 'python') return t('common.versionUpdate.runtimePython')
   return rt || '--'
 })
 
@@ -165,14 +168,14 @@ function handleFileChange(file: UploadFile, files: UploadFiles) {
   // Validate extension
   const name = raw.name.toLowerCase()
   if (!name.endsWith('.tar.gz') && !name.endsWith('.tgz')) {
-    errorMsg.value = '请选择 .tar.gz 格式的部署包'
+    errorMsg.value = t('common.versionUpdate.invalidFileFormat')
     selectedFile.value = null
     uploadRef.value?.clearFiles()
     return
   }
   // Validate size (200MB)
   if (raw.size > 200 * 1024 * 1024) {
-    errorMsg.value = '文件大小不能超过 200MB'
+    errorMsg.value = t('common.versionUpdate.fileTooLarge')
     selectedFile.value = null
     uploadRef.value?.clearFiles()
     return
@@ -182,7 +185,7 @@ function handleFileChange(file: UploadFile, files: UploadFiles) {
 }
 
 function handleExceed(files: File[]) {
-  ElMessage.warning('只能选择一个文件，已替换为新文件')
+  ElMessage.warning(t('common.versionUpdate.fileReplaced'))
   uploadRef.value?.clearFiles()
   const file = files[0]
   uploadRef.value?.handleStart(file)
@@ -194,7 +197,7 @@ async function handleUpload() {
   uploading.value = true
   progress.value = 0
   progressStatus.value = ''
-  progressText.value = '准备上传...'
+  progressText.value = t('common.versionUpdate.preparing')
   errorMsg.value = ''
   successMsg.value = ''
 
@@ -202,21 +205,21 @@ async function handleUpload() {
     const res: any = await uploadSystemUpdate(selectedFile.value, (pct: number) => {
       progress.value = pct
       if (pct < 100) {
-        progressText.value = `上传中... ${pct}%`
+        progressText.value = t('common.versionUpdate.uploadingPercent', { pct })
       } else {
-        progressText.value = '上传完成，正在处理...'
+        progressText.value = t('common.versionUpdate.uploadDoneProcessing')
         progressStatus.value = 'success'
       }
     })
 
     progress.value = 100
     progressStatus.value = 'success'
-    progressText.value = '更新完成，后端正在重启...'
+    progressText.value = t('common.versionUpdate.updateDoneRestarting')
     // axios 拦截器已解包标准信封：res 直接就是 data（含 old_pid / message）
-    successMsg.value = res?.message || '版本更新完成，后端正在重启，请等待约 5 秒后刷新页面'
+    successMsg.value = res?.message || t('common.versionUpdate.successMsg')
 
     // Poll health: wait for the new process to come up (old PID known).
-    progressText.value = '等待后端重启完成...'
+    progressText.value = t('common.versionUpdate.waitingRestart')
     const oldPid = res?.old_pid
     const pollResult = await pollBackendHealth({
       oldPid,
@@ -224,16 +227,16 @@ async function handleUpload() {
       interval: 2000,
       onProbe: (isDown, _pid, attempt) => {
         if (isDown) {
-          progressText.value = `等待后端重启完成... (${attempt}/30)`
+          progressText.value = t('common.versionUpdate.waitingRestartAttempt', { attempt })
         }
       },
     })
     if (pollResult.recovered) {
-      progressText.value = '后端已恢复，正在刷新页面...'
+      progressText.value = t('common.versionUpdate.recovered')
       uploading.value = false
       setTimeout(() => window.location.reload(), 1000)
     } else {
-      progressText.value = '后端重启超时，请手动刷新页面'
+      progressText.value = t('common.versionUpdate.restartTimeout')
       uploading.value = false
     }
     } catch (err: any) {
@@ -244,7 +247,7 @@ async function handleUpload() {
       || err?.response?.data?.detail?.msg
       || err?.response?.data?.detail
       || err?.message
-      || '上传失败，请重试'
+      || t('common.message.uploadFailedRetry')
     uploading.value = false
   }
 }

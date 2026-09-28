@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.deps import get_current_user
 from src.core.exceptions import AppException, NotFoundException, success_response
+from src.core.i18n import t, get_locale
 from src.crud.ai import crud_chat_session
 from src.db import get_db
 from src.models import User
@@ -58,7 +59,7 @@ async def _get_owned_session(
 ):
     session = await crud_chat_session.get_owned(db, session_id, user.id)
     if session is None:
-        raise NotFoundException("会话不存在")
+        raise NotFoundException(t("chat_session.not_found"))
     return session
 
 
@@ -84,12 +85,12 @@ async def create_session(
 
     session = ChatSession(
         user_id=user.id,
-        title=(body.title or "新对话").strip()[:200] or "新对话",
+        title=(body.title or t("chat_session.default_title")).strip()[:200] or t("chat_session.default_title"),
     )
     db.add(session)
     await db.commit()
     await db.refresh(session)
-    return success_response(data=_session_out(session), msg="会话已创建")
+    return success_response(data=_session_out(session), msg=t("chat_session.created"))
 
 
 @router.get("/{session_id}")
@@ -117,7 +118,7 @@ async def rename_session(
     session.title = body.title.strip()[:200]
     await db.commit()
     await db.refresh(session)
-    return success_response(data=_session_out(session), msg="会话已重命名")
+    return success_response(data=_session_out(session), msg=t("chat_session.renamed"))
 
 
 @router.delete("/{session_id}")
@@ -129,9 +130,9 @@ async def delete_session(
     """Delete a session and its messages."""
     ok = await crud_chat_session.delete_owned(db, session_id, user.id)
     if not ok:
-        raise NotFoundException("会话不存在")
+        raise NotFoundException(t("chat_session.not_found"))
     await db.commit()
-    return success_response(msg="会话已删除")
+    return success_response(msg=t("chat_session.deleted"))
 
 
 @router.post("/{session_id}/messages")
@@ -151,4 +152,4 @@ async def append_message(
         tool_events=body.tool_events,
     )
     await db.commit()
-    return success_response(data=_message_out(msg), msg="消息已保存")
+    return success_response(data=_message_out(msg), msg=t("chat_session.message_saved"))

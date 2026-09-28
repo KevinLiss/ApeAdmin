@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.deps import get_current_user, require_permission
 from src.core.exceptions import ConflictException, NotFoundException, success_response
+from src.core.i18n import t, get_locale
 from src.crud import crud_user
 from src.db import get_db
 from src.models import User
@@ -71,13 +72,13 @@ async def create_user(
     """Create a new user."""
     exists = await crud_user.exists(db, username=body.username)
     if exists:
-        raise ConflictException(f"用户名 '{body.username}' 已存在")
+        raise ConflictException(t("user.username_exists", username=body.username))
 
     new_user = await crud_user.create(db, body.model_dump(exclude={"role_ids"}))
     if body.role_ids:
         await crud_user.assign_roles(db, new_user.id, body.role_ids)
 
-    return success_response(data={"id": new_user.id}, msg="创建成功")
+    return success_response(data={"id": new_user.id}, msg=t("user.created"))
 
 
 @router.get("/{user_id}")
@@ -89,7 +90,7 @@ async def get_user(
     """Get a single user by ID."""
     u = await crud_user.get(db, user_id)
     if not u:
-        raise NotFoundException("用户不存在")
+        raise NotFoundException(t("user.not_found"))
     return success_response(
         data={
             "id": u.id,
@@ -118,12 +119,12 @@ async def update_user(
 
     updated = await crud_user.update(db, user_id, update_data)
     if not updated:
-        raise NotFoundException("用户不存在")
+        raise NotFoundException(t("user.not_found"))
 
     if role_ids is not None:
         await crud_user.assign_roles(db, user_id, role_ids)
 
-    return success_response(msg="更新成功")
+    return success_response(msg=t("user.updated"))
 
 
 @router.delete("/{user_id}")
@@ -135,8 +136,8 @@ async def delete_user(
     """Soft-delete a user."""
     ok = await crud_user.delete(db, user_id, soft=True)
     if not ok:
-        raise NotFoundException("用户不存在")
-    return success_response(msg="删除成功")
+        raise NotFoundException(t("user.not_found"))
+    return success_response(msg=t("user.deleted"))
 
 
 @router.put("/{user_id}/reset-password")
@@ -149,5 +150,5 @@ async def reset_password(
     """Admin reset a user's password."""
     ok = await crud_user.update_password(db, user_id, new_password)
     if not ok:
-        raise NotFoundException("用户不存在")
-    return success_response(msg="密码已重置")
+        raise NotFoundException(t("user.not_found"))
+    return success_response(msg=t("user.password_reset"))

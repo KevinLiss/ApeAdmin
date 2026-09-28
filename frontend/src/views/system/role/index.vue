@@ -4,40 +4,40 @@
     <div class="toolbar">
       <el-input
         v-model="query.keyword"
-        placeholder="搜索角色名"
+        :placeholder="t('system.role.searchPlaceholder')"
         clearable
         style="width: 220px"
         @keyup.enter="fetchData"
       />
       <el-button type="primary" @click="fetchData">
-        <el-icon><Search /></el-icon>查询
+        <el-icon><Search /></el-icon>{{ t('common.action.query') }}
       </el-button>
       <el-button type="success" @click="openDialog()">
-        <el-icon><Plus /></el-icon>新增
+        <el-icon><Plus /></el-icon>{{ t('common.action.create') }}
       </el-button>
     </div>
 
     <!-- Table -->
     <el-table :data="list" v-loading="loading" stripe>
       <el-table-column prop="id" label="ID" width="60" />
-      <el-table-column prop="name" label="角色名称" min-width="120" />
-      <el-table-column prop="code" label="角色编码" min-width="120" />
-      <el-table-column label="数据范围" width="120">
+      <el-table-column prop="name" :label="t('system.role.roleName')" min-width="120" />
+      <el-table-column prop="code" :label="t('system.role.roleCode')" min-width="120" />
+      <el-table-column :label="t('system.role.dataScope')" width="120">
         <template #default="{ row }">{{ scopeText[row.data_scope] || row.data_scope }}</template>
       </el-table-column>
-      <el-table-column label="状态" width="80">
+      <el-table-column :label="t('system.role.status')" width="80">
         <template #default="{ row }">
           <el-tag :type="row.status === 1 ? 'success' : 'danger'" size="small">
-            {{ row.status === 1 ? '启用' : '禁用' }}
+            {{ row.status === 1 ? t('system.role.active') : t('system.role.disabled') }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="remark" label="备注" min-width="150" show-overflow-tooltip />
-      <el-table-column label="操作" width="220" fixed="right">
+      <el-table-column prop="remark" :label="t('system.role.remark')" min-width="150" show-overflow-tooltip />
+      <el-table-column :label="t('common.action.actions')" width="220" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="openDialog(row)">编辑</el-button>
-          <el-button link type="warning" @click="openMenuDialog(row)">分配菜单</el-button>
-          <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
+          <el-button link type="primary" @click="openDialog(row)">{{ t('common.action.edit') }}</el-button>
+          <el-button link type="warning" @click="openMenuDialog(row)">{{ t('system.role.assignMenu') }}</el-button>
+          <el-button link type="danger" @click="handleDelete(row)">{{ t('common.action.delete') }}</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -57,47 +57,47 @@
   <!-- 角色编辑 Dialog -->
   <el-dialog
     v-model="dialogVisible"
-    :title="editingId ? '编辑角色' : '新增角色'"
+    :title="editingId ? t('system.role.editRole') : t('system.role.createRole')"
     width="480px"
   >
     <el-form ref="formRef" :model="form" :rules="rules" label-width="90px">
-      <el-form-item label="角色名称" prop="name">
+      <el-form-item :label="t('system.role.roleName')" prop="name">
         <el-input v-model="form.name" />
       </el-form-item>
-      <el-form-item label="角色编码" prop="code">
-        <el-input v-model="form.code" :disabled="!!editingId" placeholder="如: operator" />
+      <el-form-item :label="t('system.role.roleCode')" prop="code">
+        <el-input v-model="form.code" :disabled="!!editingId" :placeholder="t('system.role.codePlaceholder')" />
       </el-form-item>
-      <el-form-item label="数据范围">
+      <el-form-item :label="t('system.role.dataScope')">
         <el-select v-model="form.data_scope" style="width: 100%">
-          <el-option :value="1" label="仅本人数据" />
-          <el-option :value="2" label="本部门及以下" />
-          <el-option :value="3" label="本部门数据" />
-          <el-option :value="4" label="全部数据" />
+          <el-option :value="1" :label="t('system.role.scopeSelf')" />
+          <el-option :value="2" :label="t('system.role.scopeDeptBelow')" />
+          <el-option :value="3" :label="t('system.role.scopeDept')" />
+          <el-option :value="4" :label="t('system.role.scopeAll')" />
         </el-select>
       </el-form-item>
-      <el-form-item label="备注">
+      <el-form-item :label="t('system.role.remark')">
         <el-input v-model="form.remark" type="textarea" :rows="2" />
       </el-form-item>
-      <el-form-item label="状态">
+      <el-form-item :label="t('system.role.status')">
         <el-switch v-model="form.status" :active-value="1" :inactive-value="0" />
       </el-form-item>
     </el-form>
     <template #footer>
-      <el-button @click="dialogVisible = false">取消</el-button>
-      <el-button type="primary" :loading="saving" @click="handleSave">保存</el-button>
+      <el-button @click="dialogVisible = false">{{ t('common.action.cancel') }}</el-button>
+      <el-button type="primary" :loading="saving" @click="handleSave">{{ t('common.action.save') }}</el-button>
     </template>
   </el-dialog>
 
   <!-- 分配菜单 Dialog -->
   <el-dialog
     v-model="menuDialogVisible"
-    title="分配菜单权限"
+    :title="t('system.role.menuPermissionTitle')"
     width="520px"
   >
     <div class="menu-tree-header">
-      <el-checkbox v-model="menuExpandAll" @change="handleExpandAll">展开/折叠</el-checkbox>
-      <el-checkbox v-model="menuCheckAll" @change="handleCheckAll">全选/全不选</el-checkbox>
-      <el-checkbox v-model="menuCheckStrictly">父子联动</el-checkbox>
+      <el-checkbox v-model="menuExpandAll" @change="handleExpandAll">{{ t('system.role.expandCollapse') }}</el-checkbox>
+      <el-checkbox v-model="menuCheckAll" @change="handleCheckAll">{{ t('system.role.selectAllNone') }}</el-checkbox>
+      <el-checkbox v-model="menuCheckStrictly">{{ t('system.role.parentChildLink') }}</el-checkbox>
     </div>
     <el-tree
       ref="menuTreeRef"
@@ -110,18 +110,21 @@
       class="menu-tree"
     />
     <template #footer>
-      <el-button @click="menuDialogVisible = false">取消</el-button>
-      <el-button type="primary" :loading="menuSaving" @click="handleSaveMenus">保存</el-button>
+      <el-button @click="menuDialogVisible = false">{{ t('common.action.cancel') }}</el-button>
+      <el-button type="primary" :loading="menuSaving" @click="handleSaveMenus">{{ t('common.action.save') }}</el-button>
     </template>
   </el-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, nextTick } from 'vue'
+import { ref, reactive, onMounted, nextTick, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import type { ElTree } from 'element-plus'
 import { getRoles, createRole, updateRole, deleteRole, getMenuTree } from '@/api'
+
+const { t } = useI18n()
 
 interface RoleRow {
   id: number
@@ -133,12 +136,12 @@ interface RoleRow {
   menu_ids?: number[]
 }
 
-const scopeText: Record<number, string> = {
-  1: '仅本人',
-  2: '本部门及以下',
-  3: '本部门',
-  4: '全部',
-}
+const scopeText = computed<Record<number, string>>(() => ({
+  1: t('system.role.scopeSelf'),
+  2: t('system.role.scopeDeptBelow'),
+  3: t('system.role.scopeDept'),
+  4: t('system.role.scopeAll'),
+}))
 
 const list = ref<RoleRow[]>([])
 const total = ref(0)
@@ -158,8 +161,8 @@ const form = reactive({
 })
 
 const rules: FormRules = {
-  name: [{ required: true, message: '请输入角色名称', trigger: 'blur' }],
-  code: [{ required: true, message: '请输入角色编码', trigger: 'blur' }],
+  name: [{ required: true, message: () => t('common.validation.required', { name: t('system.role.roleName') }), trigger: 'blur' }],
+  code: [{ required: true, message: () => t('common.validation.required', { name: t('system.role.roleCode') }), trigger: 'blur' }],
 }
 
 // ===== 分配菜单 =====
@@ -209,7 +212,7 @@ async function handleSave() {
           status: form.status,
           remark: form.remark,
         })
-        ElMessage.success('更新成功')
+        ElMessage.success(t('common.message.updateSuccess'))
       } else {
         await createRole({
           name: form.name,
@@ -218,7 +221,7 @@ async function handleSave() {
           status: form.status,
           remark: form.remark,
         })
-        ElMessage.success('创建成功')
+        ElMessage.success(t('common.message.createSuccess'))
       }
       dialogVisible.value = false
       fetchData()
@@ -229,9 +232,9 @@ async function handleSave() {
 }
 
 async function handleDelete(row: RoleRow) {
-  await ElMessageBox.confirm(`确定删除角色「${row.name}」吗？`, '提示', { type: 'warning' })
+  await ElMessageBox.confirm(t('system.role.deleteConfirm', { name: row.name }), t('common.action.tip'), { type: 'warning' })
   await deleteRole(row.id)
-  ElMessage.success('删除成功')
+  ElMessage.success(t('common.message.deleteSuccess'))
   fetchData()
 }
 
@@ -302,7 +305,7 @@ async function handleSaveMenus() {
     await updateRole(currentRoleId.value, {
       menu_ids: allMenuIds,
     })
-    ElMessage.success('菜单分配成功')
+    ElMessage.success(t('system.role.menuAssignSuccess'))
     menuDialogVisible.value = false
     fetchData()
   } finally {

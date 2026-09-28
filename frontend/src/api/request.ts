@@ -7,13 +7,16 @@ const request = axios.create({
   timeout: 15000,
 })
 
-// Request interceptor: attach token
+// Request interceptor: attach token + Accept-Language header
 request.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('apeadmin_token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+    // Attach locale for backend message i18n
+    const locale = localStorage.getItem('locale') || 'zh-CN'
+    config.headers['Accept-Language'] = locale
     return config
   },
   (error) => Promise.reject(error)

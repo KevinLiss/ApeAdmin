@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.deps import _build_menu_tree, get_current_user, require_permission
 from src.core.exceptions import NotFoundException, ValidationException, success_response
+from src.core.i18n import t, get_locale
 from src.crud import crud_menu
 from src.db import get_db
 from src.models import User
@@ -24,21 +25,21 @@ async def _validate_parent(db: AsyncSession, parent_id: int, menu_id: int | None
     by_id = {menu.id: menu for menu in menus}
     parent = by_id.get(parent_id)
     if parent is None:
-        raise ValidationException("父级菜单不存在")
+        raise ValidationException(t("menu.parent_not_found"))
     if parent.type == "F":
-        raise ValidationException("按钮类型不能作为父级菜单")
+        raise ValidationException(t("menu.button_cannot_be_parent"))
 
     visited: set[int] = set()
     current_id = parent_id
     while current_id:
         if current_id == menu_id:
-            raise ValidationException("不能选择当前菜单或其下级作为父级")
+            raise ValidationException(t("menu.cannot_select_self_or_child"))
         if current_id in visited:
-            raise ValidationException("菜单层级存在循环，请先修复父级关系")
+            raise ValidationException(t("menu.hierarchy_cycle"))
         visited.add(current_id)
         current = by_id.get(current_id)
         if current is None:
-            raise ValidationException("菜单层级引用了不存在的父级")
+            raise ValidationException(t("menu.hierarchy_broken"))
         current_id = current.parent_id
 
 
@@ -62,7 +63,7 @@ async def create_menu(
     """Create a new menu item."""
     await _validate_parent(db, body.parent_id)
     new_menu = await crud_menu.create(db, body.model_dump())
-    return success_response(data={"id": new_menu.id}, msg="创建成功")
+    return success_response(data={"id": new_menu.id}, msg=t("menu.created"))
 
 
 @router.put("/{menu_id}")
@@ -75,7 +76,7 @@ async def update_menu(
     """Update a menu item."""
     existing = await crud_menu.get(db, menu_id)
     if not existing:
-        raise NotFoundException("菜单不存在")
+        raise NotFoundException(t("menu.not_found"))
 
     update_data = body.model_dump(exclude_unset=True)
     if "parent_id" in update_data:
@@ -86,8 +87,8 @@ async def update_menu(
 
     updated = await crud_menu.update(db, menu_id, update_data)
     if not updated:
-        raise NotFoundException("菜单不存在")
-    return success_response(msg="更新成功")
+        raise NotFoundException(t("menu.not_found"))
+    return success_response(msg=t("menu.updated"))
 
 
 @router.delete("/{menu_id}")
@@ -99,5 +100,5 @@ async def delete_menu(
     """Delete a menu item."""
     ok = await crud_menu.delete(db, menu_id, soft=False)
     if not ok:
-        raise NotFoundException("菜单不存在")
-    return success_response(msg="删除成功")
+        raise NotFoundException(t("menu.not_found"))
+    return success_response(msg=t("menu.deleted"))

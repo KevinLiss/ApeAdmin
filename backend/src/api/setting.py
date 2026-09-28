@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.config import settings
 from src.core.deps import get_current_user, require_permission
 from src.core.exceptions import AppException, success_response
+from src.core.i18n import t, get_locale
 from src.crud.setting import crud_setting
 from src.db import get_db
 from src.models import User
@@ -69,7 +70,7 @@ async def update_settings(
             await crud_setting.upsert(db, key, value, is_public=is_public, category="general", description="")
             updated.append(key)
     await db.commit()
-    return success_response(msg=f"已更新 {len(updated)} 项设置", data={"updated": updated})
+    return success_response(msg=t("setting.updated_count", count=len(updated)), data={"updated": updated})
 
 
 @router.put("/{key}")
@@ -84,10 +85,10 @@ async def update_single_setting(
     existing = await crud_setting.get_by_key(db, key)
     if not existing:
         from src.core.exceptions import NotFoundException
-        raise NotFoundException(f"设置项 '{key}' 不存在")
+        raise NotFoundException(t("setting.key_not_found", key=key))
     existing.value = value
     await db.commit()
-    return success_response(msg=f"设置 '{key}' 已更新")
+    return success_response(msg=t("setting.updated", key=key))
 
 
 @router.post("/brand-image")
@@ -104,10 +105,10 @@ async def upload_brand_image(
     original_name = (file.filename or "").strip() or "brand.png"
     extension = Path(original_name).suffix.lower().lstrip(".")
     if extension not in BRAND_IMAGE_EXTENSIONS:
-        raise AppException(msg="仅支持图片格式：" + " / ".join(sorted(BRAND_IMAGE_EXTENSIONS)), code=400)
+        raise AppException(msg=t("setting.image_format_only"), code=400)
     content = await file.read(MAX_BRAND_IMAGE_SIZE + 1)
     if len(content) > MAX_BRAND_IMAGE_SIZE:
-        raise AppException(msg="图片大小不能超过 10MB", code=400)
+        raise AppException(msg=t("setting.image_too_large"), code=400)
 
     import secrets
 
@@ -116,4 +117,4 @@ async def upload_brand_image(
     filename = f"{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}_{secrets.token_hex(6)}.{extension}"
     (brand_dir / filename).write_bytes(content)
     url = f"/media/brand/{filename}"
-    return success_response(data={"url": url}, msg="上传成功")
+    return success_response(data={"url": url}, msg=t("setting.uploaded"))

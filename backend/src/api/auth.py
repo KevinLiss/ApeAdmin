@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config import settings
+from src.core.i18n import t, get_locale
 from src.core.deps import (
     get_current_user,
     get_user_menu_tree,
@@ -52,11 +53,12 @@ async def login(
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
     """User login — returns JWT access + refresh tokens."""
+    locale = get_locale(request)
     from src.plugins import plugin_manager
     await plugin_manager.before_login(body.model_dump())
     user = await crud_user.authenticate(db, body.username, body.password)
     if not user:
-        raise AuthException("用户名或密码错误")
+        raise AuthException(t("auth.login_failed", locale))
 
     # Update last login info
     from sqlalchemy import update
@@ -78,7 +80,7 @@ async def login(
             "token_type": "bearer",
             "refresh_token": refresh,
         },
-        msg="登录成功",
+        msg=t("auth.login_success", locale),
     )
 
 
@@ -90,12 +92,12 @@ async def refresh_token(
     """Exchange a refresh token for a new access token."""
     payload = decode_token(refresh_token)
     if not payload or payload.get("type") != "refresh":
-        raise AuthException("Invalid refresh token")
+        raise AuthException(t("auth.invalid_refresh_token"))
 
     user_id = payload.get("sub")
     user = await crud_user.get(db, int(user_id))
     if not user or user.status != 1:
-        raise AuthException("User not found or disabled")
+        raise AuthException(t("auth.user_not_found_or_disabled"))
 
     new_access = create_access_token(user.id)
     return success_response(data={"access_token": new_access, "token_type": "bearer"})
@@ -106,7 +108,7 @@ async def logout(
     user: Annotated[User, Depends(get_current_user)],
 ):
     """Logout — stateless JWT, client just discards the token."""
-    return success_response(msg="已退出登录")
+    return success_response(msg=t("auth.logout_success"))
 
 
 @router.get("/userinfo")
@@ -176,7 +178,7 @@ async def update_profile(
     """Update current user's own profile."""
     payload = body.model_dump(exclude_unset=True, exclude_none=True)
     if not payload:
-        return success_response(data={"id": user.id}, msg="无修改内容")
+        return success_response(data={"id": user.id}, msg=t("auth.profile_no_change"))
 
     await crud_user.update(db, user.id, payload)
     # Refresh user object to return fresh data
@@ -190,7 +192,7 @@ async def update_profile(
             "phone": refreshed.phone,
             "avatar": refreshed.avatar,
         },
-        msg="资料更新成功",
+        msg=t("auth.profile_updated"),
     )
 
 
@@ -202,10 +204,10 @@ async def change_password(
 ):
     """Change current user's password (requires old password)."""
     if not verify_password(body.old_password, user.password):
-        raise AuthException("原密码不正确")
+        raise AuthException(t("auth.old_password_wrong"))
 
     if body.new_password == body.old_password:
-        raise AuthException("新密码不能与原密码相同")
+        raise AuthException(t("auth.new_password_same_as_old"))
 
     await crud_user.update_password(db, user.id, body.new_password)
-    return success_response(msg="密码修改成功，请重新登录")
+    return success_response(msg=t("auth.password_changed_relogin"))

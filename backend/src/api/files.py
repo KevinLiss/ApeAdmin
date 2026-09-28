@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.config import settings
 from src.core.deps import require_permission
 from src.core.exceptions import AppException, NotFoundException, success_response
+from src.core.i18n import get_locale, t
 from src.db import get_db
 from src.models import FileFolder, SystemFile, User
 
@@ -47,7 +48,7 @@ class MoveInput(BaseModel):
 
 
 def _clean_name(name: str) -> str:
-    return re.sub(r"[\\/:*?\"<>|]", "_", name).strip() or "未命名文件"
+    return re.sub(r"[\\/:*?\"<>|]", "_", name).strip() or t("file.default_name")
 
 
 def _folder_dict(folder: FileFolder) -> dict:
@@ -97,7 +98,7 @@ async def _normalize_folder_id(db: AsyncSession, folder_id: int) -> int:
     if folder_id == 0:
         return await _ensure_root_folder(db)
     if not await _folder_exists(db, folder_id):
-        raise NotFoundException("目标文件夹不存在")
+        raise NotFoundException(t("file.folder_not_found"))
     return folder_id
 
 
@@ -114,6 +115,7 @@ async def _download_auth(
     from src.core.deps import get_current_user
     from src.core.exceptions import AuthException
 
+    locale = get_locale(request)
     if credentials is not None:
         return await get_current_user(request, credentials, db)
     token = request.query_params.get("token")
@@ -147,7 +149,7 @@ async def _download_auth(
                 if menu.permission:
                     user_permissions.add(menu.permission)
         if "system:file:download" not in user_permissions:
-            raise PermissionException("无下载权限")
+            raise PermissionException(t("file.download_forbidden", locale))
     return user
 
 
@@ -171,17 +173,17 @@ async def create_folder(body: FolderInput, db: Annotated[AsyncSession, Depends(g
     db.add(folder)
     await db.commit()
     await db.refresh(folder)
-    return success_response(data=_folder_dict(folder), msg="文件夹创建成功")
+    return success_response(data=_folder_dict(folder), msg=t("file.folder_created"))
 
 
 @router.put("/folders/{folder_id}")
 async def rename_folder(folder_id: int, body: FolderRename, db: Annotated[AsyncSession, Depends(get_db)], user: Annotated[User, Depends(require_permission("system:file:rename"))]):
     folder = await db.get(FileFolder, folder_id)
     if not folder or folder.deleted_at:
-        raise NotFoundException("文件夹不存在")
+        raise NotFoundException(t("file.folder_not_found"))
     folder.name = _clean_name(body.name)
     await db.commit()
-    return success_response(msg="文件夹已重命名")
+    return success_response(msg=t("file.folder_renamed"))
 
 
 @router.delete("/folders/{folder_id}")
@@ -194,10 +196,10 @@ async def delete_folder(folder_id: int, db: Annotated[AsyncSession, Depends(get_
     """
     folder = await db.get(FileFolder, folder_id)
     if not folder or folder.deleted_at:
-        raise NotFoundException("文件夹不存在")
+        raise NotFoundException(t("file.folder_not_found"))
     root_id = await _ensure_root_folder(db)
     if folder_id == root_id:
-        raise AppException(msg="根文件夹不可删除", code=400)
+        raise AppException(msg=t("file.root_folder_not_deletable"), code=400)
     # Collect the whole subtree of folder ids (BFS over parent_id).
     all_folders = (await db.execute(
         select(FileFolder).where(FileFolder.deleted_at.is_(None))
@@ -243,7 +245,7 @@ async def delete_folder(folder_id: int, db: Annotated[AsyncSession, Depends(get_
                     parent = parent.parent
         except OSError as exc:
             logger.warning("级联删除物理文件失败 file_id=%s storage_key=%s: %s", item.id, item.storage_key, exc)
-    return success_response(data={"folder_count": folder_count, "file_count": file_count}, msg=f"已删除文件夹及其下 {file_count} 个文件")
+    return success_response(data={"folder_count": folder_count, "file_count": file_count}, msg=t("file.folder_deleted_with_files", count=file_count))
 
 
 @router.get("")
@@ -260,13 +262,13 @@ async def list_files(folder_id: int = Query(0, ge=0), keyword: str = Query("", m
 @router.post("/upload")
 async def upload_file(folder_id: int = Query(0, ge=0), file: UploadFile = File(...), db: AsyncSession = Depends(get_db), user: User = Depends(require_permission("system:file:upload"))):
     folder_id = await _normalize_folder_id(db, folder_id)
-    original_name = _clean_name(file.filename or "未命名文件")
+    original_name = _clean_name(file.filename or t("file.default_name"))
     extension = Path(original_name).suffix.lower().lstrip(".")
     if extension not in ALLOWED_EXTENSIONS:
-        raise AppException(msg="不支持的文件类型", code=400)
+        raise AppException(msg=t("file.unsupported_type"), code=400)
     content = await file.read(MAX_FILE_SIZE + 1)
     if len(content) > MAX_FILE_SIZE:
-        raise AppException(msg="文件大小不能超过 50MB", code=400)
+        raise AppException(msg=t("file.file_too_large"), code=400)
     digest = hashlib.md5(content).hexdigest()
     stored_name = f"{secrets.token_hex(16)}.{extension}" if extension else secrets.token_hex(16)
     relative = Path(datetime.now(timezone.utc).strftime("%Y/%m")) / stored_name
@@ -278,7 +280,7 @@ async def upload_file(folder_id: int = Query(0, ge=0), file: UploadFile = File(.
     db.add(item)
     await db.commit()
     await db.refresh(item)
-    return success_response(data=_file_dict(item), msg="文件上传成功")
+    return success_response(data=_file_dict(item), msg=t("file.uploaded"))
 
 
 # ---------------------------------------------------------------------------
@@ -330,7 +332,7 @@ ASSET_GROUPS: dict[str, dict] = {
 def _asset_root(group: str) -> Path:
     """Resolve a group's root directory, raising 404 for unknown groups."""
     if group not in ASSET_GROUPS:
-        raise NotFoundException("素材分组不存在")
+        raise NotFoundException(t("file.asset_group_not_found"))
     return ASSET_GROUPS[group]["root"]()
 
 
@@ -339,7 +341,7 @@ def _safe_asset_path(group: str, relative: str) -> Path:
     root = _asset_root(group).resolve()
     candidate = (root / relative).resolve()
     if root != candidate and root not in candidate.parents:
-        raise NotFoundException("非法路径")
+        raise NotFoundException(t("file.invalid_path"))
     return candidate
 
 
@@ -403,7 +405,7 @@ async def list_assets(
         return success_response(data={"dirs": [], "files": []})
     target = _safe_asset_path(group, path)
     if not target.is_dir():
-        raise NotFoundException("目录不存在")
+        raise NotFoundException(t("file.dir_not_found"))
     dirs, files = [], []
     for entry in sorted(target.iterdir(), key=lambda p: p.name):
         if entry.is_dir():
@@ -424,7 +426,7 @@ async def download_asset(
     """Download an asset file (preview=1 returns inline for direct rendering)."""
     target = _safe_asset_path(group, path)
     if not target.is_file():
-        raise NotFoundException("文件不存在")
+        raise NotFoundException(t("file.not_found"))
     media_type = "application/octet-stream"
     suffix = target.suffix.lower()
     if suffix in {".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".ico"}:
@@ -445,7 +447,7 @@ async def delete_asset(
     """Delete an asset file (single file only, directories rejected)."""
     target = _safe_asset_path(group, path)
     if not target.is_file():
-        raise NotFoundException("文件不存在")
+        raise NotFoundException(t("file.not_found"))
     try:
         target.unlink()
         # 清理空的父目录（最多向上清 2 层，保留分组根目录）
@@ -460,8 +462,8 @@ async def delete_asset(
                 break
             parent = parent.parent
     except OSError as exc:
-        raise AppException(msg=f"删除失败：{exc}", code=500)
-    return success_response(msg="文件已删除")
+        raise AppException(msg=t("file.delete_failed", error=str(exc)), code=500)
+    return success_response(msg=t("file.deleted"))
 
 
 @router.get("/{file_id}/download")
@@ -473,10 +475,10 @@ async def download_file(
 ):
     item = await db.get(SystemFile, file_id)
     if not item or item.deleted_at:
-        raise NotFoundException("文件不存在")
+        raise NotFoundException(t("file.not_found"))
     path = (Path(settings.FILE_STORAGE_DIR) / item.storage_key).resolve()
     if not path.is_file() or Path(settings.FILE_STORAGE_DIR).resolve() not in path.parents:
-        raise NotFoundException("文件内容不存在")
+        raise NotFoundException(t("file.content_missing"))
     media_type = item.mime_type or "application/octet-stream"
     # preview=1 → Content-Disposition: inline,浏览器直接渲染图片/PDF/文本
     return FileResponse(path, media_type=media_type, filename=item.original_name, content_disposition_type="inline" if preview else "attachment")
@@ -486,7 +488,7 @@ async def download_file(
 async def delete_file(file_id: int, db: Annotated[AsyncSession, Depends(get_db)], user: User = Depends(require_permission("system:file:delete"))):
     item = await db.get(SystemFile, file_id)
     if not item or item.deleted_at:
-        raise NotFoundException("文件不存在")
+        raise NotFoundException(t("file.not_found"))
     item.deleted_at = datetime.now(timezone.utc)
     await db.commit()
     # Physically remove the stored blob when possible (non-blocking on failure).
@@ -506,7 +508,7 @@ async def delete_file(file_id: int, db: Annotated[AsyncSession, Depends(get_db)]
                 path = path.parent
     except OSError as exc:
         logger.warning("物理删除文件失败 file_id=%s storage_key=%s: %s", file_id, item.storage_key, exc)
-    return success_response(msg="文件已删除")
+    return success_response(msg=t("file.deleted"))
 
 
 @router.post("/{file_id}/move")
@@ -514,13 +516,13 @@ async def move_file(file_id: int, body: MoveInput, db: Annotated[AsyncSession, D
     """Move a file into another folder."""
     item = await db.get(SystemFile, file_id)
     if not item or item.deleted_at:
-        raise NotFoundException("文件不存在")
+        raise NotFoundException(t("file.not_found"))
     target_id = await _normalize_folder_id(db, body.folder_id)
     if target_id == item.folder_id:
-        return success_response(msg="文件已在目标文件夹")
+        return success_response(msg=t("file.already_in_folder"))
     item.folder_id = target_id
     await db.commit()
-    return success_response(msg="文件已移动")
+    return success_response(msg=t("file.moved"))
 
 
 @router.post("/folders/{folder_id}/move")
@@ -528,17 +530,17 @@ async def move_folder(folder_id: int, body: MoveInput, db: Annotated[AsyncSessio
     """Move a folder (and its subtree) under another folder (or root)."""
     folder = await db.get(FileFolder, folder_id)
     if not folder or folder.deleted_at:
-        raise NotFoundException("文件夹不存在")
+        raise NotFoundException(t("file.folder_not_found"))
     if folder_id == (await _ensure_root_folder(db)):
-        raise AppException(msg="根文件夹不可移动", code=400)
+        raise AppException(msg=t("file.root_folder_not_movable"), code=400)
     target_id = await _normalize_folder_id(db, body.folder_id)
     if target_id == folder_id:
-        raise AppException(msg="不能移动到自身", code=400)
+        raise AppException(msg=t("file.cannot_move_to_self"), code=400)
     # Prevent moving into its own subtree (would create a cycle).
     ancestor = target_id
     while ancestor:
         if ancestor == folder_id:
-            raise AppException(msg="不能移动到自身子文件夹中", code=400)
+            raise AppException(msg=t("file.cannot_move_to_subtree"), code=400)
         if ancestor == 0:
             break
         parent = await db.get(FileFolder, ancestor)
@@ -547,4 +549,4 @@ async def move_folder(folder_id: int, body: MoveInput, db: Annotated[AsyncSessio
         ancestor = parent.parent_id
     folder.parent_id = target_id
     await db.commit()
-    return success_response(msg="文件夹已移动")
+    return success_response(msg=t("file.folder_moved"))

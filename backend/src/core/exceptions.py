@@ -7,6 +7,8 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from loguru import logger
 
+from src.core.i18n import t, get_locale
+
 
 class AppException(Exception):
     """Base application exception."""
@@ -58,50 +60,56 @@ def error_response(msg: str, code: int = 400, data: Any = None) -> dict[str, Any
     return {"code": code, "msg": msg, "data": data}
 
 
-_FIELD_NAMES_ZH = {
-    "username": "用户名",
-    "password": "密码",
-    "email": "邮箱",
-    "verification_code": "邮箱验证码",
-    "nickname": "昵称",
-    "old_password": "原密码",
-    "new_password": "新密码",
-    "code": "验证码",
-    "phone": "手机号",
-    "amount": "金额",
-    "title": "标题",
-    "content": "内容",
+# Field name i18n keys — looked up via t() at render time
+_FIELD_NAME_KEYS = {
+    "username": "validation.field_username",
+    "password": "validation.field_password",
+    "email": "validation.field_email",
+    "verification_code": "validation.field_verification_code",
+    "nickname": "validation.field_nickname",
+    "old_password": "validation.field_old_password",
+    "new_password": "validation.field_new_password",
+    "code": "validation.field_code",
+    "phone": "validation.field_phone",
+    "amount": "validation.field_amount",
+    "title": "validation.field_title",
+    "content": "validation.field_content",
 }
 
 
-def _humanize_validation_error(exc: RequestValidationError) -> str:
-    """将 FastAPI/Pydantic 422 校验错误转换为友好的中文提示。"""
+def _humanize_validation_error(exc: RequestValidationError, locale: str = "zh-CN") -> str:
+    """Convert FastAPI/Pydantic 422 validation errors to friendly messages."""
     messages: list[str] = []
     for err in exc.errors()[:3]:
         loc = [p for p in err.get("loc", ()) if p not in ("body", "query", "path")]
-        field = _FIELD_NAMES_ZH.get(str(loc[0]) if loc else "", ".".join(str(p) for p in loc)) or "表单"
+        field_key = _FIELD_NAME_KEYS.get(str(loc[0]) if loc else "", "")
+        field = t(field_key, locale) if field_key else ".".join(str(p) for p in loc)
         err_type = err.get("type", "")
         ctx = err.get("ctx") or {}
         if err_type == "string_pattern_mismatch":
-            messages.append(f"{field}格式不正确")
+            messages.append(t("validation.format_invalid", locale, field=field))
         elif err_type == "string_too_short":
-            messages.append(f"{field}长度不足（至少 {ctx.get('min_length', '?')} 个字符）")
+            messages.append(t("validation.too_short", locale, field=field, min=ctx.get('min_length', '?')))
         elif err_type == "string_too_long":
-            messages.append(f"{field}超出长度限制（最多 {ctx.get('max_length', '?')} 个字符）")
+            messages.append(t("validation.too_long", locale, field=field, max=ctx.get('max_length', '?')))
         elif err_type == "missing":
-            messages.append(f"请填写{field}")
+            messages.append(t("validation.required", locale, field=field))
         elif "email" in err_type or "value_error" in err_type:
-            messages.append(f"{field}格式不正确")
+            messages.append(t("validation.format_invalid", locale, field=field))
         elif err_type == "greater_than_equal":
-            messages.append(f"{field}不能小于 {ctx.get('ge', '?')}")
+            messages.append(t("validation.gte", locale, field=field, min=ctx.get('ge', '?')))
         elif err_type == "less_than_equal":
-            messages.append(f"{field}不能大于 {ctx.get('le', '?')}")
+            messages.append(t("validation.lte", locale, field=field, max=ctx.get('le', '?')))
         elif err_type == "json_invalid":
-            messages.append("请求数据格式错误")
+            messages.append(t("validation.json_invalid", locale))
         else:
-            msg = err.get("msg", "")
-            messages.append(f"{field}{msg}" if msg else f"{field}填写有误，请检查后重试")
-    return "；".join(messages) or "请求参数有误，请检查后重试"
+            raw_msg = err.get("msg", "")
+            if raw_msg:
+                messages.append(f"{field}{raw_msg}")
+            else:
+                messages.append(t("validation.field_invalid", locale, field=field))
+    sep = "；" if locale == "zh-CN" else "; "
+    return sep.join(messages) or t("validation.params_invalid", locale)
 
 
 def register_exception_handlers(app: FastAPI) -> None:
@@ -117,7 +125,8 @@ def register_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(request: Request, exc: RequestValidationError):
-        msg = _humanize_validation_error(exc)
+        locale = get_locale(request)
+        msg = _humanize_validation_error(exc, locale)
         logger.warning(f"RequestValidationError: {msg} | path={request.url.path}")
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -126,8 +135,9 @@ def register_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(Exception)
     async def unhandled_exception_handler(request: Request, exc: Exception):
+        locale = get_locale(request)
         logger.exception(f"Unhandled exception on {request.url.path}: {exc}")
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content=error_response("Internal Server Error", 500),
+            content=error_response(t("common.internal_error", locale), 500),
         )

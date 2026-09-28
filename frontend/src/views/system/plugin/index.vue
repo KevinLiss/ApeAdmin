@@ -4,20 +4,20 @@
     <div class="toolbar">
       <el-input
         v-model="query.keyword"
-        placeholder="搜索插件名称"
+        :placeholder="t('system.plugin.searchPlaceholder')"
         clearable
         style="width: 220px"
         @keyup.enter="fetchData"
       />
       <el-button type="primary" @click="fetchData">
-        <el-icon><Search /></el-icon>查询
+        <el-icon><Search /></el-icon>{{ t('common.action.query') }}
       </el-button>
       <div class="toolbar-right">
         <el-button type="success" @click="uploadVisible = true">
-          <el-icon><Upload /></el-icon>导入插件
+          <el-icon><Upload /></el-icon>{{ t('system.plugin.import') }}
         </el-button>
         <el-button type="warning" :loading="restarting" @click="handleRestart">
-          <el-icon v-if="!restarting"><RefreshRight /></el-icon>重启后端
+          <el-icon v-if="!restarting"><RefreshRight /></el-icon>{{ t('system.plugin.restart') }}
         </el-button>
       </div>
     </div>
@@ -48,10 +48,10 @@
           />
         </div>
 
-        <p class="plugin-desc">{{ item.description || '暂无描述' }}</p>
+        <p class="plugin-desc">{{ item.description || t('system.plugin.noDescription') }}</p>
 
         <div class="plugin-meta">
-          <el-tag size="small" type="info">{{ item.author || '未知作者' }}</el-tag>
+          <el-tag size="small" type="info">{{ item.author || t('system.plugin.unknownAuthor') }}</el-tag>
           <span class="plugin-path">{{ item.module_path }}</span>
         </div>
 
@@ -59,16 +59,16 @@
           <span class="plugin-time">{{ formatTime(item.updated_at) }}</span>
           <div class="footer-actions">
             <el-button link type="primary" @click="openConfig(item)">
-              <el-icon><Setting /></el-icon>配置
+              <el-icon><Setting /></el-icon>{{ t('system.plugin.config') }}
             </el-button>
             <el-button link type="danger" @click="handleDelete(item)">
-              <el-icon><Delete /></el-icon>删除
+              <el-icon><Delete /></el-icon>{{ t('common.action.delete') }}
             </el-button>
           </div>
         </div>
       </el-card>
 
-      <el-empty v-if="!loading && filteredList.length === 0" description="暂无插件" />
+      <el-empty v-if="!loading && filteredList.length === 0" :description="t('system.plugin.noPlugins')" />
     </div>
 
     <!-- Pagination -->
@@ -86,11 +86,11 @@
   <!-- Config Dialog -->
   <el-dialog
     v-model="configVisible"
-    :title="`配置 - ${currentPlugin?.display_name || currentPlugin?.name || ''}`"
+    :title="t('system.plugin.configTitle', { name: currentPlugin?.display_name || currentPlugin?.name || '' })"
     width="600px"
   >
     <el-alert
-      title="插件配置为 JSON 格式，保存后按插件实现决定是否立即读取"
+      :title="t('system.plugin.configHint')"
       type="info"
       :closable="false"
       show-icon
@@ -104,15 +104,15 @@
       class="config-editor"
     />
     <template #footer>
-      <el-button @click="configVisible = false">取消</el-button>
-      <el-button type="primary" :loading="savingConfig" @click="saveConfig">保存</el-button>
+      <el-button @click="configVisible = false">{{ t('common.action.cancel') }}</el-button>
+      <el-button type="primary" :loading="savingConfig" @click="saveConfig">{{ t('common.action.save') }}</el-button>
     </template>
   </el-dialog>
 
   <!-- Upload Dialog -->
-  <el-dialog v-model="uploadVisible" title="导入插件包" width="520px">
+  <el-dialog v-model="uploadVisible" :title="t('system.plugin.importPlugin')" width="520px">
     <el-alert
-      title="Python 版底座插件包：.zip 压缩包，内含 plugin.json 清单和插件包目录（含 __init__.py）"
+      :title="t('system.plugin.uploadHint')"
       type="info"
       :closable="false"
       show-icon
@@ -127,7 +127,7 @@
       style="margin-bottom: 16px"
     />
     <p v-else style="margin: 0 0 16px; font-size: 12px; color: #909399">
-      注意：Go 版（ApeAdmin-Gin）的 L2 插件包（type=l2）无法安装到本系统，请勿混用。
+      {{ t('system.plugin.goL2Warning') }}
     </p>
     <el-upload
       drag
@@ -138,15 +138,15 @@
       :on-remove="handleFileRemove"
     >
       <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
-      <div class="el-upload__text">将 .zip 文件拖到此处，或<em>点击选择</em></div>
+      <div class="el-upload__text">{{ t('system.plugin.dragHere') }}<em>{{ t('system.plugin.clickToSelect') }}</em></div>
       <template #tip>
-        <div class="el-upload__tip">仅支持 .zip 格式，大小不超过 50MB</div>
+        <div class="el-upload__tip">{{ t('system.plugin.uploadTip') }}</div>
       </template>
     </el-upload>
     <template #footer>
-      <el-button @click="uploadVisible = false">取消</el-button>
+      <el-button @click="uploadVisible = false">{{ t('common.action.cancel') }}</el-button>
       <el-button type="primary" :loading="uploading" :disabled="!uploadingFile || !!pkgKindError" @click="handleUpload">
-        上传并安装
+        {{ t('system.plugin.uploadAndInstall') }}
       </el-button>
     </template>
   </el-dialog>
@@ -154,6 +154,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useUserStore } from '@/stores/user'
 import { refreshDynamicRoutes } from '@/router'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -167,6 +168,8 @@ import {
   deletePlugin,
 } from '@/api'
 import { pollBackendHealth } from '@/utils/restart'
+
+const { t } = useI18n()
 
 interface PluginRow {
   id: number
@@ -237,7 +240,7 @@ async function handleToggle(item: PluginRow, val: boolean) {
   try {
     const result: any = await togglePlugin(item.id, val)
     if (result?.refresh) await refreshRuntimeMenus()
-    ElMessage.success(`${val ? '启用' : '禁用'}成功，运行时已生效`)
+    ElMessage.success(t('system.plugin.enabledSuccess'))
   } catch {
     // Revert on error — the axios interceptor already showed the message.
     item.enabled = !val
@@ -264,14 +267,14 @@ async function saveConfig() {
   try {
     parsed = JSON.parse(configText.value)
   } catch {
-    ElMessage.error('JSON 格式错误，请检查')
+    ElMessage.error(t('system.plugin.jsonError'))
     return
   }
 
   savingConfig.value = true
   try {
     await updatePluginConfig(currentPlugin.value.id, parsed)
-    ElMessage.success('配置已保存')
+    ElMessage.success(t('system.plugin.configSaved'))
     configVisible.value = false
     fetchData()
   } finally {
@@ -359,22 +362,20 @@ async function detectZipKind(file: File): Promise<'go' | 'python' | 'unknown'> {
 
 async function handleFileSelect(file: File) {
   if (!file.name.toLowerCase().endsWith('.zip')) {
-    ElMessage.error('仅支持 .zip 格式的插件包')
+    ElMessage.error(t('system.plugin.zipOnly'))
     return
   }
   pkgKindError.value = ''
   pkgKindWarning.value = ''
   const kind = await detectZipKind(file)
   if (kind === 'go') {
-    pkgKindError.value =
-      '检测到 Go 版（ApeAdmin-Gin）L2 插件包，无法安装到 Python 版底座，请到 ApeAdmin-Gin 后台导入。'
+    pkgKindError.value = t('system.plugin.goL2Error')
     pkgKindWarning.value = pkgKindError.value
     ElMessage.error(pkgKindError.value)
     return
   }
   if (kind === 'unknown') {
-    pkgKindWarning.value =
-      '无法识别包结构，请确认这是 Python 版插件包（plugin.json + 插件目录含 __init__.py）'
+    pkgKindWarning.value = t('system.plugin.unknownPkgWarning')
   }
   uploadingFile.value = file
 }
@@ -387,14 +388,14 @@ function handleFileRemove() {
 
 async function handleUpload() {
   if (!uploadingFile.value) {
-    ElMessage.warning('请先选择插件包文件')
+    ElMessage.warning(t('system.plugin.selectFileFirst'))
     return
   }
   uploading.value = true
   try {
     const data: any = await uploadPlugin(uploadingFile.value)
     if (data?.refresh) await refreshRuntimeMenus()
-    ElMessage.success('插件安装成功，运行时已生效')
+    ElMessage.success(t('system.plugin.installSuccess'))
     uploadVisible.value = false
     uploadingFile.value = null
     fetchData()
@@ -409,16 +410,16 @@ async function handleUpload() {
 async function handleRestart() {
   try {
     await ElMessageBox.confirm(
-      '重启后端将导致短暂不可用（约 5 秒），确定要重启吗？',
-      '重启确认',
-      { type: 'warning', confirmButtonText: '确认重启', cancelButtonText: '取消' }
+      t('system.plugin.restartConfirm'),
+      t('system.plugin.restartTitle'),
+      { type: 'warning', confirmButtonText: t('system.plugin.confirmRestart'), cancelButtonText: t('common.action.cancel') }
     )
   } catch {
     return
   }
 
   restarting.value = true
-  ElMessage.info('正在重启后端...')
+  ElMessage.info(t('system.plugin.restarting'))
   let oldPid: number | undefined
   let restartRequestFailed = false
   try {
@@ -433,11 +434,11 @@ async function handleRestart() {
 
   const result = await pollBackendHealth({ oldPid, requestFailed: restartRequestFailed })
   if (result.recovered) {
-    ElMessage.success('后端已恢复，正在刷新...')
+    ElMessage.success(t('system.plugin.backendRecoveredRefreshing'))
     await new Promise((resolve) => setTimeout(resolve, 500))
     window.location.reload()
   } else {
-    ElMessage.error('后端在 60 秒内未恢复，请检查后端日志')
+    ElMessage.error(t('system.plugin.recoveryTimeout'))
     restarting.value = false
   }
 }
@@ -446,9 +447,9 @@ async function handleRestart() {
 async function handleDelete(item: PluginRow) {
   try {
     await ElMessageBox.confirm(
-      `确定要删除插件「${item.display_name || item.name}」吗？插件文件将被永久移除。`,
-      '删除确认',
-      { type: 'warning', confirmButtonText: '确认删除', cancelButtonText: '取消' }
+      t('system.plugin.deleteConfirm', { name: item.display_name || item.name }),
+      t('system.plugin.deleteTitle'),
+      { type: 'warning', confirmButtonText: t('system.plugin.confirmDelete'), cancelButtonText: t('common.action.cancel') }
     )
   } catch {
     return
@@ -457,7 +458,7 @@ async function handleDelete(item: PluginRow) {
   try {
     await deletePlugin(item.id)
     await refreshRuntimeMenus()
-    ElMessage.success('插件已卸载，运行时已生效')
+    ElMessage.success(t('system.plugin.deletedSuccess'))
     fetchData()
   } catch {
     // axios interceptor already displayed the error message.

@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.config import settings
 from src.core.deps import require_permission
 from src.core.exceptions import AppException, NotFoundException, success_response, ValidationException
+from src.core.i18n import get_locale, t
 from src.crud.plugin import crud_plugin
 from src.db import get_db
 from src.models import User
@@ -103,9 +104,10 @@ async def toggle_plugin(
     user: Annotated[User, Depends(require_permission("system:plugin:toggle"))],
 ):
     """Enable or disable a plugin in the current process."""
+    locale = get_locale(request)
     plugin = await crud_plugin.get(db, plugin_id)
     if not plugin:
-        raise NotFoundException("插件不存在")
+        raise NotFoundException(t("plugin.not_found", locale))
 
     from src.plugins.manager import plugin_manager
 
@@ -118,14 +120,14 @@ async def toggle_plugin(
     except Exception as exc:
         await _write_plugin_audit(db, user, "enable" if body.enabled else "disable", plugin.name, started, error=str(exc))
         raise AppException(
-            msg=f"热拔插失败：{exc}，建议重启后端",
+            msg=t("plugin.toggle_failed", locale, error=str(exc)),
             code=409,
             data={"fallback": "/api/v1/plugins/restart", "name": plugin.name},
         ) from exc
 
-    state = "启用" if body.enabled else "禁用"
+    state = t("plugin.toggled_active", locale) if body.enabled else t("plugin.toggled_inactive", locale)
     await _write_plugin_audit(db, user, "enable" if body.enabled else "disable", plugin.name, started, result=result)
-    return success_response(data=result | {"refresh": True}, msg=f"插件已{state}，运行时生效")
+    return success_response(data=result | {"refresh": True}, msg=state)
 
 
 @router.get("/{plugin_id}/config")
@@ -137,7 +139,7 @@ async def get_plugin_config(
     """Get plugin configuration."""
     plugin = await crud_plugin.get(db, plugin_id)
     if not plugin:
-        raise NotFoundException("插件不存在")
+        raise NotFoundException(t("plugin.not_found"))
 
     try:
         config = json.loads(plugin.config) if plugin.config else {}
@@ -157,9 +159,9 @@ async def update_plugin_config(
     """Update plugin configuration."""
     plugin = await crud_plugin.set_config(db, plugin_id, body.config)
     if not plugin:
-        raise NotFoundException("插件不存在")
+        raise NotFoundException(t("plugin.not_found"))
 
-    return success_response(msg="配置已保存")
+    return success_response(msg=t("plugin.config_saved"))
 
 
 # ---------------------------------------------------------------------------
@@ -186,16 +188,17 @@ async def upload_plugin(
     and the plugin metadata is upserted into the database.
     The plugin is installed and activated without restarting the backend.
     """
+    locale = get_locale(request)
     # Validate file extension
     filename = file.filename or ""
     ext = Path(filename).suffix.lower()
     if ext not in _ALLOWED_EXTENSIONS:
-        raise ValidationException("仅支持 .zip 格式的插件包")
+        raise ValidationException(t("plugin.zip_only", locale))
 
     # Read file content with size check
     content = await file.read()
     if len(content) > _MAX_UPLOAD_SIZE:
-        raise ValidationException("插件包大小不能超过 50MB")
+        raise ValidationException(t("plugin.package_too_large", locale))
 
     # Save to temp file (in a worker thread: a 50MB sync write would block the event loop)
     from fastapi.concurrency import run_in_threadpool
@@ -221,8 +224,7 @@ async def upload_plugin(
         exc_text = f"{type(exc).__name__}: {exc}"
         sep = "" if exc_text.endswith(("。", ".", "！", "？")) else "。"
         raise ValidationException(
-            f"插件 '{filename}' 导入失败（manager）：{exc_text}{sep}"
-            "临时上传文件已清理；请根据错误信息修复后重试。"
+            f"{t('plugin.install_failed', locale, filename=filename, error=exc_text)}{sep}{t('plugin.install_cleanup', locale)}"
         ) from exc
 
     # Upsert metadata only after runtime installation succeeds.
@@ -247,7 +249,7 @@ async def upload_plugin(
         "enabled": record.enabled,
         **{k: v for k, v in result.items() if k not in {"name", "display_name", "version"}},
         "refresh": True,
-    }, msg="插件安装成功，运行时生效")
+    }, msg=t("plugin.installed", locale))
 
 
 @router.post("/restart")
@@ -270,6 +272,7 @@ async def restart_server(
 
     from src.core.runtime import spawn_restart
 
+    locale = get_locale(request)
     project_root = Path(__file__).resolve().parents[2]  # backend/
     python_bin = sys.executable
 
@@ -299,7 +302,7 @@ async def restart_server(
             **({"host": restart_info["host"], "port": restart_info["port"]}
                if "port" in restart_info else {}),
         },
-        msg="后端正在重启，请等待约 5 秒后刷新页面",
+        msg=t("plugin.restarting", locale),
     )
 
 
@@ -312,9 +315,10 @@ async def delete_plugin(
     keep_data: bool = Query(True, description="是否保留插件业务数据"),
 ):
     """Uninstall a plugin at runtime and optionally remove its data."""
+    locale = get_locale(request)
     plugin = await crud_plugin.get(db, plugin_id)
     if not plugin:
-        raise NotFoundException("插件不存在")
+        raise NotFoundException(t("plugin.not_found", locale))
 
     plugin_name = plugin.name
 
@@ -330,10 +334,10 @@ async def delete_plugin(
     except Exception as exc:
         await _write_plugin_audit(db, user, "uninstall", plugin_name, started, error=str(exc))
         raise AppException(
-            msg=f"插件卸载失败：{exc}，建议重启后端",
+            msg=t("plugin.uninstall_failed", locale, error=str(exc)),
             code=409,
             data={"fallback": "/api/v1/plugins/restart", "name": plugin_name},
         ) from exc
 
     await _write_plugin_audit(db, user, "uninstall", plugin_name, started, result=result)
-    return success_response(data={**result, "refresh": True}, msg=f"插件 '{plugin_name}' 已卸载，运行时生效")
+    return success_response(data={**result, "refresh": True}, msg=t("plugin.uninstalled", locale, name=plugin_name))

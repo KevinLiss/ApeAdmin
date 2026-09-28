@@ -1,0 +1,77 @@
+{
+  "dashboard": "系统仪表盘",
+  "system": {
+    "label": "系统管理",
+    "user": "用户管理",
+    "userAdd": "新增用户",
+    "userEdit": "编辑用户",
+    "userDelete": "删除用户",
+    "userResetPassword": "重置密码",
+    "role": "角色管理",
+    "roleAdd": "新增角色",
+    "roleEdit": "编辑角色",
+    "roleDelete": "删除角色",
+    "menu": "菜单管理",
+    "menuAdd": "新增菜单",
+    "menuEdit": "编辑菜单",
+    "menuDelete": "删除菜单",
+    "dept": "部门管理",
+    "deptAdd": "新增部门",
+    "deptEdit": "编辑部门",
+    "deptDelete": "删除部门",
+    "settings": "系统设置",
+    "settingsEdit": "编辑设置",
+    "file": "文件管理",
+    "fileUpload": "上传文件",
+    "fileCreateFolder": "新建文件夹",
+    "fileRename": "重命名文件",
+    "fileMove": "移动文件",
+    "fileDelete": "删除文件",
+    "fileDownload": "下载文件",
+    "log": "系统日志",
+    "logDelete": "删除日志"
+  },
+  "plugin": {
+    "label": "插件管理",
+    "toggle": "启用/禁用插件",
+    "config": "插件配置",
+    "import": "导入插件",
+    "delete": "删除插件",
+    "restart": "重启后端"
+  },
+  "mcp": {
+    "label": "MCP 管理",
+    "tools": "工具列表",
+    "resources": "资源列表",
+    "prompts": "提示词列表",
+    "auditLogs": "审计日志"
+  },
+  "ai": {
+    "label": "AI 助手",
+    "chat": "AI 全能助手",
+    "providers": "模型密钥管理",
+    "providerAdd": "新增模型密钥",
+    "providerEdit": "编辑模型密钥",
+    "providerDelete": "删除模型密钥"
+  },
+  "apehub": {
+    "label": "ApeHub 管理",
+    "config": "官网配置",
+    "content": "内容管理",
+    "docs": "文档管理",
+    "plugins": "插件审核",
+    "withdrawals": "提现审核",
+    "users": "用户列表",
+    "incomes": "收入明细",
+    "submitPlugin": "提交插件",
+    "orders": "订单列表",
+    "withdrawalCreate": "申请提现"
+  },
+  "devExample": {
+    "label": "插件示例",
+    "notes": "备忘录管理",
+    "noteAdd": "新增备忘录",
+    "noteEdit": "编辑备忘录",
+    "noteDelete": "删除备忘录"
+  }
+}

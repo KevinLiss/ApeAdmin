@@ -3,17 +3,17 @@
     <!-- 页面标题 -->
     <div class="page-head">
       <div>
-        <h3>系统设置</h3>
-        <span class="breadcrumb">系统管理 / 站点配置与品牌定制</span>
+        <h3>{{ t('system.settings.title') }}</h3>
+        <span class="breadcrumb">{{ t('system.settings.breadcrumb') }}</span>
       </div>
       <div class="head-actions">
-        <el-tooltip content="需 system:plugin:restart 权限" placement="top">
+        <el-tooltip :content="t('system.settings.restartPermission')" placement="top">
           <el-button type="warning" :loading="restarting" @click="handleRestart" v-permission="'system:plugin:restart'">
-            <el-icon v-if="!restarting"><RefreshRight /></el-icon>重启后端
+            <el-icon v-if="!restarting"><RefreshRight /></el-icon>{{ t('system.plugin.restart') }}
           </el-button>
         </el-tooltip>
         <el-button type="primary" :loading="saving" @click="handleSave" v-permission="'system:setting:edit'">
-          <el-icon><Check /></el-icon>保存设置
+          <el-icon><Check /></el-icon>{{ t('system.settings.save') }}
         </el-button>
       </div>
     </div>
@@ -25,24 +25,24 @@
           <template #header>
             <div class="card-title">
               <el-icon><Brush /></el-icon>
-              <span>品牌定制</span>
+              <span>{{ t('system.settings.branding') }}</span>
             </div>
           </template>
 
           <el-form label-width="120px" label-position="right">
-            <el-form-item label="站点名称">
-              <el-input v-model="form.site_name" placeholder="如 ApeAdmin" />
+            <el-form-item :label="t('system.settings.siteName')">
+              <el-input v-model="form.site_name" :placeholder="t('system.settings.siteNameExample')" />
             </el-form-item>
 
             <el-form-item label="Logo">
               <div class="logo-row">
-                <el-input v-model="form.logo_url" placeholder="留空使用默认图标，可上传或粘贴图片 URL" />
+                <el-input v-model="form.logo_url" :placeholder="t('system.settings.logoPlaceholder')" />
                 <el-upload
                   :show-file-list="false"
                   :http-request="uploadLogo"
                   accept=".jpg,.jpeg,.png,.gif,.webp,.svg,.ico"
                 >
-                  <el-button :loading="uploadingLogo">上传图片</el-button>
+                  <el-button :loading="uploadingLogo">{{ t('system.settings.uploadImage') }}</el-button>
                 </el-upload>
                 <div class="logo-preview">
                   <img v-if="form.logo_url" :src="form.logo_url" alt="Logo" class="preview-img" />
@@ -51,7 +51,7 @@
               </div>
             </el-form-item>
 
-            <el-form-item label="主题色">
+            <el-form-item :label="t('system.settings.primaryColor')">
               <div class="color-row">
                 <el-color-picker v-model="form.primary_color" @change="onColorChange" />
                 <el-input v-model="form.primary_color" style="width: 140px" placeholder="#5A67F5" />
@@ -67,24 +67,24 @@
               </div>
             </el-form-item>
 
-            <el-form-item label="登录页背景">
+            <el-form-item :label="t('system.settings.loginBg')">
               <div class="logo-row">
-                <el-input v-model="form.login_bg" placeholder="背景图 URL / CSS 值（留空使用默认）" />
+                <el-input v-model="form.login_bg" :placeholder="t('system.settings.loginBgPlaceholder')" />
                 <el-upload
                   :show-file-list="false"
                   :http-request="uploadLoginBg"
                   accept=".jpg,.jpeg,.png,.gif,.webp"
                 >
-                  <el-button :loading="uploadingBg">上传图片</el-button>
+                  <el-button :loading="uploadingBg">{{ t('system.settings.uploadImage') }}</el-button>
                 </el-upload>
               </div>
               <div v-if="form.login_bg" class="bg-preview" :style="{ background: bgPreviewStyle }">
-                <span class="bg-preview-tip">登录页背景预览</span>
+                <span class="bg-preview-tip">{{ t('system.settings.loginBgPreview') }}</span>
               </div>
             </el-form-item>
 
-            <el-form-item label="页脚文字">
-              <el-input v-model="form.footer_text" placeholder="如 ApeAdmin © 2026" />
+            <el-form-item :label="t('system.settings.footerText')">
+              <el-input v-model="form.footer_text" :placeholder="t('system.settings.footerExample')" />
             </el-form-item>
           </el-form>
         </el-card>
@@ -96,31 +96,31 @@
           <template #header>
             <div class="card-title">
               <el-icon><Setting /></el-icon>
-              <span>系统配置</span>
+              <span>{{ t('system.settings.systemConfig') }}</span>
             </div>
           </template>
 
           <el-form label-width="120px" label-position="right">
-            <el-form-item label="后台访问路径">
+            <el-form-item :label="t('system.settings.adminPath')">
               <el-input v-model="form.admin_path" placeholder="/admin">
-                <template #prepend>域名 +</template>
+                <template #prepend>{{ t('system.settings.domainPrefix') }}</template>
               </el-input>
               <div class="form-tip">
                 <el-icon><InfoFilled /></el-icon>
-                <span>管理后台将挂载在此路径下，主域名留给插件服务使用。修改后需<span class="tip-highlight">重启后端</span>生效。</span>
+                <span>{{ t('system.settings.adminPathTipPrefix') }}<span class="tip-highlight">{{ t('system.settings.adminPathTipHighlight') }}</span>{{ t('system.settings.adminPathTipSuffix') }}</span>
               </div>
             </el-form-item>
 
-            <el-form-item label="侧边栏主题">
+            <el-form-item :label="t('system.settings.sidebarTheme')">
               <el-radio-group v-model="form.sidebar_theme" @change="onSidebarThemeChange">
-                <el-radio-button label="light">浅色</el-radio-button>
-                <el-radio-button label="dark">深色</el-radio-button>
+                <el-radio-button label="light">{{ t('system.settings.themeLight') }}</el-radio-button>
+                <el-radio-button label="dark">{{ t('system.settings.themeDark') }}</el-radio-button>
               </el-radio-group>
             </el-form-item>
           </el-form>
 
           <!-- 实时预览 -->
-          <el-divider content-position="center">实时预览</el-divider>
+          <el-divider content-position="center">{{ t('system.settings.livePreview') }}</el-divider>
           <div class="preview-box" :style="{ '--preview-color': form.primary_color }">
             <div class="preview-sidebar" :class="{ 'preview-dark': form.sidebar_theme === 'dark' }">
               <div class="preview-logo">
@@ -129,10 +129,10 @@
                 <span>{{ form.site_name || 'ApeAdmin' }}</span>
               </div>
               <div class="preview-menu-item active">
-                <span>系统设置</span>
+                <span>{{ t('system.settings.title') }}</span>
               </div>
               <div class="preview-menu-item">
-                <span>用户管理</span>
+                <span>{{ t('system.user.title') }}</span>
               </div>
             </div>
             <div class="preview-content" :class="{ 'preview-content-dark': form.sidebar_theme === 'dark' }">
@@ -148,20 +148,20 @@
           <template #header>
             <div class="card-title">
               <el-icon><User /></el-icon>
-              <span>个人偏好</span>
+              <span>{{ t('system.settings.preferences') }}</span>
             </div>
           </template>
           <el-form label-width="120px" label-position="right">
-            <el-form-item label="深色模式">
+            <el-form-item :label="t('system.settings.darkMode')">
               <el-switch v-model="prefs.darkMode" @change="onDarkChange" />
             </el-form-item>
-            <el-form-item label="侧边栏折叠">
+            <el-form-item :label="t('system.settings.collapseSidebar')">
               <el-switch v-model="prefs.collapsedSidebar" @change="savePrefs" />
             </el-form-item>
-            <el-form-item label="界面语言">
+            <el-form-item :label="t('system.settings.language')">
               <el-select v-model="prefs.language" style="width: 140px">
-                <el-option label="简体中文" value="zh-CN" />
-                <el-option label="English" value="en-US" />
+                <el-option :label="t('common.language.zhCN')" value="zh-CN" />
+                <el-option :label="t('common.language.enUS')" value="en-US" />
               </el-select>
             </el-form-item>
           </el-form>
@@ -173,6 +173,7 @@
 
 <script setup lang="ts">
 import { reactive, onMounted, ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Brush, Setting, Check, RefreshRight, InfoFilled, User } from '@element-plus/icons-vue'
 import { useTheme } from '@/composables/useTheme'
@@ -180,6 +181,8 @@ import { useSettingsStore } from '@/stores/settings'
 import { getSettings, updateSettings, restartServer } from '@/api'
 import request from '@/api/request'
 import { pollBackendHealth } from '@/utils/restart'
+
+const { t } = useI18n()
 
 const { isDark, applyDark } = useTheme()
 const settingsStore = useSettingsStore()
@@ -233,7 +236,7 @@ function savePrefs() {
 function onDarkChange(val: boolean) {
   applyDark(val)
   savePrefs()
-  ElMessage.success(val ? '已切换深色模式' : '已切换浅色模式')
+  ElMessage.success(val ? t('common.theme.toggleDark') : t('common.theme.toggleLight'))
 }
 
 function onColorChange(color: string) {
@@ -260,7 +263,7 @@ async function uploadBrandImage(options: any, target: 'logo_url' | 'login_bg') {
     })
     if (res?.url) {
       ;(form as any)[target] = res.url
-      ElMessage.success('图片已上传，请点击“保存设置”生效')
+      ElMessage.success(t('system.settings.imageUploadedTip'))
     }
   } catch {
     // error message already shown by interceptor
@@ -291,7 +294,7 @@ async function loadSettings() {
       }
     }
   } catch {
-    ElMessage.warning('加载设置失败，使用默认值')
+    ElMessage.warning(t('system.settings.loadFailed'))
   }
 }
 
@@ -315,7 +318,7 @@ async function handleSave() {
     settingsStore.admin_path = form.admin_path
     settingsStore.applyThemeColor()
     settingsStore.applySidebarTheme()
-    ElMessage.success('设置已保存' + (adminPathChanged ? '（后台路径修改需重启后端生效）' : ''))
+    ElMessage.success(t('system.settings.saved') + (adminPathChanged ? t('system.settings.adminPathChangedTip') : ''))
   } catch {
     // axios interceptor already displayed the error message.
   } finally {
@@ -326,8 +329,8 @@ async function handleSave() {
 async function handleRestart() {
   try {
     await ElMessageBox.confirm(
-      '重启后端将短暂中断服务（约 5 秒），确定继续？',
-      '重启确认',
+      t('system.settings.restartConfirm'),
+      t('system.settings.restartTitle'),
       { type: 'warning' }
     )
   } catch {
@@ -340,16 +343,16 @@ async function handleRestart() {
   try {
     const result: any = await restartServer()
     oldPid = result?.old_pid
-    ElMessage.success('后端正在重启...')
+    ElMessage.success(t('system.settings.restarting'))
   } catch {
     restartRequestFailed = true
   }
 
   const result = await pollBackendHealth({ oldPid, requestFailed: restartRequestFailed })
   if (result.recovered) {
-    ElMessage.success('后端已恢复')
+    ElMessage.success(t('system.settings.backendRecovered'))
   } else {
-    ElMessage.error('后端在 60 秒内未恢复，请检查后端日志')
+    ElMessage.error(t('system.settings.recoveryTimeout'))
   }
   restarting.value = false
   // Reload settings after restart

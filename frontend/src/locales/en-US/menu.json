@@ -1,0 +1,77 @@
+{
+  "dashboard": "Dashboard",
+  "system": {
+    "label": "System",
+    "user": "Users",
+    "userAdd": "Add User",
+    "userEdit": "Edit User",
+    "userDelete": "Delete User",
+    "userResetPassword": "Reset Password",
+    "role": "Roles",
+    "roleAdd": "Add Role",
+    "roleEdit": "Edit Role",
+    "roleDelete": "Delete Role",
+    "menu": "Menus",
+    "menuAdd": "Add Menu",
+    "menuEdit": "Edit Menu",
+    "menuDelete": "Delete Menu",
+    "dept": "Departments",
+    "deptAdd": "Add Department",
+    "deptEdit": "Edit Department",
+    "deptDelete": "Delete Department",
+    "settings": "Settings",
+    "settingsEdit": "Edit Settings",
+    "file": "Files",
+    "fileUpload": "Upload File",
+    "fileCreateFolder": "New Folder",
+    "fileRename": "Rename File",
+    "fileMove": "Move File",
+    "fileDelete": "Delete File",
+    "fileDownload": "Download File",
+    "log": "Logs",
+    "logDelete": "Delete Log"
+  },
+  "plugin": {
+    "label": "Plugins",
+    "toggle": "Enable/Disable Plugin",
+    "config": "Plugin Config",
+    "import": "Import Plugin",
+    "delete": "Delete Plugin",
+    "restart": "Restart Backend"
+  },
+  "mcp": {
+    "label": "MCP",
+    "tools": "Tools",
+    "resources": "Resources",
+    "prompts": "Prompts",
+    "auditLogs": "Audit Logs"
+  },
+  "ai": {
+    "label": "AI Assistant",
+    "chat": "AI Chat",
+    "providers": "Model Providers",
+    "providerAdd": "Add Provider",
+    "providerEdit": "Edit Provider",
+    "providerDelete": "Delete Provider"
+  },
+  "apehub": {
+    "label": "ApeHub",
+    "config": "Site Config",
+    "content": "Content",
+    "docs": "Documentation",
+    "plugins": "Plugin Review",
+    "withdrawals": "Withdrawals",
+    "users": "Users",
+    "incomes": "Revenue",
+    "submitPlugin": "Submit Plugin",
+    "orders": "Orders",
+    "withdrawalCreate": "Request Withdrawal"
+  },
+  "devExample": {
+    "label": "Plugin Example",
+    "notes": "Notes",
+    "noteAdd": "Add Note",
+    "noteEdit": "Edit Note",
+    "noteDelete": "Delete Note"
+  }
+}

@@ -10,24 +10,24 @@
             <img v-else src="/assets/images/logo-icon.png" alt="Logo" class="brand-logo-icon" />
             <span class="brand-logo-text">{{ settingsStore.site_name }}</span>
           </div>
-          <h1 class="brand-title">欢迎使用</h1>
-          <p class="brand-subtitle">{{ settingsStore.site_name || 'ApeAdmin' }} 管理后台</p>
+          <h1 class="brand-title">{{ t('auth.welcome') }}</h1>
+          <p class="brand-subtitle">{{ settingsStore.site_name || 'ApeAdmin' }} {{ t('auth.adminPanel') }}</p>
           <div class="brand-features">
             <div class="feature-item">
               <div class="feature-dot"></div>
-              <span>权限管理</span>
+              <span>{{ t('auth.featurePermission') }}</span>
             </div>
             <div class="feature-item">
               <div class="feature-dot"></div>
-              <span>插件生态</span>
+              <span>{{ t('auth.featurePlugin') }}</span>
             </div>
             <div class="feature-item">
               <div class="feature-dot"></div>
-              <span>AI 助手</span>
+              <span>{{ t('auth.featureAI') }}</span>
             </div>
             <div class="feature-item">
               <div class="feature-dot"></div>
-              <span>MCP 集成</span>
+              <span>{{ t('auth.featureMCP') }}</span>
             </div>
           </div>
         </div>
@@ -39,9 +39,29 @@
       <!-- 右侧登录表单区 -->
       <div class="login-form-wrapper">
         <div class="login-form-card">
+          <!-- Language switcher -->
+          <div class="lang-switcher">
+            <el-dropdown @command="handleLocaleChange" trigger="click">
+              <span class="lang-trigger">
+                {{ currentLocaleLabel }}
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+              </span>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item
+                    v-for="loc in SUPPORTED_LOCALES"
+                    :key="loc.value"
+                    :command="loc.value"
+                    :class="{ active: loc.value === currentLocale }"
+                  >{{ loc.label }}</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </div>
+
           <div class="form-header">
-            <h2>账号登录</h2>
-            <p>请输入您的账号和密码</p>
+            <h2>{{ t('auth.accountLogin') }}</h2>
+            <p>{{ t('auth.welcomeMsg') }}</p>
           </div>
 
           <form class="login-form" @submit.prevent="handleLogin">
@@ -57,7 +77,7 @@
                 <input
                   v-model.trim="form.username"
                   type="text"
-                  placeholder="请输入用户名"
+                  :placeholder="t('auth.usernamePlaceholder')"
                   :class="['form-input', { error: errors.username }]"
                   @input="errors.username = ''"
                   @keyup.enter="focusPassword"
@@ -81,7 +101,7 @@
                   ref="passwordRef"
                   v-model.trim="form.password"
                   :type="pwdVisible ? 'text' : 'password'"
-                  placeholder="请输入密码"
+                  :placeholder="t('auth.passwordPlaceholder')"
                   :class="['form-input', { error: errors.password }]"
                   @input="errors.password = ''"
                   @keyup.enter="handleLogin"
@@ -119,9 +139,9 @@
             <div class="form-options">
               <label class="remember-me">
                 <input type="checkbox" v-model="remember" />
-                <span>记住密码</span>
+                <span>{{ t('auth.rememberPassword') }}</span>
               </label>
-              <a class="forgot-link" @click="handleForgotPassword">忘记密码？</a>
+              <a class="forgot-link" @click="handleForgotPassword">{{ t('auth.forgetPassword') }}</a>
             </div>
 
             <!-- 登录按钮 -->
@@ -133,10 +153,10 @@
             >
               <span v-if="loading" class="btn-loading">
                 <span class="loading-spinner"></span>
-                登录中...
+                {{ t('auth.logging') }}
               </span>
-              <span v-else-if="!captchaPassed">请先完成验证</span>
-              <span v-else>登 录</span>
+              <span v-else-if="!captchaPassed">{{ t('auth.verifyFirst') }}</span>
+              <span v-else>{{ t('auth.login') }}</span>
             </button>
           </form>
         </div>
@@ -153,10 +173,22 @@ import { Verify } from 'vue3-verify'
 import { useUserStore } from '@/stores/user'
 import { useSettingsStore } from '@/stores/settings'
 import { getPublicSettings } from '@/api'
+import { useI18n } from 'vue-i18n'
+import { setLocale, getLocale, SUPPORTED_LOCALES, type Locale } from '@/locales'
 
 const router = useRouter()
 const userStore = useUserStore()
 const settingsStore = useSettingsStore()
+const { t } = useI18n()
+
+const currentLocale = computed(() => getLocale())
+const currentLocaleLabel = computed(() =>
+  SUPPORTED_LOCALES.find(l => l.value === currentLocale.value)?.label || '简体中文'
+)
+
+function handleLocaleChange(locale: string) {
+  setLocale(locale as Locale)
+}
 
 const loading = ref(false)
 const remember = ref(true)
@@ -205,8 +237,8 @@ onMounted(async () => {
 function onCaptchaSuccess() {
   captchaPassed.value = true
   ElNotification({
-    title: '验证成功',
-    message: '请点击登录按钮继续',
+    title: t('auth.verifySuccess'),
+    message: t('auth.verifySuccessMsg'),
     type: 'success',
     duration: 2000,
   })
@@ -226,17 +258,17 @@ function focusPassword() {
 function validateForm(): boolean {
   let valid = true
   if (!form.username) {
-    errors.username = '请输入用户名'
+    errors.username = t('auth.usernamePlaceholder')
     valid = false
   }
   if (!form.password) {
-    errors.password = '请输入密码'
+    errors.password = t('auth.passwordPlaceholder')
     valid = false
   }
   if (!captchaPassed.value) {
     ElNotification({
-      title: '请先验证',
-      message: '请完成滑块验证后再登录',
+      title: t('auth.verifyFirst'),
+      message: t('auth.verifyFirstMsg'),
       type: 'warning',
       duration: 2500,
     })
@@ -264,8 +296,8 @@ async function handleLogin() {
     }
 
     ElNotification({
-      title: '登录成功',
-      message: `欢迎回来，${userStore.nickname || form.username}！`,
+      title: t('auth.loginSuccess'),
+      message: t('auth.welcomeBack', { name: userStore.nickname || form.username }),
       type: 'success',
       duration: 2000,
     })
@@ -276,9 +308,9 @@ async function handleLogin() {
     }, 500)
   } catch (e: any) {
     // 从 axios 错误中提取后端返回的错误信息
-    const msg = e?.response?.data?.msg || e?.message || '登录失败，请检查用户名和密码'
+    const msg = e?.response?.data?.msg || e?.message || t('auth.loginFailedMsg')
     ElNotification({
-      title: '登录失败',
+      title: t('auth.loginFailed'),
       message: msg,
       type: 'error',
       duration: 3500,
@@ -295,8 +327,8 @@ async function handleLogin() {
 // 忘记密码提示
 function handleForgotPassword() {
   ElNotification({
-    title: '忘记密码',
-    message: '请联系系统管理员重置密码',
+    title: t('auth.forgetPassword'),
+    message: t('auth.forgotPasswordMsg'),
     type: 'info',
     duration: 3000,
   })
@@ -448,6 +480,30 @@ const captchaKey = ref(0)
 .form-header {
   text-align: center;
   margin-bottom: 32px;
+}
+
+/* Language switcher */
+.lang-switcher {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.lang-trigger {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: #8a8a9a;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.lang-trigger:hover {
+  color: var(--el-color-primary, #5A67F5);
+  background: #f0f1f8;
 }
 
 .form-header h2 {
