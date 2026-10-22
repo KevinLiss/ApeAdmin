@@ -52,6 +52,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("Initializing database...")
     await init_db()
 
+    # Apply additive schema patches (create_all never alters existing
+    # tables; deploy-package updates would otherwise crash on missing
+    # columns such as sys_menu.i18n_key).
+    from src.core.dbmigrate import ensure_schema_patches
+    await ensure_schema_patches()
+
     # Seed initial data
     from src.core.seed import seed_initial_data
     await seed_initial_data()

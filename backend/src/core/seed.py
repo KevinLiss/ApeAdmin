@@ -299,6 +299,11 @@ async def _seed_missing_menus(db: AsyncSession) -> None:
         # System settings (incremental)
         ("系统设置", "系统管理", "C", "settings", "system/settings/index", "system:setting:list", "Tools", 5),
         ("编辑设置", "系统设置", "F", None, None, "system:setting:edit", None, 1),
+        # Version update (header icon dialog): without these entries the
+        # permissions exist only in code and no role except super admin
+        # (wildcard) can ever be granted them.
+        ("查看版本更新", "系统管理", "F", None, None, "system:version:view", None, 7),
+        ("执行版本更新", "系统管理", "F", None, None, "system:version:update", None, 8),
         # Plugin management additions (incremental)
         ("导入插件", "插件管理", "F", None, None, "system:plugin:upload", None, 3),
         ("删除插件", "插件管理", "F", None, None, "system:plugin:delete", None, 4),

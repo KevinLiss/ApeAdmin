@@ -135,15 +135,18 @@ _ZH = {
 
     # system
     "system.super_admin_only": "仅超级管理员可执行版本更新",
-    "system.tar_gz_only": "仅支持 .tar.gz 格式的部署包",
+    "system.tar_gz_only": "仅支持 .tar.gz 或 .zip 格式的部署包",
     "system.package_too_large": "部署包大小不能超过 200MB",
     "system.invalid_path": "非法路径: {path}",
+    "system.no_links": "部署包包含符号链接/硬链接: {path}，已拒绝",
     "system.suspicious_package": "部署包解压后体积过大或文件数过多，疑似恶意包",
     "system.extract_failed": "无法解压，请检查文件是否为有效的 .tar.gz 包",
+    "system.extract_failed_zip": "无法解压，请检查文件是否为有效的 .zip 包",
     "system.extract_error": "解压失败: {error}",
     "system.empty_package": "部署包为空或结构不正确",
     "system.missing_src": "部署包结构不正确：缺少 src/ 目录",
     "system.update_complete": "版本更新完成，后端正在重启，请等待约 5 秒后刷新页面",
+    "system.update_rolled_back": "依赖安装失败，已自动回滚本次更新，系统保持旧版本运行。详情: {error}",
 
     # validation (exceptions.py)
     "validation.field_username": "用户名",
@@ -299,15 +302,18 @@ _EN = {
 
     # system
     "system.super_admin_only": "Only super admin can perform version updates",
-    "system.tar_gz_only": "Only .tar.gz format is supported",
+    "system.tar_gz_only": "Only .tar.gz or .zip deploy packages are supported",
     "system.package_too_large": "Package size cannot exceed 200MB",
     "system.invalid_path": "Invalid path: {path}",
+    "system.no_links": "Package contains symlink/hardlink: {path}, rejected",
     "system.suspicious_package": "Package is too large or contains too many files after extraction, possibly malicious",
     "system.extract_failed": "Cannot extract, please verify the file is a valid .tar.gz package",
+    "system.extract_failed_zip": "Cannot extract, please verify the file is a valid .zip package",
     "system.extract_error": "Extract failed: {error}",
     "system.empty_package": "Package is empty or has incorrect structure",
     "system.missing_src": "Package structure is incorrect: missing src/ directory",
     "system.update_complete": "Version update complete, backend is restarting, please wait ~5 seconds and refresh",
+    "system.update_rolled_back": "Dependency installation failed; the update was rolled back automatically and the previous version keeps running. Details: {error}",
 
     # validation (exceptions.py)
     "validation.field_username": "Username",

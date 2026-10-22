@@ -65,7 +65,7 @@
           </li>
 
           <!-- Version update (replaces bookmark) -->
-          <li v-if="!isMobile || windowWidth > 575" class="icon-item version-update-btn" @click="versionUpdateVisible = true">
+          <li v-if="canViewVersion && (!isMobile || windowWidth > 575)" class="icon-item version-update-btn" @click="versionUpdateVisible = true">
             <el-icon :size="18"><RefreshRight /></el-icon>
           </li>
 
@@ -156,6 +156,9 @@ const userStore = useUserStore()
 
 const keyword = ref('')
 const versionUpdateVisible = ref(false)
+// Only show the entry when the user actually holds the view permission;
+// otherwise non-privileged users got a dialog full of `--` (403 silently).
+const canViewVersion = computed(() => userStore.hasPermission('system:version:view'))
 const notifVisible = ref(false)
 const msgVisible = ref(false)
 const profileVisible = ref(false)

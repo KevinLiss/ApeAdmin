@@ -38,7 +38,7 @@
       :limit="1"
       :on-change="handleFileChange"
       :on-exceed="handleExceed"
-      accept=".tar.gz,.tgz"
+      accept=".tar.gz,.tgz,.zip"
       :disabled="uploading"
     >
       <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
@@ -165,9 +165,9 @@ function handleFileChange(file: UploadFile, files: UploadFiles) {
     files.splice(0, files.length - 1)
   }
   const raw = file.raw as UploadRawFile
-  // Validate extension
+  // Validate extension (.tar.gz/.tgz traditional, .zip = ApeHub release format)
   const name = raw.name.toLowerCase()
-  if (!name.endsWith('.tar.gz') && !name.endsWith('.tgz')) {
+  if (!name.endsWith('.tar.gz') && !name.endsWith('.tgz') && !name.endsWith('.zip')) {
     errorMsg.value = t('common.versionUpdate.invalidFileFormat')
     selectedFile.value = null
     uploadRef.value?.clearFiles()

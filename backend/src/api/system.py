@@ -2,9 +2,9 @@
 
 Provides:
 - GET /system/version  — current app version + server info
-- POST /system/update   — upload a .tar.gz deploy package, validate,
-                           backup current code, extract-overwrite,
-                           pip install deps, then restart the process
+- POST /system/update   — upload a deploy package (.tar.gz or .zip), validate,
+                            backup current code, extract-overwrite,
+                            pip install deps, then restart the process
 """
 
 import asyncio
@@ -15,6 +15,7 @@ import sys
 import tarfile
 import tempfile
 import time
+import zipfile
 from datetime import datetime
 from pathlib import Path
 from typing import Annotated
@@ -36,14 +37,91 @@ router = APIRouter(prefix="/system", tags=["系统管理"])
 # Max deploy package size: 200 MB (source + frontend_dist + deps)
 _MAX_PKG_SIZE = 200 * 1024 * 1024
 
-# Allowed extensions
-_ALLOWED_EXTS = {".tar.gz", ".tgz"}
+# Allowed extensions: tar.gz (traditional) and zip (ApeHub release format)
+_ALLOWED_EXTS = {".tar.gz", ".tgz", ".zip"}
+
+# Archive-bomb guards: total uncompressed size / member count.
+_MAX_TOTAL_UNCOMPRESSED = 1024 * 1024 * 1024  # 1 GB
+_MAX_MEMBERS = 50_000
+
+# Paths the update overwrites (and therefore restores on rollback).
+_REPLACED_PATHS = ("src", "frontend_dist", "requirements.txt", "scripts")
 
 
-def _extract_update_package(tmp_pkg: Path, extract_dir: Path) -> None:
-    """Extract a pre-validated tar.gz package (called in a worker thread)."""
-    with tarfile.open(tmp_pkg, "r:gz") as tar:
-        tar.extractall(str(extract_dir))
+def _project_root() -> Path:
+    """Deploy root (contains src/, .env, ...) — overridable in tests."""
+    return Path(__file__).resolve().parents[2]
+
+
+def _validate_tar_members(tar: tarfile.TarFile, locale: str) -> None:
+    """Security checks on a tar archive before extraction (sync, worker thread)."""
+    members = tar.getmembers()
+    total = 0
+    for member in members:
+        if member.name.startswith("/") or ".." in member.name:
+            raise ValidationException(t("system.invalid_path", locale, path=member.name))
+        # A deployment package never needs links; a symlink could point the
+        # extract step at arbitrary host paths (e.g. overwrite /etc/...).
+        if member.issym() or member.islnk():
+            raise ValidationException(t("system.no_links", locale, path=member.name))
+        total += member.size
+    if total > _MAX_TOTAL_UNCOMPRESSED or len(members) > _MAX_MEMBERS:
+        raise ValidationException(t("system.suspicious_package", locale))
+
+
+def _validate_zip_members(zf: zipfile.ZipFile, locale: str) -> None:
+    """Security checks on a zip archive before extraction (sync, worker thread)."""
+    infos = zf.infolist()
+    total = 0
+    for info in infos:
+        name = info.filename
+        # Reject absolute paths, traversal, Windows drive letters and
+        # backslash separators (zip spec uses "/"; backslashes are either
+        # malformed or an attempt to smuggle a path on Windows hosts).
+        if (
+            name.startswith("/")
+            or ".." in name
+            or ":" in name.split("/", 1)[0]
+            or "\\" in name
+        ):
+            raise ValidationException(t("system.invalid_path", locale, path=name))
+        total += info.file_size
+    if total > _MAX_TOTAL_UNCOMPRESSED or len(infos) > _MAX_MEMBERS:
+        raise ValidationException(t("system.suspicious_package", locale))
+
+
+def _extract_update_package(tmp_pkg: Path, extract_dir: Path, locale: str) -> None:
+    """Validate + extract a pre-saved package (called in a worker thread).
+
+    Supports both .tar.gz (traditional) and .zip (ApeHub release format).
+    """
+    if tmp_pkg.name.lower().endswith(".zip"):
+        with zipfile.ZipFile(tmp_pkg, "r") as zf:
+            _validate_zip_members(zf, locale)
+            zf.extractall(str(extract_dir))
+    else:
+        with tarfile.open(tmp_pkg, "r:gz") as tar:
+            _validate_tar_members(tar, locale)
+            tar.extractall(str(extract_dir))
+
+
+def _locate_pkg_root(extract_dir: Path) -> Path:
+    """Find the deploy-package root inside the extraction directory.
+
+    Handles both layouts: a single top-level dir (apeadmin/...) and a
+    flat archive whose members sit directly at the root (src/...).
+    """
+    if (extract_dir / "src").is_dir():
+        return extract_dir
+    candidates = [d for d in extract_dir.iterdir() if d.is_dir()]
+    with_src = [d for d in candidates if (d / "src").is_dir()]
+    if len(with_src) == 1:
+        return with_src[0]
+    if not candidates:
+        raise ValidationException(t("system.empty_package", locale=locale))
+    if len(candidates) == 1:
+        return candidates[0]
+    raise ValidationException(t("system.missing_src", locale=locale))
 
 
 def _replace_directory(src: Path, dst: Path) -> None:
@@ -58,8 +136,7 @@ async def get_version(
     user: Annotated[User, Depends(require_permission("system:version:view"))],
 ):
     """Return current app version and server-side info for the update dialog."""
-    project_root = Path(__file__).resolve().parents[2]  # backend/ or deploy root
-    # Check if .env exists (production)
+    project_root = _project_root()
     env_file = project_root / ".env"
 
     return success_response(data={
@@ -74,6 +151,21 @@ async def get_version(
         # package built for the other stack is uploaded.
         "runtime": "python",
     })
+
+
+def _rollback_backup(backup_dir: Path, project_root: Path, replaced: list[str]) -> None:
+    """Restore the pre-update state of ``replaced`` paths from the backup."""
+    for name in replaced:
+        saved = backup_dir / name
+        dst = project_root / name
+        if not saved.exists():
+            continue
+        if saved.is_dir():
+            _replace_directory(saved, dst)
+        else:
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(str(saved), str(dst))
+    logger.info(f"Rolled back {replaced} from {backup_dir}")
 
 
 @router.post("/update")
@@ -120,59 +212,49 @@ async def upload_update(
     # ---- Save to temp file ----
     tmp_dir = Path(tempfile.gettempdir()) / "apeadmin_update"
     tmp_dir.mkdir(parents=True, exist_ok=True)
-    tmp_pkg = tmp_dir / f"update_{int(time.time())}.tar.gz"
+    # Preserve the original extension: the extractor dispatches on it.
+    tmp_suffix = ".zip" if lower_name.endswith(".zip") else ".tar.gz"
+    tmp_pkg = tmp_dir / f"update_{int(time.time())}{tmp_suffix}"
     # A 200MB sync write would block the event loop for seconds.
     await run_in_threadpool(tmp_pkg.write_bytes, content)
     logger.info(f"Update package saved: {tmp_pkg} ({len(content)} bytes)")
 
     # ---- Validate tar.gz structure ----
-    project_root = Path(__file__).resolve().parents[2]  # backend/ or deploy root
+    project_root = _project_root()
     extract_dir = tmp_dir / f"extract_{int(time.time())}"
     extract_dir.mkdir(parents=True, exist_ok=True)
 
+    # ---- Validate + extract (security checks live in the helpers) ----
     try:
-        with tarfile.open(tmp_pkg, "r:gz") as tar:
-            # Security: prevent path traversal (no absolute paths or ..)
-            for member in tar.getmembers():
-                if member.name.startswith("/") or ".." in member.name:
-                    raise ValidationException(t("system.invalid_path", locale, path=member.name))
-            # Security: reject archive bombs (zip of highly compressible data).
-            # Limit total uncompressed size to 1 GB, single files to 500 MB,
-            # and member count to 50k entries.
-            total_uncompressed = sum(m.size for m in tar.getmembers())
-            if total_uncompressed > 1024 * 1024 * 1024 or len(tar.getmembers()) > 50_000:
-                raise ValidationException(t("system.suspicious_package", locale))
+        if lower_name.endswith(".zip"):
+            from src.core.pkgdetect import detect_zip_upgrade_kind, mismatch_message
 
-        # Cross-stack guard: users occasionally upload a plugin package
-        # (or a Go-stack archive) where a deploy package is expected.
-        # Fail early with an actionable message instead of a generic
-        # "缺少 src/ 目录" error.  The plain "unknown" case keeps the
-        # original explicit structural error below.
-        from src.core.pkgdetect import detect_tar_gz_kind, mismatch_message
+            pkg_kind = detect_zip_upgrade_kind(tmp_pkg)
+            if pkg_kind in {"plugin", "go-binary"}:
+                hint = mismatch_message(pkg_kind, "system-update")
+                if hint:
+                    raise ValidationException(hint)
+            await run_in_threadpool(_extract_update_package, tmp_pkg, extract_dir, locale)
+        else:
+            from src.core.pkgdetect import detect_tar_gz_kind, mismatch_message
 
-        pkg_kind = detect_tar_gz_kind(tmp_pkg)
-        if pkg_kind in {"plugin", "go-binary"}:
-            hint = mismatch_message(pkg_kind, "system-update")
-            if hint:
-                raise ValidationException(hint)
-
-        await run_in_threadpool(_extract_update_package, tmp_pkg, extract_dir)
+            pkg_kind = detect_tar_gz_kind(tmp_pkg)
+            if pkg_kind in {"plugin", "go-binary"}:
+                hint = mismatch_message(pkg_kind, "system-update")
+                if hint:
+                    raise ValidationException(hint)
+            await run_in_threadpool(_extract_update_package, tmp_pkg, extract_dir, locale)
     except tarfile.ReadError:
         raise ValidationException(t("system.extract_failed", locale))
+    except zipfile.BadZipFile:
+        raise ValidationException(t("system.extract_failed_zip", locale))
     except ValidationException:
         raise
     except Exception as exc:
         raise ValidationException(t("system.extract_error", locale, error=str(exc))) from exc
 
-    # Find the top-level directory inside the archive
-    top_dirs = [d for d in extract_dir.iterdir() if d.is_dir()]
-    if not top_dirs:
-        raise ValidationException(t("system.empty_package", locale))
-    pkg_root = top_dirs[0]  # e.g. apeadmin/
-
-    # Must contain src/ directory
-    if not (pkg_root / "src").is_dir():
-        raise ValidationException(t("system.missing_src", locale))
+    # Find the deploy-package root (top-level dir or flat archive)
+    pkg_root = _locate_pkg_root(extract_dir)
 
     # ---- Backup current code ----
     backup_dir = project_root.parent / f"apeadmin_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
@@ -189,13 +271,16 @@ async def upload_update(
         ),
     )
 
-    # ---- Overwrite code ----
+    # ---- Overwrite code (track what was replaced for rollback) ----
+    replaced: list[str] = []
+
     # 1. Copy src/ (backend source)
     src_src = pkg_root / "src"
     src_dst = project_root / "src"
     if src_src.is_dir():
         logger.info("Overwriting src/ ...")
         await run_in_threadpool(_replace_directory, src_src, src_dst)
+        replaced.append("src")
 
     # 2. Copy frontend_dist/ (built frontend)
     fe_src = pkg_root / "frontend_dist"
@@ -203,6 +288,7 @@ async def upload_update(
     if fe_src.is_dir():
         logger.info("Overwriting frontend_dist/ ...")
         await run_in_threadpool(_replace_directory, fe_src, fe_dst)
+        replaced.append("frontend_dist")
 
     # 3. Copy requirements.txt
     req_src = pkg_root / "requirements.txt"
@@ -210,6 +296,7 @@ async def upload_update(
     if req_src.is_file():
         logger.info("Overwriting requirements.txt ...")
         shutil.copy2(str(req_src), str(req_dst))
+        replaced.append("requirements.txt")
 
     # 4. Copy scripts/ if present
     scripts_src = pkg_root / "scripts"
@@ -217,6 +304,7 @@ async def upload_update(
     if scripts_src.is_dir():
         logger.info("Overwriting scripts/ ...")
         await run_in_threadpool(_replace_directory, scripts_src, scripts_dst)
+        replaced.append("scripts")
 
     # ---- Install new dependencies ----
     if req_dst.exists():
@@ -229,8 +317,14 @@ async def upload_update(
         stdout, stderr = await pip_proc.communicate()
         if pip_proc.returncode != 0:
             logger.error(f"pip install failed:\n{stderr.decode()}")
+            # Roll back the replaced files: the old process is still running
+            # with the old code in memory, but a restart would load the new
+            # code against missing dependencies and crash-loop. Restoring
+            # the backup keeps the on-disk state consistent with the
+            # running process so a manual restart stays safe.
+            await run_in_threadpool(_rollback_backup, backup_dir, project_root, replaced)
             raise ValidationException(
-                f"依赖安装失败 (exit {pip_proc.returncode}): {stderr.decode()[:2000]}"
+                t("system.update_rolled_back", locale, error=stderr.decode()[:2000])
             )
         logger.info("Dependencies installed successfully")
 
@@ -286,6 +380,9 @@ async def upload_update(
             "backup_dir": str(backup_dir),
             "restart_mode": restart_info["mode"],
             "restart_log": restart_info.get("log"),
+            # The axios interceptor unwraps the envelope to data only, so the
+            # human-readable message must also live inside data for the UI.
+            "message": t("system.update_complete", locale),
         },
         msg=t("system.update_complete", locale),
     )

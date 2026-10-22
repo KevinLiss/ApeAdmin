@@ -113,11 +113,6 @@
     "systemSettings": "Settings"
   },
   "sidebar": {
-    "upgradeTitle": "AI Assistant",
-    "upgradeDesc": "AI takes over your system management",
-    "upgradeBtn": "Try Now"
-  },
-  "sidebar": {
     "upgradeTitle": "全能助手",
     "upgradeDesc": "告别传统，AI全面接管系统",
     "upgradeBtn": "前往体验"
@@ -142,7 +137,7 @@
     "runtimePython": "Python 版（FastAPI）",
     "dragFileHere": "拖拽部署包到此处，或",
     "clickToSelect": "点击选择",
-    "uploadTip": "仅支持 Python 版 .tar.gz 升级包（build_deploy_package.sh 生成），最大 200MB；插件包（含 plugin.json）请到「插件管理 → 导入插件」",
+    "uploadTip": "仅支持 Python 版 .tar.gz / .zip 升级包（build_deploy_package.sh 生成或官网下载的 ZIP），最大 200MB；插件包（含 plugin.json）请到「插件管理 → 导入插件」",
     "uploading": "上传中...",
     "startUpdate": "开始更新",
     "preparing": "准备上传...",
@@ -154,7 +149,7 @@
     "waitingRestartAttempt": "等待后端重启完成... ({attempt}/30)",
     "recovered": "后端已恢复，正在刷新页面...",
     "restartTimeout": "后端重启超时，请手动刷新页面",
-    "invalidFileFormat": "请选择 .tar.gz 格式的部署包",
+    "invalidFileFormat": "请选择 .tar.gz 或 .zip 格式的部署包",
     "fileTooLarge": "文件大小不能超过 200MB",
     "fileReplaced": "只能选择一个文件，已替换为新文件"
   },

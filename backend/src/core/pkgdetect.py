@@ -85,6 +85,38 @@ def detect_zip_kind(zip_path: Path) -> str:
     return "unknown"
 
 
+def detect_zip_upgrade_kind(zip_path: Path) -> str:
+    """Classify a .zip archive as ``upgrade`` / ``plugin`` / ``unknown``.
+
+    Deploy packages may be distributed as ZIP (ApeHub releases are ZIP-only),
+    so the system-update endpoint accepts them. This mirrors
+    ``detect_tar_gz_kind`` semantics: a top-level ``src/`` directory marks an
+    upgrade package; plugin manifests / Go binaries mark mismatches.
+    """
+    if not zip_path.exists() or not zipfile.is_zipfile(zip_path):
+        return "unknown"
+    try:
+        with zipfile.ZipFile(zip_path, "r") as zf:
+            names = zf.namelist()
+    except (zipfile.BadZipFile, OSError):
+        return "unknown"
+
+    has_src = any(
+        n == "src" or n.startswith("src/") or n.endswith("/src") or "/src/" in n
+        for n in names
+    )
+    has_plugin_json = any(n.rsplit("/", 1)[-1] == "plugin.json" for n in names)
+    has_go_binary = any(Path(n).suffix.lower() in _GO_ONLY_EXTS for n in names)
+
+    if has_src:
+        return "upgrade"
+    if has_plugin_json:
+        return "plugin"
+    if has_go_binary:
+        return "go-binary"
+    return "unknown"
+
+
 def detect_tar_gz_kind(tar_path: Path) -> str:
     """Classify a .tar.gz archive as ``upgrade`` / ``plugin`` / ``unknown``.
 
