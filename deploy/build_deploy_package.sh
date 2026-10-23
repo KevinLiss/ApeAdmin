@@ -105,6 +105,7 @@ mkdir -p "$STAGE_PKG/nginx"
 cp "$SCRIPT_DIR/nginx/apeadmin.conf" "$STAGE_PKG/nginx/"
 cp "$SCRIPT_DIR/scripts/manage.sh" "$STAGE_PKG/scripts/manage.sh"
 cp "$SCRIPT_DIR/scripts/deploy.sh" "$STAGE_PKG/scripts/deploy.sh" 2>/dev/null || true
+cp "$SCRIPT_DIR/scripts/backup.sh" "$STAGE_PKG/scripts/backup.sh" 2>/dev/null || true
 chmod +x "$STAGE_PKG/scripts/"*.sh
 cp "$SCRIPT_DIR/.env.example" "$STAGE_PKG/.env.example"
 cp "$SCRIPT_DIR/DEPLOY.md" "$STAGE_PKG/DEPLOY.md"
