@@ -34,6 +34,10 @@ def _make_fake_project(root: Path) -> None:
     (root / "src" / "core").mkdir(parents=True)
     (root / "src" / "main.py").write_text("old = 1\n")
     (root / "src" / "core" / "config.py").write_text("old = 1\n")
+    # An install-only plugin (imported after deployment, not part of the
+    # open-source package) — a version update must NOT wipe it.
+    (root / "src" / "plugins" / "builtin" / "myplug").mkdir(parents=True)
+    (root / "src" / "plugins" / "builtin" / "myplug" / "__init__.py").write_text("plugin = 1\n")
     (root / "frontend_dist").mkdir()
     (root / "frontend_dist" / "index.html").write_text("<html>old</html>")
     (root / "requirements.txt").write_text("fastapi==0.1.0\n")
@@ -165,6 +169,34 @@ def test_zip_deploy_accepted_and_applied(fake_env, monkeypatch):
     assert "zipmark" in (root / "src" / "main.py").read_text()
     assert "zipmark" in (root / "frontend_dist" / "index.html").read_text()
     assert "fastapi==9.9.9" in (root / "requirements.txt").read_text()
+
+    # Install-only plugin survived the full src/ replace.
+    assert (root / "src" / "plugins" / "builtin" / "myplug" / "__init__.py").read_text() == "plugin = 1\n"
+
+
+def test_install_only_plugin_survives_tar_update(fake_env, monkeypatch):
+    """Same guarantee for the traditional .tar.gz path."""
+
+    class _Proc:
+        returncode = 0
+
+        async def communicate(self):
+            return (b"", b"")
+
+    async def _fake_pip(*args, **kwargs):
+        return _Proc()
+
+    async def _fake_restart(project_root, python_bin):
+        return {"mode": "test", "log": None, "spawner_pid": 0}
+
+    monkeypatch.setattr(system_module.asyncio, "create_subprocess_exec", _fake_pip)
+    monkeypatch.setattr("src.core.runtime.spawn_restart", _fake_restart)
+
+    client, root = fake_env["client"], fake_env["root"]
+    resp = _upload(client, "apeadmin-base.tar.gz", _tar_deploy(root, "plugmark"))
+    assert resp.status_code == 200, resp.text
+    assert "plugmark" in (root / "src" / "main.py").read_text()
+    assert (root / "src" / "plugins" / "builtin" / "myplug" / "__init__.py").exists()
 
 
 def test_flat_zip_without_topdir_accepted(fake_env, monkeypatch):

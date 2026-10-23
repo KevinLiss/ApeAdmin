@@ -131,6 +131,28 @@ def _replace_directory(src: Path, dst: Path) -> None:
     shutil.copytree(str(src), str(dst))
 
 
+def _restore_install_only_plugins(backup_src: Path, new_src: Path) -> list[str]:
+    """Bring back built-in plugins that exist on this install only.
+
+    The deploy package ships the open-source baseline; plugins imported
+    afterwards (e.g. ``apehub_web`` with its site data) live only on the
+    install. After the full src/ replace, copy any plugin directory from
+    the pre-update backup that the package does not contain, so a
+    version update never destroys installed plugins.
+    """
+    restored: list[str] = []
+    backup_builtin = backup_src / "plugins" / "builtin"
+    new_builtin = new_src / "plugins" / "builtin"
+    if not backup_builtin.is_dir():
+        return restored
+    new_builtin.mkdir(parents=True, exist_ok=True)
+    for child in backup_builtin.iterdir():
+        if child.is_dir() and not (new_builtin / child.name).exists():
+            shutil.copytree(str(child), str(new_builtin / child.name))
+            restored.append(child.name)
+    return restored
+
+
 @router.get("/version")
 async def get_version(
     user: Annotated[User, Depends(require_permission("system:version:view"))],
@@ -281,6 +303,16 @@ async def upload_update(
         logger.info("Overwriting src/ ...")
         await run_in_threadpool(_replace_directory, src_src, src_dst)
         replaced.append("src")
+        # Deploy packages built from the open-source repo do NOT carry
+        # installed plugins (apehub_web, third-party L1 plugins, ...).
+        # A full src/ replace would wipe them and take down any site
+        # served by those plugins on restart. Restore install-only
+        # built-in plugins from the fresh backup.
+        restored = await run_in_threadpool(
+            _restore_install_only_plugins, backup_dir / "src", src_dst
+        )
+        if restored:
+            logger.info(f"Restored install-only plugins: {restored}")
 
     # 2. Copy frontend_dist/ (built frontend)
     fe_src = pkg_root / "frontend_dist"
