@@ -20,6 +20,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Annotated
 
+import httpx
 from fastapi import APIRouter, Depends, File, Request, UploadFile
 from loguru import logger
 from starlette.concurrency import run_in_threadpool
@@ -132,24 +133,38 @@ def _replace_directory(src: Path, dst: Path) -> None:
 
 
 def _restore_install_only_plugins(backup_src: Path, new_src: Path) -> list[str]:
-    """Bring back built-in plugins that exist on this install only.
+    """Bring back install-only runtime data the deploy package lacks.
 
-    The deploy package ships the open-source baseline; plugins imported
-    afterwards (e.g. ``apehub_web`` with its site data) live only on the
-    install. After the full src/ replace, copy any plugin directory from
-    the pre-update backup that the package does not contain, so a
-    version update never destroys installed plugins.
+    The deploy package ships the open-source baseline. Things that live
+    only on an installed instance inside ``src/``:
+    - plugins imported afterwards (``plugins/builtin/apehub_web``, L1
+      plugins) — losing them takes down any site they serve;
+    - ``uploads/`` — the plugin data home (ApeHub release packages,
+      marketplace files). ``PLUGINS_UPLOAD_DIR`` points inside ``src/``,
+      so a full src/ replace destroys user data.
+
+    Both are restored from the pre-update backup after the replace.
+    Returns names of restored entries (for the audit log).
     """
     restored: list[str] = []
+
+    # 1. Install-only built-in plugins.
     backup_builtin = backup_src / "plugins" / "builtin"
     new_builtin = new_src / "plugins" / "builtin"
-    if not backup_builtin.is_dir():
-        return restored
-    new_builtin.mkdir(parents=True, exist_ok=True)
-    for child in backup_builtin.iterdir():
-        if child.is_dir() and not (new_builtin / child.name).exists():
-            shutil.copytree(str(child), str(new_builtin / child.name))
-            restored.append(child.name)
+    if backup_builtin.is_dir():
+        new_builtin.mkdir(parents=True, exist_ok=True)
+        for child in backup_builtin.iterdir():
+            if child.is_dir() and not (new_builtin / child.name).exists():
+                shutil.copytree(str(child), str(new_builtin / child.name))
+                restored.append(f"plugins/builtin/{child.name}")
+
+    # 2. Plugin runtime data (src/uploads) — restore wholesale.
+    backup_uploads = backup_src / "uploads"
+    new_uploads = new_src / "uploads"
+    if backup_uploads.is_dir():
+        shutil.copytree(str(backup_uploads), str(new_uploads), dirs_exist_ok=True)
+        restored.append("uploads")
+
     return restored
 
 
@@ -173,6 +188,64 @@ async def get_version(
         # package built for the other stack is uploaded.
         "runtime": "python",
     })
+
+
+def _parse_semver(v: str) -> tuple[int, ...]:
+    """'2.5.0' -> (2, 5, 0); non-numeric segments are dropped."""
+    parts: list[int] = []
+    for seg in v.strip().lstrip("vV").split("."):
+        digits = "".join(ch for ch in seg if ch.isdigit())
+        if digits:
+            parts.append(int(digits))
+    return tuple(parts) or (0,)
+
+
+@router.get("/check-update")
+async def check_update(
+    user: Annotated[User, Depends(require_permission("system:version:view"))],
+):
+    """Compare the running version against ApeHub's latest Python release.
+
+    Talks to the public releases feed of the ApeHub instance configured in
+    ``APEHUB_BASE``. Never raises: a network failure degrades to
+    ``reachable=false`` so the UI can silently hide the update hint.
+    """
+    import httpx
+
+    current = settings.APP_VERSION
+    result: dict = {
+        "current_version": current,
+        "reachable": False,
+        "has_update": False,
+    }
+    try:
+        async with httpx.AsyncClient(timeout=6.0) as client:
+            resp = await client.get(
+                f"{settings.APEHUB_BASE.rstrip('/')}/api/v1/apehub-web/site/public/releases",
+                params={"framework": "python"},
+            )
+        body = resp.json()
+        items = (body.get("data") or {}).get("items") or []
+        if items:
+            latest = items[0]
+            latest_version = str(latest.get("version") or "")
+            result.update({
+                "reachable": True,
+                "latest_version": latest_version,
+                "release_id": latest.get("id"),
+                "title": latest.get("title"),
+                "changelog": latest.get("changelog"),
+                "published_at": latest.get("published_at"),
+                "download_url": (
+                    f"{settings.APEHUB_BASE.rstrip('/')}/api/v1/apehub-web/site/public/releases/{latest.get('id')}/download"
+                    if latest.get("id") is not None
+                    else None
+                ),
+                "has_update": _parse_semver(latest_version) > _parse_semver(current),
+            })
+    except Exception as exc:  # noqa: BLE001 — degrade silently
+        logger.warning(f"check-update failed (non-fatal): {exc}")
+    return success_response(data=result)
 
 
 def _rollback_backup(backup_dir: Path, project_root: Path, replaced: list[str]) -> None:
@@ -282,15 +355,24 @@ async def upload_update(
     backup_dir = project_root.parent / f"apeadmin_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
     logger.info(f"Backing up current code to {backup_dir}")
     # A full-tree copy is heavy disk IO; run it in a worker thread.
+    # Custom ignore: runtime data is only excluded at the deploy root
+    # (uploads/, .env, *.db). ``src/uploads`` is the plugin data home
+    # (release packages, marketplace files) and MUST be backed up — the
+    # post-update restore step relies on it.
+    def _backup_ignore(current: str, names) -> set:
+        skip = {n for n in names if n == "__pycache__" or n == ".git"
+                or n == "node_modules" or n.endswith(".pyc")}
+        if Path(current) == project_root:
+            skip.update(n for n in names if n == "uploads" or n == ".env"
+                        or n.endswith(".db"))
+        return skip
+
     await run_in_threadpool(
         shutil.copytree,
         str(project_root),
         str(backup_dir),
         dirs_exist_ok=True,
-        ignore=shutil.ignore_patterns(
-            "__pycache__", "*.pyc", ".git", "node_modules",
-            "uploads", ".env", "apeadmin.db", "*.db",
-        ),
+        ignore=_backup_ignore,
     )
 
     # ---- Overwrite code (track what was replaced for rollback) ----

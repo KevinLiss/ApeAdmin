@@ -7,6 +7,7 @@ from src.models.plugin import Plugin
 from src.models.mcp import McpAuditLog
 from src.models.mcp_tool import McpToolRegistration
 from src.models.log import SysLog
+from src.models.token_blacklist import TokenBlacklist
 from src.models.file import FileFolder, SystemFile
 from src.models.setting import Setting
 
@@ -27,6 +28,7 @@ __all__ = [
     "McpAuditLog",
     "McpToolRegistration",
     "SysLog",
+    "TokenBlacklist",
     "FileFolder",
     "SystemFile",
     "Setting",

@@ -11,6 +11,28 @@
   >
     <!-- Current version info -->
     <div v-loading="loading" class="version-info">
+      <!-- Update-available banner -->
+      <el-alert
+        v-if="updateInfo?.has_update"
+        type="warning"
+        :closable="false"
+        show-icon
+        class="update-banner"
+      >
+        <template #title>
+          <span>{{ t('common.versionUpdate.availableBanner', { version: updateInfo.latest_version }) }}</span>
+          <el-button
+            type="primary"
+            size="small"
+            :loading="downloading"
+            :disabled="uploading"
+            class="one-click-btn"
+            @click="handleOneClickUpdate"
+          >
+            {{ downloading ? t('common.versionUpdate.downloading') : t('common.versionUpdate.oneClickUpdate') }}
+          </el-button>
+        </template>
+      </el-alert>
       <div class="version-row">
         <span class="version-label">{{ t('common.versionUpdate.currentVersion') }}</span>
         <span class="version-value">{{ versionData?.current_version || '--' }}</span>
@@ -100,7 +122,7 @@ import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import type { UploadFile, UploadFiles, UploadRawFile } from 'element-plus'
-import { getSystemVersion, uploadSystemUpdate } from '@/api'
+import { getSystemVersion, checkSystemUpdate, uploadSystemUpdate } from '@/api'
 import { pollBackendHealth } from '@/utils/restart'
 
 const props = defineProps<{
@@ -146,6 +168,42 @@ async function fetchVersion() {
     console.error('Failed to fetch version:', err)
   } finally {
     loading.value = false
+  }
+  // Probe ApeHub for a newer release (best-effort, never blocks the dialog)
+  try {
+    const probe: any = await checkSystemUpdate()
+    if (probe?.reachable) updateInfo.value = probe
+  } catch {
+    /* offline / older backend — hide the banner */
+  }
+}
+
+// ---- One-click update: download the official ZIP, then reuse the upload flow ----
+const updateInfo = ref<any>(null)
+const downloading = ref(false)
+
+async function handleOneClickUpdate() {
+  const url = updateInfo.value?.download_url
+  if (!url) return
+  downloading.value = true
+  try {
+    const resp = await fetch(url, { credentials: 'omit' })
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+    const blob = await resp.blob()
+    const file = new File([blob], `apeadmin-base-${updateInfo.value.latest_version}.zip`, {
+      type: 'application/zip',
+    })
+    if (file.size > 200 * 1024 * 1024) {
+      errorMsg.value = t('common.versionUpdate.fileTooLarge')
+      return
+    }
+    selectedFile.value = file
+    errorMsg.value = ''
+    await handleUpload()
+  } catch (err: any) {
+    errorMsg.value = err?.message || t('common.versionUpdate.downloadFailed')
+  } finally {
+    downloading.value = false
   }
 }
 
@@ -335,6 +393,20 @@ watch(() => props.modelValue, (val) => {
 .upload-error,
 .upload-success {
   margin-top: 12px;
+}
+
+.update-banner {
+  margin-bottom: 12px;
+}
+
+.update-banner :deep(.el-alert__title) {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.one-click-btn {
+  flex-shrink: 0;
 }
 
 .dialog-footer {

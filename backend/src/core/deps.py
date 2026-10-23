@@ -39,6 +39,22 @@ async def get_current_user(
     if not payload or payload.get("type") != "access":
         raise AuthException("Invalid or expired token")
 
+    # Logout revocation: reject tokens whose jti was blacklisted.
+    # Pre-feature tokens carry no jti and age out naturally.
+    jti = payload.get("jti")
+    if jti:
+        from sqlalchemy import select
+
+        from src.models import TokenBlacklist
+
+        blacklisted = (
+            await db.execute(
+                select(TokenBlacklist.id).where(TokenBlacklist.jti == jti).limit(1)
+            )
+        ).scalar()
+        if blacklisted:
+            raise AuthException("Token has been revoked")
+
     user_id = payload.get("sub")
     if not user_id:
         raise AuthException("Invalid token payload")

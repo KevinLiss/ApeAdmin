@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config import settings
 from src.core.i18n import t, get_locale
+from src.core import auth_guard
 from src.core.deps import (
     get_current_user,
     get_user_menu_tree,
@@ -52,17 +53,35 @@ async def login(
     request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
-    """User login — returns JWT access + refresh tokens."""
+    """User login — returns JWT access + refresh tokens.
+
+    Brute-force guard: after {MAX_FAILURES} consecutive failures for the
+    same (username, IP) pair the pair is locked for {LOCK_SECONDS}s.
+    """
     locale = get_locale(request)
+    client_ip = request.client.host if request.client else "unknown"
+
+    lock = auth_guard.check_lock(body.username, client_ip)
+    if lock.locked:
+        raise AuthException(
+            t("auth.too_many_attempts", locale, minutes=max(1, lock.retry_after // 60 + 1))
+        )
+
     from src.plugins import plugin_manager
     await plugin_manager.before_login(body.model_dump())
     user = await crud_user.authenticate(db, body.username, body.password)
     if not user:
+        result = auth_guard.record_failure(body.username, client_ip)
+        if result.locked:
+            raise AuthException(
+                t("auth.too_many_attempts", locale, minutes=max(1, result.retry_after // 60 + 1))
+            )
         raise AuthException(t("auth.login_failed", locale))
+
+    auth_guard.record_success(body.username, client_ip)
 
     # Update last login info
     from sqlalchemy import update
-    client_ip = request.client.host if request.client else "unknown"
     stmt = (
         update(User)
         .where(User.id == user.id)
@@ -94,6 +113,21 @@ async def refresh_token(
     if not payload or payload.get("type") != "refresh":
         raise AuthException(t("auth.invalid_refresh_token"))
 
+    # Honor logout revocation for refresh tokens too.
+    from sqlalchemy import select
+
+    from src.models import TokenBlacklist
+
+    jti = payload.get("jti")
+    if jti:
+        blacklisted = (
+            await db.execute(
+                select(TokenBlacklist.id).where(TokenBlacklist.jti == jti).limit(1)
+            )
+        ).scalar()
+        if blacklisted:
+            raise AuthException(t("auth.token_revoked"))
+
     user_id = payload.get("sub")
     user = await crud_user.get(db, int(user_id))
     if not user or user.status != 1:
@@ -105,9 +139,36 @@ async def refresh_token(
 
 @router.post("/logout")
 async def logout(
+    request: Request,
     user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
 ):
-    """Logout — stateless JWT, client just discards the token."""
+    """Logout — blacklist the presented access token until its natural expiry."""
+    auth_header = request.headers.get("Authorization", "")
+    token = auth_header[7:] if auth_header.startswith("Bearer ") else ""
+    payload = decode_token(token) if token else None
+    jti = (payload or {}).get("jti")
+    exp = (payload or {}).get("exp")
+    if jti and exp:
+        from sqlalchemy import delete
+
+        from src.models import TokenBlacklist
+
+        db.add(
+            TokenBlacklist(
+                jti=jti,
+                user_id=user.id,
+                token_type=payload["type"],
+                expires_at=datetime.fromtimestamp(exp, tz=timezone.utc),
+            )
+        )
+        # Opportunistic cleanup: drop entries whose tokens already expired.
+        await db.execute(
+            delete(TokenBlacklist).where(
+                TokenBlacklist.expires_at < datetime.now(timezone.utc)
+            )
+        )
+        await db.commit()
     return success_response(msg=t("auth.logout_success"))
 
 

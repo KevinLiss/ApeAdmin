@@ -1,6 +1,7 @@
 """AI chat routes: non-stream and SSE streaming with tool execution."""
 
 import json
+import time
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
@@ -8,6 +9,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.ai.agent import chat_non_stream, chat_stream
+from src.core.config import settings
 from src.core.deps import get_current_user
 from src.core.exceptions import AppException, success_response
 from src.core.i18n import t, get_locale
@@ -17,6 +19,29 @@ from src.models import User
 from src.schemas.ai import ChatRequest, ChatStreamRequest
 
 router = APIRouter(prefix="/ai/chat", tags=["AI 全能助手"])
+
+
+# ---------------------------------------------------------------- quota
+# Per-user daily call cap for LLM endpoints. In-memory on purpose: the
+# admin panel is single-worker, and a restart resetting counters is an
+# acceptable trade-off for zero-schema overhead. Stops runaway API
+# spend (loop / curious user), not adversarial bypass.
+_daily_usage: dict[int, dict[str, int]] = {}  # user_id -> {"date": YYYYMMDD, "count": n}
+
+
+def _check_chat_quota(user: User) -> None:
+    """Raise a 429 AppException once the per-user daily quota is exhausted."""
+    limit = settings.AI_DAILY_LIMIT
+    if limit <= 0:  # 0 / negative disables the cap
+        return
+    today = time.strftime("%Y%m%d")
+    entry = _daily_usage.setdefault(user.id, {})
+    if entry.get("date") != today:
+        entry.clear()
+        entry["date"] = today
+    if entry.get("count", 0) >= limit:
+        raise AppException(t("chat.daily_limit_reached", limit=limit), code=429)
+    entry["count"] = entry.get("count", 0) + 1
 
 
 async def _get_provider(db: AsyncSession, provider_id: int | None):
@@ -42,6 +67,7 @@ async def chat(
     user: Annotated[User, Depends(get_current_user)],
 ):
     """Non-streaming chat endpoint."""
+    _check_chat_quota(user)
     provider = await _get_provider(db, body.provider_id)
     messages = [{"role": m.role, "content": m.content} for m in body.messages]
 
@@ -64,6 +90,7 @@ async def chat_stream_endpoint(
     user: Annotated[User, Depends(get_current_user)],
 ):
     """Streaming chat endpoint (SSE)."""
+    _check_chat_quota(user)
     provider = await _get_provider(db, body.provider_id)
     messages = [{"role": m.role, "content": m.content} for m in body.messages]
 

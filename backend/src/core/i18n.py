@@ -12,6 +12,8 @@ from fastapi import Request
 _ZH = {
     # auth
     "auth.login_failed": "用户名或密码错误",
+    "auth.too_many_attempts": "登录失败次数过多，已临时锁定，请约 {minutes} 分钟后重试",
+    "auth.token_revoked": "登录状态已失效，请重新登录",
     "auth.login_success": "登录成功",
     "auth.logout_success": "已退出登录",
     "auth.profile_no_change": "无修改内容",
@@ -122,6 +124,7 @@ _ZH = {
 
     # chat
     "chat.provider_not_found": "指定的模型供应商不存在",
+    "chat.daily_limit_reached": "今日 AI 调用次数已达上限（{limit} 次/天），请明日再试或联系管理员调整配额",
     "chat.provider_disabled": "该模型供应商已被禁用",
     "chat.no_provider_configured": "未配置任何可用的模型供应商，请先在「模型密钥管理」中添加",
 
@@ -179,6 +182,8 @@ _ZH = {
 _EN = {
     # auth
     "auth.login_failed": "Invalid username or password",
+    "auth.too_many_attempts": "Too many failed attempts; temporarily locked, retry in ~{minutes} minutes",
+    "auth.token_revoked": "Session expired or revoked, please sign in again",
     "auth.login_success": "Login successful",
     "auth.logout_success": "Signed out",
     "auth.profile_no_change": "No changes to save",
@@ -289,6 +294,7 @@ _EN = {
 
     # chat
     "chat.provider_not_found": "The specified model provider does not exist",
+    "chat.daily_limit_reached": "Daily AI usage limit reached ({limit}/day). Try again tomorrow or ask the admin to raise the quota",
     "chat.provider_disabled": "The model provider has been disabled",
     "chat.no_provider_configured": "No model provider configured, please add one in Model Providers first",
 

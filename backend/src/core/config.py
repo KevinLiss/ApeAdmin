@@ -20,7 +20,7 @@ class Settings(BaseSettings):
 
     # ---- App ----
     APP_NAME: str = "ApeAdmin"
-    APP_VERSION: str = "2.4.2"
+    APP_VERSION: str = "2.5.0"
     DEBUG: bool = True
     API_PREFIX: str = "/api/v1"
 
@@ -43,6 +43,13 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRE_MINUTES: int = 1440  # 24 hours
     JWT_REFRESH_EXPIRE_DAYS: int = 7
+
+    # ---- AI usage ----
+    # Per-user daily LLM call cap; 0 disables the cap.
+    AI_DAILY_LIMIT: int = 200
+
+    # ---- ApeHub (update feed) ----
+    APEHUB_BASE: str = "https://apehub.finecv.cn"
 
     # ---- CORS ----
     CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:8000"]

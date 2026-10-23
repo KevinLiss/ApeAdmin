@@ -178,9 +178,10 @@ async def install(req: InstallRequest):
         return error_response(msg=f"建表失败: {exc}", code=500)
 
     # 4. lock & report (seed will run on next restart with fresh JWT_SECRET)
+    # The password is echoed to the installer's own browser response only —
+    # never persisted (a previous version leaked it into setup.lock).
     result = {
         "admin_username": req.admin_username,
-        "admin_password": req.admin_password,
         "admin_path": admin_path,
         "site_url": site_url,
         "site_name": req.site_name,
@@ -192,6 +193,7 @@ async def install(req: InstallRequest):
         "installed": True,
         "restart_required": True,
         **result,
+        "admin_password": req.admin_password,
         "message": "安装完成，请重启后端服务（重启时自动初始化账号与基础数据）",
     })
 

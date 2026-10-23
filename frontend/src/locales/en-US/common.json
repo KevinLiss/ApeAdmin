@@ -151,7 +151,12 @@
     "restartTimeout": "Backend restart timed out, please refresh the page manually",
     "invalidFileFormat": "Please select a .tar.gz or .zip deploy package",
     "fileTooLarge": "File size cannot exceed 200MB",
-    "fileReplaced": "Only one file can be selected; replaced with the new file"
+    "fileReplaced": "Only one file can be selected; replaced with the new file",
+    "availablePrefix": "New version",
+    "availableBanner": "New version v{version} available — download the official package and update in one click",
+    "oneClickUpdate": "Download & Update",
+    "downloading": "Downloading package…",
+    "downloadFailed": "Download failed; check your network or upload manually"
   },
   "validation": {
     "required": "Please enter {name}",

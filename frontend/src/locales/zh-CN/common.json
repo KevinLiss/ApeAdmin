@@ -151,7 +151,12 @@
     "restartTimeout": "后端重启超时，请手动刷新页面",
     "invalidFileFormat": "请选择 .tar.gz 或 .zip 格式的部署包",
     "fileTooLarge": "文件大小不能超过 200MB",
-    "fileReplaced": "只能选择一个文件，已替换为新文件"
+    "fileReplaced": "只能选择一个文件，已替换为新文件",
+    "availablePrefix": "有新版本",
+    "availableBanner": "检测到新版本 v{version}，可一键下载官方安装包并更新",
+    "oneClickUpdate": "一键下载并更新",
+    "downloading": "下载安装包中…",
+    "downloadFailed": "下载安装包失败，请检查网络后重试，或手动上传"
   },
   "validation": {
     "required": "请填写{name}",

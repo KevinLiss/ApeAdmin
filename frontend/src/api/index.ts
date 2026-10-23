@@ -136,6 +136,7 @@ export const updateSetting = (key: string, value: string) => request.put(`/setti
 
 // ---- 系统版本与更新 ----
 export const getSystemVersion = () => request.get('/system/version')
+export const checkSystemUpdate = () => request.get('/system/check-update')
 export const uploadSystemUpdate = (file: File, onProgress?: (percent: number) => void) => {
   const formData = new FormData()
   formData.append('file', file)

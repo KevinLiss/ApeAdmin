@@ -65,8 +65,9 @@
           </li>
 
           <!-- Version update (replaces bookmark) -->
-          <li v-if="canViewVersion && (!isMobile || windowWidth > 575)" class="icon-item version-update-btn" @click="versionUpdateVisible = true">
+          <li v-if="canViewVersion && (!isMobile || windowWidth > 575)" class="icon-item version-update-btn" :class="{ 'has-update': hasNewVersion }" :title="hasNewVersion ? `${t('common.versionUpdate.availablePrefix')} v${latestVersionLabel}` : ''" @click="versionUpdateVisible = true">
             <el-icon :size="18"><RefreshRight /></el-icon>
+            <span v-if="hasNewVersion" class="update-dot"></span>
           </li>
 
           <!-- Notifications -->
@@ -159,6 +160,27 @@ const versionUpdateVisible = ref(false)
 // Only show the entry when the user actually holds the view permission;
 // otherwise non-privileged users got a dialog full of `--` (403 silently).
 const canViewVersion = computed(() => userStore.hasPermission('system:version:view'))
+// Update-available dot: one silent probe per mount (fails silently).
+const hasNewVersion = ref(false)
+const latestVersionLabel = ref('')
+
+async function probeUpdate() {
+  if (!canViewVersion.value) return
+  try {
+    const { checkSystemUpdate } = await import('@/api')
+    const res: any = await checkSystemUpdate()
+    if (res?.reachable && res?.has_update) {
+      hasNewVersion.value = true
+      latestVersionLabel.value = res.latest_version || ''
+    }
+  } catch {
+    /* offline / older backend — keep silent */
+  }
+}
+
+onMounted(() => {
+  if (canViewVersion.value) probeUpdate()
+})
 const notifVisible = ref(false)
 const msgVisible = ref(false)
 const profileVisible = ref(false)
@@ -489,8 +511,19 @@ async function handleLogout() {
   font-size: 11px;
   font-weight: 600;
   line-height: 17px;
-  text-align: center;
-  padding: 0 4px;
+  text-align: center;  padding: 0 4px;
+}
+
+/* Update-available dot on the version button */
+.update-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f56c6c;
+  box-shadow: 0 0 0 2px rgba(245, 108, 108, 0.25);
 }
 
 /* Dropdown panels */

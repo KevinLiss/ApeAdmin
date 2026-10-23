@@ -1,5 +1,6 @@
 """Security utilities: password hashing and JWT token operations."""
 
+import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -25,12 +26,13 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 
 def create_access_token(subject: str | int, extra: dict[str, Any] | None = None) -> str:
-    """Create a short-lived JWT access token."""
+    """Create a short-lived JWT access token (with revocable jti)."""
     expire = datetime.now(timezone.utc) + timedelta(minutes=settings.JWT_EXPIRE_MINUTES)
     payload: dict[str, Any] = {
         "sub": str(subject),
         "exp": expire,
         "type": "access",
+        "jti": uuid.uuid4().hex,
     }
     if extra:
         payload.update(extra)
@@ -38,12 +40,13 @@ def create_access_token(subject: str | int, extra: dict[str, Any] | None = None)
 
 
 def create_refresh_token(subject: str | int) -> str:
-    """Create a long-lived JWT refresh token."""
+    """Create a long-lived JWT refresh token (with revocable jti)."""
     expire = datetime.now(timezone.utc) + timedelta(days=settings.JWT_REFRESH_EXPIRE_DAYS)
     payload = {
         "sub": str(subject),
         "exp": expire,
         "type": "refresh",
+        "jti": uuid.uuid4().hex,
     }
     return jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
 
