@@ -38,6 +38,14 @@ def _make_fake_project(root: Path) -> None:
     # open-source package) — a version update must NOT wipe it.
     (root / "src" / "plugins" / "builtin" / "myplug").mkdir(parents=True)
     (root / "src" / "plugins" / "builtin" / "myplug" / "__init__.py").write_text("plugin = 1\n")
+    # Plugin runtime data lives inside src/ (PLUGINS_UPLOAD_DIR points at
+    # src/uploads/plugins) — release packages etc. must survive updates.
+    (root / "src" / "uploads" / "apehub_web" / "release-packages").mkdir(parents=True)
+    (root / "src" / "uploads" / "apehub_web" / "release-packages" / "a.zip").write_text("PKGDATA")
+    # Root-level uploads is the app's own upload dir (excluded from backup
+    # but never touched by the src/ replace anyway).
+    (root / "uploads").mkdir()
+    (root / "uploads" / "avatar.png").write_text("IMG")
     (root / "frontend_dist").mkdir()
     (root / "frontend_dist" / "index.html").write_text("<html>old</html>")
     (root / "requirements.txt").write_text("fastapi==0.1.0\n")
@@ -172,6 +180,10 @@ def test_zip_deploy_accepted_and_applied(fake_env, monkeypatch):
 
     # Install-only plugin survived the full src/ replace.
     assert (root / "src" / "plugins" / "builtin" / "myplug" / "__init__.py").read_text() == "plugin = 1\n"
+    # Plugin runtime data (src/uploads) survived too.
+    assert (root / "src" / "uploads" / "apehub_web" / "release-packages" / "a.zip").read_text() == "PKGDATA"
+    # Root-level uploads untouched.
+    assert (root / "uploads" / "avatar.png").read_text() == "IMG"
 
 
 def test_install_only_plugin_survives_tar_update(fake_env, monkeypatch):
@@ -197,6 +209,7 @@ def test_install_only_plugin_survives_tar_update(fake_env, monkeypatch):
     assert resp.status_code == 200, resp.text
     assert "plugmark" in (root / "src" / "main.py").read_text()
     assert (root / "src" / "plugins" / "builtin" / "myplug" / "__init__.py").exists()
+    assert (root / "src" / "uploads" / "apehub_web" / "release-packages" / "a.zip").read_text() == "PKGDATA"
 
 
 def test_flat_zip_without_topdir_accepted(fake_env, monkeypatch):
