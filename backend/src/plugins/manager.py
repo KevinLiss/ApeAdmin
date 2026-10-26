@@ -552,21 +552,63 @@ class PluginManager:
         zip_path: str | Path,
         app: FastAPI,
         db: "AsyncSession | None" = None,
+        allow_downgrade: bool = False,
     ) -> dict[str, Any]:
-        """Import, install and activate a plugin package at runtime."""
+        """Import, install and activate a plugin package at runtime.
+
+        Supports in-place upgrades: when the plugin is already installed
+        (even active), the old code is swapped underneath it — runtime
+        resources are unregistered first, the new package is installed
+        and re-registered, and menus re-enabled. A failure at any point
+        restores the previous files and, best-effort, the previous
+        runtime registration.
+
+        Downgrades are rejected unless ``allow_downgrade`` is set.
+        The previous version's files are kept under
+        ``src/plugins/_backups/<name>/`` (latest 2) so an operator can
+        roll back manually.
+        """
         zip_path = Path(zip_path)
         manifest = self._validate_plugin_zip(zip_path)
         name = manifest["name"]
+        new_version = str(manifest.get("version", "1.0.0"))
+
         async with self._operation_lock, self._plugin_lock(name):
-            old = self._plugins.get(name)
-            if old and old.runtime_state == "active":
-                raise ValueError(f"插件 '{name}' 已启用，请先禁用后升级")
+            old_info = self._plugins.get(name)
+            was_active = bool(old_info and old_info.runtime_state == "active")
+            from_version = old_info.version if old_info else None
+
+            # ---- Downgrade guard (re-installing the same version is OK) ----
+            if (
+                from_version
+                and not allow_downgrade
+                and self._version_tuple(new_version) < self._version_tuple(from_version)
+            ):
+                raise ValueError(
+                    f"插件 '{name}' 待安装版本 {new_version} 低于当前版本 {from_version}，"
+                    "已拒绝降级安装。如确需回退，请使用插件管理页的备份回滚或传 allow_downgrade=true。"
+                )
+
+            # ---- Dependency check against the NEW manifest ----
             self._check_dependencies(name, manifest.get("dependencies", []))
+
+            # ---- Unload the running instance first (if any) ----
+            if was_active and old_info is not None:
+                try:
+                    old_info.instance.on_unload()
+                except Exception as exc:
+                    logger.warning(f"Plugin '{name}' on_unload raised during upgrade: {exc}")
+                self._unregister_resources(name, app)
+                old_info.runtime_state = "inactive"
+                logger.info(f"Plugin '{name}' v{from_version} unloaded for upgrade -> v{new_version}")
+
+            # ---- Keep the previous version for rollback ----
             backup_root: Path | None = None
             existing_dir = self._builtin_dir.resolve() / name
             if existing_dir.exists():
                 backup_root = Path(tempfile.mkdtemp(prefix="apeadmin-plugin-backup-", dir=str(self._builtin_dir.resolve().parent)))
                 shutil.move(str(existing_dir), str(backup_root / name))
+
             try:
                 manifest = self.import_plugin(zip_path)
                 self._cleanup_module_cache(f"src.plugins.builtin.{name}")
@@ -580,7 +622,23 @@ class PluginManager:
                     shutil.move(str(backup_root / name), str(target_dir))
                 if backup_root:
                     shutil.rmtree(backup_root, ignore_errors=True)
+                # Restore the previously active registration (best effort).
+                if was_active and old_info is not None and old_info.instance is not None:
+                    try:
+                        self._register_runtime(name, old_info, app)
+                        old_info.runtime_state = "active"
+                    except Exception as re_exc:
+                        logger.error(f"Plugin '{name}' rollback re-registration failed: {re_exc}")
                 raise
+
+            # ---- Persist the pre-upgrade files for manual rollback ----
+            keep_dir: Path | None = None
+            if backup_root:
+                try:
+                    keep_dir = self._stash_version_backup(name, from_version or "unknown", backup_root / name)
+                except Exception as exc:
+                    logger.warning(f"Plugin '{name}' version backup stash failed: {exc}")
+
             try:
                 info.instance.on_load()
                 await info.instance.install()
@@ -590,27 +648,57 @@ class PluginManager:
                 info.enabled = True
                 info.runtime_state = "active"
                 await self._persist_enabled(name, True, db)
+                menus_enabled = await self._set_plugin_menus_enabled(name, True, db)
                 if backup_root:
                     shutil.rmtree(backup_root, ignore_errors=True)
-                return {
+                result = {
                     "name": name,
                     "display_name": info.display_name,
                     "description": info.description,
                     "version": info.version,
                     "author": info.author,
                     "status": "active",
+                    "menus_enabled": menus_enabled,
                     **resources,
                 }
+                if from_version is not None and new_version != from_version:
+                    # A genuine version transition (re-installing the same
+                    # version is a repair, not an upgrade).
+                    result["upgraded"] = True
+                    result["from_version"] = from_version
+                    if keep_dir:
+                        result["rollback_backup"] = str(keep_dir)
+                return result
             except Exception as exc:
                 self._unregister_resources(name, app)
                 self._cleanup_module_cache(info.module_path)
                 self.remove_plugin_files(name)
+                # Restore the pre-upgrade files. After a successful stash
+                # they live in keep_dir (version archive), otherwise in
+                # backup_root (temp dir).
+                restored_from: Path | None = None
                 if backup_root and (backup_root / name).exists():
-                    shutil.move(str(backup_root / name), str(self._builtin_dir.resolve() / name))
+                    restored_from = backup_root / name
+                elif keep_dir and keep_dir.exists():
+                    restored_from = keep_dir
+                if restored_from is not None:
+                    shutil.move(str(restored_from), str(self._builtin_dir.resolve() / name))
                 if backup_root:
                     shutil.rmtree(backup_root, ignore_errors=True)
-                if old:
-                    self._plugins[name] = old
+                # Restore the previous in-memory info (old instance object).
+                if old_info is not None:
+                    self._plugins[name] = old_info
+                    # Best-effort: bring the OLD version back online if it
+                    # was active before the upgrade attempt.
+                    if was_active and old_info.instance is not None:
+                        try:
+                            self._register_runtime(name, old_info, app)
+                            old_info.runtime_state = "active"
+                            logger.info(f"Plugin '{name}' rolled back to v{from_version} and re-registered")
+                        except Exception as re_exc:
+                            logger.error(f"Plugin '{name}' rollback re-registration failed: {re_exc}")
+                            old_info.runtime_state = "failed"
+                            old_info.last_error = str(re_exc)
                 else:
                     self._plugins.pop(name, None)
                 version = manifest.get("version", "未知版本")
@@ -620,6 +708,22 @@ class PluginManager:
                     "插件文件和本次运行时注册已回滚；已提交的数据库迁移不会自动删除，以保护既有数据。"
                     "请检查插件依赖、迁移脚本和后端日志后重试。"
                 ) from exc
+
+    def _stash_version_backup(self, name: str, version: str, source_dir: Path) -> Path:
+        """Keep the pre-upgrade plugin files for manual rollback (latest 2 per plugin)."""
+        import time
+
+        backups_root = self._builtin_dir.resolve().parent / "_backups" / name
+        backups_root.mkdir(parents=True, exist_ok=True)
+        safe_version = re.sub(r"[^A-Za-z0-9._-]", "_", version)
+        dest = backups_root / f"{safe_version}-{time.strftime('%Y%m%d-%H%M%S')}"
+        shutil.move(str(source_dir), str(dest))
+        # Retention: keep the newest 2 versions per plugin.
+        entries = sorted(p for p in backups_root.iterdir() if p.is_dir())
+        for stale in entries[:-2]:
+            shutil.rmtree(str(stale), ignore_errors=True)
+        logger.info(f"Plugin '{name}' v{version} archived to {dest}")
+        return dest
 
     async def uninstall_plugin(
         self,

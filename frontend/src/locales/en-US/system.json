@@ -214,7 +214,8 @@
     "backendRecoveredRefreshing": "Backend recovered, refreshing...",
     "recoveryTimeout": "Backend did not recover within 60 seconds, please check backend logs",
     "deleteTitle": "Delete Confirmation",
-    "confirmDelete": "Confirm Delete"
+    "confirmDelete": "Confirm Delete",
+    "upgradeSuccess": "Plugin {name} upgraded from v{old} to v{new}; config and data preserved"
   },
   "file": {
     "title": "File Management",

@@ -214,7 +214,8 @@
     "backendRecoveredRefreshing": "后端已恢复，正在刷新...",
     "recoveryTimeout": "后端在 60 秒内未恢复，请检查后端日志",
     "deleteTitle": "删除确认",
-    "confirmDelete": "确认删除"
+    "confirmDelete": "确认删除",
+    "upgradeSuccess": "插件 {name} 已从 v{old} 升级到 v{new}，配置与数据已保留"
   },
   "file": {
     "title": "文件管理",

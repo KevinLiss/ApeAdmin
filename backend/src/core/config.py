@@ -20,7 +20,7 @@ class Settings(BaseSettings):
 
     # ---- App ----
     APP_NAME: str = "ApeAdmin"
-    APP_VERSION: str = "2.5.0"
+    APP_VERSION: str = "2.5.1"
     DEBUG: bool = True
     API_PREFIX: str = "/api/v1"
 

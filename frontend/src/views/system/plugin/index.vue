@@ -395,7 +395,14 @@ async function handleUpload() {
   try {
     const data: any = await uploadPlugin(uploadingFile.value)
     if (data?.refresh) await refreshRuntimeMenus()
-    ElMessage.success(t('system.plugin.installSuccess'))
+    // Upgrade shows the version transition; fresh install keeps the plain message.
+    if (data?.upgraded && data?.from_version) {
+      ElMessage.success(
+        t('system.plugin.upgradeSuccess', { name: data.display_name || data.name, old: data.from_version, new: data.version })
+      )
+    } else {
+      ElMessage.success(t('system.plugin.installSuccess'))
+    }
     uploadVisible.value = false
     uploadingFile.value = null
     fetchData()

@@ -180,6 +180,7 @@ async def upload_plugin(
     request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[User, Depends(require_permission("system:plugin:upload"))],
+    allow_downgrade: bool = Query(False, description="允许安装低于当前版本的插件包（回退场景）"),
     file: UploadFile = File(..., description="插件包 .zip 文件"),
 ):
     """Upload and install a plugin .zip package.
@@ -187,6 +188,11 @@ async def upload_plugin(
     The zip is validated, extracted into the builtin plugins directory,
     and the plugin metadata is upserted into the database.
     The plugin is installed and activated without restarting the backend.
+
+    In-place upgrade: if the plugin already exists (even enabled), the
+    old version is swapped for the new one — runtime re-registered,
+    migrations applied, menus re-enabled; config is preserved. On any
+    failure the previous version's files and runtime state are restored.
     """
     locale = get_locale(request)
     # Validate file extension
@@ -216,7 +222,9 @@ async def upload_plugin(
 
     started = time.perf_counter()
     try:
-        result = await plugin_manager.install_plugin_from_zip(tmp_path, request.app)
+        result = await plugin_manager.install_plugin_from_zip(
+            tmp_path, request.app, allow_downgrade=allow_downgrade
+        )
     except Exception as exc:
         # Clean up temp file on failure
         tmp_path.unlink(missing_ok=True)
@@ -228,6 +236,8 @@ async def upload_plugin(
         ) from exc
 
     # Upsert metadata only after runtime installation succeeds.
+    # crud_plugin.upsert keeps the existing config column intact, so an
+    # upgrade preserves the operator's settings.
     plugin_name = result["name"]
     record = await crud_plugin.upsert(db, plugin_name, {
         "display_name": result.get("display_name", plugin_name),
@@ -241,15 +251,29 @@ async def upload_plugin(
     await db.refresh(record)
     await _write_plugin_audit(db, user, "install", plugin_name, started, result=result)
 
+    upgraded = bool(result.get("upgraded"))
+    if upgraded:
+        message = t(
+            "plugin.upgraded", locale,
+            name=result.get("display_name", plugin_name),
+            old=result.get("from_version", ""),
+            new=result.get("version", ""),
+        )
+    else:
+        message = t("plugin.installed", locale)
+
     return success_response(data={
         "id": record.id,
         "name": record.name,
         "display_name": record.display_name,
         "version": record.version,
         "enabled": record.enabled,
-        **{k: v for k, v in result.items() if k not in {"name", "display_name", "version"}},
+        "upgraded": upgraded,
+        "from_version": result.get("from_version"),
+        **{k: v for k, v in result.items()
+           if k not in {"name", "display_name", "version", "upgraded", "from_version"}},
         "refresh": True,
-    }, msg=t("plugin.installed", locale))
+    }, msg=message)
 
 
 @router.post("/restart")
