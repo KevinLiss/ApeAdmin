@@ -49,48 +49,14 @@
 
     <!-- 主聊天区 -->
     <div class="chat-main">
-      <!-- 顶部工具栏 -->
-      <div class="chat-header">
-        <div class="chat-header-left">
-          <button v-if="isMobile" class="icon-btn" @click="sessionDrawerOpen = true">
-            <el-icon :size="18"><Menu /></el-icon>
-          </button>
-          <span class="chat-title">AI 全能助手</span>
-          <span v-if="workingSessionCount > 0" class="running-badge">
-            <span class="running-dot"></span>{{ workingSessionCount }} 个生成中
-          </span>
-        </div>
-        <div class="chat-header-right">
-          <el-select
-            v-model="selectedProviderId"
-            placeholder="供应商"
-            class="provider-select"
-            size="default"
-            @change="onProviderChange"
-          >
-            <el-option
-              v-for="p in providers"
-              :key="p.id"
-              :label="p.name"
-              :value="p.id"
-            />
-          </el-select>
-          <el-select
-            v-model="selectedModel"
-            placeholder="模型"
-            class="model-select"
-            size="default"
-            :disabled="modelOptions.length === 0"
-            @change="saveModelChoice"
-          >
-            <el-option v-for="m in modelOptions" :key="m" :label="m" :value="m" />
-          </el-select>
-          <el-tooltip content="清空当前对话" placement="bottom">
-            <button class="icon-btn" @click="clearChat">
-              <el-icon :size="16"><Delete /></el-icon>
-            </button>
-          </el-tooltip>
-        </div>
+      <!-- 顶部状态条（仅会话状态，工具收纳进输入框） -->
+      <div v-if="workingSessionCount > 0 || isMobile" class="chat-statusbar">
+        <button v-if="isMobile" class="icon-btn" @click="sessionDrawerOpen = true">
+          <el-icon :size="18"><Menu /></el-icon>
+        </button>
+        <span v-if="workingSessionCount > 0" class="running-badge">
+          <span class="running-dot"></span>{{ workingSessionCount }} 个生成中
+        </span>
       </div>
 
       <!-- 消息区域 -->
@@ -209,8 +175,47 @@
                 </div>
               </el-tooltip>
               <span class="char-count" v-if="inputText.length">{{ inputText.length }}</span>
+              <!-- 会话操作（收纳进输入框） -->
+              <template v-if="activeSessionId != null">
+                <span class="toolbar-sep"></span>
+                <el-tooltip content="重命名会话" placement="top">
+                  <button class="toolbar-icon-btn" @click="renameActiveSession">
+                    <el-icon :size="14"><EditPen /></el-icon>
+                  </button>
+                </el-tooltip>
+                <el-tooltip content="清空当前对话（历史仍保留在会话中）" placement="top">
+                  <button class="toolbar-icon-btn" @click="clearChat">
+                    <el-icon :size="14"><Delete /></el-icon>
+                  </button>
+                </el-tooltip>
+              </template>
             </div>
             <div class="composer-right">
+              <!-- 模型选择（收纳进输入框，qm 式） -->
+              <el-select
+                v-model="selectedProviderId"
+                placeholder="供应商"
+                class="provider-select"
+                size="small"
+                @change="onProviderChange"
+              >
+                <el-option
+                  v-for="p in providers"
+                  :key="p.id"
+                  :label="p.name"
+                  :value="p.id"
+                />
+              </el-select>
+              <el-select
+                v-model="selectedModel"
+                placeholder="模型"
+                class="model-select"
+                size="small"
+                :disabled="modelOptions.length === 0"
+                @change="saveModelChoice"
+              >
+                <el-option v-for="m in modelOptions" :key="m" :label="m" :value="m" />
+              </el-select>
               <el-tooltip v-if="isBusy" content="停止生成" placement="top">
                 <button class="stop-square" @click="stopActive">
                   <el-icon :size="15"><VideoPause /></el-icon>
@@ -717,6 +722,30 @@ function clearChat() {
     .catch(() => {})
 }
 
+async function renameActiveSession() {
+  const sid = activeSessionId.value
+  if (sid == null) return
+  const s = store.sessions.find((x) => x.id === sid)
+  if (!s) return
+  try {
+    const { value } = await ElMessageBox.prompt('新的会话名称', '重命名会话', {
+      confirmButtonText: '保存',
+      cancelButtonText: '取消',
+      inputValue: s.title,
+      inputValidator: (v: string) =>
+        (v && v.trim().length > 0 && v.trim().length <= 200) || '名称不能为空且不超过 200 字',
+    })
+    const title = (value || '').trim()
+    if (!title || title === s.title) return
+    const { renameChatSession } = await import('@/api')
+    await renameChatSession(sid, title)
+    s.title = title
+    ElMessage.success('已重命名')
+  } catch {
+    /* 用户取消 */
+  }
+}
+
 // ---------- 复制 ----------
 async function copyMessage(msg: DisplayMessage) {
   try {
@@ -885,28 +914,14 @@ onBeforeUnmount(() => {
   min-width: 0;
 }
 
-/* Header */
-.chat-header {
+/* Statusbar（生成状态胶囊，无工具占用） */
+.chat-statusbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 10px 16px;
-  background: var(--theme-card-bg, #fff);
-  border-bottom: 1px solid var(--border-light, #ebeef5);
+  gap: 8px;
+  min-height: 8px;
+  padding: 6px 16px 0;
   flex-shrink: 0;
-  gap: 8px;
-}
-.chat-header-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-.chat-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-primary, #303133);
-  white-space: nowrap;
 }
 .running-badge {
   display: inline-flex;
@@ -926,17 +941,51 @@ onBeforeUnmount(() => {
   background: var(--el-color-success, #67c23a);
   animation: pulse 1.2s ease-in-out infinite;
 }
-.chat-header-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
+/* composer 内的小尺寸下拉 */
+.composer-right .provider-select {
+  width: 128px;
 }
-.provider-select {
+.composer-right .model-select {
   width: 150px;
 }
-.model-select {
-  width: 180px;
+.composer-right :deep(.el-select__wrapper) {
+  background: transparent;
+  box-shadow: none;
+  min-height: 28px;
+  padding: 0 4px;
+}
+.composer-right :deep(.el-select__wrapper):hover {
+  background: var(--fill-hover, #f5f7fa);
+  border-radius: 7px;
+}
+.composer-right :deep(.el-select__placeholder),
+.composer-right :deep(.el-select__selected-item) {
+  font-size: 12.5px;
+  color: var(--text-secondary, #909399);
+}
+/* composer 工具栏里的会话操作小按钮 */
+.toolbar-sep {
+  width: 1px;
+  height: 14px;
+  background: var(--border-light, #dcdfe6);
+  margin: 0 2px;
+}
+.toolbar-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-secondary, #909399);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+.toolbar-icon-btn:hover {
+  background: var(--fill-hover, #f5f7fa);
+  color: var(--el-color-primary, #5a67f5);
 }
 .icon-btn {
   display: inline-flex;
@@ -1454,11 +1503,11 @@ onBeforeUnmount(() => {
     box-shadow: 4px 0 16px rgba(0, 0, 0, 0.08);
     transform: translateX(0);
   }
-  .provider-select {
-    width: 118px;
+  .composer-right .provider-select {
+    width: 96px;
   }
-  .model-select {
-    width: 128px;
+  .composer-right .model-select {
+    width: 108px;
   }
   .chat-messages {
     padding: 14px 10px;
@@ -1512,13 +1561,6 @@ html.dark .session-item:hover {
 html.dark .session-item.active {
   background: rgba(127, 138, 248, 0.15);
   color: #7f8af8;
-}
-html.dark .chat-header {
-  background: #232838;
-  border-bottom-color: #36394a;
-}
-html.dark .chat-title {
-  color: #e6e8f0;
 }
 html.dark .chat-welcome h3 {
   color: #e6e8f0;
@@ -1606,5 +1648,15 @@ html.dark .queue-tag {
 }
 html.dark .queue-tag.queued {
   background: rgba(230, 162, 60, 0.12);
+}
+html.dark .toolbar-sep {
+  background: #3a3f52;
+}
+html.dark .toolbar-icon-btn:hover {
+  background: rgba(127, 138, 248, 0.1);
+  color: #7f8af8;
+}
+html.dark .composer-right :deep(.el-select__wrapper):hover {
+  background: #2e3344;
 }
 </style>
