@@ -128,12 +128,20 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     from src.plugins import event_bus, Event
     await event_bus.emit(Event.APP_STARTUP)
 
+    # Fail chat runs orphaned by the previous process (workers are in-memory)
+    from src.ai.runner import recover_orphan_runs
+    await recover_orphan_runs()
+
     logger.info(f"{settings.APP_NAME} started! Docs: http://localhost:8000/docs")
 
     yield
 
     # ---- Shutdown ----
     logger.info(f"Shutting down {settings.APP_NAME}...")
+
+    # Stop background chat run workers first (they own DB sessions)
+    from src.ai.runner import shutdown_workers
+    await shutdown_workers()
 
     if settings.PLUGINS_ENABLED:
         from src.plugins import plugin_manager

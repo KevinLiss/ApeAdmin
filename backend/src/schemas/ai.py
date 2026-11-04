@@ -118,3 +118,29 @@ class SessionAppendMessage(BaseModel):
 
 class SessionRename(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
+
+
+# ---------------------------------------------------------------------------
+# AI Chat Run (background execution, qm-style decoupled architecture)
+# ---------------------------------------------------------------------------
+
+class RunCreate(BaseModel):
+    """Enqueue a chat run: returns immediately with a run_id."""
+    session_id: int | None = None  # None → create a fresh session
+    question: str = Field(..., min_length=1, max_length=8000)
+    provider_id: int | None = None
+    model: str | None = Field(default=None, max_length=100)
+    enable_tools: bool = True
+
+
+class RunOut(BaseModel):
+    model_config = ORMConfig
+    id: int
+    session_id: int
+    status: str
+    question: str
+    answer: str
+    tool_events: list[dict] | None = None
+    error: str | None = None
+    created_at: datetime
+    finished_at: datetime | None = None

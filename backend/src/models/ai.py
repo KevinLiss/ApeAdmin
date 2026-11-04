@@ -1,8 +1,9 @@
 """AI domain models: AI provider (model key management) and chat session."""
 
+from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import Boolean, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.db import Base
@@ -77,3 +78,46 @@ class ChatMessageModel(IDMixin, TimestampMixin, Base):
 
     def __repr__(self) -> str:
         return f"<ChatMessage {self.id} session={self.session_id} role={self.role}>"
+
+
+class ChatRun(IDMixin, TimestampMixin, Base):
+    """AI chat run: a background LLM execution decoupled from the HTTP request.
+
+    Lifecycle: pending → running → done | failed | stopped.
+    The executor persists partial ``answer`` while streaming, so a browser
+    leaving the page never kills the generation (qm-style run architecture).
+    """
+
+    __tablename__ = "chat_run"
+
+    session_id: Mapped[int] = mapped_column(
+        Integer, nullable=False, index=True, comment="所属会话ID"
+    )
+    user_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True, comment="所属用户ID")
+    status: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        default="pending",
+        index=True,
+        comment="pending/running/done/failed/stopped",
+    )
+    provider_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, comment="供应商ID")
+    model: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, comment="模型名")
+    enable_tools: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=1, comment="是否启用系统工具: 0=否 1=是"
+    )
+    question: Mapped[str] = mapped_column(Text, nullable=False, default="", comment="用户提问")
+    answer: Mapped[str] = mapped_column(Text, nullable=False, default="", comment="AI 回复(增量落库)")
+    tool_events: Mapped[Optional[str]] = mapped_column(
+        Text, nullable=True, comment="工具调用事件(JSON数组)"
+    )
+    error: Mapped[Optional[str]] = mapped_column(Text, nullable=True, comment="失败原因")
+    started_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True, comment="开始执行时间"
+    )
+    finished_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True, comment="执行结束时间"
+    )
+
+    def __repr__(self) -> str:
+        return f"<ChatRun {self.id} session={self.session_id} status={self.status}>"

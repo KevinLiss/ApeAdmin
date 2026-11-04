@@ -95,6 +95,72 @@ export const appendChatMessage = (
   data: { role: string; content: string; tool_events?: any[] | null }
 ) => request.post(`/ai/sessions/${id}/messages`, data)
 
+// ---- AI 对话运行（后台执行，切页面/断线不中断） ----
+export const createChatRun = (data: {
+  session_id: number | null
+  question: string
+  provider_id?: number | null
+  model?: string | null
+  enable_tools?: boolean
+}) => request.post('/ai/chat/runs', data)
+
+export const getChatRun = (runId: number) => request.get(`/ai/chat/runs/${runId}`)
+
+export const stopChatRun = (runId: number) => request.post(`/ai/chat/runs/${runId}/stop`)
+
+export const getActiveChatRun = (sessionId: number) =>
+  request.get(`/ai/chat/runs/session/${sessionId}/active`)
+
+/**
+ * 订阅 run 的 SSE 事件流（fetch 流式读取，可携带鉴权头与 AbortSignal）。
+ * 返回 abort 函数；回调收到 {type: snapshot|run_start|content|tool_call|tool_result|run_end|error, ...}。
+ */
+export function subscribeRunEvents(
+  runId: number,
+  seenEvents: number,
+  onEvent: (event: any) => void,
+  onDone: () => void,
+  onError: (message: string) => void
+): () => void {
+  const controller = new AbortController()
+  const token = localStorage.getItem('apeadmin_token')
+
+  fetch(`/api/v1/ai/chat/runs/${runId}/events?seen_events=${seenEvents}`, {
+    headers: { Authorization: token ? `Bearer ${token}` : '' },
+    signal: controller.signal,
+  })
+    .then(async (resp) => {
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+      const reader = resp.body!.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue // 心跳注释等
+          const chunk = line.slice(6).trim()
+          if (!chunk) continue
+          try {
+            onEvent(JSON.parse(chunk))
+          } catch {
+            // skip invalid JSON
+          }
+        }
+      }
+      onDone()
+    })
+    .catch((err) => {
+      if (err.name !== 'AbortError') onError(err.message || '连接中断')
+      else onDone()
+    })
+
+  return () => controller.abort()
+}
+
 // ---- 系统日志 ----
 export const getLogs = (params: any = {}) => request.get('/logs', { params })
 export const getLogDetail = (id: number) => request.get(`/logs/${id}`)
