@@ -19,7 +19,6 @@
             :class="{ active: s.id === activeSessionId }"
             @click="switchSession(s.id)"
           >
-            <el-icon class="session-item-icon" :size="15"><ChatDotRound /></el-icon>
             <div class="session-item-main">
               <div class="session-item-top">
                 <span class="session-item-title" :title="s.title">{{ s.title }}</span>
@@ -102,6 +101,7 @@
             <el-icon :size="30" color="#fff"><ChatDotRound /></el-icon>
           </div>
           <h3>有什么可以帮您？</h3>
+          <p class="welcome-sub">用自然语言查询与操作系统，支持多会话并行、切页面不中断</p>
           <div class="welcome-suggestions">
             <div
               v-for="s in suggestions"
@@ -125,13 +125,9 @@
           class="message-row"
           :class="[msg.role, { 'is-pending': msg.pending }]"
         >
-          <div class="message-avatar">
-            <el-icon v-if="msg.role === 'user'" :size="18" color="#fff"><User /></el-icon>
-            <el-icon v-else :size="18" color="#fff"><ChatDotRound /></el-icon>
-          </div>
-          <div class="message-body">
+          <div class="msg-main">
             <div class="message-meta">
-              <span class="message-role">{{ msg.role === 'user' ? '我' : 'AI 助手' }}</span>
+              <span class="speaker-label">{{ msg.role === 'user' ? '我' : 'AI 助手' }}</span>
               <span v-if="msg.time" class="message-time">{{ msg.time }}</span>
               <span v-if="msg.pending" class="queue-tag"><el-icon :size="12"><Clock /></el-icon>生成中</span>
               <span v-else-if="msg.queued" class="queue-tag queued"><el-icon :size="12"><Clock /></el-icon>排队中</span>
@@ -180,31 +176,31 @@
         </div>
       </div>
 
-      <!-- 输入区域 -->
-      <div class="chat-input-area">
-        <div class="chat-input-wrapper">
-          <div v-if="activeRun && activeRun.status === 'running'" class="generating-tip">
+      <!-- 输入区域（qm 式大圆角卡片） -->
+      <div class="composer-area">
+        <div v-if="queuedRuns.length > 0" class="queue-note">
+          <el-icon :size="13"><Clock /></el-icon>
+          已排队 {{ queuedRuns.length }} 条消息，将按顺序执行
+        </div>
+        <div class="composer-wrap">
+          <div v-if="isBusy" class="generating-tip">
             <el-icon class="is-loading" :size="13"><Loading /></el-icon>
-            AI 正在生成本条回复，你可以随时切换其他会话继续提问
+            <span>正在生成回复，可随时切换其他会话继续提问</span>
             <button class="stop-inline" @click="stopActive">
               <el-icon :size="12"><VideoPause /></el-icon>停止
             </button>
           </div>
-          <div v-else-if="queuedRuns.length > 0" class="generating-tip queued-tip">
-            <el-icon :size="13"><Clock /></el-icon>
-            已排队 {{ queuedRuns.length }} 条消息，将按顺序执行
-          </div>
           <el-input
             v-model="inputText"
             type="textarea"
-            :rows="2"
-            :autosize="{ minRows: 2, maxRows: 6 }"
+            :rows="1"
+            :autosize="{ minRows: 1, maxRows: 6 }"
             placeholder="输入消息，Enter 发送，Shift+Enter 换行"
             resize="none"
             @keydown.enter.exact.prevent="sendMessage"
           />
-          <div class="input-actions">
-            <div class="input-actions-left">
+          <div class="composer-toolbar">
+            <div class="composer-left">
               <el-tooltip content="启用工具调用（允许 AI 查询/操作系统数据）" placement="top">
                 <div class="tools-toggle">
                   <el-icon :size="14"><SetUp /></el-icon>
@@ -212,17 +208,19 @@
                   <el-switch v-model="enableTools" size="small" />
                 </div>
               </el-tooltip>
-            </div>
-            <div class="input-actions-right">
               <span class="char-count" v-if="inputText.length">{{ inputText.length }}</span>
-              <el-button
-                type="primary"
-                :disabled="!inputText.trim()"
-                @click="sendMessage"
-              >
-                <el-icon><Promotion /></el-icon>
-                <span class="send-label">{{ isBusy ? '排队发送' : '发送' }}</span>
-              </el-button>
+            </div>
+            <div class="composer-right">
+              <el-tooltip v-if="isBusy" content="停止生成" placement="top">
+                <button class="stop-square" @click="stopActive">
+                  <el-icon :size="15"><VideoPause /></el-icon>
+                </button>
+              </el-tooltip>
+              <el-tooltip content="发送（Enter）" placement="top">
+                <button class="send-square" :disabled="!inputText.trim()" @click="sendMessage">
+                  <el-icon :size="16"><Promotion /></el-icon>
+                </button>
+              </el-tooltip>
             </div>
           </div>
         </div>
@@ -805,22 +803,19 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 10px;
+  padding: 6px 8px 6px 11px;
   border-radius: 8px;
   cursor: pointer;
   color: var(--text-regular, #606266);
   font-size: 13px;
-  transition: background 0.15s;
+  transition: background 0.12s;
 }
 .session-item:hover {
-  background: var(--fill-hover, #f5f7fa);
+  background: rgba(127, 138, 248, 0.07);
 }
 .session-item.active {
   background: var(--el-color-primary-light-9, #ecf0ff);
   color: var(--el-color-primary, #5a67f5);
-}
-.session-item-icon {
-  flex-shrink: 0;
 }
 .session-item-main {
   flex: 1;
@@ -965,7 +960,7 @@ onBeforeUnmount(() => {
 .chat-messages {
   flex: 1;
   overflow-y: auto;
-  padding: 20px;
+  padding: 20px 16px;
   scroll-behavior: smooth;
 }
 .chat-messages::-webkit-scrollbar {
@@ -981,15 +976,15 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
   height: 100%;
   text-align: center;
   padding: 24px;
 }
 .welcome-logo {
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
+  width: 52px;
+  height: 52px;
+  border-radius: 15px;
   background: linear-gradient(135deg, var(--el-color-primary, #5a67f5), #47d8ff);
   display: flex;
   align-items: center;
@@ -997,9 +992,16 @@ onBeforeUnmount(() => {
   box-shadow: 0 8px 20px rgba(90, 103, 245, 0.25);
 }
 .chat-welcome h3 {
-  margin: 16px 0 20px;
-  font-size: 19px;
+  margin: 16px 0 4px;
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
   color: var(--text-primary, #303133);
+}
+.welcome-sub {
+  font-size: 13px;
+  color: var(--text-secondary, #909399);
+  margin: 0 0 20px;
 }
 .welcome-suggestions {
   display: grid;
@@ -1045,49 +1047,35 @@ onBeforeUnmount(() => {
   margin-top: 2px;
 }
 
-/* Message row */
+/* Message row（qm 式：无头像、speaker 小标签、assistant 文档流、user 低饱和气泡） */
 .message-row {
   display: flex;
-  gap: 10px;
-  margin-bottom: 18px;
-  max-width: 860px;
-  margin-left: auto;
-  margin-right: auto;
+  min-width: 0;
+  max-width: 760px;
+  margin: 0 auto 4px;
+  padding-bottom: 12px;
 }
 .message-row.user {
-  flex-direction: row-reverse;
+  flex-direction: column;
+  align-items: flex-end;
 }
-.message-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.message-row.user .message-avatar {
-  background: var(--el-color-primary, #5a67f5);
-}
-.message-row.assistant .message-avatar {
-  background: linear-gradient(135deg, var(--el-color-primary, #5a67f5), #47d8ff);
-}
-.message-body {
-  flex: 1;
+.msg-main {
   min-width: 0;
+  max-width: 100%;
 }
 .message-meta {
-  margin-bottom: 4px;
+  margin: 0 0 4px;
   display: flex;
   align-items: center;
   gap: 8px;
 }
-.message-role {
-  font-size: 12px;
+.speaker-label {
+  font-size: 11px;
+  font-weight: 600;
   color: var(--text-secondary, #909399);
+  user-select: none;
 }
 .message-row.user .message-meta {
-  text-align: right;
   justify-content: flex-end;
 }
 .message-time {
@@ -1111,25 +1099,18 @@ onBeforeUnmount(() => {
 
 /* Message content */
 .message-content {
-  display: inline-block;
-  padding: 10px 14px;
-  border-radius: 12px;
   font-size: 14px;
   line-height: 1.65;
-  text-align: left;
   word-break: break-word;
   max-width: 100%;
 }
 .message-row.user .message-content {
-  background: var(--el-color-primary, #5a67f5);
-  color: #fff;
-  border-top-right-radius: 4px;
-}
-.message-row.assistant .message-content {
-  background: var(--theme-card-bg, #fff);
+  display: inline-block;
+  padding: 9px 14px;
+  border-radius: 16px;
+  background: var(--fill-light, #f0f2f5);
   color: var(--text-primary, #303133);
-  border: 1px solid var(--border-light, #ebeef5);
-  border-top-left-radius: 4px;
+  max-width: 78%;
 }
 .message-row.is-pending .message-content {
   opacity: 0.75;
@@ -1322,16 +1303,54 @@ onBeforeUnmount(() => {
   30% { transform: translateY(-6px); opacity: 1; }
 }
 
-/* Input area */
-.chat-input-area {
-  padding: 12px 16px 16px;
-  background: var(--theme-card-bg, #fff);
-  border-top: 1px solid var(--border-light, #ebeef5);
+/* Input area（qm 式大圆角卡片 composer） */
+.composer-area {
   flex-shrink: 0;
+  padding: 4px 16px max(14px, calc(10px + env(safe-area-inset-bottom)));
 }
-.chat-input-wrapper {
-  max-width: 860px;
+.queue-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 760px;
+  margin: 0 auto 8px;
+  font-size: 12px;
+  color: var(--el-color-warning, #e6a23c);
+}
+.composer-wrap {
+  --composer-radius: 18px;
+  max-width: 760px;
   margin: 0 auto;
+  padding: 10px 12px 8px;
+  background: var(--theme-card-bg, #fff);
+  border: 1px solid var(--border-light, #ebeef5);
+  border-radius: var(--composer-radius);
+  box-shadow:
+    0 2px 5px rgba(0, 0, 0, 0.04),
+    0 8px 24px rgba(0, 0, 0, 0.05);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.composer-wrap:focus-within {
+  border-color: var(--el-color-primary-light-5, #b3bcfc);
+  box-shadow:
+    0 2px 5px rgba(0, 0, 0, 0.04),
+    0 8px 24px rgba(90, 103, 245, 0.12);
+}
+.composer-wrap :deep(.el-textarea__inner) {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+  padding: 6px 6px 4px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text-primary, #303133);
+}
+.composer-wrap :deep(.el-textarea__inner)::placeholder {
+  color: var(--text-secondary, #a8abb2);
+}
+.composer-wrap :deep(.el-textarea__inner):focus {
+  border: none;
+  box-shadow: none;
 }
 .generating-tip {
   display: flex;
@@ -1339,14 +1358,7 @@ onBeforeUnmount(() => {
   gap: 6px;
   font-size: 12px;
   color: var(--el-color-success, #67c23a);
-  background: var(--el-color-success-light-9, #f0f9eb);
-  padding: 6px 10px;
-  border-radius: 8px;
-  margin-bottom: 8px;
-}
-.generating-tip.queued-tip {
-  color: var(--el-color-warning, #e6a23c);
-  background: var(--el-color-warning-light-9, #fdf6ec);
+  padding: 2px 6px 8px;
 }
 .stop-inline {
   display: inline-flex;
@@ -1364,16 +1376,18 @@ onBeforeUnmount(() => {
 .stop-inline:hover {
   background: var(--el-color-danger-light-9, #fef0f0);
 }
-.input-actions {
+.composer-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 8px;
-  gap: 8px;
+  gap: 10px;
+  margin-top: 6px;
 }
-.input-actions-left {
+.composer-left {
   display: flex;
   align-items: center;
+  gap: 10px;
+  min-width: 0;
 }
 .tools-toggle {
   display: flex;
@@ -1383,14 +1397,46 @@ onBeforeUnmount(() => {
   color: var(--text-secondary, #909399);
   cursor: default;
 }
-.input-actions-right {
+.char-count {
+  font-size: 11px;
+  color: var(--text-secondary, #c0c4cc);
+}
+.composer-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 7px;
 }
-.char-count {
-  font-size: 12px;
-  color: var(--text-secondary, #909399);
+/* 34×34 方形图标按钮（qm 式 send / stop） */
+.send-square,
+.stop-square {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.12s ease, opacity 0.12s ease;
+}
+.send-square {
+  background: var(--el-color-primary, #5a67f5);
+  color: #fff;
+}
+.send-square:hover:not(:disabled) {
+  background: var(--el-color-primary-light-3, #7f88f7);
+}
+.send-square:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.stop-square {
+  background: transparent;
+  border: 1px solid var(--border-light, #dcdfe6);
+  color: var(--el-color-danger, #f56c6c);
+}
+.stop-square:hover {
+  background: var(--el-color-danger-light-9, #fef0f0);
 }
 
 /* ========== 移动端适配（≤991px） ========== */
@@ -1415,30 +1461,21 @@ onBeforeUnmount(() => {
     width: 128px;
   }
   .chat-messages {
-    padding: 14px;
+    padding: 14px 10px;
   }
   .message-row {
-    gap: 8px;
-    margin-bottom: 14px;
+    padding-bottom: 10px;
   }
-  .message-avatar {
-    width: 28px;
-    height: 28px;
-  }
-  .message-content {
-    font-size: 13.5px;
-    padding: 9px 12px;
+  .message-row.user .message-content {
+    max-width: 88%;
   }
   .welcome-suggestions {
     grid-template-columns: 1fr;
     width: 100%;
     max-width: 340px;
   }
-  .chat-input-area {
-    padding: 10px 12px calc(12px + env(safe-area-inset-bottom, 0px));
-  }
-  .send-label {
-    display: none;
+  .composer-area {
+    padding: 2px 10px calc(10px + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -1497,10 +1534,26 @@ html.dark .suggestion-item:hover {
   border-color: #7f8af8;
   background: rgba(127, 138, 248, 0.06);
 }
-html.dark .message-row.assistant .message-content {
-  background: #232838;
+html.dark .message-row.user .message-content {
+  background: #2e3344;
   color: #e6e8f0;
+}
+html.dark .message-row.assistant .message-content {
+  background: transparent;
+  color: #e6e8f0;
+  border: none;
+}
+html.dark .composer-wrap {
+  background: #232838;
   border-color: #36394a;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2), 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+html.dark .composer-wrap :deep(.el-textarea__inner) {
+  background: transparent;
+  color: #e6e8f0;
+}
+html.dark .composer-wrap :deep(.el-textarea__inner)::placeholder {
+  color: #6b7089;
 }
 html.dark .message-row.assistant .markdown-body code {
   background: #2e3344;
@@ -1527,16 +1580,12 @@ html.dark .typing-indicator {
 html.dark .typing-indicator span {
   background: #6b7089;
 }
-html.dark .chat-input-area {
-  background: #232838;
-  border-top-color: #36394a;
-}
-html.dark .chat-input-area .el-textarea__inner {
-  background: #2e3344;
+html.dark .composer-area .el-textarea__inner {
+  background: transparent;
   border-color: #3a3f52;
   color: #e6e8f0;
 }
-html.dark .chat-input-area .el-textarea__inner::placeholder {
+html.dark .composer-area .el-textarea__inner::placeholder {
   color: #6b7089;
 }
 html.dark .msg-action-btn:hover {
