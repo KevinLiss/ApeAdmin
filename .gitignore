@@ -89,3 +89,6 @@ backend/tests/test_ai_vision_worker.py
 # Deploy package staging / artifacts
 deploy/.stage/
 deploy/dist/
+# Local install state (setup wizard completion marker)
+backend/setup.lock
+*.db-journal
