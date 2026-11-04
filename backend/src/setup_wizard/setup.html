@@ -187,7 +187,21 @@
     <!-- 第 1 步：数据库 -->
     <div class="panel active" id="panel1">
       <h2>配置数据库</h2>
-      <p class="desc">填写服务器上已创建的 MySQL 数据库信息（宝塔面板 → 数据库 可查看）。系统会自动建表和初始化数据。</p>
+      <p class="desc" id="dbDesc">填写服务器上已创建的 MySQL 数据库信息（宝塔面板 → 数据库 可查看）。系统会自动建表和初始化数据。</p>
+
+      <div class="form-row">
+        <label>部署环境</label>
+        <div class="db-type-selector" style="margin-bottom:0">
+          <div class="db-type-option env-option" data-env="local">
+            <div class="t">💻 本地开发</div>
+            <div class="d">本机运行 · 无需域名 · 推荐 SQLite</div>
+          </div>
+          <div class="db-type-option env-option" data-env="server">
+            <div class="t">🌐 服务器部署</div>
+            <div class="d">云服务器 / 宝塔 · 推荐 MySQL</div>
+          </div>
+        </div>
+      </div>
 
       <div class="db-type-selector">
         <div class="db-type-option selected" data-dbtype="mysql">
@@ -256,9 +270,9 @@
       </div>
 
       <div class="form-row">
-        <label>站点访问地址 <span class="req">*</span></label>
-        <input id="siteUrl" placeholder="http://apehub.finecv.cn">
-        <div class="hint">部署的对外域名，用于跨域配置与后台链接跳转</div>
+        <label id="siteUrlLabel">站点访问地址 <span class="req">*</span></label>
+        <input id="siteUrl" placeholder="http://apehub.finecv.cn 或 http://127.0.0.1:8000">
+        <div class="hint" id="siteUrlHint">部署的对外域名，用于跨域配置与后台链接跳转</div>
       </div>
 
       <div class="form-row">
@@ -314,11 +328,14 @@
     </div>
   </div>
 
-  <div class="footer">ApeAdmin · 安装向导 v1.0</div>
+  <div class="footer">ApeAdmin · 安装向导 v1.1</div>
 </div>
 
 <script>
 let dbType = 'mysql';
+let envMode = 'server';        // local | server
+let userPickedDb = false;      // 用户是否手动选过数据库类型
+let autoFilledUrl = false;     // site_url 是否为向导自动填充（切模式时回收）
 let installResult = null;
 let checkTimer = null;
 
@@ -348,15 +365,70 @@ function validateStep1() {
 }
 
 // ---------- 数据库类型 ----------
-document.querySelectorAll('.db-type-option').forEach(opt => {
+function applyDbType(t) {
+  dbType = t;
+  document.querySelectorAll('.db-type-option[data-dbtype]').forEach(o =>
+    o.classList.toggle('selected', o.dataset.dbtype === t));
+  document.getElementById('mysqlFields').style.display = t === 'mysql' ? '' : 'none';
+  document.getElementById('sqliteFields').style.display = t === 'sqlite' ? '' : 'none';
+}
+
+document.querySelectorAll('.db-type-option[data-dbtype]').forEach(opt => {
   opt.addEventListener('click', () => {
-    document.querySelectorAll('.db-type-option').forEach(o => o.classList.remove('selected'));
-    opt.classList.add('selected');
-    dbType = opt.dataset.dbtype;
-    document.getElementById('mysqlFields').style.display = dbType === 'mysql' ? '' : 'none';
-    document.getElementById('sqliteFields').style.display = dbType === 'sqlite' ? '' : 'none';
+    userPickedDb = true;
+    applyDbType(opt.dataset.dbtype);
   });
 });
+
+// ---------- 部署环境 ----------
+function detectEnvMode() {
+  const h = location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1' || h === '::1' || h === '[::1]') return 'local';
+  if (/^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(h)) return 'local';
+  return 'server';
+}
+
+const ENV_DESC = {
+  local: '本地开发推荐 SQLite：零配置、单文件、开箱即用（本机已装 MySQL 也可选择）。系统会自动建表和初始化数据。',
+  server: '填写服务器上已创建的 MySQL 数据库信息（宝塔面板 → 数据库 可查看）。系统会自动建表和初始化数据。'
+};
+const URL_HINT = {
+  local: '本地开发无需域名，已自动填入当前访问地址（含端口），可留空',
+  server: '部署的对外域名，用于跨域配置与后台链接跳转'
+};
+
+function applyEnvMode(mode) {
+  envMode = mode;
+  document.querySelectorAll('.env-option').forEach(o =>
+    o.classList.toggle('selected', o.dataset.env === mode));
+
+  // 数据库推荐联动（用户未手动选择时跟随环境）
+  if (!userPickedDb) applyDbType(mode === 'local' ? 'sqlite' : 'mysql');
+  document.getElementById('dbDesc').textContent = ENV_DESC[mode];
+
+  // 站点访问地址：本地自动填当前地址（含端口），服务器必填域名
+  const label = document.getElementById('siteUrlLabel');
+  const hint = document.getElementById('siteUrlHint');
+  const urlInput = document.getElementById('siteUrl');
+  if (mode === 'local') {
+    label.innerHTML = '站点访问地址';
+    if (!urlInput.value.trim() || autoFilledUrl) {
+      urlInput.value = location.origin;
+      autoFilledUrl = true;
+    }
+  } else {
+    label.innerHTML = '站点访问地址 <span class="req">*</span>';
+    if (autoFilledUrl) { urlInput.value = ''; autoFilledUrl = false; }
+  }
+  hint.textContent = URL_HINT[mode];
+}
+
+document.querySelectorAll('.env-option').forEach(opt => {
+  opt.addEventListener('click', () => applyEnvMode(opt.dataset.env));
+});
+
+// 初始化：按当前访问地址判断部署环境（localhost / 内网 IP → 本地开发）
+applyEnvMode(detectEnvMode());
 
 // ---------- 测试连接 ----------
 async function testDb() {
@@ -399,12 +471,23 @@ function collectDbConfig() {
   };
 }
 
+function buildCorsOrigins(siteUrl) {
+  const cors = siteUrl ? [siteUrl] : [];
+  if (envMode === 'local') {
+    // 本地开发常见来源：vite 开发服务器与后端直连
+    ['http://localhost:5173', 'http://localhost:8000'].forEach(o => {
+      if (!cors.includes(o)) cors.push(o);
+    });
+  }
+  return cors;
+}
+
 // ---------- 执行安装 ----------
 async function doInstall() {
   const siteUrl = document.getElementById('siteUrl').value.trim();
   const username = document.getElementById('adminUsername').value.trim();
   const password = document.getElementById('adminPassword').value;
-  if (!siteUrl) { alert('请填写站点访问地址'); return; }
+  if (envMode === 'server' && !siteUrl) { alert('请填写站点访问地址'); return; }
   if (!username || username.length < 3) { alert('管理员账号至少 3 个字符'); return; }
   if (!password || password.length < 6) { alert('管理员密码至少 6 位'); return; }
 
@@ -423,6 +506,7 @@ async function doInstall() {
   addLog('$ 开始安装 ApeAdmin...');
   addLog(`> 数据库类型: ${dbType === 'mysql' ? 'MySQL' : 'SQLite'}`);
   if (dbType === 'mysql') addLog(`> 目标库: ${collectDbConfig().db_host}/${collectDbConfig().db_name}`);
+  else addLog(`> 数据库文件: backend/${collectDbConfig().db_name}.db`);
   addLog('> 正在写入配置文件 .env ...');
   addLog('> 正在创建数据表（36 张）...');
 
@@ -440,7 +524,7 @@ async function doInstall() {
         admin_path: document.getElementById('adminPath').value.trim() || '/admin',
         admin_username: username,
         admin_password: password,
-        cors_origins: [siteUrl]
+        cors_origins: buildCorsOrigins(siteUrl)
       })
     });
     const json = await res.json();
@@ -474,14 +558,15 @@ function showSuccess(data) {
   document.getElementById('installing').style.display = 'none';
   document.getElementById('installDone').style.display = '';
 
-  const siteUrl = (data.site_url || '').replace(/\/+$/, '');
+  // site_url 未配置（本地开发）时用当前访问地址兜底，保证链接可用
+  const base = ((data.site_url || '').trim() || location.origin).replace(/\/+$/, '');
   const adminPath = (data.admin_path || '/admin').replace(/\/+$/, '');
   const list = document.getElementById('resultList');
 
   const items = [
     ['站点名称', data.site_name || 'ApeAdmin', ''],
-    ['前台地址', siteUrl ? `<a href="${siteUrl}/" target="_blank">${siteUrl}/</a>` : '（未配置）', ''],
-    ['管理后台', siteUrl ? `<a href="${siteUrl}${adminPath}/" target="_blank">${siteUrl}${adminPath}/</a>` : adminPath, ''],
+    ['前台地址', `<a href="${base}/" target="_blank">${base}/</a>`, ''],
+    ['管理后台', `<a href="${base}${adminPath}/" target="_blank">${base}${adminPath}/</a>`, ''],
     ['管理员账号', data.admin_username, ''],
     ['管理员密码', data.admin_password, 'password'],
     ['数据库', data.db_type === 'mysql' ? 'MySQL' : 'SQLite', '']
@@ -493,6 +578,11 @@ function showSuccess(data) {
     div.innerHTML = `<div class="k">${k}</div><div class="v">${v}</div>`;
     list.appendChild(div);
   });
+
+  // 重启提示按部署环境区分
+  document.getElementById('restartTip').innerHTML = envMode === 'local'
+    ? '🔄 <b>重要：</b>请重启后端服务使配置生效。本地开发：在终端按 <code>Ctrl+C</code> 停掉 uvicorn，再重新运行启动命令（如 <code>python -m uvicorn src.main:app --port 8000</code>）。重启后本页自动跳转到首页。'
+    : '🔄 <b>重要：</b>请重启后端服务使配置生效（宝塔 Python 项目里点「重启」，或命令行 systemctl restart apeadmin）。重启后本页自动跳转到首页。';
 
   // 轮询等待重启完成（health 接口可达且非 setup 模式）
   startRestartPolling();
