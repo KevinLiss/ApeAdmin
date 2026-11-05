@@ -92,3 +92,6 @@ deploy/dist/
 # Local install state (setup wizard completion marker)
 backend/setup.lock
 *.db-journal
+
+# hermes 插件运行时凭据（缺失时自动生成，不入库）
+backend/src/plugins/builtin/hermes/.hermes_token

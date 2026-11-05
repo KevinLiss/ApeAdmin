@@ -1,0 +1,8 @@
+{
+  "name": "hermes",
+  "display_name": "Hermes AI 助手",
+  "version": "0.1.0",
+  "description": "将 hermes-agent（自进化 AI 代理）融入 ApeAdmin——独立进程托管 + WebSocket JSON-RPC 桥接，提供流式 AI 对话、会话管理能力",
+  "author": "ApeAdmin",
+  "dependencies": []
+}
