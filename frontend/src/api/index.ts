@@ -197,7 +197,7 @@ export const assetPreviewUrl = (group: string, path: string) => `/api/v1/files/a
 // ---- 系统设置 ----
 export const getPublicSettings = () => request.get('/settings/public')
 export const getSettings = () => request.get('/settings')
-export const updateSettings = (items: Record<string, string>) => request.put('/settings', items)
+export const updateSettings = (items: Record<string, string>) => request.put('/settings', { items })
 export const updateSetting = (key: string, value: string) => request.put(`/settings/${key}`, { value })
 
 // ---- 系统版本与更新 ----
