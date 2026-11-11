@@ -120,8 +120,8 @@ async function fetchList() {
     const res: any = await request.get('/dev-example/notes', {
       params: { page: page.value, page_size: pageSize.value }
     })
-    tableData.value = res.data.items || []
-    total.value = res.data.total || 0
+    tableData.value = res.items || []
+    total.value = res.total || 0
   } catch {
     // handled by interceptor
   } finally {
