@@ -182,15 +182,15 @@ export const useAiChatStore = defineStore('aiChat', () => {
   function onStreamClosed(run: LiveRun) {
     if (['done', 'failed', 'stopped'].includes(run.status)) {
       reconnectCount.set(run.runId, 0)
-      completedVersion.set(run.sessionId, (completedVersion.get(run.sessionId) || 0) + 1)
+      completedVersion.set(run.sessionId, (completedVersion.get(run.sessionId) ?? 0) + 1)
       takeNextOrClose(run.sessionId)
-    } else if (reconnectCount.get(run.runId, 0) < RECONNECT_MAX) {
+    } else if ((reconnectCount.get(run.runId) ?? 0) < RECONNECT_MAX) {
       reconnect(run) // 流被服务端提前关闭（重启/超时），重连续传
     }
   }
 
   function onStreamError(run: LiveRun, message: string) {
-    if (reconnectCount.get(run.runId, 0) < RECONNECT_MAX) {
+    if ((reconnectCount.get(run.runId) ?? 0) < RECONNECT_MAX) {
       reconnect(run)
       return
     }

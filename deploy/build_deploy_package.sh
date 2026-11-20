@@ -118,24 +118,26 @@ find "$STAGE_PKG" -name ".DS_Store" -delete 2>/dev/null || true
 echo "==> [5/6] 生成依赖锁文件 requirements.txt（生产固定版本）"
 cat > "$STAGE_PKG/requirements.txt" <<'REQ'
 # ApeAdmin 生产依赖（版本取自开发环境实测可用的组合）
-fastapi[standard]==0.141.1
-uvicorn[standard]==0.52.4
+# greenlet 必须显式锁定：sqlalchemy[asyncio] 只声明依赖不锁版本，新环境可能拉到不兼容的大版本
+fastapi[standard]==0.165.0
+uvicorn[standard]==0.54.0
 sqlalchemy[asyncio]==2.0.52
+greenlet==3.5.5
 aiosqlite==0.22.1
 aiomysql==0.3.2
-alembic==1.19.1
-pydantic==2.13.4
-pydantic-settings==2.15.0
+alembic==1.20.1
+pydantic==2.14.4
+pydantic-settings==2.16.3
 python-jose[cryptography]==3.5.0
 passlib[bcrypt]==1.7.4
-python-multipart==0.0.32
-mcp==2.0.0
+python-multipart==0.0.34
+mcp==2.3.0
 httpx==0.28.1
-loguru==0.7.3
+loguru==0.8.0
 rich==15.0.0
-typer==0.27.1
+typer==0.29.2
 redis==8.1.0
-orjson==3.12.0
+orjson==3.13.0
 psutil==7.2.2
 REQ
 
