@@ -109,7 +109,7 @@ WordPress 式开箱体验，无需手工编辑配置文件：
 | 层 | 技术 |
 |---|---|
 | 后端 | FastAPI + SQLAlchemy 2.0 (async) + Alembic |
-| 前端 | Vue 3.5 + Vite 6 + TypeScript 5.7 + Element Plus 2.9 |
+| 前端 | Vue 3.5 + Vite 6 + TypeScript 5.7 + Element Plus 2.14 |
 | 状态管理 | Pinia 2.3 |
 | 图表 | ECharts 5.6 + vue-echarts |
 | 数据库 | MySQL（aiomysql）/ SQLite（aiosqlite）双驱动自动切换 |
@@ -431,9 +431,19 @@ class MyPlugin(PluginInterface):
 ### 约定
 
 - 插件保持独立，不直接依赖其他插件
+- 业务插件（如 hermes）不进底座仓库与安装包，以独立插件包分发
 - 破坏性操作必须需要用户确认
 - API 遵循 RESTful 风格，前缀 `/api/v1`
 - 提交前确保后端可启动、前端可编译
+
+## 更新历史
+
+| 版本 | 日期 | 要点 |
+|------|------|------|
+| v2.8.1 | 2026-11-20 | 依赖升级：后端 10 项小版本跟升＋greenlet 显式锁定；前端删 9 死依赖、sortablejs 转正；恢复 vue-tsc 完整检查；修复全新克隆无法构建的库内残留（Plugins.vue） |
+| v2.8.0 | 2026-11-19 | 插件分层：hermes 整份移出底座仓库与安装包，底座只保留底座代码 + dev_example |
+| v2.7.0 | 2026-11-05 | AI 对话并行 run 架构 + qm 风格 UI；hermes 插件入库（v2.8.0 已回退） |
+| v2.6.0 | 2026-11-04 | AI 对话后台 run 架构上线 |
 
 ## 社区交流
 

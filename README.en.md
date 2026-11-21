@@ -110,7 +110,7 @@ Built-in MCP tools:
 | Layer | Technology |
 |---|---|
 | Backend | FastAPI + SQLAlchemy 2.0 (async) + Alembic |
-| Frontend | Vue 3.5 + Vite 6 + TypeScript 5.7 + Element Plus 2.9 |
+| Frontend | Vue 3.5 + Vite 6 + TypeScript 5.7 + Element Plus 2.14 |
 | State | Pinia 2.3 |
 | Charts | ECharts 5.6 + vue-echarts |
 | Database | MySQL (aiomysql) / SQLite (aiosqlite), dual-driver auto-switching |
@@ -432,9 +432,19 @@ Contributions are welcome!
 ### Conventions
 
 - Keep plugins independent; no direct dependencies on other plugins
+- Business plugins (e.g. hermes) stay out of the base repo and install packages — they ship as standalone plugin packages
 - Destructive operations must require user confirmation
 - APIs follow RESTful style with the `/api/v1` prefix
 - Make sure the backend starts and the frontend compiles before committing
+
+## Release History
+
+| Version | Date | Highlights |
+|---------|------|------------|
+| v2.8.1 | 2026-11-20 | Dependency refresh: 10 minor backend bumps + greenlet pinned; frontend drops 9 dead deps, sortablejs explicit; vue-tsc full check restored; fixed fresh-clone build break caused by a tracked leftover (Plugins.vue) |
+| v2.8.0 | 2026-11-19 | Plugin layering: hermes fully removed from base repo & install package; base keeps only core code + dev_example |
+| v2.7.0 | 2026-11-05 | Parallel run architecture for AI chat + qm-style UI; hermes bundled (reverted in v2.8.0) |
+| v2.6.0 | 2026-11-04 | Background run architecture for AI chat |
 
 ## Community
 
