@@ -26,14 +26,14 @@ from src.core.config import settings
 # ---------------------------------------------------------------------------
 
 PLUGIN_JSON = """\
-{
+{{
   "name": "{pkg_name}",
   "display_name": "{display_name}",
   "version": "1.0.0",
   "description": "{description}",
   "author": "ApeAdmin",
   "dependencies": ["core>=0.1.0"]
-}
+}}
 """
 
 INIT_PY = """\
@@ -230,18 +230,28 @@ from src.mcp.decorators import mcp_tool
 # Generator
 # ---------------------------------------------------------------------------
 
+from string import Formatter
+
+
+class _SafeDict(dict):
+    """Leave unknown placeholders untouched: template literals ({ } braces in
+    generated code) pass through .format() without raising KeyError."""
+
+    def __missing__(self, key: str) -> str:
+        return "{" + key + "}"
+
 def to_class_name(pkg_name: str) -> str:
-    \"\"\"Convert 'my_plugin' to 'MyPlugin'.\"\"\"
+    """Convert 'my_plugin' to 'MyPlugin'."""
     return "".join(part.capitalize() for part in pkg_name.split("_"))
 
 
 def to_class_prefix(pkg_name: str) -> str:
-    \"\"\"Convert 'my_plugin' to 'MyPlugin' for base class prefix.\"\"\"
+    """Convert 'my_plugin' to 'MyPlugin' for base class prefix."""
     return to_class_name(pkg_name)
 
 
 def to_url_prefix(pkg_name: str) -> str:
-    \"\"\"Convert 'my_plugin' to 'my-plugin'.\"\"\"
+    """Convert 'my_plugin' to 'my-plugin'."""
     return pkg_name.replace("_", "-")
 
 
@@ -251,7 +261,7 @@ def generate_plugin(
     description: str,
     output_dir: Path | None = None,
 ) -> Path:
-    \"\"\"Generate a plugin skeleton and return its path.\"\"\"
+    """Generate a plugin skeleton and return its path."""
     if not re.match(r"^[a-z][a-z0-9_]*$", pkg_name):
         raise ValueError("Plugin name must be snake_case (lowercase + underscores)")
 
@@ -270,35 +280,35 @@ def generate_plugin(
 
     # Generate files
     files = {
-        "plugin.json": PLUGIN_JSON.format(
+        "plugin.json": PLUGIN_JSON.format_map(_SafeDict(
             pkg_name=pkg_name,
             display_name=display_name,
             description=description,
-        ),
-        "__init__.py": INIT_PY.format(class_name=class_name),
-        "plugin.py": PLUGIN_PY.format(
+        )),
+        "__init__.py": INIT_PY.format_map(_SafeDict(class_name=class_name)),
+        "plugin.py": PLUGIN_PY.format_map(_SafeDict(
             pkg_name=pkg_name,
             display_name=display_name,
             description=description,
             class_name=class_name,
-        ),
-        "models.py": MODELS_PY.format(
+        )),
+        "models.py": MODELS_PY.format_map(_SafeDict(
             pkg_name=pkg_name,
             display_name=display_name,
             class_prefix=class_prefix,
-        ),
-        "api.py": API_PY.format(
+        )),
+        "api.py": API_PY.format_map(_SafeDict(
             display_name=display_name,
             url_prefix=url_prefix,
-        ),
-        "seed.py": SEED_PY.format(
+        )),
+        "seed.py": SEED_PY.format_map(_SafeDict(
             pkg_name=pkg_name,
             display_name=display_name,
-        ),
-        "mcp_tools.py": MCP_TOOLS_PY.format(
+        )),
+        "mcp_tools.py": MCP_TOOLS_PY.format_map(_SafeDict(
             pkg_name=pkg_name,
             display_name=display_name,
-        ),
+        ))
     }
 
     for filename, content in files.items():
@@ -312,7 +322,7 @@ def generate_plugin(
 # ---------------------------------------------------------------------------
 
 def main() -> None:
-    \"\"\"CLI: python -m src.plugins.scaffold <name> <display> <desc>\"\"\"
+    """CLI: python -m src.plugins.scaffold <name> <display> <desc>"""
     if len(sys.argv) < 2:
         print("Usage: python -m src.plugins.scaffold <plugin_name> <display_name> <description>")
         print('Example: python -m src.plugins.scaffold my_plugin "My Plugin" "A cool plugin"')
