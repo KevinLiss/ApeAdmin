@@ -154,6 +154,7 @@ const runtimeLabel = computed(() => {
   const rt = String(versionData.value?.runtime || 'python').toLowerCase()
   if (rt === 'go') return t('common.versionUpdate.runtimeGo')
   if (rt === 'python') return t('common.versionUpdate.runtimePython')
+  if (rt === 'java') return t('common.versionUpdate.runtimeJava')
   return rt || '--'
 })
 
