@@ -157,7 +157,18 @@
     "availableBanner": "检测到新版本 v{version}，可一键下载官方安装包并更新",
     "oneClickUpdate": "一键下载并更新",
     "downloading": "下载安装包中…",
-    "downloadFailed": "下载安装包失败，请检查网络后重试，或手动上传"
+    "downloadFailed": "下载安装包失败，请检查网络后重试，或手动上传",
+    "confirmTitle": "确认更新",
+    "confirmOneClick": "将下载官方安装包 v{version} 并立即更新：更新前会全量备份当前部署到 apeadmin_backup_<时间戳>，更新过程中服务会中断约十几秒，完成后自动重启。是否继续？",
+    "confirmUpload": "将使用所选部署包更新当前部署：更新前会全量备份到 apeadmin_backup_<时间戳>，更新过程中服务会中断约十几秒，完成后自动重启。是否继续？",
+    "confirmBackupNote": "更新会先全量备份当前部署（含已装插件与上传数据），失败可从备份目录恢复",
+    "confirmInterruptNote": "更新期间服务短暂不可用（约十几秒），页面将在完成后自动刷新",
+    "confirmCancel": "取消",
+    "confirmProceed": "开始更新",
+    "downloadedVerifying": "安装包下载完成（{size}），正在校验后更新…",
+    "md5Mismatch": "安装包校验失败（MD5 不一致），已取消更新。请重试或手动上传",
+    "downloadVerifyFailed": "安装包下载失败或校验未通过，已取消更新",
+    "currentSessionNotice": "提醒：更新会重启后端，正在进行的 AI 对话任务将保留（后台 run 架构），页面会话不受影响"
   },
   "validation": {
     "required": "请填写{name}",

@@ -157,7 +157,18 @@
     "availableBanner": "New version v{version} available — download the official package and update in one click",
     "oneClickUpdate": "Download & Update",
     "downloading": "Downloading package…",
-    "downloadFailed": "Download failed; check your network or upload manually"
+    "downloadFailed": "Download failed; check your network or upload manually",
+    "confirmTitle": "Confirm Update",
+    "confirmOneClick": "This will download the official package v{version} and update immediately. A full backup of the current deployment is saved to apeadmin_backup_<timestamp> before the update; the service is briefly unavailable (~10s) and restarts automatically. Continue?",
+    "confirmUpload": "This will update the current deployment with the selected package. A full backup is saved to apeadmin_backup_<timestamp> first; the service is briefly unavailable (~10s) and restarts automatically. Continue?",
+    "confirmBackupNote": "A full backup (including installed plugins and uploads) is taken before updating; restore from the backup directory if anything fails",
+    "confirmInterruptNote": "The service is briefly unavailable (~10s) during the update; the page refreshes automatically afterwards",
+    "confirmCancel": "Cancel",
+    "confirmProceed": "Start Update",
+    "downloadedVerifying": "Package downloaded ({size}), verifying before update…",
+    "md5Mismatch": "Package verification failed (MD5 mismatch); update cancelled. Retry or upload manually",
+    "downloadVerifyFailed": "Download or verification failed; update cancelled",
+    "currentSessionNotice": "Note: the backend restarts during the update. In-flight AI chat tasks persist (background run architecture); page sessions are unaffected"
   },
   "validation": {
     "required": "Please enter {name}",

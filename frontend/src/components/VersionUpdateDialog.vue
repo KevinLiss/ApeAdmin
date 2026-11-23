@@ -119,11 +119,56 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import type { UploadFile, UploadFiles, UploadRawFile } from 'element-plus'
 import { getSystemVersion, checkSystemUpdate, uploadSystemUpdate } from '@/api'
 import { pollBackendHealth } from '@/utils/restart'
+
+// 轻量 MD5 实现（自包含，无第三方依赖）：一键更新包完整性校验用
+async function md5Hex(blob: Blob): Promise<string> {
+  const data = new Uint8Array(await blob.arrayBuffer())
+  // --- MD5 算法（RFC 1321）---
+  const S = [7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22,
+    5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20,
+    4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23,
+    6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21]
+  const K = new Int32Array(64)
+  for (let i = 0; i < 64; i++) K[i] = Math.floor(Math.abs(Math.sin(i + 1)) * 4294967296)
+  const rotl = (x: number, c: number) => (x << c) | (x >>> (32 - c))
+  let a = 0x67452301, b = 0xefcdab89, c = 0x98badcfe, d = 0x10325476
+  const padLen = ((data.length + 8) >> 6) + 1
+  const total = padLen << 6
+  const buf = new Uint8Array(total)
+  buf.set(data)
+  buf[data.length] = 0x80
+  const bitLen = data.length * 8
+  const dv = new DataView(buf.buffer)
+  dv.setUint32(total - 8, bitLen >>> 0, true)
+  dv.setUint32(total - 4, Math.floor(bitLen / 4294967296), true)
+  for (let off = 0; off < total; off += 64) {
+    const M = new Int32Array(16)
+    for (let i = 0; i < 16; i++) M[i] = dv.getInt32(off + i * 4, true)
+    let A = a, B = b, C = c, D = d
+    for (let i = 0; i < 64; i++) {
+      let F: number, g: number
+      if (i < 16) { F = (B & C) | (~B & D); g = i }
+      else if (i < 32) { F = (D & B) | (~D & C); g = (5 * i + 1) & 15 }
+      else if (i < 48) { F = B ^ C ^ D; g = (3 * i + 5) & 15 }
+      else { F = C ^ (B | ~D); g = (7 * i) & 15 }
+      F = (F + A + K[i] + M[g]) | 0
+      A = D; D = C; C = B
+      B = (B + rotl(F, S[i])) | 0
+    }
+    a = (a + A) | 0; b = (b + B) | 0; c = (c + C) | 0; d = (d + D) | 0
+  }
+  const out = new Uint8Array(16)
+  new DataView(out.buffer).setUint32(0, a >>> 0, true)
+  new DataView(out.buffer).setUint32(4, b >>> 0, true)
+  new DataView(out.buffer).setUint32(8, c >>> 0, true)
+  new DataView(out.buffer).setUint32(12, d >>> 0, true)
+  return Array.from(out).map(x => x.toString(16).padStart(2, '0')).join('')
+}
 
 const props = defineProps<{
   modelValue: boolean
@@ -179,14 +224,38 @@ async function fetchVersion() {
   }
 }
 
-// ---- One-click update: download the official ZIP, then reuse the upload flow ----
+// ---- One-click update: confirm → download → verify MD5 → upload ----
 const updateInfo = ref<any>(null)
 const downloading = ref(false)
+
+function fmtSize(bytes: number): string {
+  if (!bytes || bytes <= 0) return ''
+  return bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(2)} MB` : `${Math.round(bytes / 1024)} KB`
+}
+
+async function confirmOneClickUpdate(): Promise<boolean> {
+  const v = updateInfo.value?.latest_version || '--'
+  try {
+    await ElMessageBox.confirm(t('common.versionUpdate.confirmOneClick', { version: v }), t('common.versionUpdate.confirmTitle'), {
+      confirmButtonText: t('common.versionUpdate.confirmProceed'),
+      cancelButtonText: t('common.versionUpdate.confirmCancel'),
+      type: 'warning',
+      dangerouslyUseHTMLString: false,
+    })
+    return true
+  } catch {
+    return false // 用户取消
+  }
+}
 
 async function handleOneClickUpdate() {
   const url = updateInfo.value?.download_url
   if (!url) return
+  // 1) 确认交互：明确告知备份/中断时长，避免误点直接触发服务重启
+  if (!(await confirmOneClickUpdate())) return
   downloading.value = true
+  errorMsg.value = ''
+  successMsg.value = ''
   try {
     const resp = await fetch(url, { credentials: 'omit' })
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
@@ -198,8 +267,21 @@ async function handleOneClickUpdate() {
       errorMsg.value = t('common.versionUpdate.fileTooLarge')
       return
     }
+    // 2) 下载后校验：大小对得上才继续；服务端提供 md5 时逐字节校验
+    const expectedSize = Number(updateInfo.value?.file_size) || 0
+    if (expectedSize > 0 && file.size !== expectedSize) {
+      errorMsg.value = t('common.versionUpdate.downloadVerifyFailed')
+      return
+    }
+    if (updateInfo.value?.file_md5) {
+      progressText.value = t('common.versionUpdate.downloadedVerifying', { size: fmtSize(file.size) })
+      const local = await md5Hex(blob)
+      if (local.toLowerCase() !== String(updateInfo.value.file_md5).toLowerCase()) {
+        errorMsg.value = t('common.versionUpdate.md5Mismatch')
+        return
+      }
+    }
     selectedFile.value = file
-    errorMsg.value = ''
     await handleUpload()
   } catch (err: any) {
     errorMsg.value = err?.message || t('common.versionUpdate.downloadFailed')
@@ -252,6 +334,9 @@ function handleExceed(files: File[]) {
 
 async function handleUpload() {
   if (!selectedFile.value) return
+
+  // 手动上传路径同样加确认交互（与一键更新同文案体系）
+  if (!(await confirmManualUpload())) return
 
   uploading.value = true
   progress.value = 0
@@ -308,6 +393,23 @@ async function handleUpload() {
       || err?.message
       || t('common.message.uploadFailedRetry')
     uploading.value = false
+  }
+}
+
+async function confirmManualUpload(): Promise<boolean> {
+  try {
+    await ElMessageBox.confirm(
+      `${t('common.versionUpdate.confirmUpload')}\n${t('common.versionUpdate.confirmBackupNote')}`,
+      t('common.versionUpdate.confirmTitle'),
+      {
+        confirmButtonText: t('common.versionUpdate.confirmProceed'),
+        cancelButtonText: t('common.versionUpdate.confirmCancel'),
+        type: 'warning',
+      },
+    )
+    return true
+  } catch {
+    return false
   }
 }
 

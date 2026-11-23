@@ -241,6 +241,8 @@ async def check_update(
                     if latest.get("id") is not None
                     else None
                 ),
+                "file_md5": latest.get("file_md5"),
+                "file_size": latest.get("file_size"),
                 "has_update": _parse_semver(latest_version) > _parse_semver(current),
             })
     except Exception as exc:  # noqa: BLE001 — degrade silently
