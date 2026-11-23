@@ -27,9 +27,8 @@ backend/src/uploads/
 # 后端挂载的静态构建产物（由前端构建后同步拷贝）
 backend/frontend_dist/
 
-# Alembic
-backend/alembic/versions/*.py
-!backend/alembic/versions/.gitkeep
+# Alembic —— 迁移文件必须进版本库（忽略它们会导致其他环境拿不到迁移链）
+!backend/alembic/versions/
 
 # IDE
 .idea/

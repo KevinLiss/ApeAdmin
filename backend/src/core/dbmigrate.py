@@ -16,6 +16,14 @@ Rules for adding a patch here:
 - Never destructive; data migrations belong to Alembic, not here.
 - Every entry must match the SQLAlchemy model exactly, so new installs
   (create_all) and patched installs converge on the same schema.
+
+Migration discipline (see ``backend/alembic/README.md``):
+- Any change beyond an additive nullable column (type change, rename,
+  backfill, index, drop) MUST ship as an Alembic migration — this
+  whitelist is the last-resort safety net for in-flight deployments,
+  not the primary migration channel.
+- Each new nullable column goes BOTH into an Alembic migration and into
+  this whitelist until every deployment has adopted Alembic.
 """
 
 import sqlite3  # noqa: F401  (documented below)

@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.deps import get_current_user, require_permission
+from src.core.deps import get_current_user, require_permission, user_data_scope_filters
 from src.core.exceptions import ConflictException, NotFoundException, success_response
 from src.core.i18n import t, get_locale
 from src.crud import crud_user
@@ -35,6 +35,9 @@ async def list_users(
         )
     if status is not None:
         filters.append(User.status == status)
+    # Layer-4 data scope: role.data_scope restricts which accounts a
+    # non-superadmin manager can see (self / dept / dept subtree / all).
+    filters.extend(await user_data_scope_filters(db, user, User))
 
     items, total = await crud_user.get_multi(
         db, page=page, page_size=page_size, filters=filters

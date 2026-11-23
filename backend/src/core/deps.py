@@ -173,3 +173,61 @@ def _build_menu_tree(menus: list[Menu], parent_id: int = 0) -> list[dict]:
             tree.append(node)
     tree.sort(key=lambda x: x.get("sort", 0))
     return tree
+
+
+# ---------------------------------------------------------------------------
+# Layer 4 — data scope (数据权限)
+# ---------------------------------------------------------------------------
+# Role.data_scope: 1=本人 2=本部门及以下 3=本部门 4=全部.
+# The scope filter is applied by list endpoints; scope 4 (or the superadmin)
+# bypasses filtering. Currently wired into the user list; other resources
+# should reuse ``user_data_scope_filters`` as they gain scope awareness.
+
+
+def get_user_data_scope(user: User) -> int:
+    """Most permissive scope across the user's active roles (4 = widest)."""
+    if user.username == settings.SUPER_ADMIN_USERNAME:
+        return 4
+    scopes = [r.data_scope or 1 for r in user.roles if r.status == 1]
+    return max(scopes) if scopes else 1
+
+
+def _collect_dept_subtree(flat_depts, root_id: int | None) -> set[int]:
+    """Collect a department and all its descendants from a flat dept list."""
+    if root_id is None:
+        return set()
+    children_by_parent: dict[int, list[int]] = {}
+    for d in flat_depts:
+        children_by_parent.setdefault(d.parent_id, []).append(d.id)
+    ids: set[int] = set()
+    stack = [root_id]
+    while stack:
+        current = stack.pop()
+        ids.add(current)
+        stack.extend(children_by_parent.get(current, []))
+    return ids
+
+
+async def user_data_scope_filters(db: AsyncSession, user: User, model) -> list:
+    """Build SQLAlchemy filters restricting ``model`` rows by data scope.
+
+    ``model`` must expose ``id`` (owner semantics) and ``dept_id`` columns.
+    Returns an empty list when the user sees everything (scope 4 / superadmin).
+    """
+    scope = get_user_data_scope(user)
+    if scope >= 4:
+        return []
+
+    from src.crud import crud_dept
+
+    if scope == 1:  # 本人 — the user themselves (User model semantics)
+        return [model.id == user.id]
+    if scope == 3:  # 本部门
+        if user.dept_id:
+            return [model.dept_id == user.dept_id]
+        return [model.id == user.id]
+    # scope == 2 — 本部门及以下
+    subtree = _collect_dept_subtree(await crud_dept.get_tree(db), user.dept_id)
+    if not subtree:
+        return [model.id == user.id]
+    return [model.dept_id.in_(subtree)]
