@@ -32,6 +32,11 @@ export const useUserStore = defineStore('user', {
       const data: any = await loginApi({ username, password, ...captcha })
       this.token = data.access_token
       localStorage.setItem('apeadmin_token', data.access_token)
+      // 保存 refresh token：logout 时提交给后端拉黑，防止泄露的
+      // refresh token 在退出后仍可换取新 access token
+      if (data.refresh_token) {
+        localStorage.setItem('apeadmin_refresh_token', data.refresh_token)
+      }
       await this.fetchUserInfo()
     },
 
@@ -51,8 +56,9 @@ export const useUserStore = defineStore('user', {
     },
 
     async logout() {
+      const refreshToken = localStorage.getItem('apeadmin_refresh_token')
       try {
-        await logoutApi()
+        await logoutApi(refreshToken)
       } catch {
         // ignore network errors on logout
       }
@@ -68,6 +74,7 @@ export const useUserStore = defineStore('user', {
       this.menus = []
       this.roles = []
       localStorage.removeItem('apeadmin_token')
+      localStorage.removeItem('apeadmin_refresh_token')
       resetRouter()
     },
   },

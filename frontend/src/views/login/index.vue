@@ -172,7 +172,7 @@ import { ElNotification } from 'element-plus'
 import { Verify } from 'vue3-verify'
 import { useUserStore } from '@/stores/user'
 import { useSettingsStore } from '@/stores/settings'
-import { getPublicSettings } from '@/api'
+import { getPublicSettings, getCaptchaConfig, getCaptcha } from '@/api'
 import { useI18n } from 'vue-i18n'
 import { setLocale, getLocale, SUPPORTED_LOCALES, type Locale } from '@/locales'
 
@@ -196,6 +196,28 @@ const pwdVisible = ref(false)
 const captchaPassed = ref(false)
 const passwordRef = ref<HTMLInputElement | null>(null)
 
+// 服务端算术验证码（login_captcha_enabled 开启时显示）
+const serverCaptchaEnabled = ref(false)
+const serverCaptcha = reactive({ captcha_id: '', question: '', code: '' })
+async function loadServerCaptcha() {
+  try {
+    const cfg: any = await getCaptchaConfig()
+    serverCaptchaEnabled.value = !!cfg?.enabled
+    if (!serverCaptchaEnabled.value) return
+    const cap: any = await getCaptcha()
+    serverCaptcha.captcha_id = cap?.captcha_id || ''
+    serverCaptcha.question = cap?.question || ''
+    serverCaptcha.code = ''
+  } catch {
+    serverCaptchaEnabled.value = false
+  }
+}
+
+// 安全修复：不再于 localStorage 存明文密码（XSS 即可窃取）。
+// 「记住」语义改为记住用户名，并主动清除历史版本残留的明文键。
+if (localStorage.getItem('apeadmin_remember_pwd')) {
+  localStorage.removeItem('apeadmin_remember_pwd')
+}
 const form = reactive({
   username: remember.value ? localStorage.getItem('apeadmin_remember_user') || 'admin' : 'admin',
   password: remember.value ? localStorage.getItem('apeadmin_remember_pwd') || '' : '',
@@ -284,15 +306,20 @@ async function handleLogin() {
 
   loading.value = true
   try {
-    await userStore.login(form.username, form.password)
+    await userStore.login(
+      form.username,
+      form.password,
+      serverCaptchaEnabled.value && serverCaptcha.captcha_id
+        ? { captcha_id: serverCaptcha.captcha_id, captcha_code: serverCaptcha.code }
+        : undefined
+    )
 
-    // 记住密码
+    // 只记住用户名；历史版本曾明文存密码（apeadmin_remember_pwd），
+    // 在页面初始化时已主动清除
     if (remember.value) {
       localStorage.setItem('apeadmin_remember_user', form.username)
-      localStorage.setItem('apeadmin_remember_pwd', form.password)
     } else {
       localStorage.removeItem('apeadmin_remember_user')
-      localStorage.removeItem('apeadmin_remember_pwd')
     }
 
     ElNotification({
@@ -319,6 +346,7 @@ async function handleLogin() {
     captchaPassed.value = false
     // 刷新验证码组件（通过 key 重新挂载）
     captchaKey.value++
+    if (serverCaptchaEnabled.value) loadServerCaptcha()
   } finally {
     loading.value = false
   }
@@ -607,6 +635,33 @@ const captchaKey = ref(0)
   justify-content: center;
 }
 
+.math-captcha-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.math-captcha-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.math-question {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--el-text-color-primary, #303133);
+  letter-spacing: 1px;
+}
+.math-refresh {
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  cursor: pointer;
+  color: var(--el-color-primary, #5A67F5);
+  padding: 2px 6px;
+}
+.math-refresh:hover {
+  opacity: 0.8;
+}
 .captcha-section :deep(.verify-container) {
   border-radius: 6px;
   overflow: hidden;

@@ -44,7 +44,58 @@ class PasswordChangeSchema(BaseModel):
     old_password: str = Field(..., min_length=6, max_length=100)
     new_password: str = Field(..., min_length=6, max_length=100)
 
+
+class LogoutSchema(BaseModel):
+    """Logout body — the frontend also sends the stored refresh token so
+    it can be revoked together with the access token."""
+
+    refresh_token: str | None = Field(default=None, max_length=4096)
+
 router = APIRouter(prefix="/auth", tags=["认证管理"])
+
+
+async def _blacklist_token(db: AsyncSession, user_id: int, payload: dict) -> None:
+    """Blacklist one decoded token payload (DB row + Redis fast-path flag).
+
+    Shared by logout for both the access token and the refresh token so a
+    stolen refresh token cannot outlive the session it belonged to.
+    """
+    jti = payload.get("jti")
+    exp = payload.get("exp")
+    if not jti or not exp:
+        return
+    from sqlalchemy import delete
+
+    from src.core.redis_client import kv_set
+    from src.models import TokenBlacklist
+
+    db.add(
+        TokenBlacklist(
+            jti=jti,
+            user_id=user_id,
+            token_type=payload.get("type", "access"),
+            expires_at=datetime.fromtimestamp(exp, tz=timezone.utc),
+        )
+    )
+    # Opportunistic cleanup: drop entries whose tokens already expired.
+    await db.execute(
+        delete(TokenBlacklist).where(
+            TokenBlacklist.expires_at < datetime.now(timezone.utc)
+        )
+    )
+    await db.commit()
+    # Redis fast-path flag: get_current_user checks this before hitting
+    # the DB. TTL = remaining token lifetime (same as the DB row).
+    remaining = max(1, int(exp - datetime.now(timezone.utc).timestamp()))
+    await kv_set("bl", jti, "1", ttl=remaining)
+
+
+async def _login_captcha_enabled(db: AsyncSession) -> bool:
+    """Read the ``login_captcha_enabled`` sys_setting (default off)."""
+    from src.crud import crud_setting
+
+    value = await crud_setting.get_value(db, "login_captcha_enabled", "0")
+    return value.strip().lower() in ("1", "true", "yes", "on")
 
 
 @router.post("/login")
@@ -66,6 +117,17 @@ async def login(
         raise AuthException(
             t("auth.too_many_attempts", locale, minutes=max(1, lock.retry_after // 60 + 1))
         )
+
+    # Server-side captcha gate (off by default; enable via sys_setting
+    # ``login_captcha_enabled``). Previously the slider was purely a UX
+    # gate and login requests carried no verifiable proof.
+    if await _login_captcha_enabled(db):
+        if not body.captcha_id or not body.captcha_code:
+            raise AuthException(t("auth.captcha_required", locale))
+        from src.core import captcha as _captcha
+
+        if not _captcha.verify(body.captcha_id, body.captcha_code):
+            raise AuthException(t("auth.captcha_invalid", locale))
 
     from src.plugins import plugin_manager
     await plugin_manager.before_login(body.model_dump())
@@ -142,39 +204,42 @@ async def logout(
     request: Request,
     user: Annotated[User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
+    body: LogoutSchema | None = None,
 ):
-    """Logout — blacklist the presented access token until its natural expiry."""
+    """Logout — blacklist the presented access token until its natural expiry.
+
+    If the client also submits its stored refresh token, that one is
+    blacklisted too: without this a leaked refresh token could mint fresh
+    access tokens for up to ``JWT_REFRESH_EXPIRE_DAYS`` days after logout.
+    """
     auth_header = request.headers.get("Authorization", "")
     token = auth_header[7:] if auth_header.startswith("Bearer ") else ""
     payload = decode_token(token) if token else None
-    jti = (payload or {}).get("jti")
-    exp = (payload or {}).get("exp")
-    if jti and exp:
-        from sqlalchemy import delete
+    if payload:
+        await _blacklist_token(db, user.id, payload)
 
-        from src.core.redis_client import kv_set
-        from src.models import TokenBlacklist
-
-        db.add(
-            TokenBlacklist(
-                jti=jti,
-                user_id=user.id,
-                token_type=payload["type"],
-                expires_at=datetime.fromtimestamp(exp, tz=timezone.utc),
-            )
-        )
-        # Opportunistic cleanup: drop entries whose tokens already expired.
-        await db.execute(
-            delete(TokenBlacklist).where(
-                TokenBlacklist.expires_at < datetime.now(timezone.utc)
-            )
-        )
-        await db.commit()
-        # Redis fast-path flag: get_current_user checks this before hitting
-        # the DB. TTL = remaining token lifetime (same as the DB row).
-        remaining = max(1, int(exp - datetime.now(timezone.utc).timestamp()))
-        await kv_set("bl", jti, "1", ttl=remaining)
+    # Revoke the companion refresh token when the client provides one.
+    refresh_token = (body.refresh_token if body else None) or ""
+    refresh_payload = decode_token(refresh_token) if refresh_token else None
+    if refresh_payload and refresh_payload.get("type") == "refresh":
+        await _blacklist_token(db, user.id, refresh_payload)
     return success_response(msg=t("auth.logout_success"))
+
+
+@router.get("/captcha-config")
+async def captcha_config(
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    """Whether the login flow requires a server-verified captcha."""
+    return success_response(data={"enabled": await _login_captcha_enabled(db)})
+
+
+@router.get("/captcha")
+async def new_captcha():
+    """Issue a signed arithmetic captcha (stateless, multi-worker safe)."""
+    from src.core import captcha as _captcha
+
+    return success_response(data=_captcha.generate())
 
 
 @router.get("/userinfo")

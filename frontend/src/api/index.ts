@@ -11,7 +11,12 @@ export const getProfile = () => request.get('/auth/profile')
 export const updateProfile = (data: any) => request.put('/auth/profile', data)
 export const changePassword = (data: any) => request.put('/auth/profile/password', data)
 
-export const logout = () => request.post('/auth/logout')
+export const logout = (refreshToken?: string | null) =>
+  request.post('/auth/logout', { refresh_token: refreshToken || null })
+
+// ---- 登录验证码（服务端算术验证码，开关由后端设置驱动） ----
+export const getCaptchaConfig = () => request.get('/auth/captcha-config')
+export const getCaptcha = () => request.get('/auth/captcha')
 
 // ---- Users ----
 export const getUsers = (params: any) => request.get('/users', { params })
