@@ -3,10 +3,10 @@
     <PageHeader :title="t('dashboard.title')" :breadcrumb="[t('dashboard.title')]" />
 
     <div class="dash-container">
-      <!-- Row 1: 欢迎回来 (10/24) + CPU 使用 (7/24) + 内存使用 (7/24) -->
+      <!-- Row 1: 欢迎回来 (8/24) + CPU 使用 (8/24) + 内存使用 (8/24)——与 Row 2 同栅格，中缝贯通 -->
       <el-row :gutter="30" class="dash-row">
         <!-- 欢迎回来 -->
-        <el-col :xs="24" :sm="24" :lg="10">
+        <el-col :xs="24" :sm="24" :lg="8">
           <div class="ape-card profile-greeting">
             <div class="greeting-body">
               <div class="greeting-text">
@@ -32,7 +32,7 @@
         </el-col>
 
         <!-- CPU 使用 -->
-        <el-col :xs="24" :sm="12" :lg="7">
+        <el-col :xs="24" :sm="12" :lg="8">
           <div class="ape-card metric-card">
             <div class="card-header">
               <h3>{{ t('dashboard.cpu') }}</h3>
@@ -63,7 +63,7 @@
         </el-col>
 
         <!-- 内存使用 -->
-        <el-col :xs="24" :sm="12" :lg="7">
+        <el-col :xs="24" :sm="12" :lg="8">
           <div class="ape-card metric-card">
             <div class="card-header">
               <h3>{{ t('dashboard.memory') }}</h3>
@@ -73,15 +73,15 @@
               <v-chart class="metric-chart" :option="memChartOption" autoresize />
               <div class="metric-info">
                 <div class="mi-item">
-                  <span class="mi-label">{{ t('dashboard.usedDisk') }}</span>
+                  <span class="mi-label">{{ t('dashboard.usedMemory') }}</span>
                   <span class="mi-value">{{ formatBytes(sysData.memory?.used || 0) }}</span>
                 </div>
                 <div class="mi-item">
-                  <span class="mi-label">{{ t('dashboard.freeDisk') }}</span>
+                  <span class="mi-label">{{ t('dashboard.freeMemory') }}</span>
                   <span class="mi-value">{{ formatBytes(sysData.memory?.available || 0) }}</span>
                 </div>
                 <div class="mi-item">
-                  <span class="mi-label">{{ t('dashboard.total') }}</span>
+                  <span class="mi-label">{{ t('dashboard.totalMemory') }}</span>
                   <span class="mi-value">{{ formatBytes(sysData.memory?.total || 0) }}</span>
                 </div>
                 <div class="mi-item">
@@ -214,20 +214,25 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="p in pagedPlugins" :key="p.id">
-                    <td>
-                      <div class="table-primary">
-                        <el-icon class="table-icon"><Box /></el-icon>
-                        <span>{{ p.display_name || p.name }}</span>
-                      </div>
-                    </td>
-                    <td>v{{ p.version }}</td>
-                    <td>
-                      <span class="status-tag" :class="p.enabled ? 'status-on' : 'status-off'">
-                        {{ p.enabled ? t('dashboard.enabled') : t('dashboard.disabled') }}
-                      </span>
-                    </td>
-                    <td>{{ p.created_at || '-' }}</td>
+                  <tr v-for="(p, idx) in pluginRows" :key="p?.id || `ph-${idx}`">
+                    <template v-if="p">
+                      <td>
+                        <div class="table-primary">
+                          <el-icon class="table-icon"><Box /></el-icon>
+                          <span>{{ p.display_name || p.name }}</span>
+                        </div>
+                      </td>
+                      <td>v{{ p.version }}</td>
+                      <td>
+                        <span class="status-tag" :class="p.enabled ? 'status-on' : 'status-off'">
+                          {{ p.enabled ? t('dashboard.enabled') : t('dashboard.disabled') }}
+                        </span>
+                      </td>
+                      <td>{{ p.created_at || '-' }}</td>
+                    </template>
+                    <template v-else>
+                      <td colspan="4" class="placeholder-row">&nbsp;</td>
+                    </template>
                   </tr>
                   <tr v-if="!sysData.plugins?.length">
                     <td colspan="4" class="empty-row">{{ t('dashboard.noPlugins') }}</td>
@@ -264,20 +269,26 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="tool in pagedMcpTools" :key="tool.name">
-                    <td>
-                      <div class="table-primary">
-                        <el-icon class="table-icon"><Connection /></el-icon>
-                        <span>{{ tool.name }}</span>
-                      </div>
-                    </td>
-                    <td class="desc-cell">{{ tool.description || '-' }}</td>
-                    <td>
-                      <div class="perm-tags">
-                        <span v-for="p in (tool.required_permissions || [])" :key="p" class="perm-tag">{{ p }}</span>
-                        <span v-if="!tool.required_permissions?.length" class="perm-free">{{ t('dashboard.noPermissionRequired') }}</span>
-                      </div>
-                    </td>
+                  <tr v-for="(tool, idx) in mcpRows" :key="tool?.name || `ph-${idx}`">
+                    <template v-if="tool">
+                      <td>
+                        <div class="table-primary">
+                          <el-icon class="table-icon"><Connection /></el-icon>
+                          <span>{{ tool.name }}</span>
+                        </div>
+                      </td>
+                      <td class="desc-cell">{{ tool.description || '-' }}</td>
+                      <td>
+                        <div class="perm-tags">
+                          <span v-for="p in (tool.required_permissions || []).slice(0, 1)" :key="p" class="perm-tag">{{ p }}</span>
+                          <span v-if="(tool.required_permissions || []).length > 1" class="perm-more">+{{ tool.required_permissions.length - 1 }}</span>
+                          <span v-if="!tool.required_permissions?.length" class="perm-free">{{ t('dashboard.noPermissionRequired') }}</span>
+                        </div>
+                      </td>
+                    </template>
+                    <template v-else>
+                      <td colspan="3" class="placeholder-row">&nbsp;</td>
+                    </template>
                   </tr>
                   <tr v-if="!sysData.mcp_tools?.length">
                     <td colspan="3" class="empty-row">{{ t('dashboard.noMcpTools') }}</td>
@@ -403,11 +414,22 @@ const pagedPlugins = computed(() => {
   const start = (pluginPage.value - 1) * pluginPageSize
   return list.slice(start, start + pluginPageSize)
 })
+// 空行占位：数据不足一页时补空行到定行数，保证表格高度恒定（与右侧 MCP 卡底边平齐）
+const pluginRows = computed(() => {
+  const rows = [...pagedPlugins.value]
+  while (rows.length < pluginPageSize) rows.push(null)
+  return rows
+})
 
 const pagedMcpTools = computed(() => {
   const list = sysData.mcp_tools || []
   const start = (mcpPage.value - 1) * mcpPageSize
   return list.slice(start, start + mcpPageSize)
+})
+const mcpRows = computed(() => {
+  const rows = [...pagedMcpTools.value]
+  while (rows.length < mcpPageSize) rows.push(null)
+  return rows
 })
 
 // CPU 历史记录（用于趋势图）
@@ -628,16 +650,33 @@ onUnmounted(() => {
 .dash-container {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 30px; /* 行间距：替代原 margin 方案，配合等高行 */
 }
 .dash-row {
   margin-bottom: 0;
 }
 
+/* 行级等高：el-col 默认拉伸，卡片自身 height:100% 后同行卡片底边平齐 */
+.dash-row :deep(.el-col) {
+  display: flex;
+}
+.dash-row :deep(.el-col > .ape-card) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+/* 卡片内容区自动填充剩余高度（表格/列表贴底分页靠它） */
+.dash-row :deep(.el-col > .ape-card .card-body) {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 /* ==================== Welcome Card ==================== */
 .profile-greeting {
   background: linear-gradient(135deg, #5A67F5 0%, #47D8FF 100%);
-  height: 254px;
+  height: 295px; /* 锁定与 metric 卡同高（实测 header+chart+info 行高），行级等高不再依赖内容 */
   position: relative;
   overflow: hidden;
 }
@@ -652,7 +691,7 @@ onUnmounted(() => {
 .greeting-text {
   position: relative;
   z-index: 2;
-  max-width: 65%;
+  max-width: 60%; /* 预留右侧插画安全区，长文字不再被压 */
 }
 .greeting-text h1 {
   color: #fff;
@@ -666,9 +705,12 @@ onUnmounted(() => {
   font-size: 13px;
   margin: 0 0 20px;
   line-height: 1.5;
-  white-space: nowrap;
+  /* 允许两行，避免长运行时长被插画遮挡后截断 */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
+  word-break: break-all;
 }
 .greeting-stats {
   display: flex;
@@ -696,12 +738,13 @@ onUnmounted(() => {
 }
 .greeting-img {
   position: absolute;
-  bottom: -2px;
-  right: -20px;
+  right: 0;
+  bottom: 0;
   z-index: 1;
-  height: 100%;
-  display: flex;
-  align-items: flex-end;
+  width: 34%; /* 相对卡宽而非内容，位置稳定 */
+  opacity: 0.85;
+  mask-image: linear-gradient(to left, #000 60%, transparent 100%); /* 左缘渐隐，不生硬压字 */
+  -webkit-mask-image: linear-gradient(to left, #000 60%, transparent 100%);
   pointer-events: none;
 }
 .greeting-img img {
@@ -747,22 +790,7 @@ onUnmounted(() => {
   gap: 8px;
   margin-top: 10px;
 }
-.mi-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 6px 12px;
-  background: #F8F9FB;
-  border-radius: 8px;
-}
-.mi-label {
-  color: #909399;
-  font-size: 12px;
-}
-.mi-value {
-  color: #2B2B2B;
-  font-size: 13px;
-  font-weight: 500;
-}
+/* mi-item / mi-label / mi-value 样式见下方「desc-cell」区（含跨卡数值列对齐定义） */
 
 /* ==================== System Info Card ==================== */
 .info-card .card-header {
@@ -871,10 +899,33 @@ onUnmounted(() => {
 }
 .desc-cell {
   color: #909399;
-  max-width: 200px;
+  max-width: 220px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+/* metric-info 数值列对齐：label 定宽，value 右对齐，跨卡数值列成一条竖线 */
+.mi-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 12px;
+  background: #F8F9FB;
+  border-radius: 8px;
+}
+.mi-label {
+  color: #909399;
+  font-size: 12px;
+  min-width: 64px; /* 四字宽，跨卡统一 */
+  flex-shrink: 0;
+}
+.mi-value {
+  color: #2B2B2B;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: right;
+  margin-left: auto;
 }
 .status-tag {
   display: inline-flex;
@@ -900,10 +951,16 @@ onUnmounted(() => {
   background: #67C100;
   display: inline-block;
 }
+.placeholder-row {
+  height: 41px; /* 与真实数据行同高，空行占位不致塌陷 */
+  border-bottom: 1px solid #F8F9FB;
+}
 .perm-tags {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
+  flex-wrap: nowrap;
   gap: 4px;
+  overflow: hidden;
 }
 .perm-tag {
   font-size: 11px;
@@ -911,6 +968,15 @@ onUnmounted(() => {
   border-radius: 4px;
   background: rgba(90, 103, 245, 0.1);
   color: #5A67F5;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.perm-more {
+  font-size: 11px;
+  color: #909399;
+  flex-shrink: 0;
 }
 .perm-free {
   font-size: 12px;
@@ -925,6 +991,7 @@ onUnmounted(() => {
   display: flex;
   justify-content: center;
   padding: 10px 0 16px;
+  margin-top: auto; /* 贴底：两卡分页永远同一水平线 */
 }
 
 /* ==================== Responsive ==================== */
@@ -1000,6 +1067,16 @@ html.dark .dashboard-monitor .empty-row {
 }
 html.dark .dashboard-monitor .status-off {
   background: rgba(138, 144, 168, 0.1);
+  color: #8a90a8;
+}
+html.dark .dashboard-monitor .placeholder-row {
+  border-bottom-color: #2a2f3d;
+}
+html.dark .dashboard-monitor .perm-tag {
+  background: rgba(90, 103, 245, 0.2);
+  color: #8b96ff;
+}
+html.dark .dashboard-monitor .perm-more {
   color: #8a90a8;
 }
 html.dark .dashboard-monitor .perm-free {
