@@ -94,3 +94,6 @@ backend/setup.lock
 
 # 业务插件运行时凭据（业务插件以独立包分发，不进底座仓库与安装包）
 backend/src/plugins/builtin/*/.hermes_token
+
+# ApeAdmin UI 演示工程（独立仓库/目录，不入主仓库）
+apeadmin-ui/
