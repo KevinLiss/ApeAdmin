@@ -5,7 +5,8 @@ import { fileURLToPath, URL } from 'node:url'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   return {
-    base: '/admin/',
+    // admin_path 可配置：构建时经 VITE_ADMIN_BASE 注入（默认 /admin/）
+    base: env.VITE_ADMIN_BASE || '/admin/',
     plugins: [vue()],
     resolve: {
       alias: {

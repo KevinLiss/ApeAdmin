@@ -55,7 +55,7 @@ WordPress-style out-of-the-box experience, no manual config editing required:
 ### RBAC Permission System
 
 - **Five-table model** — user / role / menu / dept tables plus association tables, standard RBAC infrastructure
-- **Four permission layers** — public → auth-exempt → rule-based → data scope (own dept / dept & children / all)
+- **Four permission layers** — public → auth-exempt → rule-based → data scope (1=self, 2=dept & children, 3=dept, 4=all; scope filtering is live on the user list, rolling out to other resources)
 - **Three menu types** — directory (M) / menu (C) / button (F), unlimited-depth tree structure
 - **Superadmin wildcard** — super admins automatically own every permission; regular users follow role-menu assignments
 - **Frontend permission directive** — the `v-permission` directive controls button-level visibility; route guards verify page-level permissions
@@ -63,7 +63,7 @@ WordPress-style out-of-the-box experience, no manual config editing required:
 ### Microservice Plugin Architecture
 
 - **Auto discovery** — plugins are developed as Python packages, auto-scanned via `importlib`
-- **Independent deployment** — business plugins can be deployed as standalone Docker services, fully decoupled from the base
+- **Independent deployment (roadmap)** — plugins currently run in-process with the base; standalone Docker service deployment is planned and **not yet available**
 - **Full lifecycle** — `load → install → register → uninstall`, with hot enable/disable
 - **Event bus** — EventBus supports 7 built-in events (APP_STARTUP / DB_READY / USER_LOGIN, etc.) for loosely-coupled plugin communication
 - **ZIP install** — upload ZIP packages to import plugins, no manual file placement

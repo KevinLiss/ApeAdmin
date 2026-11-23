@@ -22,6 +22,12 @@ const app = createApp(App)
 // 应用已保存的主题（深色/浅色），需在挂载前执行以避免闪白
 initTheme()
 
+// favicon 跟随 admin base（index.html 中写死的绝对路径在自定义 admin_path 下会 404）
+const _favicon = `${String(import.meta.env.VITE_ADMIN_BASE || '/admin/')}assets/images/favicon/favicon.png`
+for (const el of document.querySelectorAll<HTMLLinkElement>('link[rel="icon"],link[rel="shortcut icon"]')) {
+  el.setAttribute('href', _favicon)
+}
+
 // Register all Element Plus icons globally
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component)

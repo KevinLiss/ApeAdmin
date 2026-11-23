@@ -46,7 +46,9 @@ const staticRoutes: RouteRecordRaw[] = [
   { path: '/:pathMatch(.*)*', name: 'CatchAll', component: () => import('@/views/error/404.vue'), meta: { title: '404' } },
 ]
 
-const router = createRouter({ history: createWebHistory('/admin/'), routes: staticRoutes })
+// 与 vite base 保持一致：构建时经 VITE_ADMIN_BASE 注入 admin_path
+const ADMIN_BASE = String(import.meta.env.VITE_ADMIN_BASE || '/admin/')
+const router = createRouter({ history: createWebHistory(ADMIN_BASE), routes: staticRoutes })
 let dynamicRoutesLoaded = false
 
 function registerDynamicRoutes(menus: any[]) {
