@@ -61,7 +61,7 @@ async def login(
     locale = get_locale(request)
     client_ip = request.client.host if request.client else "unknown"
 
-    lock = auth_guard.check_lock(body.username, client_ip)
+    lock = await auth_guard.check_lock(body.username, client_ip)
     if lock.locked:
         raise AuthException(
             t("auth.too_many_attempts", locale, minutes=max(1, lock.retry_after // 60 + 1))
@@ -71,14 +71,14 @@ async def login(
     await plugin_manager.before_login(body.model_dump())
     user = await crud_user.authenticate(db, body.username, body.password)
     if not user:
-        result = auth_guard.record_failure(body.username, client_ip)
+        result = await auth_guard.record_failure(body.username, client_ip)
         if result.locked:
             raise AuthException(
                 t("auth.too_many_attempts", locale, minutes=max(1, result.retry_after // 60 + 1))
             )
         raise AuthException(t("auth.login_failed", locale))
 
-    auth_guard.record_success(body.username, client_ip)
+    await auth_guard.record_success(body.username, client_ip)
 
     # Update last login info
     from sqlalchemy import update
@@ -152,6 +152,7 @@ async def logout(
     if jti and exp:
         from sqlalchemy import delete
 
+        from src.core.redis_client import kv_set
         from src.models import TokenBlacklist
 
         db.add(
@@ -169,6 +170,10 @@ async def logout(
             )
         )
         await db.commit()
+        # Redis fast-path flag: get_current_user checks this before hitting
+        # the DB. TTL = remaining token lifetime (same as the DB row).
+        remaining = max(1, int(exp - datetime.now(timezone.utc).timestamp()))
+        await kv_set("bl", jti, "1", ttl=remaining)
     return success_response(msg=t("auth.logout_success"))
 
 

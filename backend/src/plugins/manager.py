@@ -788,9 +788,22 @@ class PluginManager:
         SQLAlchemy keeps declarative ``Table`` objects in shared metadata even
         after a plugin module is removed from ``sys.modules``. This cleanup
         does not drop database tables or delete any persisted data.
+
+        Two plugin model styles are handled:
+        - **Isolated base** (``make_plugin_base``, recommended): the plugin's
+          tables live in its own MetaData which is dropped together with the
+          plugin module — popping the registry entry is enough, nothing to
+          scan.
+        - **Legacy shared base** (``src.db.Base``): fall back to the historical
+          ``{name}_`` table-prefix scan of the shared metadata.
         """
         from src.db.engine import Base
+        from src.plugins.base import pop_plugin_base
 
+        removed = 0
+        if pop_plugin_base(name) is not None:
+            # Isolated metadata dies with the module; shared metadata untouched.
+            logger.debug(f"Plugin '{name}' used an isolated metadata base — dropped registry entry")
         prefix = f"{name}_"
         stale = [
             table for table_name, table in Base.metadata.tables.items()
@@ -798,7 +811,8 @@ class PluginManager:
         ]
         for table in stale:
             Base.metadata.remove(table)
-        return len(stale)
+            removed += 1
+        return removed
 
     # ------------------------------------------------------------------
     # Plugin package import (upload .zip → extract → install)

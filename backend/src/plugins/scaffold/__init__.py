@@ -42,20 +42,17 @@ from .plugin import {class_name}
 __all__ = ["{class_name}"]
 """
 
-PLUGIN_PY = """\
-\"\"\"{display_name} plugin entry point.\"\"\"
-
-from pathlib import Path
+PLUGIN_PY = '''\
+"""{display_name} plugin entry point."""
 
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from loguru import logger
 
 from src.plugins import PluginInterface
 
 
 class {class_name}(PluginInterface):
-    \"\"\"{display_name} plugin.\"\"\"
+    """{display_name} plugin."""
 
     name = "{pkg_name}"
     display_name = "{display_name}"
@@ -64,77 +61,84 @@ class {class_name}(PluginInterface):
     author = "ApeAdmin"
 
     async def install(self) -> None:
-        \"\"\"Create plugin tables and seed initial data.\"\"\"
-        from src.models import User  # noqa: F401
-        from .{pkg_name} import models  # noqa: F401
-        from .{pkg_name}.seed import seed_data
+        """Create plugin tables and seed initial data.
 
+        The plugin's isolated MetaData (see models.py) creates only this
+        plugin's tables; system tables and other plugins are untouched.
+        """
+        from src.db import engine
+        from . import models  # noqa: F401 — registers ORM metadata
+        from .models import PluginBase
+        from .seed import seed_data
+
+        async with engine.begin() as conn:
+            await conn.run_sync(
+                lambda sync_conn: PluginBase.metadata.create_all(sync_conn)
+            )
         await seed_data()
         logger.info("{display_name} installed")
 
     async def uninstall(self) -> None:
-        \"\"\"Drop all plugin-owned tables.\"\"\"
-        from sqlalchemy import text
-        from src.db import engine
+        """Drop all plugin-owned tables.
 
-        tables = [
-            # List your plugin tables here, lowest dependency first
-            "{pkg_name}_sample",
-        ]
+        The isolated MetaData makes this precise: only tables defined in
+        models.py are dropped — no hand-maintained table list needed.
+        """
+        from src.db import engine
+        from .models import PluginBase
+
         async with engine.begin() as conn:
-            for tbl in tables:
-                await conn.execute(text(f"DROP TABLE IF EXISTS {{tbl}}"))
+            await conn.run_sync(
+                lambda sync_conn: PluginBase.metadata.drop_all(sync_conn)
+            )
         logger.info("{display_name} uninstalled")
 
     def register(self, app: FastAPI) -> None:
-        \"\"\"Register API routes and static files.\"\"\"
+        """Register API routes and static files."""
         from src.core.config import settings
-        from .{pkg_name}.api import router
+        from .api import router
 
         app.include_router(router, prefix=settings.API_PREFIX)
         logger.info("{display_name} routes registered")
 
     def register_mcp_tools(self) -> None:
-        \"\"\"Register MCP tools for AI agents.
+        """Register MCP tools for AI agents.
 
         Uses the @mcp_tool decorator for declarative registration.
         Remove this method if the plugin doesn't expose MCP tools.
-        \"\"\"
+        """
         from src.mcp.decorators import register_decorated_tools
 
         register_decorated_tools(self, plugin_name=self.name)
+'''
+
+MODELS_PY = '''\
+"""{display_name} ORM models.
+
+Models inherit from the plugin's isolated DeclarativeBase
+(``make_plugin_base``): install()/uninstall() operate only on this
+plugin's tables, and the shared application metadata is never touched.
+Table names are still prefixed with ``{pkg_name}_`` for readability.
 """
 
-MODELS_PY = """\
-\"\"\"{display_name} ORM models.
+from sqlalchemy import Integer, String
+from sqlalchemy.orm import Mapped, mapped_column
 
-All tables are prefixed with ``{pkg_name}_`` to avoid collisions.
-Uses a separate registry but shares the host metadata for FK support.
-\"\"\"
+from src.models.mixins import IDMixin, TimestampMixin
+from src.plugins.base import make_plugin_base
 
-from datetime import datetime
-
-from sqlalchemy import Integer, String, DateTime, ForeignKey
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, registry, relationship
-
-from src.db.engine import Base
+# Plugin-local declarative base with its own MetaData (L1 isolation).
+PluginBase = make_plugin_base("{pkg_name}")
 
 
-class {class_prefix}Base(DeclarativeBase):
-    \"\"\"Plugin-local mapper registry with shared metadata.\"\"\"
-
-    registry = registry(metadata=Base.metadata)
-
-
-class Sample({class_prefix}Base):
-    \"\"\"Sample model — replace with your own.\"\"\"
+class Sample(IDMixin, TimestampMixin, PluginBase):
+    """Sample model — replace with your own."""
 
     __tablename__ = "{pkg_name}_sample"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(64), index=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-"""
+    note: Mapped[str] = mapped_column(String(255), default="")
+'''
 
 API_PY = """\
 \"\"\"{display_name} API routes.\"\"\"

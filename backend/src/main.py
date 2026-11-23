@@ -116,10 +116,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         # Register built-in MCP resources
         from src.mcp.builtin_resources import register_builtin_resources
         register_builtin_resources()
-        # Register MCP SSE transport (standard MCP protocol over SSE)
+        # Register MCP SSE transport (legacy, kept for compatibility)
         from src.mcp.sse_transport import register_sse_routes
         register_sse_routes(app)
-        logger.info("MCP routes + SSE transport registered")
+        # Register MCP Streamable HTTP transport (2025-03-26 spec, single endpoint)
+        from src.mcp.streamable_http import register_streamable_routes
+        register_streamable_routes(app)
+        logger.info("MCP routes + SSE/Streamable-HTTP transports registered")
 
         # Restore persisted MCP tool registrations from DB
         await _restore_mcp_tools_from_db()

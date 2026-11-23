@@ -1,15 +1,20 @@
-"""In-process brute-force protection for the login endpoint.
+"""Brute-force protection for the login endpoint.
 
 Tracks failed login attempts per (username, IP) and locks the pair out
-for a cooldown window after too many consecutive failures. State lives
-in process memory on purpose:
+for a cooldown window after too many consecutive failures.
 
-- The lock window is short (minutes); surviving a process restart is
-  not a requirement — an attacker regains attempts after a restart but
-  the operator also regains a healthy system.
-- The admin panel is a single-worker deployment (systemd unit runs
-  uvicorn with --workers 1); multi-worker deployments would need a
-  shared store (Redis). Guarded by a warning in ``check_lock`` docs.
+Storage:
+- **Redis** (when reachable): counters live under ``apeadmin:authlock:``
+  so multi-worker deployments share one view of the attempts. Lockout
+  TTL is enforced by Redis itself.
+- **In-memory fallback** (Redis disabled/unreachable): identical
+  behavior to the historical implementation — counters in a process
+  dict. Correct for the documented single-worker deployment; multi-worker
+  deployments lose cross-worker consistency until Redis is reachable.
+
+The lock window is short (minutes); surviving a process restart is not
+a requirement — an attacker regains attempts after a restart but the
+operator also regains a healthy system.
 
 Success resets the counter for the pair. Successful logins for other
 users from the same IP are unaffected.
@@ -20,15 +25,17 @@ from dataclasses import dataclass
 
 from loguru import logger
 
-from src.core.config import settings
+from src.core.redis_client import kv_delete, kv_get, kv_set, memory_clear
 
 MAX_FAILURES = 5
 LOCK_SECONDS = 15 * 60
 
-# (username.lower(), ip) -> [fail_count, locked_until_epoch]
+_SPACE = "authlock"
+
+# In-memory fallback: (username.lower(), ip) -> [fail_count, locked_until_epoch]
 _attempts: dict[tuple[str, str], list[float]] = {}
 
-# Periodic sweep bookkeeping
+# Periodic sweep bookkeeping (fallback mode only)
 _LAST_SWEEP = 0.0
 
 
@@ -38,42 +45,71 @@ class LockState:
     retry_after: int  # seconds until unlock (0 when not locked)
 
 
-def check_lock(username: str, ip: str) -> LockState:
+def _k(username: str, ip: str) -> str:
+    return f"{username.lower()}:{ip or 'unknown'}"
+
+
+async def check_lock(username: str, ip: str) -> LockState:
     """Raise-free lock check; returns whether the pair is currently locked."""
     _sweep()
-    key = (username.lower(), ip or "unknown")
-    entry = _attempts.get(key)
-    if not entry:
-        return LockState(locked=False, retry_after=0)
-    locked_until = entry[1]
+    key = _k(username, ip)
+    raw = await kv_get(_SPACE, key)
+    if raw is None:
+        # Fallback dict mirrors Redis misses; check it too so a degraded
+        # session keeps serving counters written before the failure.
+        entry = _attempts.get((username.lower(), ip or "unknown"))
+        if not entry:
+            return LockState(locked=False, retry_after=0)
+        locked_until = entry[1]
+    else:
+        # "count|locked_until"
+        try:
+            count_s, locked_s = raw.split("|", 1)
+            locked_until = float(locked_s) if locked_s else 0.0
+        except ValueError:
+            return LockState(locked=False, retry_after=0)
     if locked_until and locked_until > time.time():
         return LockState(locked=True, retry_after=int(locked_until - time.time()) + 1)
     return LockState(locked=False, retry_after=0)
 
 
-def record_failure(username: str, ip: str) -> LockState:
+async def record_failure(username: str, ip: str) -> LockState:
     """Register a failed attempt; locks the pair at MAX_FAILURES."""
-    key = (username.lower(), ip or "unknown")
-    entry = _attempts.setdefault(key, [0, 0.0])
-    entry[0] += 1
-    if entry[0] >= MAX_FAILURES:
-        entry[1] = time.time() + LOCK_SECONDS
-        entry[0] = 0
+    key = _k(username, ip)
+    raw = await kv_get(_SPACE, key)
+    if raw is not None:
+        try:
+            count_s, locked_s = raw.split("|", 1)
+            count = int(count_s)
+        except ValueError:
+            count = 0
+    else:
+        # Seed from fallback dict (degraded-mode continuity), else zero.
+        entry = _attempts.get((username.lower(), ip or "unknown"))
+        count = int(entry[0]) if entry else 0
+
+    count += 1
+    if count >= MAX_FAILURES:
+        locked_until = time.time() + LOCK_SECONDS
+        await kv_set(_SPACE, key, f"0|{locked_until}", ttl=LOCK_SECONDS)
         logger.warning(
             f"Login lockout engaged: user={username!r} ip={ip} "
             f"for {LOCK_SECONDS}s"
         )
         return LockState(locked=True, retry_after=LOCK_SECONDS)
+
+    await kv_set(_SPACE, key, f"{count}|", ttl=LOCK_SECONDS)
     return LockState(locked=False, retry_after=0)
 
 
-def record_success(username: str, ip: str) -> None:
+async def record_success(username: str, ip: str) -> None:
     """A successful login clears the pair's failure counter."""
+    await kv_delete(_SPACE, _k(username, ip))
     _attempts.pop((username.lower(), ip or "unknown"), None)
 
 
 def _sweep() -> None:
-    """Drop stale entries (expired locks / idle counters) opportunistically."""
+    """Drop stale fallback entries (expired locks / idle counters)."""
     global _LAST_SWEEP
     now = time.time()
     if now - _LAST_SWEEP < 60:
@@ -87,6 +123,12 @@ def _sweep() -> None:
     ]
     for k in stale:
         _attempts.pop(k, None)
+
+
+def reset_fallback() -> None:
+    """Clear in-memory fallback counters (tests / admin diagnostics)."""
+    memory_clear(_SPACE)
+    _attempts.clear()
 
 
 # ---------------------------------------------------------------- i18n keys

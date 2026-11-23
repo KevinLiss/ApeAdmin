@@ -82,11 +82,13 @@ WordPress 式开箱体验，无需手工编辑配置文件：
 将底座与插件的管理能力对外暴露为 AI Agent 可调用的工具：
 
 - **三原语** —— Tools（工具调用）/ Resources（资源读取）/ Prompts（模板渲染）
+- **双传输通道** —— Streamable HTTP（`POST /mcp`，2025-03-26 规范，Bearer JWT + 会话头）+ SSE（旧通道，一次性 ticket 认证，保留兼容）
 - **自动 Schema** —— 工具注册时自动从函数签名推断 JSON Schema
 - **RBAC 过滤** —— AI Agent 只能看到当前用户有权限调用的工具
-- **安全传输** —— SSE 一次性 ticket 认证，工具调用 30s 超时保护
+- **安全传输** —— JWT 走 Authorization 头；SSE 用一次性 ticket 替代裸 JWT；工具调用 30s 超时保护
 - **持久化恢复** —— 服务重启后自动恢复 MCP 工具注册
 - **审计日志** —— 每次调用记录请求、响应、耗时、调用者
+- **共享分发层** —— 两种通道共用同一套 JSON-RPC 分发器，鉴权/审计/超时行为完全一致
 
 内置 MCP 工具：
 
@@ -117,7 +119,8 @@ WordPress 式开箱体验，无需手工编辑配置文件：
 - **双语 i18n** —— 前后端中英双语（`zh-CN` / `en-US`）
 - **深色模式** —— 全局主题切换
 - **系统自更新** —— 后台上传部署包原地更新，更新前全量备份、已安装插件自动还原
-- **测试覆盖** —— 插件热插拔 / 插件升级 / 系统 UPDATE 接口 / 菜单管理 / chat run / 加固项等 35 个用例
+- **测试覆盖** —— 插件热插拔 / 插件升级 / 系统 UPDATE 接口 / 菜单管理 / chat run / 加固项等 43 个用例
+- **Redis 可选加速** —— 登录爆破防护 / MCP ticket / token 吊销缓存可走 Redis（多 worker 必需），不可用时自动降级进程内存
 
 ## 技术栈
 
@@ -129,8 +132,8 @@ WordPress 式开箱体验，无需手工编辑配置文件：
 | 图表 | ECharts 5.6 + vue-echarts |
 | 数据库 | MySQL（aiomysql）/ SQLite（aiosqlite）双驱动自动切换 |
 | 缓存 | Redis（可选，缺失自动降级内存） |
-| 认证 | JWT（access token）+ bcrypt 密码哈希 |
-| AI 协议 | MCP (Model Context Protocol) — SSE 传输 |
+| 认证 | JWT（access token）+ bcrypt 密码哈希；token 吊销走 DB 黑名单 + Redis 加速 |
+| AI 协议 | MCP (Model Context Protocol) — Streamable HTTP + SSE 双传输 |
 | AI 模型 | DeepSeek / 通义千问 / 智谱 GLM / OpenAI（OpenAI 兼容接口） |
 
 ## 快速开始
@@ -425,6 +428,7 @@ class MyPlugin(PluginInterface):
 
 | 版本 | 日期 | 要点 |
 |------|------|------|
+| v2.9.0 | 2026-11-23 | 架构三项：MCP 新增 Streamable HTTP 传输（共享 JSON-RPC 分发层）；Redis 真正启用（爆破防护/ticket/吊销缓存，可降级内存）；插件 MetaData 隔离（``make_plugin_base``）＋脚手架同步 |
 | v2.8.2 | 2026-11-21 | 修复全新克隆无法构建的库内残留（Plugins.vue 误入库）；README 重写 |
 | v2.8.1 | 2026-11-20 | 依赖升级：后端 10 项小版本跟升＋greenlet 显式锁定；前端删 9 死依赖、sortablejs 转正；恢复 vue-tsc 完整检查 |
 | v2.8.0 | 2026-11-19 | 插件分层：hermes 整份移出底座仓库与安装包，底座只保留底座代码 + dev_example |

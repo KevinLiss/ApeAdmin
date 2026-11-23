@@ -28,13 +28,13 @@ from fastapi.responses import StreamingResponse
 from loguru import logger
 from pydantic import BaseModel
 
-from src.core.deps import get_current_user, get_user_permissions
-from src.core.exceptions import success_response, AppException
+from src.core.deps import get_current_user
+from src.core.exceptions import success_response
+from src.core.redis_client import kv_delete, kv_get, kv_set
 from src.db import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.mcp.manager import mcp_manager
-from src.mcp.routes import _write_audit_log
+from src.mcp.dispatch import dispatch_jsonrpc
 from src.models import User
 
 router = APIRouter(prefix="/mcp/sse", tags=["MCP SSE 传输"])
@@ -46,26 +46,10 @@ router = APIRouter(prefix="/mcp/sse", tags=["MCP SSE 传输"])
 TICKET_TTL_SECONDS = 30
 TOOL_CALL_TIMEOUT = 30  # seconds; guards against hung plugin handlers
 
-# ticket -> {"user_id": int, "expires_at": float}
-_tickets: dict[str, dict[str, Any]] = {}
-
-
-def _create_ticket(user: User) -> str:
-    ticket = secrets.token_urlsafe(24)
-    # Prune expired tickets opportunistically
-    now = time.time()
-    for k in [k for k, v in _tickets.items() if v["expires_at"] < now]:
-        _tickets.pop(k, None)
-    _tickets[ticket] = {"user_id": user.id, "expires_at": now + TICKET_TTL_SECONDS}
-    return ticket
-
-
-def _consume_ticket(ticket: str) -> int | None:
-    """Validate and remove a ticket; return user_id if valid."""
-    entry = _tickets.pop(ticket, None)
-    if not entry or entry["expires_at"] < time.time():
-        return None
-    return entry["user_id"]
+# Tickets live in Redis (namespace "mcpticket", TTL 30s) when available so
+# multi-worker deployments can verify tickets issued by another worker.
+# The in-memory fallback (inside redis_client) mirrors the historical dict.
+_SPACE = "mcpticket"
 
 
 @router.post("/ticket")
@@ -77,7 +61,21 @@ async def create_sse_ticket(
     Clients use the ticket in the SSE URL instead of the raw JWT so the
     long-lived token never appears in access logs.
     """
-    return success_response(data={"ticket": _create_ticket(user), "expires_in": TICKET_TTL_SECONDS})
+    ticket = secrets.token_urlsafe(24)
+    await kv_set(_SPACE, ticket, str(user.id), ttl=TICKET_TTL_SECONDS)
+    return success_response(data={"ticket": ticket, "expires_in": TICKET_TTL_SECONDS})
+
+
+async def consume_ticket(ticket: str) -> int | None:
+    """Validate and remove a ticket; return user_id if valid."""
+    raw = await kv_get(_SPACE, ticket)
+    if raw is None:
+        return None
+    await kv_delete(_SPACE, ticket)  # one-time use
+    try:
+        return int(raw)
+    except ValueError:
+        return None
 
 
 # ---------------------------------------------------------------------------
@@ -130,7 +128,7 @@ async def mcp_sse_endpoint(
     # Resolve user_id from ticket (preferred) or JWT fallback
     user_id: int | None = None
     if ticket:
-        user_id = _consume_ticket(ticket)
+        user_id = await consume_ticket(ticket)
         if user_id is None:
             return StreamingResponse(
                 iter(["event: error\ndata: {\"message\": \"invalid or expired ticket\"}\n\n"]),
@@ -228,169 +226,18 @@ async def mcp_sse_message(
         return {"jsonrpc": "2.0", "error": {"code": -32000, "message": "Invalid session"}, "id": body.id}
 
     user = session.user
-    user_perms = get_user_permissions(user) if user else set()
 
-    async def send_result(result: Any, rpc_id: int | str | None = body.id) -> None:
-        await session.send({
-            "jsonrpc": "2.0",
-            "result": result,
-            "id": rpc_id,
-        })
-
-    async def send_error(code: int, message: str, rpc_id: int | str | None = body.id) -> None:
-        await session.send({
-            "jsonrpc": "2.0",
-            "error": {"code": code, "message": message},
-            "id": rpc_id,
-        })
-
-    method = body.method
-
-    try:
-        # ---- initialize ----
-        if method == "initialize":
-            session.initialized = True
-            session.client_info = body.params.get("clientInfo", {})
-            await send_result({
-                "protocolVersion": "2024-11-05",
-                "capabilities": {
-                    "tools": {"listChanged": True},
-                    "resources": {"listChanged": True},
-                    "prompts": {"listChanged": True},
-                },
-                "serverInfo": {
-                    "name": "ApeAdmin MCP Server",
-                    "version": "0.1.0",
-                },
-            })
-
-        # ---- tools/list ----
-        elif method == "tools/list":
-            tools = mcp_manager.list_tools(user_perms)
-            await send_result({
-                "tools": [
-                    {
-                        "name": t.name,
-                        "description": t.description,
-                        "inputSchema": t.input_schema,
-                        "category": t.category,
-                    }
-                    for t in tools
-                ]
-            })
-
-        # ---- tools/call ----
-        elif method == "tools/call":
-            tool_name = body.params.get("name")
-            arguments = body.params.get("arguments", {})
-
-            if not tool_name:
-                await send_error(-32602, "Missing 'name' in params")
-                return {"status": "ok"}
-
-            # RBAC check
-            if "mcp:tools:call" not in user_perms and "*" not in user_perms:
-                await send_error(-32603, "Permission denied: mcp:tools:call")
-                return {"status": "ok"}
-
-            available = mcp_manager.list_tools(user_perms)
-            if tool_name not in {t.name for t in available}:
-                await send_error(-32602, f"Tool not found: {tool_name}")
-                return {"status": "ok"}
-
-            try:
-                result = await asyncio.wait_for(
-                    mcp_manager.call_tool(tool_name, arguments),
-                    timeout=TOOL_CALL_TIMEOUT,
-                )
-                if user:
-                    await _write_audit_log(db, "tool", tool_name, user, arguments, result)
-                await send_result({
-                    "content": [{"type": "text", "text": str(result)}],
-                })
-            except asyncio.TimeoutError:
-                if user:
-                    await _write_audit_log(db, "tool", tool_name, user, arguments, status="failed")
-                await send_error(-32603, f"Tool execution timed out after {TOOL_CALL_TIMEOUT}s: {tool_name}")
-            except Exception as exc:
-                if user:
-                    await _write_audit_log(db, "tool", tool_name, user, arguments, status="failed")
-                await send_error(-32603, f"Tool execution failed: {exc}")
-
-        # ---- resources/list ----
-        elif method == "resources/list":
-            resources = mcp_manager.list_resources()
-            await send_result({
-                "resources": [
-                    {
-                        "uri": r.uri,
-                        "name": r.name,
-                        "description": r.description,
-                        "mimeType": r.mime_type,
-                    }
-                    for r in resources
-                ]
-            })
-
-        # ---- resources/read ----
-        elif method == "resources/read":
-            uri = body.params.get("uri")
-            if not uri:
-                await send_error(-32602, "Missing 'uri' in params")
-                return {"status": "ok"}
-
-            try:
-                content = await mcp_manager.read_resource(uri)
-                if user:
-                    await _write_audit_log(db, "resource", uri, user, result=content[:2000])
-                await send_result({
-                    "contents": [{"uri": uri, "mimeType": "text/plain", "text": content}]
-                })
-            except ValueError as exc:
-                await send_error(-32602, str(exc))
-
-        # ---- prompts/list ----
-        elif method == "prompts/list":
-            prompts = mcp_manager.list_prompts()
-            await send_result({
-                "prompts": [
-                    {
-                        "name": p.name,
-                        "description": p.description,
-                        "arguments": [{"name": a} for a in p.arguments],
-                    }
-                    for p in prompts
-                ]
-            })
-
-        # ---- prompts/get (MCP standard) / prompts/render (legacy alias) ----
-        elif method in ("prompts/get", "prompts/render"):
-            prompt_name = body.params.get("name")
-            prompt_args = body.params.get("arguments", {})
-            if not prompt_name:
-                await send_error(-32602, "Missing 'name' in params")
-                return {"status": "ok"}
-
-            try:
-                rendered = mcp_manager.render_prompt(prompt_name, **prompt_args)
-                if user:
-                    await _write_audit_log(db, "prompt", prompt_name, user, prompt_args, rendered)
-                await send_result({
-                    "content": [{"type": "text", "text": rendered}]
-                })
-            except ValueError as exc:
-                await send_error(-32602, str(exc))
-
-        # ---- ping ----
-        elif method == "ping":
-            await send_result({})
-
-        else:
-            await send_error(-32601, f"Method not found: {method}")
-
-    except Exception as exc:
-        logger.error(f"MCP SSE error: {exc}")
-        await send_error(-32603, f"Internal error: {exc}")
+    # Shared JSON-RPC dispatcher (identical logic to Streamable HTTP):
+    # RBAC checks, audit logging and tool timeout live in one place.
+    response = await dispatch_jsonrpc(
+        body.method,
+        body.params,
+        body.id,
+        user=user,
+        db=db,
+        session=session,
+    )
+    await session.send(response)
 
     return {"status": "ok"}
 

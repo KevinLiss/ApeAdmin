@@ -111,6 +111,65 @@ event_bus = EventBus()
 
 
 # ---------------------------------------------------------------------------
+# Per-plugin metadata isolation (L1)
+# ---------------------------------------------------------------------------
+
+# Registry: plugin name -> its isolated DeclarativeBase. Filled by
+# ``make_plugin_base`` when plugin models are imported; the manager uses it
+# on uninstall/reload instead of scanning the shared application metadata.
+_plugin_bases: dict[str, "type[Any]"] = {}
+
+
+def make_plugin_base(plugin_name: str) -> "type[Any]":
+    """Create (and register) an isolated DeclarativeBase for one plugin.
+
+    Plugin models should inherit from the returned base instead of the
+    application-wide ``src.db.Base``:
+
+        from src.plugins.base import make_plugin_base
+
+        PluginBase = make_plugin_base("my_plugin")
+
+        class MyTable(IDMixin, TimestampMixin, PluginBase):
+            __tablename__ = "my_plugin_items"
+
+    Benefits over the shared-metadata pattern:
+    - ``install()``/``uninstall()`` operate only on this plugin's tables
+      (``PluginBase.metadata.create_all/drop_all``) — no need to enumerate
+      tables by hand.
+    - Uninstall/reload cannot accidentally touch system or other plugins'
+      table definitions; the isolated metadata is dropped together with
+      the plugin module and never enters the shared registry.
+    - The ``{plugin_name}_`` table-name convention stays recommended for
+      clarity, but is no longer required for correct cleanup.
+
+    Re-importing a plugin (upgrade) replaces the registry entry; the old
+    base object is garbage-collected with the old module.
+    """
+    from sqlalchemy.orm import DeclarativeBase
+
+    class_name = "".join(part.capitalize() for part in plugin_name.split("_")) + "Base"
+
+    def _base_factory(ns: dict) -> type:
+        cls = type(class_name, (DeclarativeBase,), ns)
+        return cls
+
+    base = _base_factory({"metadata": __import__("sqlalchemy").MetaData()})
+    _plugin_bases[plugin_name] = base
+    logger.debug(f"Plugin base registered: {plugin_name} ({class_name})")
+    return base
+
+
+def get_plugin_base(plugin_name: str) -> "type[Any] | None":
+    """Return the plugin's isolated base, or None for legacy shared-Base plugins."""
+    return _plugin_bases.get(plugin_name)
+
+
+def pop_plugin_base(plugin_name: str) -> "type[Any] | None":
+    """Remove and return the plugin's isolated base (unload/upgrade cleanup)."""
+    return _plugin_bases.pop(plugin_name, None)
+
+# ---------------------------------------------------------------------------
 # Plugin Interface
 # ---------------------------------------------------------------------------
 

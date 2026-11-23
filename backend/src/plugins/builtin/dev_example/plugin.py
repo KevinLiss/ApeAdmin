@@ -6,7 +6,7 @@
    1. 复制本目录，改名为你的插件名（``snake_case``，如 ``my_plugin``）
    2. 修改 ``plugin.json`` 中的 ``name`` / ``display_name`` / ``version``
    3. 修改 ``plugin.py`` 中的类属性 ``name`` / ``display_name`` / ``version``
-   4. 在 ``models.py`` 中定义数据库模型（表名以 ``{plugin_name}_`` 开头）
+   4. 在 ``models.py`` 中用 ``make_plugin_base`` 定义数据库模型（独立 MetaData）
    5. 在 ``api.py`` 中定义路由（权限以 ``{plugin_name}:`` 开头）
    6. 在 ``seed.py`` 中注册菜单（``install()`` 时调用）
    7. 在 ``frontend/src/views/{plugin_name}/`` 下放置 Vue 页面
@@ -33,9 +33,9 @@ from loguru import logger
 from sqlalchemy import inspect
 
 from src.core.config import settings
-from src.db import Base, SessionLocal
+from src.db import SessionLocal
 from src.plugins import Event, PluginInterface, event_bus
-from src.plugins.builtin.dev_example.models import DevExampleNote  # noqa: F401 — register ORM metadata
+from src.plugins.builtin.dev_example.models import DevExampleNote, PluginBase  # noqa: F401 — register ORM metadata
 from src.plugins.builtin.dev_example.seed import seed_dev_example_data
 
 
@@ -77,7 +77,7 @@ class DevExamplePlugin(PluginInterface):
         2. Seed 初始数据 + 注册菜单
 
         .. note::
-           ``Base.metadata.create_all`` 只创建不存在的表，不会修改已有表结构。
+           ``PluginBase.metadata.create_all`` 只创建不存在的表，不会修改已有表结构。
            正常启动流程中 ``init_db()`` 已执行过 ``create_all``，
            但热启用插件时需确保表存在，所以这里显式再调一次。
         """
@@ -86,9 +86,7 @@ class DevExamplePlugin(PluginInterface):
 
         async with engine.begin() as conn:
             await conn.run_sync(
-                lambda sync_conn: Base.metadata.create_all(
-                    sync_conn, tables=[DevExampleNote.__table__]
-                )
+                lambda sync_conn: PluginBase.metadata.create_all(sync_conn)
             )
 
         async with SessionLocal() as db:
@@ -109,13 +107,11 @@ class DevExamplePlugin(PluginInterface):
            热禁用时默认 keep_data=True，不会调用此方法。
         """
         async with SessionLocal() as db:
-            # 删除插件表
+            # 删除插件表（只动本插件 MetaData）
             from src.db import engine
             async with engine.begin() as conn:
                 await conn.run_sync(
-                    lambda sync_conn: Base.metadata.drop_all(
-                        sync_conn, tables=[DevExampleNote.__table__]
-                    )
+                    lambda sync_conn: PluginBase.metadata.drop_all(sync_conn)
                 )
 
             # 清理菜单（可选：菜单联动机制会自动隐藏，但彻底清理更干净）

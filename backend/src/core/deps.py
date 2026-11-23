@@ -41,12 +41,19 @@ async def get_current_user(
 
     # Logout revocation: reject tokens whose jti was blacklisted.
     # Pre-feature tokens carry no jti and age out naturally.
+    # Fast path: Redis flag "bl:<jti>" set at logout (TTL = token lifetime)
+    # avoids the DB query on every authenticated request; DB remains the
+    # source of truth (fallback path + flag written on logout).
     jti = payload.get("jti")
     if jti:
         from sqlalchemy import select
 
+        from src.core.redis_client import kv_get
         from src.models import TokenBlacklist
 
+        flag = await kv_get("bl", jti)
+        if flag == "1":
+            raise AuthException("Token has been revoked")
         blacklisted = (
             await db.execute(
                 select(TokenBlacklist.id).where(TokenBlacklist.jti == jti).limit(1)

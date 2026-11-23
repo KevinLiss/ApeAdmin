@@ -20,7 +20,7 @@ class Settings(BaseSettings):
 
     # ---- App ----
     APP_NAME: str = "ApeAdmin"
-    APP_VERSION: str = "2.8.2"
+    APP_VERSION: str = "2.9.0"
     DEBUG: bool = True
     API_PREFIX: str = "/api/v1"
 
@@ -37,6 +37,8 @@ class Settings(BaseSettings):
 
     # ---- Redis ----
     REDIS_URL: str | None = "redis://localhost:6379/1"
+    # false 时完全不使用 Redis（跳过连接），即使 URL 已配置
+    REDIS_ENABLED: bool = True
 
     # ---- JWT / Auth ----
     JWT_SECRET: str = Field(default="change-me-in-production-please-32chars!")
