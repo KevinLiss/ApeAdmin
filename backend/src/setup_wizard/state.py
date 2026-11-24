@@ -95,6 +95,10 @@ def write_env(
         "PLUGINS_ENABLED=True",
     ]
     ENV_FILE.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    # 敏感文件（含 DB 密码/JWT_SECRET/超管密码）：收紧为属主可读写
+    import os
+
+    os.chmod(ENV_FILE, 0o600)
 
 
 def write_lock(result: dict) -> None:

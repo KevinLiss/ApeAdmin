@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import secrets
 from pathlib import Path
+from urllib.parse import quote as url_quote
 
 from fastapi import APIRouter
 from fastapi.responses import FileResponse
@@ -60,8 +61,10 @@ def _db_url(cfg: DbConfig, *, with_db: bool = True) -> str:
     if cfg.db_type == "sqlite":
         return f"sqlite+aiosqlite:///./{cfg.db_name}.db"
     dbname = cfg.db_name if with_db else ""
+    # 密码特殊字符（@ # / : 等）必须 URL 转义，否则拼出的连接串会被解析破坏
+    pwd = url_quote(cfg.db_password, safe="")
     return (
-        f"mysql+aiomysql://{cfg.db_user}:{cfg.db_password}"
+        f"mysql+aiomysql://{cfg.db_user}:{pwd}"
         f"@{cfg.db_host}:{cfg.db_port}/{dbname}?charset=utf8mb4"
     )
 

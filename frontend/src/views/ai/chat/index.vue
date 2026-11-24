@@ -285,6 +285,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   getAllProviders,
@@ -339,6 +340,7 @@ interface ChatSessionItem {
 }
 
 const store = useAiChatStore()
+const router = useRouter()
 
 // 会话列表来自全局 store（切页面后状态仍在）
 const sessions = computed(() => store.sessions)
@@ -729,10 +731,42 @@ watch(
     }
     scrollToBottom()
     if (cur && cur.status === 'failed' && !cur.answer) {
-      ElMessage.error('生成失败：' + (cur.error || '未知错误'))
+      showFailureGuide(cur.error || '未知错误')
     }
   }
 )
+
+// ---------- 失败引导：未配置密钥/网络类错误 → 弹窗带「去配置模型」 ----------
+function showFailureGuide(errorMsg: string) {
+  const msg = String(errorMsg || '')
+  // 命中这几类错误时给出配置引导（后端 400 的 provider 错误 / 网络代理端口错误）
+  const needsConfig =
+    /未配置.*供应商|供应商不存在|已被禁用|no provider|provider_not/i.test(msg) ||
+    /api.?key|401|invalid.*key|key.*invalid/i.test(msg) ||
+    /invalid port|proxy|代理|connect|timeout|network/i.test(msg)
+  if (needsConfig) {
+    ElMessageBox.alert(
+      '本次生成失败：' + msg,
+      '需要配置模型密钥',
+      {
+        confirmButtonText: '去配置模型',
+        cancelButtonText: '稍后处理',
+        showCancelButton: true,
+        type: 'warning',
+        distinguishCancelAndClose: true,
+      }
+    )
+      .then(() => {
+        // 跳转「模型密钥管理」（keep-alive 会保留当前对话，返回后可继续）
+        router.push('/ai/providers')
+      })
+      .catch(() => {
+        /* 稍后处理：留在当前页 */
+      })
+  } else {
+    ElMessage.error('生成失败：' + msg)
+  }
+}
 
 // 排队 run 被接管为活跃 run（前一个完成后）
 watch(

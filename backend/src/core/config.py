@@ -85,8 +85,12 @@ class Settings(BaseSettings):
     def database_url(self) -> str:
         """Build the SQLAlchemy async database URL."""
         if self.DB_TYPE == "mysql":
+            # 密码特殊字符（@ # / : 等）必须 URL 转义，否则连接串解析会被破坏
+            from urllib.parse import quote as url_quote
+
+            pwd = url_quote(self.DB_PASSWORD, safe="")
             return (
-                f"mysql+aiomysql://{self.DB_USER}:{self.DB_PASSWORD}"
+                f"mysql+aiomysql://{self.DB_USER}:{pwd}"
                 f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}?charset=utf8mb4"
             )
         return f"sqlite+aiosqlite:///./{self.DB_NAME}.db"
@@ -95,8 +99,11 @@ class Settings(BaseSettings):
     def sync_database_url(self) -> str:
         """Build a synchronous database URL for Alembic migrations."""
         if self.DB_TYPE == "mysql":
+            from urllib.parse import quote as url_quote
+
+            pwd = url_quote(self.DB_PASSWORD, safe="")
             return (
-                f"mysql+pymysql://{self.DB_USER}:{self.DB_PASSWORD}"
+                f"mysql+pymysql://{self.DB_USER}:{pwd}"
                 f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}?charset=utf8mb4"
             )
         return f"sqlite:///{self.DB_NAME}.db"
