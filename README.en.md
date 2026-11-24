@@ -441,6 +441,9 @@ Contributions are welcome!
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| v2.9.1 | 2026-11-24 | Security fix batch: logout now revokes the companion refresh token; server-side arithmetic captcha for login (``login_captcha_enabled`` switch, off by default); plaintext "remember password" removed; layer-4 data scope (Role.data_scope) live on the user list; Alembic migration files tracked in git + idempotent 0001 + migration discipline doc; 401 deep-route redirect fix; admin_path configurable at build time (``VITE_ADMIN_BASE``) |
+| v2.9.0 | 2026-11-23 | Architecture trio: MCP adds Streamable HTTP transport (shared JSON-RPC dispatch); Redis truly enabled (brute-force guard / ticket / revocation cache, degradeable to memory); plugin MetaData isolation (``make_plugin_base``) + scaffold sync |
+| v2.8.2 | 2026-11-21 | Fixed fresh-clone build break from a tracked leftover (Plugins.vue); README rewrite |
 | v2.8.1 | 2026-11-20 | Dependency refresh: 10 minor backend bumps + greenlet pinned; frontend drops 9 dead deps, sortablejs explicit; vue-tsc full check restored; fixed fresh-clone build break caused by a tracked leftover (Plugins.vue) |
 | v2.8.0 | 2026-11-19 | Plugin layering: hermes fully removed from base repo & install package; base keeps only core code + dev_example |
 | v2.7.0 | 2026-11-05 | Parallel run architecture for AI chat + qm-style UI; hermes bundled (reverted in v2.8.0) |

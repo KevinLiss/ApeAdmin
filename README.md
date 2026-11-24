@@ -428,6 +428,7 @@ class MyPlugin(PluginInterface):
 
 | 版本 | 日期 | 要点 |
 |------|------|------|
+| v2.9.1 | 2026-11-24 | 安全修复批次：logout 吊销 refresh token 闭环；登录算术验证码服务端校验（``login_captcha_enabled`` 开关，默认关）；去除明文记住密码；数据范围（data_scope）第 4 层鉴权在用户列表落地；Alembic 迁移文件入库＋0001 幂等化＋迁移纪律；401 深路由跳转修复；admin_path 构建期可配置（``VITE_ADMIN_BASE``） |
 | v2.9.0 | 2026-11-23 | 架构三项：MCP 新增 Streamable HTTP 传输（共享 JSON-RPC 分发层）；Redis 真正启用（爆破防护/ticket/吊销缓存，可降级内存）；插件 MetaData 隔离（``make_plugin_base``）＋脚手架同步 |
 | v2.8.2 | 2026-11-21 | 修复全新克隆无法构建的库内残留（Plugins.vue 误入库）；README 重写 |
 | v2.8.1 | 2026-11-20 | 依赖升级：后端 10 项小版本跟升＋greenlet 显式锁定；前端删 9 死依赖、sortablejs 转正；恢复 vue-tsc 完整检查 |
