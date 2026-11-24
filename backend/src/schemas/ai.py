@@ -96,6 +96,7 @@ class SessionOut(BaseModel):
     provider_id: int | None = None
     model: str | None = None
     message_count: int
+    archived: bool = False
     created_at: datetime
     updated_at: datetime
 
@@ -118,6 +119,11 @@ class SessionAppendMessage(BaseModel):
 
 class SessionRename(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
+
+
+class SessionArchiveIn(BaseModel):
+    """Archive / unarchive a chat session."""
+    archived: bool
 
 
 # ---------------------------------------------------------------------------

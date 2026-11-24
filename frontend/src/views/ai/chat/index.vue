@@ -4,39 +4,88 @@
     <transition name="session-slide">
       <div v-show="!isMobile || sessionDrawerOpen" class="session-panel">
         <div class="session-panel-header">
-          <span class="session-panel-title">会话</span>
-          <el-tooltip content="新建会话" placement="bottom">
-            <button class="icon-btn" @click="newSession">
-              <el-icon :size="16"><Plus /></el-icon>
-            </button>
-          </el-tooltip>
+          <span class="session-panel-title">{{ showArchived ? '已归档会话' : '会话' }}</span>
+          <div class="session-panel-actions">
+            <el-tooltip :content="showArchived ? '返回会话列表' : '查看已归档会话'" placement="bottom">
+              <button
+                class="icon-btn"
+                :class="{ active: showArchived }"
+                @click="toggleArchivedView"
+              >
+                <el-icon :size="16"><Box /></el-icon>
+              </button>
+            </el-tooltip>
+            <el-tooltip v-if="!showArchived" content="新建会话" placement="bottom">
+              <button class="icon-btn" @click="newSession">
+                <el-icon :size="16"><Plus /></el-icon>
+              </button>
+            </el-tooltip>
+          </div>
         </div>
         <div class="session-list">
           <div
-            v-for="s in sessions"
+            v-for="s in visibleSessions"
             :key="s.id"
             class="session-item"
-            :class="{ active: s.id === activeSessionId }"
-            @click="switchSession(s.id)"
+            :class="{ active: s.id === activeSessionId, archived: showArchived }"
+            @click="!editingSessionId && switchSession(s.id)"
           >
             <div class="session-item-main">
-              <div class="session-item-top">
-                <span class="session-item-title" :title="s.title">{{ s.title }}</span>
-                <span v-if="isSessionWorking(s.id)" class="session-status-dot" title="生成中"></span>
-              </div>
-              <div class="session-item-sub">
-                <span>{{ formatSessionTime(s.updated_at) }}</span>
-                <span>·</span>
-                <span>{{ s.message_count }} 条</span>
-              </div>
+              <!-- 行内重命名编辑态 -->
+              <template v-if="editingSessionId === s.id">
+                <input
+                  v-model.trim="editingTitle"
+                  class="session-rename-input"
+                  maxlength="200"
+                  @click.stop
+                  @keyup.enter="commitRename(s)"
+                  @keyup.esc="cancelRename"
+                  @blur="commitRename(s)"
+                />
+              </template>
+              <template v-else>
+                <div class="session-item-top">
+                  <span class="session-item-title" :title="s.title">{{ s.title }}</span>
+                  <span v-if="!showArchived && isSessionWorking(s.id)" class="session-status-dot" title="生成中"></span>
+                </div>
+                <div class="session-item-sub">
+                  <span>{{ formatSessionTime(s.updated_at) }}</span>
+                  <span>·</span>
+                  <span>{{ s.message_count }} 条</span>
+                </div>
+              </template>
             </div>
-            <el-icon
-              class="session-item-del"
-              :size="14"
-              @click.stop="confirmDeleteSession(s)"
-            ><Delete /></el-icon>
+            <!-- hover 操作组：重命名 / 归档（或取消归档）/ 删除 -->
+            <div v-if="editingSessionId !== s.id" class="session-item-actions">
+              <el-tooltip
+                :content="showArchived ? '取消归档' : '重命名'"
+                placement="top"
+                :hide-after="0"
+              >
+                <button class="session-item-btn" @click.stop="showArchived ? unarchiveSession(s) : startRename(s)">
+                  <el-icon :size="13"><component :is="showArchived ? 'RefreshLeft' : 'EditPen'" /></el-icon>
+                </button>
+              </el-tooltip>
+              <el-tooltip
+                v-if="!showArchived"
+                content="一键归档（从列表移入归档，消息保留）"
+                placement="top"
+                :hide-after="0"
+              >
+                <button class="session-item-btn" @click.stop="archiveSessionNow(s)">
+                  <el-icon :size="13"><Box /></el-icon>
+                </button>
+              </el-tooltip>
+              <el-tooltip content="删除会话" placement="top" :hide-after="0">
+                <button class="session-item-btn danger" @click.stop="confirmDeleteSession(s)">
+                  <el-icon :size="13"><Delete /></el-icon>
+                </button>
+              </el-tooltip>
+            </div>
           </div>
-          <div v-if="sessions.length === 0" class="session-empty">暂无历史会话</div>
+          <div v-if="visibleSessions.length === 0" class="session-empty">
+            {{ showArchived ? '暂无已归档会话' : '暂无历史会话' }}
+          </div>
         </div>
       </div>
     </transition>
@@ -285,6 +334,7 @@ interface ChatSessionItem {
   id: number
   title: string
   message_count: number
+  archived?: boolean
   updated_at: string | null
 }
 
@@ -292,10 +342,20 @@ const store = useAiChatStore()
 
 // 会话列表来自全局 store（切页面后状态仍在）
 const sessions = computed(() => store.sessions)
+// 归档视图：只看已归档会话；默认视图只看未归档会话
+const visibleSessions = computed(() =>
+  showArchived.value
+    ? store.sessions.filter((s) => s.archived)
+    : store.sessions.filter((s) => !s.archived)
+)
 
 const messagesRef = ref<HTMLElement>()
 const inputText = ref('')
 const enableTools = ref(true)
+// 会话归档视图切换 + 行内重命名状态
+const showArchived = ref(false)
+const editingSessionId = ref<number | null>(null)
+const editingTitle = ref('')
 const providers = ref<any[]>([])
 const selectedProviderId = ref<number | null>(null)
 const selectedModel = ref<string>('')
@@ -359,7 +419,9 @@ const displayMessages = computed<DisplayMessage[]>(() => {
     const lastHis = msgs[msgs.length - 1]
     const qInHistory = lastHis && lastHis.role === 'user' && lastHis.content === run.question
     if (!qInHistory) {
-      msgs.push({ key: `u-${run.runId}`, role: 'user', content: run.question, pending: true })
+      // 用户消息侧不再展示「生成中」标签（批注：不需要）——
+      // 生成状态由 AI 侧标签与会话列表状态点表达
+      msgs.push({ key: `u-${run.runId}`, role: 'user', content: run.question })
     }
     msgs.push({
       key: `a-${run.runId}`,
@@ -722,28 +784,85 @@ function clearChat() {
     .catch(() => {})
 }
 
+// ---------- 会话归档（一键归档 / 取消归档） ----------
+async function archiveSessionNow(s: ChatSessionItem) {
+  const sid = s.id
+  const wasActive = activeSessionId.value === sid
+  try {
+    const { archiveChatSession } = await import('@/api')
+    await archiveChatSession(sid, true)
+    s.archived = true
+    // 归档当前会话则回到欢迎页
+    if (wasActive) {
+      activeSessionId.value = null
+      historyMessages.value = []
+      try {
+        localStorage.removeItem(LAST_SESSION_KEY)
+      } catch {
+        /* ignore */
+      }
+    }
+    ElMessage.success('已归档，可在归档视图中恢复')
+  } catch {
+    ElMessage.error('归档失败')
+  }
+}
+
+async function unarchiveSession(s: ChatSessionItem) {
+  try {
+    const { archiveChatSession } = await import('@/api')
+    await archiveChatSession(s.id, false)
+    s.archived = false
+    ElMessage.success('已恢复到会话列表')
+  } catch {
+    ElMessage.error('恢复失败')
+  }
+}
+
+function toggleArchivedView() {
+  editingSessionId.value = null
+  showArchived.value = !showArchived.value
+}
+
+// ---------- 会话行内重命名（批注：加编辑） ----------
+function startRename(s: ChatSessionItem) {
+  editingSessionId.value = s.id
+  editingTitle.value = s.title
+}
+
+function cancelRename() {
+  editingSessionId.value = null
+  editingTitle.value = ''
+}
+
+async function commitRename(s: ChatSessionItem) {
+  if (editingSessionId.value !== s.id) return
+  const title = editingTitle.value.trim()
+  editingSessionId.value = null
+  editingTitle.value = ''
+  if (!title || title === s.title) return
+  try {
+    const { renameChatSession } = await import('@/api')
+    await renameChatSession(s.id, title)
+    s.title = title
+    ElMessage.success('已重命名')
+  } catch {
+    ElMessage.error('重命名失败')
+  }
+}
+
 async function renameActiveSession() {
+  // 统一走列表条目的行内重命名（弹窗提示改为在条目上直接编辑）
   const sid = activeSessionId.value
   if (sid == null) return
   const s = store.sessions.find((x) => x.id === sid)
   if (!s) return
-  try {
-    const { value } = await ElMessageBox.prompt('新的会话名称', '重命名会话', {
-      confirmButtonText: '保存',
-      cancelButtonText: '取消',
-      inputValue: s.title,
-      inputValidator: (v: string) =>
-        (v && v.trim().length > 0 && v.trim().length <= 200) || '名称不能为空且不超过 200 字',
-    })
-    const title = (value || '').trim()
-    if (!title || title === s.title) return
-    const { renameChatSession } = await import('@/api')
-    await renameChatSession(sid, title)
-    s.title = title
-    ElMessage.success('已重命名')
-  } catch {
-    /* 用户取消 */
+  if (s.archived) {
+    ElMessage.info('会话已归档，请先在归档视图中恢复')
+    return
   }
+  showArchived.value = false
+  startRename(s)
 }
 
 // ---------- 复制 ----------
@@ -870,16 +989,97 @@ onBeforeUnmount(() => {
   margin-top: 2px;
 }
 .session-status-dot {
-  width: 7px;
-  height: 7px;
+  position: relative;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: var(--el-color-success, #67c23a);
+  background: var(--text-secondary, #909399);
   flex-shrink: 0;
-  animation: pulse 1.2s ease-in-out infinite;
+}
+.session-status-dot::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1px solid var(--text-secondary, #909399);
+  opacity: 0.4;
+  animation: status-ring 1.6s ease-out infinite;
+}
+@keyframes status-ring {
+  0% { transform: scale(0.6); opacity: 0.55; }
+  80%, 100% { transform: scale(1.5); opacity: 0; }
 }
 @keyframes pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.45; transform: scale(0.8); }
+}
+.session-item-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.session-item:hover .session-item-actions,
+.session-item.active .session-item-actions {
+  opacity: 1;
+}
+.session-item-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-secondary, #909399);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.session-item-btn:hover {
+  background: var(--el-fill-color, #f0f2f5);
+  color: var(--el-color-primary, #5a67f5);
+}
+.session-item-btn.danger:hover {
+  background: var(--el-color-danger-light-9, #fef0f0);
+  color: var(--el-color-danger, #f56c6c);
+}
+.session-item.archived .session-item-title {
+  color: var(--text-secondary, #909399);
+}
+.session-rename-input {
+  width: 100%;
+  height: 24px;
+  border: 1px solid var(--el-color-primary, #5a67f5);
+  border-radius: 5px;
+  background: var(--el-bg-color, #fff);
+  color: var(--text-primary, #303133);
+  font-size: 13px;
+  padding: 0 6px;
+  outline: none;
+  box-sizing: border-box;
+}
+.session-panel-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.session-panel-actions .icon-btn.active {
+  color: var(--el-color-primary, #5a67f5);
+  background: var(--el-color-primary-light-9, #ecf0ff);
+}
+html.dark .session-item-btn:hover {
+  background: #2c3244;
+}
+html.dark .session-rename-input {
+  background: #232739;
+  border-color: #7f8af8;
+  color: #e5e7f4;
+}
+html.dark .session-item.archived .session-item-title {
+  color: #8f94a3;
 }
 .session-item-del {
   flex-shrink: 0;
@@ -929,8 +1129,8 @@ onBeforeUnmount(() => {
   gap: 5px;
   padding: 2px 10px;
   border-radius: 999px;
-  background: var(--el-color-success-light-9, #f0f9eb);
-  color: var(--el-color-success, #67c23a);
+  background: var(--fill-light, #f0f2f5);
+  color: var(--text-secondary, #909399);
   font-size: 12px;
   white-space: nowrap;
 }
@@ -938,7 +1138,7 @@ onBeforeUnmount(() => {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--el-color-success, #67c23a);
+  background: var(--text-secondary, #909399);
   animation: pulse 1.2s ease-in-out infinite;
 }
 /* composer 内的小尺寸下拉 */
@@ -1136,8 +1336,8 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 3px;
   font-size: 11px;
-  color: var(--el-color-success, #67c23a);
-  background: var(--el-color-success-light-9, #f0f9eb);
+  color: var(--text-secondary, #909399);
+  background: var(--fill-light, #f0f2f5);
   padding: 1px 8px;
   border-radius: 999px;
 }
@@ -1406,7 +1606,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: var(--el-color-success, #67c23a);
+  color: var(--text-secondary, #909399);
   padding: 2px 6px 8px;
 }
 .stop-inline {
@@ -1635,19 +1835,28 @@ html.dark .msg-action-btn:hover {
   color: #7f8af8;
 }
 html.dark .generating-tip {
-  background: rgba(103, 194, 58, 0.1);
+  background: transparent;
+  color: #8f94a3;
 }
 html.dark .generating-tip.queued-tip {
   background: rgba(230, 162, 60, 0.1);
 }
 html.dark .running-badge {
-  background: rgba(103, 194, 58, 0.12);
+  background: rgba(144, 147, 153, 0.14);
+  color: #8f94a3;
 }
 html.dark .queue-tag {
-  background: rgba(103, 194, 58, 0.12);
+  background: rgba(144, 147, 153, 0.14);
+  color: #8f94a3;
 }
 html.dark .queue-tag.queued {
   background: rgba(230, 162, 60, 0.12);
+}
+html.dark .session-status-dot {
+  background: #8f94a3;
+}
+html.dark .session-status-dot::after {
+  border-color: #8f94a3;
 }
 html.dark .toolbar-sep {
   background: #3a3f52;

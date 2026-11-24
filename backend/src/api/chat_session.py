@@ -14,6 +14,7 @@ from src.db import get_db
 from src.models import User
 from src.schemas.ai import (
     SessionAppendMessage,
+    SessionArchiveIn,
     SessionCreate,
     SessionMessageOut,
     SessionOut,
@@ -30,6 +31,7 @@ def _session_out(s) -> dict:
         "provider_id": s.provider_id,
         "model": s.model,
         "message_count": s.message_count,
+        "archived": bool(s.archived),
         "created_at": s.created_at.isoformat() if s.created_at else None,
         "updated_at": s.updated_at.isoformat() if s.updated_at else None,
     }
@@ -119,6 +121,28 @@ async def rename_session(
     await db.commit()
     await db.refresh(session)
     return success_response(data=_session_out(session), msg=t("chat_session.renamed"))
+
+
+@router.put("/{session_id}/archive")
+async def archive_session(
+    session_id: int,
+    body: SessionArchiveIn,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
+    """Archive or unarchive a session (one-click archive).
+
+    Archived sessions keep all messages and runs; they only leave the
+    default chat sidebar list until unarchived.
+    """
+    session = await _get_owned_session(session_id, db, user)
+    session.archived = bool(body.archived)
+    await db.commit()
+    await db.refresh(session)
+    return success_response(
+        data=_session_out(session),
+        msg=t("chat_session.archived" if body.archived else "chat_session.unarchived"),
+    )
 
 
 @router.delete("/{session_id}")

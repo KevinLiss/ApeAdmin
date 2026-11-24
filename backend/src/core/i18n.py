@@ -137,6 +137,8 @@ _ZH = {
     "chat_session.created": "会话已创建",
     "chat_session.renamed": "会话已重命名",
     "chat_session.deleted": "会话已删除",
+    "chat_session.archived": "会话已归档",
+    "chat_session.unarchived": "会话已取消归档",
     "chat_session.message_saved": "消息已保存",
 
     # system
@@ -310,6 +312,8 @@ _EN = {
     "chat_session.created": "Session created",
     "chat_session.renamed": "Session renamed",
     "chat_session.deleted": "Session deleted",
+    "chat_session.archived": "Session archived",
+    "chat_session.unarchived": "Session unarchived",
     "chat_session.message_saved": "Message saved",
 
     # system

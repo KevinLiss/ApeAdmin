@@ -57,6 +57,10 @@ class ChatSession(IDMixin, TimestampMixin, Base):
     message_count: Mapped[int] = mapped_column(
         Integer, nullable=False, default=0, comment="消息数量"
     )
+    archived: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="0",
+        comment="是否归档（归档后从默认会话列表隐藏）"
+    )
 
     def __repr__(self) -> str:
         return f"<ChatSession {self.id} user={self.user_id}>"

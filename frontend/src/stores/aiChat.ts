@@ -31,6 +31,7 @@ export interface SessionItem {
   id: number
   title: string
   message_count: number
+  archived?: boolean
   updated_at: string | null
 }
 

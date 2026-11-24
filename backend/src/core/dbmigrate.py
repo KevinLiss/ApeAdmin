@@ -38,6 +38,12 @@ from src.db.engine import engine
 SCHEMA_PATCHES: list[tuple[str, str, str]] = [
     # 2.4.0: menu i18n keys for the zh-CN/en-US switch.
     ("sys_menu", "i18n_key", "ALTER TABLE sys_menu ADD COLUMN i18n_key VARCHAR(100) NULL"),
+    # 2.9.1: chat session one-click archive (see alembic 0002).
+    (
+        "chat_session",
+        "archived",
+        "ALTER TABLE chat_session ADD COLUMN archived BOOLEAN NOT NULL DEFAULT 0",
+    ),
 ]
 
 

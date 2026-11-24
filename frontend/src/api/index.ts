@@ -95,6 +95,9 @@ export const getChatSessionMessages = (id: number) => request.get(`/ai/sessions/
 export const renameChatSession = (id: number, title: string) =>
   request.put(`/ai/sessions/${id}`, { title })
 export const deleteChatSession = (id: number) => request.delete(`/ai/sessions/${id}`)
+// 一键归档/取消归档会话（归档后从默认列表隐藏，消息保留）
+export const archiveChatSession = (id: number, archived: boolean) =>
+  request.put(`/ai/sessions/${id}/archive`, { archived })
 export const appendChatMessage = (
   id: number,
   data: { role: string; content: string; tool_events?: any[] | null }
