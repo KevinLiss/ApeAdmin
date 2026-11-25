@@ -24,6 +24,7 @@ from fastapi.staticfiles import StaticFiles
 from loguru import logger
 
 from src.core.config import settings
+from src.core import proxy_compat  # noqa: F401  import-time proxy env normalization
 from src.core.exceptions import register_exception_handlers
 from src.core.logging import setup_logging
 from src.core.middleware import register_middleware

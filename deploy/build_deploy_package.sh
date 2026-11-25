@@ -132,7 +132,7 @@ python-jose[cryptography]==3.5.0
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.34
 mcp==2.3.0
-httpx==0.28.1
+httpx[socks]==0.28.1
 loguru==0.8.0
 rich==15.0.0
 typer==0.29.2
