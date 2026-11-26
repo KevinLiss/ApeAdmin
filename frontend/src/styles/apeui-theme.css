@@ -499,3 +499,85 @@ body {
 @media (max-width: 768px) {
   .stat-card-grid { grid-template-columns: 1fr; }
 }
+
+/* ============================================================
+   弹窗与提示统一主题色系（2026-11-26 视觉收敛：不要五颜六色）
+   - ElMessage（toast）：白底 + 主题色图标/文字，语义色柔和化
+   - ElNotification（通知）：中性底 + 主题色图标，标题随主题文字色
+   - ElAlert（弹窗内提示条）：主题浅紫底 + 主题色图标
+   - ElMessageBox：按钮主色跟随主题
+   语义仍由文字表达；视觉色系统一为 ApeUI 紫。
+   ============================================================ */
+
+/* ---- ElMessage 全语义变体 → 中性主题化 ---- */
+.el-message {
+  --el-message-bg-color: var(--theme-card-bg, #ffffff);
+  --el-message-border-color: var(--theme-border, #e9edf3);
+  background-color: var(--theme-card-bg, #ffffff);
+  border-color: var(--theme-border, #e9edf3);
+  box-shadow: 0 4px 16px rgba(90, 103, 245, 0.12);
+}
+.el-message .el-message__content {
+  color: var(--theme-text, #2b2b2b);
+  font-weight: 500;
+}
+.el-message--success .el-message__icon,
+.el-message--warning .el-message__icon,
+.el-message--error .el-message__icon,
+.el-message--info .el-message__icon {
+  color: var(--el-color-primary);
+}
+/* 分组计数角标 → 主题色 */
+.el-message .el-message__badge {
+  background-color: var(--el-color-primary);
+}
+
+/* ---- ElAlert（弹窗内提示条）→ 主题浅紫底 + 主题色图标 ---- */
+.el-alert--info,
+.el-alert--warning {
+  --el-alert-bg-color: var(--el-color-primary-light-9);
+  --el-alert-border-color: rgba(90, 103, 245, 0.20);
+}
+.el-alert--info .el-alert__icon,
+.el-alert--warning .el-alert__icon {
+  color: var(--el-color-primary);
+}
+.el-alert--info .el-alert__title,
+.el-alert--warning .el-alert__title {
+  color: var(--el-text-color-primary);
+}
+.el-alert--info.el-alert--dark .el-alert__title,
+.el-alert--warning.el-alert--dark .el-alert__title {
+  color: #ffffff;
+}
+
+/* ---- ElNotification 通知 → 中性底 + 主题色图标 ---- */
+.el-notification {
+  --el-notification-title-color: var(--theme-text, #2b2b2b);
+  border: 1px solid var(--theme-border, #e9edf3);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(90, 103, 245, 0.12);
+}
+.el-notification .el-notification__title { font-weight: 600; }
+.el-notification .el-notification__icon,
+.el-notification .el-notification__icon.is-success,
+.el-notification .el-notification__icon.is-warning,
+.el-notification .el-notification__icon.is-error,
+.el-notification .el-notification__icon.is-info {
+  color: var(--el-color-primary);
+}
+
+/* ---- ElMessageBox 确认弹窗 → 主题化 ---- */
+.el-message-box {
+  --el-messagebox-title-color: var(--theme-text, #2b2b2b);
+  border-radius: 10px;
+}
+
+/* ---- ElDialog 弹窗圆角与投影统一 ---- */
+.el-dialog {
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(90, 103, 245, 0.16);
+}
+.el-drawer {
+  box-shadow: 0 8px 32px rgba(90, 103, 245, 0.16);
+}
